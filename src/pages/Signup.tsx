@@ -33,15 +33,15 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-sage/20 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md animate-fade-in">
+    <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
+      <Card className="w-full max-w-md animate-fade-in shadow-lg border-lavender/20">
         <CardHeader className="text-center">
           <div className="mb-4">
-            <div className="w-16 h-16 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-4 shadow-md">
               <span className="text-2xl text-white">🧘</span>
             </div>
-            <h1 className="text-2xl font-bold text-primary">Join Yogi-ai</h1>
-            <p className="text-muted-foreground">Start your wellness journey today</p>
+            <h1 className="text-2xl font-bold text-stone">Join Yogi-ai</h1>
+            <p className="text-stone/70">Start your wellness journey today</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -52,7 +52,7 @@ const Signup = () => {
                 placeholder="Email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className="rounded-xl"
+                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
               />
             </div>
@@ -62,7 +62,7 @@ const Signup = () => {
                 placeholder="Password"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className="rounded-xl"
+                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
               />
             </div>
@@ -72,19 +72,19 @@ const Signup = () => {
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                className="rounded-xl"
+                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
               />
             </div>
-            <Button type="submit" className="w-full rounded-xl gradient-sage text-white">
+            <Button type="submit" className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md">
               Create Account
             </Button>
           </form>
 
           <div className="text-center">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-stone/60">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary hover:underline font-medium">
+              <Link to="/login" className="text-sage hover:underline font-medium">
                 Sign in
               </Link>
             </span>

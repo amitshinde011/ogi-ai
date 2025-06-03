@@ -24,15 +24,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-sage/20 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md animate-fade-in">
+    <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
+      <Card className="w-full max-w-md animate-fade-in shadow-lg border-lavender/20">
         <CardHeader className="text-center">
           <div className="mb-4">
-            <div className="w-16 h-16 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-4 shadow-md">
               <span className="text-2xl text-white">🧘</span>
             </div>
-            <h1 className="text-2xl font-bold text-black">Welcome to Yogi-ai</h1>
-            <p className="text-gray-600">Track Your Meals. Share the Journey.</p>
+            <h1 className="text-2xl font-bold text-stone">Welcome to Yogi-ai</h1>
+            <p className="text-stone/70">Track Your Meals. Share the Journey.</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -43,7 +43,7 @@ const Login = () => {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-xl text-black"
+                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
               />
             </div>
@@ -53,37 +53,37 @@ const Login = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="rounded-xl text-black"
+                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
               />
             </div>
-            <Button type="submit" className="w-full rounded-xl gradient-sage text-white">
+            <Button type="submit" className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md">
               Sign In
             </Button>
           </form>
           
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-sage/20"></div>
+              <div className="w-full border-t border-lavender/30"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-600">Or continue with</span>
+              <span className="bg-white px-2 text-stone/60">Or continue with</span>
             </div>
           </div>
 
           <Button
             onClick={handleGoogleLogin}
             variant="outline"
-            className="w-full rounded-xl border-sage/20 hover:bg-sage/5 text-black"
+            className="w-full rounded-xl border-lavender/30 hover:bg-lavender/10 text-stone"
           >
             <span className="mr-2">🔍</span>
             Continue with Google
           </Button>
 
           <div className="text-center">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-stone/60">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-forest hover:underline font-medium">
+              <Link to="/signup" className="text-sage hover:underline font-medium">
                 Sign up
               </Link>
             </span>

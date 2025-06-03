@@ -126,24 +126,24 @@ const Settings = () => {
       
       <div className="p-4 space-y-6 max-w-md mx-auto">
         {/* Profile Section */}
-        <Card>
+        <Card className="shadow-lg border-lavender/20">
           <CardContent className="p-4">
             <div className="flex items-center">
               <img
                 src={user.avatar}
                 alt="Profile"
-                className="w-16 h-16 rounded-full mr-4"
+                className="w-16 h-16 rounded-full mr-4 shadow-md"
               />
               <div className="flex-1">
-                <h3 className="font-semibold text-primary text-lg">{user.name}</h3>
-                <p className="text-muted-foreground">{user.email}</p>
-                <p className="text-sm text-muted-foreground mt-1">{user.dietaryGoals}</p>
+                <h3 className="font-semibold text-stone text-lg">{user.name}</h3>
+                <p className="text-stone/70">{user.email}</p>
+                <p className="text-sm text-stone/60 mt-1">{user.dietaryGoals}</p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/profile-edit')}
-                className="text-primary"
+                className="text-sage hover:bg-sage/10"
               >
                 <Edit size={16} />
               </Button>
@@ -154,30 +154,30 @@ const Settings = () => {
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
           <div key={sectionIndex}>
-            <h4 className="font-semibold text-primary mb-3 px-1">{section.title}</h4>
-            <Card>
+            <h4 className="font-semibold text-stone mb-3 px-1">{section.title}</h4>
+            <Card className="shadow-lg border-lavender/20">
               <CardContent className="p-0">
                 {section.items.map((item, itemIndex) => (
                   <div key={itemIndex}>
                     <div
                       className={`flex items-center justify-between p-4 ${
-                        item.action ? 'cursor-pointer hover:bg-sage/5' : ''
+                        item.action ? 'cursor-pointer hover:bg-lavender/10' : ''
                       }`}
                       onClick={item.action}
                     >
                       <div className="flex items-center">
-                        <item.icon className="text-muted-foreground mr-3" size={20} />
-                        <span className="font-medium">{item.label}</span>
+                        <item.icon className="text-stone/60 mr-3" size={20} />
+                        <span className="font-medium text-stone">{item.label}</span>
                       </div>
                       <div className="flex items-center">
                         {item.component}
                         {item.hasArrow && (
-                          <ChevronRight className="text-muted-foreground" size={16} />
+                          <ChevronRight className="text-stone/60" size={16} />
                         )}
                       </div>
                     </div>
                     {itemIndex < section.items.length - 1 && (
-                      <div className="border-b border-gray-100 ml-11" />
+                      <div className="border-b border-lavender/20 ml-11" />
                     )}
                   </div>
                 ))}
@@ -190,14 +190,14 @@ const Settings = () => {
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+          className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 shadow-md"
         >
           <LogOut size={16} className="mr-2" />
           Sign Out
         </Button>
 
         {/* App Version */}
-        <div className="text-center text-sm text-muted-foreground">
+        <div className="text-center text-sm text-stone/60">
           Yogi-ai v1.0.0
         </div>
       </div>

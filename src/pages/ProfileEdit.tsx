@@ -69,15 +69,15 @@ const ProfileEdit = () => {
       <Header title="Edit Profile" showBack />
       
       <div className="p-4 max-w-md mx-auto">
-        <Card>
+        <Card className="shadow-lg border-lavender/20">
           <CardHeader>
             <div className="text-center">
               <img
                 src={user.avatar}
                 alt="Profile"
-                className="w-20 h-20 rounded-full mx-auto mb-4"
+                className="w-20 h-20 rounded-full mx-auto mb-4 shadow-md"
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-stone/70">
                 Update your profile information
               </p>
             </div>
@@ -90,11 +90,11 @@ const ProfileEdit = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel className="text-stone">Full Name</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter your full name"
-                          className="rounded-xl"
+                          className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                           {...field}
                         />
                       </FormControl>
@@ -108,12 +108,12 @@ const ProfileEdit = () => {
                   name="age"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Age</FormLabel>
+                      <FormLabel className="text-stone">Age</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           placeholder="Enter your age"
-                          className="rounded-xl"
+                          className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                           {...field}
                         />
                       </FormControl>
@@ -127,10 +127,10 @@ const ProfileEdit = () => {
                   name="gender"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Gender</FormLabel>
+                      <FormLabel className="text-stone">Gender</FormLabel>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
-                          <SelectTrigger className="rounded-xl">
+                          <SelectTrigger className="rounded-xl text-stone border-lavender/30">
                             <SelectValue placeholder="Select gender" />
                           </SelectTrigger>
                         </FormControl>
@@ -151,11 +151,11 @@ const ProfileEdit = () => {
                   name="dietaryGoals"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Dietary Goals</FormLabel>
+                      <FormLabel className="text-stone">Dietary Goals</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="What are your dietary goals? (e.g., weight loss, muscle gain, healthy eating)"
-                          className="rounded-xl min-h-20"
+                          className="rounded-xl min-h-20 text-stone border-lavender/30 focus:border-sage"
                           {...field}
                         />
                       </FormControl>
@@ -169,14 +169,14 @@ const ProfileEdit = () => {
                     type="button"
                     variant="outline"
                     onClick={() => navigate('/settings')}
-                    className="flex-1 rounded-xl"
+                    className="flex-1 rounded-xl border-lavender/30 text-stone hover:bg-lavender/10"
                     disabled={isLoading}
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 rounded-xl"
+                    className="flex-1 rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md"
                     disabled={isLoading}
                   >
                     {isLoading ? 'Saving...' : 'Save Changes'}

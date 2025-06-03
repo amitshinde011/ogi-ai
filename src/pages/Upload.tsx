@@ -72,9 +72,9 @@ const Upload = () => {
       
       <div className="p-4 space-y-6 max-w-md mx-auto">
         {/* Meal Type Selection */}
-        <Card>
+        <Card className="shadow-lg border-lavender/20">
           <CardContent className="p-4">
-            <h3 className="font-semibold text-primary mb-4">Select Meal Type</h3>
+            <h3 className="font-semibold text-stone mb-4">Select Meal Type</h3>
             <div className="space-y-3">
               {mealTypes.map((meal) => (
                 <div
@@ -82,20 +82,20 @@ const Upload = () => {
                   onClick={() => setSelectedMeal(meal.id)}
                   className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     selectedMeal === meal.id
-                      ? 'border-primary bg-sage/10'
-                      : 'border-gray-200 hover:border-sage'
+                      ? 'border-sage bg-sage/10 shadow-md'
+                      : 'border-lavender/30 hover:border-sage hover:bg-lavender/5'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <span className="text-2xl mr-3">{meal.icon}</span>
                       <div>
-                        <h4 className="font-medium">{meal.name}</h4>
-                        <p className="text-sm text-muted-foreground">{meal.time}</p>
+                        <h4 className="font-medium text-stone">{meal.name}</h4>
+                        <p className="text-sm text-stone/60">{meal.time}</p>
                       </div>
                     </div>
                     {selectedMeal === meal.id && (
-                      <Check className="text-primary" size={20} />
+                      <Check className="text-sage" size={20} />
                     )}
                   </div>
                 </div>
@@ -105,14 +105,14 @@ const Upload = () => {
         </Card>
 
         {/* Image Upload */}
-        <Card>
+        <Card className="shadow-lg border-lavender/20">
           <CardContent className="p-4">
-            <h3 className="font-semibold text-primary mb-4">Upload Photo</h3>
+            <h3 className="font-semibold text-stone mb-4">Upload Photo</h3>
             {!image ? (
               <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-sage rounded-xl cursor-pointer hover:bg-sage/5 transition-colors">
                 <Camera className="text-sage mb-2" size={32} />
                 <span className="text-sage font-medium">Tap to take photo</span>
-                <span className="text-sm text-muted-foreground mt-1">or select from gallery</span>
+                <span className="text-sm text-stone/60 mt-1">or select from gallery</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -126,13 +126,13 @@ const Upload = () => {
                 <img
                   src={image}
                   alt="Meal"
-                  className="w-full h-48 object-cover rounded-xl"
+                  className="w-full h-48 object-cover rounded-xl shadow-md"
                 />
                 <Button
                   onClick={() => setImage(null)}
                   variant="outline"
                   size="sm"
-                  className="absolute top-2 right-2 bg-white/90"
+                  className="absolute top-2 right-2 bg-white/90 border-lavender/30"
                 >
                   Change
                 </Button>
@@ -142,14 +142,14 @@ const Upload = () => {
         </Card>
 
         {/* Description */}
-        <Card>
+        <Card className="shadow-lg border-lavender/20">
           <CardContent className="p-4">
-            <h3 className="font-semibold text-primary mb-4">Add Description (Optional)</h3>
+            <h3 className="font-semibold text-stone mb-4">Add Description (Optional)</h3>
             <Textarea
               placeholder="Tell us about your meal... What did you eat? How did it taste?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="rounded-xl min-h-20"
+              className="rounded-xl min-h-20 text-stone border-lavender/30 focus:border-sage"
             />
           </CardContent>
         </Card>
@@ -158,7 +158,7 @@ const Upload = () => {
         <Button
           onClick={handleSubmit}
           disabled={!selectedMeal || !image || uploading}
-          className="w-full rounded-xl bg-primary hover:bg-primary/90 text-white py-6 font-medium"
+          className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white py-6 font-medium shadow-lg"
         >
           {uploading ? (
             <div className="flex items-center">
