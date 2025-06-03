@@ -1,11 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share, Clock } from 'lucide-react';
+import { Heart, MessageCircle, Users, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface Post {
   id: string;
@@ -116,11 +116,10 @@ const Community = () => {
               {/* Post Header */}
               <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center">
-                  <img
-                    src={post.user.avatar}
-                    alt={post.user.name}
-                    className="w-10 h-10 rounded-full mr-3"
-                  />
+                  <Avatar>
+                    <AvatarImage src={post.user.avatar} />
+                    <AvatarFallback>{post.user.name[0]}</AvatarFallback>
+                  </Avatar>
                   <div>
                     <h4 className="font-semibold text-primary">{post.user.name}</h4>
                     <div className="flex items-center text-sm text-muted-foreground">

@@ -158,7 +158,7 @@ const Upload = () => {
         <Button
           onClick={handleSubmit}
           disabled={!selectedMeal || !image || uploading}
-          className="w-full rounded-xl gradient-sage text-white py-6"
+          className="w-full rounded-xl bg-primary hover:bg-primary/90 text-white py-6 font-medium"
         >
           {uploading ? (
             <div className="flex items-center">
