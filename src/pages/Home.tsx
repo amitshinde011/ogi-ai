@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Camera, Award, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';

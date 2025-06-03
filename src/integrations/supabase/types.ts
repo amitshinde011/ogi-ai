@@ -19,7 +19,7 @@ export type Database = {
           surya_namaskar_count: number | null
           updated_at: string
           user_id: string
-          water_glasses: number | null
+          water_litres: number | null
         }
         Insert: {
           created_at?: string
@@ -30,7 +30,7 @@ export type Database = {
           surya_namaskar_count?: number | null
           updated_at?: string
           user_id: string
-          water_glasses?: number | null
+          water_litres?: number | null
         }
         Update: {
           created_at?: string
@@ -41,7 +41,7 @@ export type Database = {
           surya_namaskar_count?: number | null
           updated_at?: string
           user_id?: string
-          water_glasses?: number | null
+          water_litres?: number | null
         }
         Relationships: []
       }
