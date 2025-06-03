@@ -9,7 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      daily_wellness: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          meditation_completed: boolean | null
+          meditation_minutes: number | null
+          surya_namaskar_count: number | null
+          updated_at: string
+          user_id: string
+          water_glasses: number | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          meditation_completed?: boolean | null
+          meditation_minutes?: number | null
+          surya_namaskar_count?: number | null
+          updated_at?: string
+          user_id: string
+          water_glasses?: number | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          meditation_completed?: boolean | null
+          meditation_minutes?: number | null
+          surya_namaskar_count?: number | null
+          updated_at?: string
+          user_id?: string
+          water_glasses?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
+import WellnessTracker from '@/components/WellnessTracker';
 import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
@@ -81,6 +82,9 @@ const Home = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Wellness Tracker */}
+        <WellnessTracker />
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
