@@ -21,10 +21,10 @@ const Header = ({ title, showBack = false, rightElement }: HeaderProps) => {
               onClick={() => navigate(-1)}
               className="mr-3 p-2 hover:bg-sage/10 rounded-lg transition-colors"
             >
-              <ArrowLeft size={20} className="text-primary" />
+              <ArrowLeft size={20} className="text-black" />
             </button>
           )}
-          <h1 className="text-lg font-semibold text-primary">{title}</h1>
+          <h1 className="text-lg font-semibold text-black">{title}</h1>
         </div>
         {rightElement && (
           <div>{rightElement}</div>
