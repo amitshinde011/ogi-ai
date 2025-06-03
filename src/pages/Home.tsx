@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Camera, Award, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -70,7 +71,7 @@ const Home = () => {
                     {[...Array(5)].map((_, i) => (
                       <span 
                         key={i} 
-                        className={`text-sm ${i < todayProgress.walkScore ? 'text-yellow-300' : 'text-white/50'}`}
+                        className={`text-sm ${i < todayProgress.walkScore ? 'text-gray-300' : 'text-white/50'}`}
                       >
                         ⭐
                       </span>

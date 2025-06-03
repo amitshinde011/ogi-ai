@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -22,7 +23,7 @@
     --muted: 245 245 245;
     --muted-foreground: 0 0 0;
 
-    --accent: 250 245 255;                  /* Light lavender */
+    --accent: 245 245 245;                  /* Light grey instead of lavender */
     --accent-foreground: 0 0 0;
 
     --destructive: 255 102 102;
@@ -37,7 +38,7 @@
     /* Thematic color names */
     --sage: 240 255 230;
     --sky: 235 245 255;
-    --lavender: 245 235 255;
+    --lavender: 245 245 245;                /* Changed to light grey */
     --cream: 255 253 250;
     --stone: 0 0 0;
   }
@@ -61,7 +62,7 @@
     --muted: 245 245 245;
     --muted-foreground: 0 0 0;
 
-    --accent: 245 235 255;
+    --accent: 245 245 245;                  /* Light grey */
     --accent-foreground: 0 0 0;
 
     --destructive: 255 102 102;
@@ -90,7 +91,7 @@
   }
 
   .gradient-lavender {
-    background: linear-gradient(135deg, rgb(245 235 255) 0%, rgb(235 245 255) 100%);
+    background: linear-gradient(135deg, rgb(245 245 245) 0%, rgb(235 245 255) 100%);
   }
 
   .gradient-peaceful {
