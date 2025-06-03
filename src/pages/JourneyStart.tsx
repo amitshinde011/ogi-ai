@@ -48,9 +48,9 @@ const JourneyStart = () => {
             </div>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <h3 className="font-semibold text-amber-800 mb-2">Remember:</h3>
-            <ul className="text-amber-700 space-y-1 text-sm">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-2">Remember:</h3>
+            <ul className="text-gray-700 space-y-1 text-sm">
               <li>• Consistency is key to transformation</li>
               <li>• Track your daily activities honestly</li>
               <li>• Engage with the community for motivation</li>

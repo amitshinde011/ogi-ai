@@ -58,20 +58,20 @@ const IntroVideo = () => {
               </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
                     <span className="text-white font-bold">!</span>
                   </div>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-amber-800">Important Instructions</h3>
-                  <p className="text-amber-700 mt-1">
+                  <h3 className="text-lg font-semibold text-gray-800">Important Instructions</h3>
+                  <p className="text-gray-700 mt-1">
                     Please watch the entire video before proceeding. This is a one-time guide that contains 
                     essential information for your journey including:
                   </p>
-                  <ul className="list-disc list-inside text-amber-700 mt-2 space-y-1">
+                  <ul className="list-disc list-inside text-gray-700 mt-2 space-y-1">
                     <li>How to track your daily diet effectively</li>
                     <li>Water consumption monitoring techniques</li>
                     <li>Yoga routine guidance and tips</li>
