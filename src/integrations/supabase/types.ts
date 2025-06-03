@@ -45,6 +45,217 @@ export type Database = {
         }
         Relationships: []
       }
+      journey_assessments: {
+        Row: {
+          assessment_type: string | null
+          climb_mountain_comfort: string | null
+          comments: string | null
+          created_at: string | null
+          current_health_conditions: string | null
+          full_body_photo_url: string | null
+          id: string
+          run_10km_comfort: string | null
+          subscription_id: string | null
+          user_id: string | null
+          walk_10km_comfort: string | null
+        }
+        Insert: {
+          assessment_type?: string | null
+          climb_mountain_comfort?: string | null
+          comments?: string | null
+          created_at?: string | null
+          current_health_conditions?: string | null
+          full_body_photo_url?: string | null
+          id?: string
+          run_10km_comfort?: string | null
+          subscription_id?: string | null
+          user_id?: string | null
+          walk_10km_comfort?: string | null
+        }
+        Update: {
+          assessment_type?: string | null
+          climb_mountain_comfort?: string | null
+          comments?: string | null
+          created_at?: string | null
+          current_health_conditions?: string | null
+          full_body_photo_url?: string | null
+          id?: string
+          run_10km_comfort?: string | null
+          subscription_id?: string | null
+          user_id?: string | null
+          walk_10km_comfort?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_assessments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programs: {
+        Row: {
+          benefits: string[] | null
+          created_at: string | null
+          description: string | null
+          duration_days: number
+          features: string[] | null
+          id: string
+          name: string
+          price: number | null
+        }
+        Insert: {
+          benefits?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          duration_days: number
+          features?: string[] | null
+          id?: string
+          name: string
+          price?: number | null
+        }
+        Update: {
+          benefits?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          duration_days?: number
+          features?: string[] | null
+          id?: string
+          name?: string
+          price?: number | null
+        }
+        Relationships: []
+      }
+      user_onboarding: {
+        Row: {
+          before_assessment_completed: boolean | null
+          created_at: string | null
+          id: string
+          intro_video_watched: boolean | null
+          journey_started: boolean | null
+          profile_completed: boolean | null
+          subscription_selected: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          before_assessment_completed?: boolean | null
+          created_at?: string | null
+          id?: string
+          intro_video_watched?: boolean | null
+          journey_started?: boolean | null
+          profile_completed?: boolean | null
+          subscription_selected?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          before_assessment_completed?: boolean | null
+          created_at?: string | null
+          id?: string
+          intro_video_watched?: boolean | null
+          journey_started?: boolean | null
+          profile_completed?: boolean | null
+          subscription_selected?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          age: number | null
+          created_at: string | null
+          health_issues: string | null
+          height: number | null
+          id: string
+          name: string | null
+          physical_activity_basic: string | null
+          physical_activity_intense: string | null
+          physical_activity_medium: string | null
+          profile_photo_url: string | null
+          updated_at: string | null
+          user_id: string | null
+          weight: number | null
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string | null
+          health_issues?: string | null
+          height?: number | null
+          id?: string
+          name?: string | null
+          physical_activity_basic?: string | null
+          physical_activity_intense?: string | null
+          physical_activity_medium?: string | null
+          profile_photo_url?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          weight?: number | null
+        }
+        Update: {
+          age?: number | null
+          created_at?: string | null
+          health_issues?: string | null
+          height?: number | null
+          id?: string
+          name?: string | null
+          physical_activity_basic?: string | null
+          physical_activity_intense?: string | null
+          physical_activity_medium?: string | null
+          profile_photo_url?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          weight?: number | null
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          id: string
+          payment_status: string | null
+          program_id: string | null
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          payment_status?: string | null
+          program_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          payment_status?: string | null
+          program_id?: string | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

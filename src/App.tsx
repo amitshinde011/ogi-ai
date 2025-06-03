@@ -8,6 +8,10 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProfileSetup from "./pages/ProfileSetup";
+import Subscriptions from "./pages/Subscriptions";
+import IntroVideo from "./pages/IntroVideo";
+import BeforeAssessment from "./pages/BeforeAssessment";
+import JourneyStart from "./pages/JourneyStart";
 import ProfileEdit from "./pages/ProfileEdit";
 import Home from "./pages/Home";
 import Community from "./pages/Community";
@@ -32,6 +36,10 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/profile-setup" element={<ProfileSetup />} />
+          <Route path="/subscriptions" element={<Subscriptions />} />
+          <Route path="/intro-video" element={<IntroVideo />} />
+          <Route path="/before-assessment" element={<BeforeAssessment />} />
+          <Route path="/journey-start" element={<JourneyStart />} />
           <Route path="/profile-edit" element={<ProfileEdit />} />
           <Route path="/home" element={<Home />} />
           <Route path="/community" element={<Community />} />
