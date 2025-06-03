@@ -14,6 +14,7 @@ import Community from "./pages/Community";
 import Upload from "./pages/Upload";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
+import PostDetail from "./pages/PostDetail";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/upload" element={<Upload />} />
           <Route path="/recipes" element={<Recipes />} />
           <Route path="/recipe/:id" element={<RecipeDetail />} />
+          <Route path="/post/:id" element={<PostDetail />} />
           <Route path="/progress" element={<Progress />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
