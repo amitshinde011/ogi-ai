@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Post {
   id: string;
@@ -27,19 +28,48 @@ const Community = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    // Get current user for proper display
+    const getCurrentUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setCurrentUser({
+            id: user.id,
+            name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            avatar: user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`
+          });
+        }
+      } catch (error) {
+        console.error('Error getting current user:', error);
+      }
+    };
+
+    getCurrentUser();
+  }, []);
 
   useEffect(() => {
     try {
       // Load posts from localStorage
       const savedPosts = localStorage.getItem('communityPosts');
-      const parsedPosts = savedPosts ? JSON.parse(savedPosts) : [];
+      let parsedPosts = [];
+      
+      if (savedPosts) {
+        try {
+          parsedPosts = JSON.parse(savedPosts);
+        } catch (parseError) {
+          console.error('Error parsing posts:', parseError);
+          parsedPosts = [];
+        }
+      }
       
       // Ensure parsedPosts is an array
       if (!Array.isArray(parsedPosts)) {
         console.warn('Community posts data is not an array, initializing with empty array');
-        setPosts([]);
+        parsedPosts = [];
         localStorage.setItem('communityPosts', JSON.stringify([]));
-        return;
       }
 
       // Add some mock posts if none exist
@@ -47,7 +77,10 @@ const Community = () => {
         const mockPosts = [
           {
             id: '1',
-            user: { name: 'Sarah Chen', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
+            user: { 
+              name: 'Sarah Chen', 
+              avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' 
+            },
             mealType: 'breakfast',
             image: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=400',
             description: 'Healthy avocado toast with poached eggs! Starting the day right 🥑',
@@ -57,7 +90,10 @@ const Community = () => {
           },
           {
             id: '2',
-            user: { name: 'Mike Johnson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' },
+            user: { 
+              name: 'Mike Johnson', 
+              avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' 
+            },
             mealType: 'lunch',
             image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
             description: 'Mediterranean salad bowl with quinoa and grilled chicken. Feeling energized!',
@@ -66,18 +102,26 @@ const Community = () => {
             comments: []
           }
         ];
-        const allPosts = [...parsedPosts, ...mockPosts];
-        setPosts(allPosts);
-        localStorage.setItem('communityPosts', JSON.stringify(allPosts));
-      } else {
-        setPosts(parsedPosts);
+        parsedPosts = [...mockPosts];
+        localStorage.setItem('communityPosts', JSON.stringify(parsedPosts));
       }
+
+      // Process posts to ensure proper user data
+      const processedPosts = parsedPosts.map(post => ({
+        ...post,
+        user: {
+          name: post.user?.name || currentUser?.name || 'Anonymous User',
+          avatar: post.user?.avatar || currentUser?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
+        }
+      }));
+
+      setPosts(processedPosts);
     } catch (error) {
       console.error('Error loading community posts:', error);
       setPosts([]);
       localStorage.setItem('communityPosts', JSON.stringify([]));
     }
-  }, []);
+  }, [currentUser]);
 
   const handleLike = (postId: string) => {
     setPosts(prevPosts => {
@@ -128,18 +172,22 @@ const Community = () => {
         )}
 
         {Array.isArray(posts) && posts.length > 0 ? posts.map((post) => (
-          <Card key={post.id} className="mx-4 overflow-hidden animate-fade-in">
+          <Card key={post.id} className="mx-4 overflow-hidden animate-fade-in bg-white">
             <CardContent className="p-0">
               {/* Post Header */}
               <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center">
                   <Avatar>
                     <AvatarImage src={post.user?.avatar} />
-                    <AvatarFallback>{post.user?.name?.[0] || 'U'}</AvatarFallback>
+                    <AvatarFallback className="bg-sage text-white">
+                      {(post.user?.name || 'U')[0].toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h4 className="font-semibold text-primary">{post.user?.name || 'Unknown User'}</h4>
-                    <div className="flex items-center text-sm text-muted-foreground">
+                  <div className="ml-3">
+                    <h4 className="font-semibold text-gray-900">
+                      {post.user?.name || 'Anonymous User'}
+                    </h4>
+                    <div className="flex items-center text-sm text-gray-600">
                       <span className="mr-1">{getMealEmoji(post.mealType)}</span>
                       <span className="capitalize mr-2">{post.mealType}</span>
                       <Clock size={12} className="mr-1" />
@@ -166,7 +214,7 @@ const Community = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleLike(post.id)}
-                      className={`p-2 ${post.liked ? 'text-red-500' : 'text-muted-foreground'} hover:text-red-500`}
+                      className={`p-2 ${post.liked ? 'text-red-500' : 'text-gray-600'} hover:text-red-500`}
                     >
                       <Heart size={20} fill={post.liked ? 'currentColor' : 'none'} />
                     </Button>
@@ -174,14 +222,14 @@ const Community = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => navigate(`/post/${post.id}`)}
-                      className="p-2 text-muted-foreground hover:text-primary"
+                      className="p-2 text-gray-600 hover:text-sage"
                     >
                       <MessageCircle size={20} />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="p-2 text-muted-foreground hover:text-primary"
+                      className="p-2 text-gray-600 hover:text-sage"
                     >
                       <Share size={20} />
                     </Button>
@@ -190,15 +238,17 @@ const Community = () => {
 
                 {/* Likes Count */}
                 {post.likes > 0 && (
-                  <p className="font-semibold text-sm mb-2">
+                  <p className="font-semibold text-sm mb-2 text-gray-900">
                     {post.likes} {post.likes === 1 ? 'like' : 'likes'}
                   </p>
                 )}
 
                 {/* Description */}
                 {post.description && (
-                  <p className="text-sm text-foreground">
-                    <span className="font-semibold mr-2">{post.user?.name || 'Unknown User'}</span>
+                  <p className="text-sm text-gray-900">
+                    <span className="font-semibold mr-2">
+                      {post.user?.name || 'Anonymous User'}
+                    </span>
                     {post.description}
                   </p>
                 )}
@@ -208,7 +258,7 @@ const Community = () => {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate(`/post/${post.id}`)}
-                  className="p-0 h-auto text-muted-foreground hover:text-primary mt-2"
+                  className="p-0 h-auto text-gray-500 hover:text-sage mt-2"
                 >
                   View all comments
                 </Button>
@@ -220,9 +270,9 @@ const Community = () => {
             <div className="w-16 h-16 bg-sage/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="text-sage" size={32} />
             </div>
-            <h3 className="text-lg font-semibold text-primary mb-2">No posts yet</h3>
-            <p className="text-muted-foreground mb-4">Be the first to share your meal!</p>
-            <Button onClick={() => navigate('/upload')} className="rounded-xl gradient-sage text-white">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No posts yet</h3>
+            <p className="text-gray-600 mb-4">Be the first to share your meal!</p>
+            <Button onClick={() => navigate('/upload')} className="rounded-xl bg-sage hover:bg-sage/90 text-white">
               Upload Your First Meal
             </Button>
           </div>
