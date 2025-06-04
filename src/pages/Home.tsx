@@ -18,9 +18,10 @@ const Home = () => {
     breakfast: false,
     lunch: false,
     dinner: false,
-    steps: 4200,
-    walkScore: 3
+    steps: 0,
+    walkScore: 0
   });
+  const [weeklyStreak, setWeeklyStreak] = useState<boolean[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -38,6 +39,10 @@ const Home = () => {
           ...user,
           avatar: user.user_metadata?.avatar_url || '/placeholder.svg'
         });
+
+        // Fetch real tracking data
+        await fetchTodayProgress(user.id);
+        await fetchWeeklyStreak(user.id);
       } catch (error) {
         console.error('Error checking authentication:', error);
         navigate('/login');
@@ -48,6 +53,69 @@ const Home = () => {
 
     checkAuth();
   }, [navigate]);
+
+  const fetchTodayProgress = async (userId: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Fetch today's meals
+      const { data: meals } = await supabase
+        .from('meal_tracking')
+        .select('meal_type')
+        .eq('user_id', userId)
+        .eq('date', today);
+
+      // Fetch today's steps
+      const { data: steps } = await supabase
+        .from('steps_tracking')
+        .select('steps_count')
+        .eq('user_id', userId)
+        .eq('date', today)
+        .single();
+
+      const mealTypes = meals?.map(m => m.meal_type) || [];
+      const todaySteps = steps?.steps_count || 0;
+      
+      setTodayProgress({
+        breakfast: mealTypes.includes('breakfast'),
+        lunch: mealTypes.includes('lunch'),
+        dinner: mealTypes.includes('dinner'),
+        steps: todaySteps,
+        walkScore: Math.min(Math.floor(todaySteps / 2000), 5) // 1 star per 2000 steps, max 5
+      });
+    } catch (error) {
+      console.error('Error fetching today progress:', error);
+    }
+  };
+
+  const fetchWeeklyStreak = async (userId: string) => {
+    try {
+      const today = new Date();
+      const weekDates = [];
+      
+      // Get last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        weekDates.push(date.toISOString().split('T')[0]);
+      }
+
+      const { data: wellness } = await supabase
+        .from('daily_wellness')
+        .select('date, meditation_completed, water_litres, surya_namaskar_count')
+        .eq('user_id', userId)
+        .in('date', weekDates);
+
+      const streak = weekDates.map(date => {
+        const dayData = wellness?.find(w => w.date === date);
+        return !!(dayData?.meditation_completed || (dayData?.water_litres && dayData.water_litres > 0) || (dayData?.surya_namaskar_count && dayData.surya_namaskar_count > 0));
+      });
+
+      setWeeklyStreak(streak);
+    } catch (error) {
+      console.error('Error fetching weekly streak:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -184,9 +252,9 @@ const Home = () => {
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
                 <div key={day} className="flex flex-col items-center">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
-                    index < 4 ? 'bg-green-500 text-white' : 'bg-gray-200'
+                    weeklyStreak[index] ? 'bg-green-500 text-white' : 'bg-gray-200'
                   }`}>
-                    {index < 4 ? '✓' : ''}
+                    {weeklyStreak[index] ? '✓' : ''}
                   </div>
                   <span className="text-xs text-muted-foreground">{day}</span>
                 </div>

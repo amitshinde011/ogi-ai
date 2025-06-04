@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, Bell, Shield, HelpCircle, LogOut, ChevronRight, Edit } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,7 +35,7 @@ const Settings = () => {
             email: user.email,
             avatar: profile?.profile_photo_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`,
             age: profile?.age,
-            gender: (profile as any)?.gender || null,
+            gender: profile?.gender,
             weight: profile?.weight,
             height: profile?.height,
             health_issues: profile?.health_issues,

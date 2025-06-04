@@ -9,6 +9,77 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      community_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          comments_count: number | null
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          likes_count: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comments_count?: number | null
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comments_count?: number | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_wellness: {
         Row: {
           created_at: string
@@ -95,6 +166,39 @@ export type Database = {
           },
         ]
       }
+      meal_tracking: {
+        Row: {
+          calories: number | null
+          created_at: string
+          date: string
+          food_item: string
+          id: string
+          meal_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calories?: number | null
+          created_at?: string
+          date?: string
+          food_item: string
+          id?: string
+          meal_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calories?: number | null
+          created_at?: string
+          date?: string
+          food_item?: string
+          id?: string
+          meal_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       programs: {
         Row: {
           benefits: string[] | null
@@ -125,6 +229,33 @@ export type Database = {
           id?: string
           name?: string
           price?: number | null
+        }
+        Relationships: []
+      }
+      steps_tracking: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          steps_count: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          steps_count?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          steps_count?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -168,6 +299,7 @@ export type Database = {
         Row: {
           age: number | null
           created_at: string | null
+          gender: string | null
           health_issues: string | null
           height: number | null
           id: string
@@ -183,6 +315,7 @@ export type Database = {
         Insert: {
           age?: number | null
           created_at?: string | null
+          gender?: string | null
           health_issues?: string | null
           height?: number | null
           id?: string
@@ -198,6 +331,7 @@ export type Database = {
         Update: {
           age?: number | null
           created_at?: string | null
+          gender?: string | null
           health_issues?: string | null
           height?: number | null
           id?: string
