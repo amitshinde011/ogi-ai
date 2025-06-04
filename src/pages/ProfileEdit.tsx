@@ -27,6 +27,7 @@ const ProfileEdit = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileImage, setProfileImage] = useState<string>('');
+  const [hasExistingProfile, setHasExistingProfile] = useState(false);
   
   const form = useForm<ProfileFormData>({
     defaultValues: {
@@ -51,6 +52,7 @@ const ProfileEdit = () => {
             .single();
 
           if (profile) {
+            setHasExistingProfile(true);
             const profileData = {
               name: profile.name || '',
               age: profile.age?.toString() || '',
@@ -63,10 +65,14 @@ const ProfileEdit = () => {
             form.reset(profileData);
             setUserProfile(profile);
             setProfileImage(profile.profile_photo_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`);
+          } else {
+            setHasExistingProfile(false);
+            setProfileImage(user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`);
           }
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
+        setHasExistingProfile(false);
       }
     };
 
@@ -101,9 +107,22 @@ const ProfileEdit = () => {
         profile_photo_url: profileImage,
       };
 
-      const { error } = await supabase
-        .from('user_profiles')
-        .upsert(profileData);
+      let error;
+      
+      if (hasExistingProfile) {
+        // Update existing profile
+        const result = await supabase
+          .from('user_profiles')
+          .update(profileData)
+          .eq('user_id', user.id);
+        error = result.error;
+      } else {
+        // Insert new profile
+        const result = await supabase
+          .from('user_profiles')
+          .insert(profileData);
+        error = result.error;
+      }
 
       if (error) throw error;
 
