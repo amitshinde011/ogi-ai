@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -7,44 +7,60 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 const Index = () => {
   const navigate = useNavigate();
   const { onboardingState, loading } = useOnboarding();
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
-    checkUserAndRedirect();
-  }, [onboardingState, loading]);
+    // Only run the check once when component mounts or when loading state changes
+    if (!hasChecked && !loading) {
+      checkUserAndRedirect();
+    }
+  }, [loading, hasChecked]);
 
   const checkUserAndRedirect = async () => {
     try {
+      console.log('Checking user authentication and onboarding state...');
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
+        console.log('No user found, redirecting to login');
         navigate('/login');
         return;
       }
 
-      if (loading) return;
+      console.log('User found:', user.id);
+      console.log('Onboarding state:', onboardingState);
 
       if (!onboardingState) {
+        console.log('No onboarding state, redirecting to profile setup');
         navigate('/profile-setup');
         return;
       }
 
       // Navigate based on onboarding progress
       if (!onboardingState.profile_completed) {
+        console.log('Profile not completed, redirecting to profile setup');
         navigate('/profile-setup');
       } else if (!onboardingState.subscription_selected) {
+        console.log('Subscription not selected, redirecting to subscriptions');
         navigate('/subscriptions');
       } else if (!onboardingState.intro_video_watched) {
+        console.log('Intro video not watched, redirecting to intro video');
         navigate('/intro-video');
       } else if (!onboardingState.before_assessment_completed) {
+        console.log('Before assessment not completed, redirecting to before assessment');
         navigate('/before-assessment');
       } else if (!onboardingState.journey_started) {
+        console.log('Journey not started, redirecting to journey start');
         navigate('/journey-start');
       } else {
+        console.log('All onboarding completed, redirecting to home');
         navigate('/home');
       }
     } catch (error) {
       console.error('Error checking user:', error);
       navigate('/login');
+    } finally {
+      setHasChecked(true);
     }
   };
 
