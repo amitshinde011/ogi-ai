@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -7,19 +7,10 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 const Index = () => {
   const navigate = useNavigate();
   const { onboardingState, loading } = useOnboarding();
-  const [hasRedirected, setHasRedirected] = useState(false);
-  const [redirectError, setRedirectError] = useState<string | null>(null);
-  const redirectAttempted = useRef(false);
 
   useEffect(() => {
-    // Prevent multiple redirect attempts
-    if (redirectAttempted.current || hasRedirected || loading) {
-      return;
-    }
-
+    // Only run once when component mounts
     const performRedirect = async () => {
-      redirectAttempted.current = true;
-      
       try {
         console.log('Checking user authentication and onboarding state...');
         
@@ -27,16 +18,13 @@ const Index = () => {
         
         if (userError) {
           console.error('Error getting user:', userError);
-          setRedirectError('Authentication error');
-          setHasRedirected(true);
-          navigate('/login', { replace: true });
+          window.location.replace('/login');
           return;
         }
 
         if (!user) {
           console.log('No user found, redirecting to login');
-          setHasRedirected(true);
-          navigate('/login', { replace: true });
+          window.location.replace('/login');
           return;
         }
 
@@ -45,86 +33,41 @@ const Index = () => {
 
         if (!onboardingState) {
           console.log('No onboarding state, redirecting to profile setup');
-          setHasRedirected(true);
-          navigate('/profile-setup', { replace: true });
+          window.location.replace('/profile-setup');
           return;
         }
 
         // Navigate based on onboarding progress
         if (!onboardingState.profile_completed) {
           console.log('Profile not completed, redirecting to profile setup');
-          setHasRedirected(true);
-          navigate('/profile-setup', { replace: true });
+          window.location.replace('/profile-setup');
         } else if (!onboardingState.subscription_selected) {
           console.log('Subscription not selected, redirecting to subscriptions');
-          setHasRedirected(true);
-          navigate('/subscriptions', { replace: true });
+          window.location.replace('/subscriptions');
         } else if (!onboardingState.intro_video_watched) {
           console.log('Intro video not watched, redirecting to intro video');
-          setHasRedirected(true);
-          navigate('/intro-video', { replace: true });
+          window.location.replace('/intro-video');
         } else if (!onboardingState.before_assessment_completed) {
           console.log('Before assessment not completed, redirecting to before assessment');
-          setHasRedirected(true);
-          navigate('/before-assessment', { replace: true });
+          window.location.replace('/before-assessment');
         } else if (!onboardingState.journey_started) {
           console.log('Journey not started, redirecting to journey start');
-          setHasRedirected(true);
-          navigate('/journey-start', { replace: true });
+          window.location.replace('/journey-start');
         } else {
           console.log('All onboarding completed, redirecting to home');
-          setHasRedirected(true);
-          // Use window.location as a fallback if navigate doesn't work
-          try {
-            navigate('/home', { replace: true });
-            // Add a timeout fallback in case navigate fails
-            setTimeout(() => {
-              if (window.location.pathname === '/') {
-                console.log('Navigate failed, using window.location fallback');
-                window.location.replace('/home');
-              }
-            }, 100);
-          } catch (navError) {
-            console.error('Navigate error:', navError);
-            window.location.replace('/home');
-          }
+          window.location.replace('/home');
         }
       } catch (error) {
         console.error('Error in redirect logic:', error);
-        setRedirectError('Redirect error occurred');
-        setHasRedirected(true);
-        navigate('/login', { replace: true });
+        window.location.replace('/login');
       }
     };
 
-    performRedirect();
-  }, [loading, onboardingState, navigate, hasRedirected]);
-
-  // If we've already redirected, don't render anything
-  if (hasRedirected) {
-    return null;
-  }
-
-  // Show error state if there's a redirect error
-  if (redirectError) {
-    return (
-      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-24 h-24 bg-red-500 rounded-full mx-auto flex items-center justify-center mb-6 shadow-lg">
-            <span className="text-4xl text-white">⚠️</span>
-          </div>
-          <h1 className="text-3xl font-bold text-stone mb-2">Error</h1>
-          <p className="text-stone/70 mb-4">{redirectError}</p>
-          <button 
-            onClick={() => navigate('/login')}
-            className="bg-sage text-white px-6 py-2 rounded-lg hover:bg-sage/90"
-          >
-            Go to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
+    // Only perform redirect if not already loading
+    if (!loading) {
+      performRedirect();
+    }
+  }, [loading, onboardingState]); // Only depend on loading and onboardingState
 
   // Show loading screen while checking
   return (
