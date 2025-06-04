@@ -203,6 +203,7 @@ const Community = () => {
               currentUserId={currentUser?.id}
               onEdit={setEditingPost}
               onDelete={handleDeletePost}
+              onPostUpdate={fetchPosts}
             />
           ))
         )}
