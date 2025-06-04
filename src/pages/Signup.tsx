@@ -1,31 +1,78 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
   });
 
-  const handleSignup = (e: React.FormEvent) => {
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate('/');
+      }
+    };
+    
+    checkUser();
+  }, [navigate]);
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match');
+      toast({
+        title: "Passwords do not match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive"
+      });
       return;
     }
-    // Mock signup - in real app would integrate with Firebase Auth
-    localStorage.setItem('user', JSON.stringify({ 
-      email: formData.email, 
-      isAuthenticated: true,
-      needsProfileSetup: true 
-    }));
-    navigate('/profile-setup');
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Signup failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Signup successful",
+          description: "Please check your email to confirm your account."
+        });
+        navigate('/profile-setup');
+      }
+    } catch (error) {
+      toast({
+        title: "An error occurred",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -54,6 +101,7 @@ const Signup = () => {
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -64,6 +112,7 @@ const Signup = () => {
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -74,10 +123,15 @@ const Signup = () => {
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                 className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
+                disabled={isLoading}
               />
             </div>
-            <Button type="submit" className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md">
-              Create Account
+            <Button 
+              type="submit" 
+              className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md"
+              disabled={isLoading}
+            >
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
 

@@ -1,26 +1,88 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate('/');
+      }
+    };
+    
+    checkUser();
+  }, [navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in real app would integrate with Firebase Auth
-    localStorage.setItem('user', JSON.stringify({ email, isAuthenticated: true }));
-    navigate('/');
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        toast({
+          title: "Login failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else if (data.session) {
+        toast({
+          title: "Login successful",
+          description: "Welcome back!"
+        });
+        navigate('/');
+      }
+    } catch (error) {
+      toast({
+        title: "An error occurred",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    // Mock Google login
-    localStorage.setItem('user', JSON.stringify({ email: 'user@gmail.com', isAuthenticated: true }));
-    navigate('/');
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: "Google login failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "An error occurred",
+        description: "Google login failed. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -45,6 +107,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -55,10 +118,15 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="rounded-xl text-stone border-lavender/30 focus:border-sage"
                 required
+                disabled={isLoading}
               />
             </div>
-            <Button type="submit" className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md">
-              Sign In
+            <Button 
+              type="submit" 
+              className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md"
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
           
@@ -75,6 +143,7 @@ const Login = () => {
             onClick={handleGoogleLogin}
             variant="outline"
             className="w-full rounded-xl border-lavender/30 hover:bg-lavender/10 text-stone"
+            disabled={isLoading}
           >
             <span className="mr-2">🔍</span>
             Continue with Google
