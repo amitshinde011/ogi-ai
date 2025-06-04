@@ -29,37 +29,53 @@ const Community = () => {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    // Load posts from localStorage
-    const savedPosts = JSON.parse(localStorage.getItem('communityPosts') || '[]');
-    
-    // Add some mock posts if none exist
-    if (savedPosts.length === 0) {
-      const mockPosts = [
-        {
-          id: '1',
-          user: { name: 'Sarah Chen', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
-          mealType: 'breakfast',
-          image: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=400',
-          description: 'Healthy avocado toast with poached eggs! Starting the day right 🥑',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          likes: 24,
-          comments: []
-        },
-        {
-          id: '2',
-          user: { name: 'Mike Johnson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' },
-          mealType: 'lunch',
-          image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
-          description: 'Mediterranean salad bowl with quinoa and grilled chicken. Feeling energized!',
-          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-          likes: 18,
-          comments: []
-        }
-      ];
-      setPosts([...savedPosts, ...mockPosts]);
-      localStorage.setItem('communityPosts', JSON.stringify([...savedPosts, ...mockPosts]));
-    } else {
-      setPosts(savedPosts);
+    try {
+      // Load posts from localStorage
+      const savedPosts = localStorage.getItem('communityPosts');
+      const parsedPosts = savedPosts ? JSON.parse(savedPosts) : [];
+      
+      // Ensure parsedPosts is an array
+      if (!Array.isArray(parsedPosts)) {
+        console.warn('Community posts data is not an array, initializing with empty array');
+        setPosts([]);
+        localStorage.setItem('communityPosts', JSON.stringify([]));
+        return;
+      }
+
+      // Add some mock posts if none exist
+      if (parsedPosts.length === 0) {
+        const mockPosts = [
+          {
+            id: '1',
+            user: { name: 'Sarah Chen', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
+            mealType: 'breakfast',
+            image: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=400',
+            description: 'Healthy avocado toast with poached eggs! Starting the day right 🥑',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            likes: 24,
+            comments: []
+          },
+          {
+            id: '2',
+            user: { name: 'Mike Johnson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' },
+            mealType: 'lunch',
+            image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
+            description: 'Mediterranean salad bowl with quinoa and grilled chicken. Feeling energized!',
+            timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+            likes: 18,
+            comments: []
+          }
+        ];
+        const allPosts = [...parsedPosts, ...mockPosts];
+        setPosts(allPosts);
+        localStorage.setItem('communityPosts', JSON.stringify(allPosts));
+      } else {
+        setPosts(parsedPosts);
+      }
+    } catch (error) {
+      console.error('Error loading community posts:', error);
+      setPosts([]);
+      localStorage.setItem('communityPosts', JSON.stringify([]));
     }
   }, []);
 
@@ -111,18 +127,18 @@ const Community = () => {
           </div>
         )}
 
-        {posts.map((post) => (
+        {Array.isArray(posts) && posts.length > 0 ? posts.map((post) => (
           <Card key={post.id} className="mx-4 overflow-hidden animate-fade-in">
             <CardContent className="p-0">
               {/* Post Header */}
               <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center">
                   <Avatar>
-                    <AvatarImage src={post.user.avatar} />
-                    <AvatarFallback>{post.user.name[0]}</AvatarFallback>
+                    <AvatarImage src={post.user?.avatar} />
+                    <AvatarFallback>{post.user?.name?.[0] || 'U'}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <h4 className="font-semibold text-primary">{post.user.name}</h4>
+                    <h4 className="font-semibold text-primary">{post.user?.name || 'Unknown User'}</h4>
                     <div className="flex items-center text-sm text-muted-foreground">
                       <span className="mr-1">{getMealEmoji(post.mealType)}</span>
                       <span className="capitalize mr-2">{post.mealType}</span>
@@ -182,7 +198,7 @@ const Community = () => {
                 {/* Description */}
                 {post.description && (
                   <p className="text-sm text-foreground">
-                    <span className="font-semibold mr-2">{post.user.name}</span>
+                    <span className="font-semibold mr-2">{post.user?.name || 'Unknown User'}</span>
                     {post.description}
                   </p>
                 )}
@@ -199,9 +215,7 @@ const Community = () => {
               </div>
             </CardContent>
           </Card>
-        ))}
-
-        {posts.length === 0 && (
+        )) : (
           <div className="text-center py-12 px-4">
             <div className="w-16 h-16 bg-sage/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="text-sage" size={32} />
