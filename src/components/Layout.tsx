@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Users, Calendar, BarChart, Settings } from 'lucide-react';
+import { Home, Users, ChefHat, BarChart, Settings } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 
 interface LayoutProps {
@@ -13,7 +13,7 @@ const Layout = ({ children }: LayoutProps) => {
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
     { path: '/community', icon: Users, label: 'Community' },
-    { path: '/upload', icon: Calendar, label: 'Upload' },
+    { path: '/recipes', icon: ChefHat, label: 'Recipes' },
     { path: '/progress', icon: BarChart, label: 'Progress' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
