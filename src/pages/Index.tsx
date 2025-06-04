@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,22 +7,28 @@ const Index = () => {
   const navigate = useNavigate();
   const { onboardingState, loading } = useOnboarding();
   const [hasChecked, setHasChecked] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // Only run the check once when component mounts or when loading state changes
-    if (!hasChecked && !loading) {
+    // Only run the check once when component mounts and when loading is done
+    if (!hasChecked && !loading && !isRedirecting) {
       checkUserAndRedirect();
     }
-  }, [loading, hasChecked]);
+  }, [loading, hasChecked, isRedirecting]);
 
   const checkUserAndRedirect = async () => {
+    // Prevent multiple simultaneous checks
+    if (isRedirecting) return;
+    
     try {
+      setIsRedirecting(true);
       console.log('Checking user authentication and onboarding state...');
+      
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         console.log('No user found, redirecting to login');
-        navigate('/login');
+        navigate('/login', { replace: true });
         return;
       }
 
@@ -32,35 +37,36 @@ const Index = () => {
 
       if (!onboardingState) {
         console.log('No onboarding state, redirecting to profile setup');
-        navigate('/profile-setup');
+        navigate('/profile-setup', { replace: true });
         return;
       }
 
       // Navigate based on onboarding progress
       if (!onboardingState.profile_completed) {
         console.log('Profile not completed, redirecting to profile setup');
-        navigate('/profile-setup');
+        navigate('/profile-setup', { replace: true });
       } else if (!onboardingState.subscription_selected) {
         console.log('Subscription not selected, redirecting to subscriptions');
-        navigate('/subscriptions');
+        navigate('/subscriptions', { replace: true });
       } else if (!onboardingState.intro_video_watched) {
         console.log('Intro video not watched, redirecting to intro video');
-        navigate('/intro-video');
+        navigate('/intro-video', { replace: true });
       } else if (!onboardingState.before_assessment_completed) {
         console.log('Before assessment not completed, redirecting to before assessment');
-        navigate('/before-assessment');
+        navigate('/before-assessment', { replace: true });
       } else if (!onboardingState.journey_started) {
         console.log('Journey not started, redirecting to journey start');
-        navigate('/journey-start');
+        navigate('/journey-start', { replace: true });
       } else {
         console.log('All onboarding completed, redirecting to home');
-        navigate('/home');
+        navigate('/home', { replace: true });
       }
     } catch (error) {
       console.error('Error checking user:', error);
-      navigate('/login');
+      navigate('/login', { replace: true });
     } finally {
       setHasChecked(true);
+      // Keep isRedirecting true to prevent further checks
     }
   };
 
