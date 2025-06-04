@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -92,15 +91,15 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
-      <Card className="w-full max-w-md animate-fade-in shadow-lg border-lavender/20 bg-white">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md animate-fade-in shadow-lg border-gray-200 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
-            <div className="w-16 h-16 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-4 shadow-md">
+            <div className="w-16 h-16 bg-sage rounded-full mx-auto flex items-center justify-center mb-4 shadow-md">
               <span className="text-2xl text-white">🧘</span>
             </div>
             <h1 className="text-2xl font-bold text-black">Join Yogi-ai</h1>
-            <p className="text-black/70">Start your wellness journey today</p>
+            <p className="text-black">Start your wellness journey today</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -111,7 +110,7 @@ const Signup = () => {
                 placeholder="Email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage"
+                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage placeholder:text-black"
                 required
                 disabled={isLoading}
               />
@@ -122,7 +121,7 @@ const Signup = () => {
                 placeholder="Password"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage"
+                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage placeholder:text-black"
                 required
                 disabled={isLoading}
               />
@@ -133,7 +132,7 @@ const Signup = () => {
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage"
+                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage placeholder:text-black"
                 required
                 disabled={isLoading}
               />
@@ -148,7 +147,7 @@ const Signup = () => {
           </form>
 
           <div className="text-center">
-            <span className="text-sm text-black/60">
+            <span className="text-sm text-black">
               Already have an account?{' '}
               <Link to="/login" className="text-sage hover:underline font-medium">
                 Sign in
