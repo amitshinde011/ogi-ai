@@ -8,7 +8,7 @@
     --background: 64 64 64;                 /* Dark gray */
     --foreground: 255 255 255;              /* White text */
 
-    --card: 255 255 255;                    /* White for cards */
+    --card: 243 244 246;                    /* Light gray for cards */
     --card-foreground: 0 0 0;
 
     --popover: 255 255 255;
@@ -29,7 +29,7 @@
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
 
-    --border: 229 231 235;
+    --border: 243 244 246;                  /* Light gray border */
     --input: 255 255 255;
     --ring: 147 197 114;
 
