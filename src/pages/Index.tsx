@@ -1,15 +1,23 @@
 
 import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
 const Index = () => {
+  const location = useLocation();
   const { onboardingState, loading } = useOnboarding();
 
   useEffect(() => {
+    // Only run redirect logic if we're actually on the root path
+    if (location.pathname !== '/') {
+      console.log('Not on root path, skipping redirect logic');
+      return;
+    }
+
     const handleRedirect = async () => {
       try {
-        console.log('Index component: Starting redirect logic');
+        console.log('Index component: Starting redirect logic for root path');
         
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
@@ -64,7 +72,7 @@ const Index = () => {
     if (!loading) {
       handleRedirect();
     }
-  }, [loading, onboardingState]);
+  }, [loading, onboardingState, location.pathname]);
 
   // Show loading screen while checking
   return (
