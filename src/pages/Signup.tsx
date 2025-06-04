@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -69,10 +70,11 @@ const Signup = () => {
       } else {
         console.log('Signup success:', data);
         toast({
-          title: "Signup successful",
-          description: "Please check your email to confirm your account."
+          title: "Account created successfully!",
+          description: "Please check your email and verify your account before logging in."
         });
-        navigate('/profile-setup');
+        // Redirect to login page with verification message
+        navigate('/login?message=verify');
       }
     } catch (error) {
       console.error('Signup catch error:', error);

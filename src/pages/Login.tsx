@@ -1,18 +1,22 @@
-
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check for verification message from signup
+  const showVerificationMessage = searchParams.get('message') === 'verify';
 
   // Check if user is already logged in
   useEffect(() => {
@@ -102,6 +106,14 @@ const Login = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {showVerificationMessage && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <AlertDescription className="text-blue-800">
+                Please verify your account by clicking the link sent to your email before logging in.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <Input
