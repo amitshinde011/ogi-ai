@@ -7,9 +7,11 @@ import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [notifications, setNotifications] = useState({
     mealReminders: true,
@@ -52,9 +54,40 @@ const Settings = () => {
     fetchUserProfile();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Error signing out:', error);
+        toast({
+          title: "Error signing out",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Clear localStorage as backup
+      localStorage.removeItem('user');
+      
+      // Show success message
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account."
+      });
+      
+      // Redirect to login page
+      navigate('/login');
+    } catch (error) {
+      console.error('Unexpected error during logout:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred during logout.",
+        variant: "destructive"
+      });
+    }
   };
 
   const settingsSections = [
