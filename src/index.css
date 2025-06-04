@@ -38,7 +38,7 @@
     /* Thematic color names */
     --sage: 147 197 114;
     --sky: 243 244 246;
-    --lavender: 249 250 251;
+    --lavender: 243 244 246;
     --cream: 255 255 255;
     --stone: 0 0 0;
   }
@@ -82,7 +82,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    color: black;
+    color: black !important;
     background-color: rgb(243, 244, 246) !important;
   }
 
@@ -95,15 +95,15 @@
 
 @layer utilities {
   .gradient-sage {
-    background: rgb(243, 244, 246);
+    background: rgb(243, 244, 246) !important;
   }
 
   .gradient-lavender {
-    background: rgb(243, 244, 246);
+    background: rgb(243, 244, 246) !important;
   }
 
   .gradient-peaceful {
-    background: rgb(243, 244, 246);
+    background: rgb(243, 244, 246) !important;
   }
 
   .glass-effect {
