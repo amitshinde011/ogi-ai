@@ -1,75 +1,75 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 249 250 251;              /* Light gray background */
-    --foreground: 17 24 39;                 /* Dark gray text */
+    --background: 10 10 30;                  /* Deep navy */
+    --foreground: 255 255 255;               /* Bright white text */
 
-    --card: 243 244 246;                    /* Slightly darker gray for cards */
-    --card-foreground: 17 24 39;            /* Dark text on cards */
+    --card: 255 255 255;                     /* White */
+    --card-foreground: 0 0 0;                /* Black */
 
     --popover: 255 255 255;
-    --popover-foreground: 17 24 39;
+    --popover-foreground: 0 0 0;
 
-    --primary: 147 197 114;                 /* Sage green */
+    --primary: 0 122 255;                    /* Vibrant blue */
     --primary-foreground: 255 255 255;
 
-    --secondary: 229 231 235;               /* Light gray */
-    --secondary-foreground: 17 24 39;
+    --secondary: 255 193 7;                  /* Bright amber */
+    --secondary-foreground: 0 0 0;
 
-    --muted: 243 244 246;
-    --muted-foreground: 107 114 128;
+    --muted: 230 230 230;                    /* Soft gray */
+    --muted-foreground: 50 50 50;
 
-    --accent: 243 244 246;                  /* Light gray */
-    --accent-foreground: 17 24 39;
+    --accent: 255 87 34;                     /* Deep orange */
+    --accent-foreground: 255 255 255;
 
-    --destructive: 239 68 68;
+    --destructive: 220 38 38;                /* Bright red */
     --destructive-foreground: 255 255 255;
 
-    --border: 229 231 235;                  /* Light gray border */
-    --input: 255 255 255;                   /* White input backgrounds */
-    --ring: 147 197 114;
+    --border: 0 122 255;
+    --input: 255 255 255;
+    --ring: 0 122 255;
 
     --radius: 0.5rem;
 
-    /* Thematic color names */
-    --sage: 147 197 114;
-    --light-gray: 249 250 251;
-    --card-gray: 243 244 246;
-    --dark-text: 17 24 39;
+    /* Thematic colors - vibrant palette */
+    --sage: 76 175 80;                       /* Vivid green */
+    --sky: 3 169 244;                        /* Cyan-blue */
+    --lavender: 156 39 176;                 /* Vivid lavender */
+    --cream: 255 253 208;                   /* Soft cream */
+    --stone: 33 33 33;                      /* Near-black */
   }
 
   .dark {
-    --background: 17 24 39;
-    --foreground: 249 250 251;
+    --background: 0 0 0;
+    --foreground: 255 255 255;
 
-    --card: 31 41 55;
-    --card-foreground: 249 250 251;
+    --card: 30 30 30;
+    --card-foreground: 255 255 255;
 
-    --popover: 31 41 55;
-    --popover-foreground: 249 250 251;
+    --popover: 30 30 30;
+    --popover-foreground: 255 255 255;
 
-    --primary: 147 197 114;
+    --primary: 0 122 255;
     --primary-foreground: 255 255 255;
 
-    --secondary: 55 65 81;
-    --secondary-foreground: 249 250 251;
+    --secondary: 255 193 7;
+    --secondary-foreground: 0 0 0;
 
-    --muted: 55 65 81;
-    --muted-foreground: 156 163 175;
+    --muted: 60 60 60;
+    --muted-foreground: 200 200 200;
 
-    --accent: 55 65 81;
-    --accent-foreground: 249 250 251;
+    --accent: 255 87 34;
+    --accent-foreground: 255 255 255;
 
-    --destructive: 220 38 38;
-    --destructive-foreground: 249 250 251;
+    --destructive: 255 0 0;
+    --destructive-foreground: 255 255 255;
 
-    --border: 55 65 81;
-    --input: 55 65 81;
-    --ring: 147 197 114;
+    --border: 0 122 255;
+    --input: 60 60 60;
+    --ring: 0 122 255;
   }
 }
 
@@ -81,33 +81,33 @@
   body {
     @apply bg-background text-foreground;
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    background-color: rgb(249, 250, 251) !important;
-    color: rgb(17, 24, 39) !important;
+    color: rgb(var(--foreground)) !important;
+    background-color: rgb(var(--background)) !important;
   }
 
   html, body, #root {
-    background-color: rgb(249, 250, 251) !important;
-    color: rgb(17, 24, 39) !important;
+    background-color: rgb(var(--background)) !important;
+    color: rgb(var(--foreground)) !important;
     min-height: 100vh;
   }
 }
 
 @layer utilities {
   .gradient-sage {
-    background: rgb(147, 197, 114) !important;
+    background: linear-gradient(135deg, #4caf50, #8bc34a); /* Vibrant greens */
   }
 
   .gradient-lavender {
-    background: rgb(243, 244, 246) !important;
+    background: linear-gradient(135deg, #9c27b0, #e040fb); /* Lavender shades */
   }
 
   .gradient-peaceful {
-    background: rgb(249, 250, 251) !important;
+    background: linear-gradient(135deg, #03a9f4, #00bcd4); /* Blue/cyan tones */
   }
 
   .glass-effect {
-    background: rgba(245, 245, 245, 0.75);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(229, 231, 235, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.25);
   }
 }
