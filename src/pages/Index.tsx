@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -6,69 +7,80 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 const Index = () => {
   const navigate = useNavigate();
   const { onboardingState, loading } = useOnboarding();
-  const [hasChecked, setHasChecked] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [hasRedirected, setHasRedirected] = useState(false);
+  const redirectAttempted = useRef(false);
 
   useEffect(() => {
-    // Only run the check once when component mounts and when loading is done
-    if (!hasChecked && !loading && !isRedirecting) {
-      checkUserAndRedirect();
+    // Prevent multiple redirect attempts
+    if (redirectAttempted.current || hasRedirected || loading) {
+      return;
     }
-  }, [loading, hasChecked, isRedirecting]);
 
-  const checkUserAndRedirect = async () => {
-    // Prevent multiple simultaneous checks
-    if (isRedirecting) return;
-    
-    try {
-      setIsRedirecting(true);
-      console.log('Checking user authentication and onboarding state...');
+    const performRedirect = async () => {
+      redirectAttempted.current = true;
       
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.log('No user found, redirecting to login');
+      try {
+        console.log('Checking user authentication and onboarding state...');
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.log('No user found, redirecting to login');
+          setHasRedirected(true);
+          navigate('/login', { replace: true });
+          return;
+        }
+
+        console.log('User found:', user.id);
+        console.log('Onboarding state:', onboardingState);
+
+        if (!onboardingState) {
+          console.log('No onboarding state, redirecting to profile setup');
+          setHasRedirected(true);
+          navigate('/profile-setup', { replace: true });
+          return;
+        }
+
+        // Navigate based on onboarding progress
+        if (!onboardingState.profile_completed) {
+          console.log('Profile not completed, redirecting to profile setup');
+          setHasRedirected(true);
+          navigate('/profile-setup', { replace: true });
+        } else if (!onboardingState.subscription_selected) {
+          console.log('Subscription not selected, redirecting to subscriptions');
+          setHasRedirected(true);
+          navigate('/subscriptions', { replace: true });
+        } else if (!onboardingState.intro_video_watched) {
+          console.log('Intro video not watched, redirecting to intro video');
+          setHasRedirected(true);
+          navigate('/intro-video', { replace: true });
+        } else if (!onboardingState.before_assessment_completed) {
+          console.log('Before assessment not completed, redirecting to before assessment');
+          setHasRedirected(true);
+          navigate('/before-assessment', { replace: true });
+        } else if (!onboardingState.journey_started) {
+          console.log('Journey not started, redirecting to journey start');
+          setHasRedirected(true);
+          navigate('/journey-start', { replace: true });
+        } else {
+          console.log('All onboarding completed, redirecting to home');
+          setHasRedirected(true);
+          navigate('/home', { replace: true });
+        }
+      } catch (error) {
+        console.error('Error checking user:', error);
+        setHasRedirected(true);
         navigate('/login', { replace: true });
-        return;
       }
+    };
 
-      console.log('User found:', user.id);
-      console.log('Onboarding state:', onboardingState);
+    performRedirect();
+  }, [loading, onboardingState, navigate, hasRedirected]);
 
-      if (!onboardingState) {
-        console.log('No onboarding state, redirecting to profile setup');
-        navigate('/profile-setup', { replace: true });
-        return;
-      }
-
-      // Navigate based on onboarding progress
-      if (!onboardingState.profile_completed) {
-        console.log('Profile not completed, redirecting to profile setup');
-        navigate('/profile-setup', { replace: true });
-      } else if (!onboardingState.subscription_selected) {
-        console.log('Subscription not selected, redirecting to subscriptions');
-        navigate('/subscriptions', { replace: true });
-      } else if (!onboardingState.intro_video_watched) {
-        console.log('Intro video not watched, redirecting to intro video');
-        navigate('/intro-video', { replace: true });
-      } else if (!onboardingState.before_assessment_completed) {
-        console.log('Before assessment not completed, redirecting to before assessment');
-        navigate('/before-assessment', { replace: true });
-      } else if (!onboardingState.journey_started) {
-        console.log('Journey not started, redirecting to journey start');
-        navigate('/journey-start', { replace: true });
-      } else {
-        console.log('All onboarding completed, redirecting to home');
-        navigate('/home', { replace: true });
-      }
-    } catch (error) {
-      console.error('Error checking user:', error);
-      navigate('/login', { replace: true });
-    } finally {
-      setHasChecked(true);
-      // Keep isRedirecting true to prevent further checks
-    }
-  };
+  // If we've already redirected, don't render anything
+  if (hasRedirected) {
+    return null;
+  }
 
   // Show loading screen while checking
   return (
