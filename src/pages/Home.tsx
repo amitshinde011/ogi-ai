@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, Camera, Award, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,6 +21,13 @@ const Home = () => {
     walkScore: 0
   });
   const [weeklyStreak, setWeeklyStreak] = useState<boolean[]>([]);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning!';
+    if (hour < 17) return 'Good afternoon!';
+    return 'Good evening!';
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -133,7 +139,7 @@ const Home = () => {
   return (
     <Layout>
       <Header 
-        title="Good morning!" 
+        title={getGreeting()}
         rightElement={
           <div className="w-8 h-8 rounded-full overflow-hidden">
             <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
