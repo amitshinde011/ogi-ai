@@ -36,7 +36,7 @@ const Settings = () => {
             email: user.email,
             avatar: profile?.profile_photo_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`,
             age: profile?.age,
-            gender: profile?.gender,
+            gender: (profile as any)?.gender || null,
             weight: profile?.weight,
             height: profile?.height,
             health_issues: profile?.health_issues,
@@ -180,14 +180,14 @@ const Settings = () => {
               />
               <div className="flex-1">
                 <h3 className="font-semibold text-dark-text text-lg">{userProfile.name}</h3>
-                <p className="text-gray-600">{userProfile.email}</p>
+                <p className="text-dark-text">{userProfile.email}</p>
                 {userProfile.age && userProfile.gender && (
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-dark-text mt-1">
                     {userProfile.age} years • {userProfile.gender}
                   </p>
                 )}
                 {userProfile.weight && userProfile.height && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-dark-text">
                     {userProfile.weight}kg • {userProfile.height}cm
                   </p>
                 )}
@@ -218,13 +218,13 @@ const Settings = () => {
                       onClick={item.action}
                     >
                       <div className="flex items-center">
-                        <item.icon className="text-gray-600 mr-3" size={20} />
+                        <item.icon className="text-dark-text mr-3" size={20} />
                         <span className="font-medium text-dark-text">{item.label}</span>
                       </div>
                       <div className="flex items-center">
                         {item.component}
                         {item.hasArrow && (
-                          <ChevronRight className="text-gray-600" size={16} />
+                          <ChevronRight className="text-dark-text" size={16} />
                         )}
                       </div>
                     </div>
@@ -247,7 +247,7 @@ const Settings = () => {
           Sign Out
         </Button>
 
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-dark-text">
           Yogi-ai v1.0.0
         </div>
       </div>

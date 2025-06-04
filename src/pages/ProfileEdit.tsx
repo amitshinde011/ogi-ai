@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -55,7 +54,7 @@ const ProfileEdit = () => {
             const profileData = {
               name: profile.name || '',
               age: profile.age?.toString() || '',
-              gender: profile.gender || '',
+              gender: (profile as any).gender || '',
               weight: profile.weight?.toString() || '',
               height: profile.height?.toString() || '',
               health_issues: profile.health_issues || '',
@@ -95,11 +94,11 @@ const ProfileEdit = () => {
         user_id: user.id,
         name: data.name,
         age: parseInt(data.age),
-        gender: data.gender,
         weight: parseFloat(data.weight),
         height: parseFloat(data.height),
         health_issues: data.health_issues,
-        profile_photo_url: profileImage
+        profile_photo_url: profileImage,
+        ...(data.gender && { gender: data.gender }) // Only include gender if it exists
       };
 
       const { error } = await supabase
@@ -150,7 +149,7 @@ const ProfileEdit = () => {
                   />
                 </label>
               </div>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-dark-text">
                 Update your profile information
               </p>
             </div>
