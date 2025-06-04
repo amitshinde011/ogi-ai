@@ -32,27 +32,77 @@ const ProfileSetup = () => {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
+      console.log('Starting profile save process...');
+      console.log('Form data:', formData);
 
-      const { error } = await supabase
+      // Validate required fields
+      if (!formData.name || !formData.age || !formData.weight || !formData.height) {
+        throw new Error('Please fill in all required fields (Name, Age, Weight, Height)');
+      }
+
+      // Validate numeric fields
+      const age = parseInt(formData.age);
+      const weight = parseFloat(formData.weight);
+      const height = parseFloat(formData.height);
+
+      if (isNaN(age) || age <= 0 || age > 150) {
+        throw new Error('Please enter a valid age between 1 and 150');
+      }
+
+      if (isNaN(weight) || weight <= 0 || weight > 500) {
+        throw new Error('Please enter a valid weight between 1 and 500 kg');
+      }
+
+      if (isNaN(height) || height <= 0 || height > 300) {
+        throw new Error('Please enter a valid height between 1 and 300 cm');
+      }
+
+      console.log('Validation passed. Getting user...');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('User authentication error:', userError);
+        throw new Error(`Authentication error: ${userError.message}`);
+      }
+
+      if (!user) {
+        console.error('No user found');
+        throw new Error('No authenticated user found. Please log in again.');
+      }
+
+      console.log('User found:', user.id);
+
+      const profileData = {
+        user_id: user.id,
+        name: formData.name.trim(),
+        age: age,
+        weight: weight,
+        height: height,
+        physical_activity_basic: formData.physical_activity_basic || null,
+        physical_activity_medium: formData.physical_activity_medium || null,
+        physical_activity_intense: formData.physical_activity_intense || null,
+        health_issues: formData.health_issues.trim() || null
+      };
+
+      console.log('Attempting to save profile with data:', profileData);
+
+      const { data, error } = await supabase
         .from('user_profiles')
-        .upsert({
-          user_id: user.id,
-          name: formData.name,
-          age: parseInt(formData.age),
-          weight: parseFloat(formData.weight),
-          height: parseFloat(formData.height),
-          physical_activity_basic: formData.physical_activity_basic,
-          physical_activity_medium: formData.physical_activity_medium,
-          physical_activity_intense: formData.physical_activity_intense,
-          health_issues: formData.health_issues
-        });
+        .upsert(profileData)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase upsert error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      console.log('Profile saved successfully:', data);
+      console.log('Updating onboarding state...');
 
       await updateOnboardingState({ profile_completed: true });
       
+      console.log('Onboarding state updated successfully');
+
       toast({
         title: "Profile Created!",
         description: "Your profile has been successfully saved.",
@@ -63,7 +113,7 @@ const ProfileSetup = () => {
       console.error('Error saving profile:', error);
       toast({
         title: "Error",
-        description: "Failed to save profile. Please try again.",
+        description: error.message || "Failed to save profile. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -87,43 +137,53 @@ const ProfileSetup = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="name">Full Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     required
+                    placeholder="Enter your full name"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="age">Age</Label>
+                  <Label htmlFor="age">Age *</Label>
                   <Input
                     id="age"
                     type="number"
+                    min="1"
+                    max="150"
                     value={formData.age}
                     onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
                     required
+                    placeholder="Enter your age"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="weight">Weight (kg)</Label>
+                  <Label htmlFor="weight">Weight (kg) *</Label>
                   <Input
                     id="weight"
                     type="number"
                     step="0.1"
+                    min="1"
+                    max="500"
                     value={formData.weight}
                     onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
                     required
+                    placeholder="Enter your weight"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="height">Height (cm)</Label>
+                  <Label htmlFor="height">Height (cm) *</Label>
                   <Input
                     id="height"
                     type="number"
+                    min="1"
+                    max="300"
                     value={formData.height}
                     onChange={(e) => setFormData(prev => ({ ...prev, height: e.target.value }))}
                     required
+                    placeholder="Enter your height"
                   />
                 </div>
               </div>
