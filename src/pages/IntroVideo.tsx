@@ -22,14 +22,23 @@ const IntroVideo = () => {
   };
 
   const handleContinue = async () => {
-    await updateOnboardingState({ intro_video_watched: true });
-    navigate('/before-assessment');
+    try {
+      await updateOnboardingState({ intro_video_watched: true });
+      navigate('/before-assessment');
+    } catch (error) {
+      console.error('Error updating onboarding state:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update progress. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-peaceful p-4">
       <div className="max-w-4xl mx-auto">
-        <Card>
+        <Card className="bg-white text-black">
           <CardHeader>
             <CardTitle className="text-2xl text-center text-primary">
               Welcome to Your Wellness Journey
@@ -39,8 +48,8 @@ const IntroVideo = () => {
             <div className="bg-gray-100 rounded-lg aspect-video flex items-center justify-center">
               <div className="text-center">
                 <Play className="w-16 h-16 text-primary mx-auto mb-4" />
-                <p className="text-lg font-semibold">Introduction Video</p>
-                <p className="text-muted-foreground">Learn how to use the app effectively</p>
+                <p className="text-lg font-semibold text-black">Introduction Video</p>
+                <p className="text-black/70">Learn how to use the app effectively</p>
                 <Button 
                   className="mt-4" 
                   onClick={handleVideoComplete}
@@ -91,7 +100,7 @@ const IntroVideo = () => {
                 Continue to Assessment
               </Button>
               {!videoWatched && (
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="text-sm text-black/60 mt-2">
                   Please complete the video to continue
                 </p>
               )}

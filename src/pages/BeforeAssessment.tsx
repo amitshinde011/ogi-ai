@@ -46,21 +46,68 @@ const BeforeAssessment = () => {
       return;
     }
 
+    // Validate required fields
+    if (!formData.walk_10km_comfort || !formData.run_10km_comfort || !formData.climb_mountain_comfort) {
+      toast({
+        title: "Missing Information",
+        description: "Please answer all the activity comfort questions.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "Please log in to continue.",
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+
+      console.log('Current user:', user.id);
 
       // Get user's active subscription
-      const { data: subscription } = await supabase
+      const { data: subscription, error: subError } = await supabase
         .from('user_subscriptions')
         .select('id')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
 
-      if (!subscription) throw new Error('No active subscription found');
+      console.log('Subscription query result:', subscription, subError);
+
+      if (subError) {
+        console.error('Subscription query error:', subError);
+        toast({
+          title: "Error",
+          description: "Failed to find subscription. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!subscription) {
+        toast({
+          title: "No Active Subscription",
+          description: "Please select a subscription plan first.",
+          variant: "destructive",
+        });
+        navigate('/subscriptions');
+        return;
+      }
+
+      console.log('Inserting assessment data:', {
+        user_id: user.id,
+        subscription_id: subscription.id,
+        assessment_type: 'before',
+        ...formData
+      });
 
       const { error } = await supabase
         .from('journey_assessments')
@@ -76,7 +123,10 @@ const BeforeAssessment = () => {
           comments: formData.comments
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Assessment insert error:', error);
+        throw error;
+      }
 
       await updateOnboardingState({ before_assessment_completed: true });
       
@@ -90,7 +140,7 @@ const BeforeAssessment = () => {
       console.error('Error saving assessment:', error);
       toast({
         title: "Error",
-        description: "Failed to save assessment. Please try again.",
+        description: `Failed to save assessment: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
@@ -101,7 +151,7 @@ const BeforeAssessment = () => {
   return (
     <div className="min-h-screen bg-gradient-peaceful p-4">
       <div className="max-w-2xl mx-auto">
-        <Card>
+        <Card className="bg-white text-black">
           <CardHeader>
             <CardTitle className="text-2xl text-center text-primary">
               Before Journey Assessment
@@ -114,12 +164,12 @@ const BeforeAssessment = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <Label className="text-lg font-semibold">Full Body Photo</Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <Label className="text-lg font-semibold text-black">Full Body Photo</Label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-white">
                     {!photoUploaded ? (
                       <div>
                         <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-4">Upload your full body photo</p>
+                        <p className="text-black mb-4">Upload your full body photo</p>
                         <Button 
                           type="button" 
                           variant="outline" 
@@ -139,99 +189,101 @@ const BeforeAssessment = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="health-conditions">Current Health Conditions</Label>
+                  <Label htmlFor="health-conditions" className="text-black">Current Health Conditions</Label>
                   <Textarea
                     id="health-conditions"
                     value={formData.current_health_conditions}
                     onChange={(e) => setFormData(prev => ({ ...prev, current_health_conditions: e.target.value }))}
                     placeholder="Describe your current health status, any medical conditions, medications..."
                     rows={3}
+                    className="bg-white text-black border-gray-300"
                   />
                 </div>
 
                 <div>
-                  <Label>Can you walk 10 km nonstop?</Label>
+                  <Label className="text-black">Can you walk 10 km nonstop?</Label>
                   <RadioGroup
                     value={formData.walk_10km_comfort}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, walk_10km_comfort: value }))}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="easily" id="walk-easily" />
-                      <Label htmlFor="walk-easily">Yes, easily</Label>
+                      <Label htmlFor="walk-easily" className="text-black">Yes, easily</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="with-effort" id="walk-effort" />
-                      <Label htmlFor="walk-effort">Yes, with some effort</Label>
+                      <Label htmlFor="walk-effort" className="text-black">Yes, with some effort</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="difficult" id="walk-difficult" />
-                      <Label htmlFor="walk-difficult">Very difficult</Label>
+                      <Label htmlFor="walk-difficult" className="text-black">Very difficult</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="cannot" id="walk-cannot" />
-                      <Label htmlFor="walk-cannot">No, cannot do it</Label>
+                      <Label htmlFor="walk-cannot" className="text-black">No, cannot do it</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 <div>
-                  <Label>Can you run 10 km nonstop?</Label>
+                  <Label className="text-black">Can you run 10 km nonstop?</Label>
                   <RadioGroup
                     value={formData.run_10km_comfort}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, run_10km_comfort: value }))}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="easily" id="run-easily" />
-                      <Label htmlFor="run-easily">Yes, easily</Label>
+                      <Label htmlFor="run-easily" className="text-black">Yes, easily</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="with-effort" id="run-effort" />
-                      <Label htmlFor="run-effort">Yes, with some effort</Label>
+                      <Label htmlFor="run-effort" className="text-black">Yes, with some effort</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="difficult" id="run-difficult" />
-                      <Label htmlFor="run-difficult">Very difficult</Label>
+                      <Label htmlFor="run-difficult" className="text-black">Very difficult</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="cannot" id="run-cannot" />
-                      <Label htmlFor="run-cannot">No, cannot do it</Label>
+                      <Label htmlFor="run-cannot" className="text-black">No, cannot do it</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 <div>
-                  <Label>Can you climb a mountain?</Label>
+                  <Label className="text-black">Can you climb a mountain?</Label>
                   <RadioGroup
                     value={formData.climb_mountain_comfort}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, climb_mountain_comfort: value }))}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="easily" id="climb-easily" />
-                      <Label htmlFor="climb-easily">Yes, easily</Label>
+                      <Label htmlFor="climb-easily" className="text-black">Yes, easily</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="with-effort" id="climb-effort" />
-                      <Label htmlFor="climb-effort">Yes, with some effort</Label>
+                      <Label htmlFor="climb-effort" className="text-black">Yes, with some effort</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="difficult" id="climb-difficult" />
-                      <Label htmlFor="climb-difficult">Very difficult</Label>
+                      <Label htmlFor="climb-difficult" className="text-black">Very difficult</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="cannot" id="climb-cannot" />
-                      <Label htmlFor="climb-cannot">No, cannot do it</Label>
+                      <Label htmlFor="climb-cannot" className="text-black">No, cannot do it</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 <div>
-                  <Label htmlFor="comments">Additional Comments</Label>
+                  <Label htmlFor="comments" className="text-black">Additional Comments</Label>
                   <Textarea
                     id="comments"
                     value={formData.comments}
                     onChange={(e) => setFormData(prev => ({ ...prev, comments: e.target.value }))}
                     placeholder="Any additional thoughts or concerns about starting your journey..."
                     rows={3}
+                    className="bg-white text-black border-gray-300"
                   />
                 </div>
               </div>

@@ -40,6 +40,15 @@ const Signup = () => {
       return;
     }
 
+    if (formData.password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -52,12 +61,14 @@ const Signup = () => {
       });
 
       if (error) {
+        console.error('Signup error:', error);
         toast({
           title: "Signup failed",
           description: error.message,
           variant: "destructive"
         });
       } else {
+        console.log('Signup success:', data);
         toast({
           title: "Signup successful",
           description: "Please check your email to confirm your account."
@@ -65,6 +76,7 @@ const Signup = () => {
         navigate('/profile-setup');
       }
     } catch (error) {
+      console.error('Signup catch error:', error);
       toast({
         title: "An error occurred",
         description: "Please try again later",
@@ -81,14 +93,14 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
-      <Card className="w-full max-w-md animate-fade-in shadow-lg border-lavender/20">
+      <Card className="w-full max-w-md animate-fade-in shadow-lg border-lavender/20 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
             <div className="w-16 h-16 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-4 shadow-md">
               <span className="text-2xl text-white">🧘</span>
             </div>
-            <h1 className="text-2xl font-bold text-stone">Join Yogi-ai</h1>
-            <p className="text-stone/70">Start your wellness journey today</p>
+            <h1 className="text-2xl font-bold text-black">Join Yogi-ai</h1>
+            <p className="text-black/70">Start your wellness journey today</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -99,7 +111,7 @@ const Signup = () => {
                 placeholder="Email"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
+                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage"
                 required
                 disabled={isLoading}
               />
@@ -110,7 +122,7 @@ const Signup = () => {
                 placeholder="Password"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
+                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage"
                 required
                 disabled={isLoading}
               />
@@ -121,7 +133,7 @@ const Signup = () => {
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
+                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage"
                 required
                 disabled={isLoading}
               />
@@ -136,7 +148,7 @@ const Signup = () => {
           </form>
 
           <div className="text-center">
-            <span className="text-sm text-stone/60">
+            <span className="text-sm text-black/60">
               Already have an account?{' '}
               <Link to="/login" className="text-sage hover:underline font-medium">
                 Sign in

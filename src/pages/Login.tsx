@@ -37,6 +37,7 @@ const Login = () => {
       });
       
       if (error) {
+        console.error('Login error:', error);
         toast({
           title: "Login failed",
           description: error.message,
@@ -50,6 +51,7 @@ const Login = () => {
         navigate('/');
       }
     } catch (error) {
+      console.error('Login catch error:', error);
       toast({
         title: "An error occurred",
         description: "Please try again later",
@@ -70,6 +72,7 @@ const Login = () => {
       });
       
       if (error) {
+        console.error('Google login error:', error);
         toast({
           title: "Google login failed",
           description: error.message,
@@ -77,6 +80,7 @@ const Login = () => {
         });
       }
     } catch (error) {
+      console.error('Google login catch error:', error);
       toast({
         title: "An error occurred",
         description: "Google login failed. Please try again.",
@@ -87,14 +91,14 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
-      <Card className="w-full max-w-md animate-fade-in shadow-lg border-lavender/20">
+      <Card className="w-full max-w-md animate-fade-in shadow-lg border-lavender/20 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
             <div className="w-16 h-16 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-4 shadow-md">
               <span className="text-2xl text-white">🧘</span>
             </div>
-            <h1 className="text-2xl font-bold text-stone">Welcome to Yogi-ai</h1>
-            <p className="text-stone/70">Track Your Meals. Share the Journey.</p>
+            <h1 className="text-2xl font-bold text-black">Welcome to Yogi-ai</h1>
+            <p className="text-black/70">Track Your Meals. Share the Journey.</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -105,7 +109,7 @@ const Login = () => {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
+                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage"
                 required
                 disabled={isLoading}
               />
@@ -116,7 +120,7 @@ const Login = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="rounded-xl text-stone border-lavender/30 focus:border-sage"
+                className="rounded-xl text-black bg-white border-gray-300 focus:border-sage"
                 required
                 disabled={isLoading}
               />
@@ -132,17 +136,17 @@ const Login = () => {
           
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-lavender/30"></div>
+              <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-stone/60">Or continue with</span>
+              <span className="bg-white px-2 text-black/60">Or continue with</span>
             </div>
           </div>
 
           <Button
             onClick={handleGoogleLogin}
             variant="outline"
-            className="w-full rounded-xl border-lavender/30 hover:bg-lavender/10 text-stone"
+            className="w-full rounded-xl border-gray-300 hover:bg-gray-50 text-black"
             disabled={isLoading}
           >
             <span className="mr-2">🔍</span>
@@ -150,7 +154,7 @@ const Login = () => {
           </Button>
 
           <div className="text-center">
-            <span className="text-sm text-stone/60">
+            <span className="text-sm text-black/60">
               Don't have an account?{' '}
               <Link to="/signup" className="text-sage hover:underline font-medium">
                 Sign up
