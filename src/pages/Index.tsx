@@ -1,30 +1,27 @@
 
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
 const Index = () => {
-  const navigate = useNavigate();
   const { onboardingState, loading } = useOnboarding();
 
   useEffect(() => {
-    // Only run once when component mounts
-    const performRedirect = async () => {
+    const handleRedirect = async () => {
       try {
-        console.log('Checking user authentication and onboarding state...');
+        console.log('Index component: Starting redirect logic');
         
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
           console.error('Error getting user:', userError);
-          window.location.replace('/login');
+          window.location.href = '/login';
           return;
         }
 
         if (!user) {
           console.log('No user found, redirecting to login');
-          window.location.replace('/login');
+          window.location.href = '/login';
           return;
         }
 
@@ -33,41 +30,41 @@ const Index = () => {
 
         if (!onboardingState) {
           console.log('No onboarding state, redirecting to profile setup');
-          window.location.replace('/profile-setup');
+          window.location.href = '/profile-setup';
           return;
         }
 
         // Navigate based on onboarding progress
         if (!onboardingState.profile_completed) {
           console.log('Profile not completed, redirecting to profile setup');
-          window.location.replace('/profile-setup');
+          window.location.href = '/profile-setup';
         } else if (!onboardingState.subscription_selected) {
           console.log('Subscription not selected, redirecting to subscriptions');
-          window.location.replace('/subscriptions');
+          window.location.href = '/subscriptions';
         } else if (!onboardingState.intro_video_watched) {
           console.log('Intro video not watched, redirecting to intro video');
-          window.location.replace('/intro-video');
+          window.location.href = '/intro-video';
         } else if (!onboardingState.before_assessment_completed) {
           console.log('Before assessment not completed, redirecting to before assessment');
-          window.location.replace('/before-assessment');
+          window.location.href = '/before-assessment';
         } else if (!onboardingState.journey_started) {
           console.log('Journey not started, redirecting to journey start');
-          window.location.replace('/journey-start');
+          window.location.href = '/journey-start';
         } else {
           console.log('All onboarding completed, redirecting to home');
-          window.location.replace('/home');
+          window.location.href = '/home';
         }
       } catch (error) {
         console.error('Error in redirect logic:', error);
-        window.location.replace('/login');
+        window.location.href = '/login';
       }
     };
 
-    // Only perform redirect if not already loading
+    // Only run redirect if not loading and we have the data we need
     if (!loading) {
-      performRedirect();
+      handleRedirect();
     }
-  }, [loading, onboardingState]); // Only depend on loading and onboardingState
+  }, [loading, onboardingState]);
 
   // Show loading screen while checking
   return (
