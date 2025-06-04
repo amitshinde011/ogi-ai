@@ -78,8 +78,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
       <div className="text-center">
-        <div className="w-24 h-24 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-6 animate-scale-in shadow-lg">
-          <span className="text-4xl text-white">🧘</span>
+        <div className="w-32 h-32 mx-auto flex items-center justify-center mb-6 animate-scale-in">
+          <img 
+            src="/lovable-uploads/79970f68-38e9-4317-9205-1a64c8814a23.png" 
+            alt="Yogi-ai Logo" 
+            className="w-full h-full object-contain"
+          />
         </div>
         <h1 className="text-3xl font-bold text-stone mb-2 animate-fade-in">Yogi-ai</h1>
         <p className="text-stone/70 animate-fade-in">Track Your Meals. Share the Journey.</p>
