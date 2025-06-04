@@ -8,10 +8,12 @@ import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import WellnessTracker from '@/components/WellnessTracker';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const Home = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [todayProgress, setTodayProgress] = useState({
     breakfast: false,
     lunch: false,
@@ -21,13 +23,39 @@ const Home = () => {
   });
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    } else {
-      navigate('/login');
-    }
+    const checkAuth = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          console.log('No authenticated user found, redirecting to login');
+          navigate('/login');
+          return;
+        }
+
+        console.log('Authenticated user found:', user.id);
+        setUser({
+          ...user,
+          avatar: user.user_metadata?.avatar_url || '/placeholder.svg'
+        });
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        navigate('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
