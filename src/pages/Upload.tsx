@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Camera, Upload as UploadIcon, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 const Upload = () => {
   const location = useLocation();
@@ -15,12 +17,31 @@ const Upload = () => {
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const mealTypes = [
     { id: 'breakfast', name: 'Breakfast', icon: '🌅', time: '6:00 - 11:00 AM' },
     { id: 'lunch', name: 'Lunch', icon: '☀️', time: '11:00 AM - 3:00 PM' },
     { id: 'dinner', name: 'Dinner', icon: '🌙', time: '3:00 PM - 10:00 PM' }
   ];
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUser({
+          id: user.id,
+          email: user.email
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -34,36 +55,41 @@ const Upload = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedMeal || !image) return;
+    if (!selectedMeal || !image || !currentUser) return;
 
     setUploading(true);
     
-    // Mock upload process
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Save to mock community posts
-    const posts = JSON.parse(localStorage.getItem('communityPosts') || '[]');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    const newPost = {
-      id: Date.now().toString(),
-      user: {
-        name: user.name,
-        avatar: user.avatar
-      },
-      mealType: selectedMeal,
-      image,
-      description,
-      timestamp: new Date().toISOString(),
-      likes: 0,
-      comments: []
-    };
-    
-    posts.unshift(newPost);
-    localStorage.setItem('communityPosts', JSON.stringify(posts));
-    
-    setUploading(false);
-    navigate('/community', { state: { uploaded: true } });
+    try {
+      // Create the post in community_posts table
+      const { error } = await supabase
+        .from('community_posts')
+        .insert({
+          user_id: currentUser.id,
+          title: `${selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1)} Time!`,
+          content: description || `Just had my ${selectedMeal}! 🍽️`,
+          image_url: image
+        });
+
+      if (error) throw error;
+
+      // Also save to meal_tracking for progress tracking
+      await supabase
+        .from('meal_tracking')
+        .insert({
+          user_id: currentUser.id,
+          meal_type: selectedMeal,
+          food_item: description || 'Meal logged',
+          date: new Date().toISOString().split('T')[0]
+        });
+
+      toast({ title: "Meal posted successfully!" });
+      navigate('/community');
+    } catch (error) {
+      console.error('Error uploading meal:', error);
+      toast({ title: "Failed to post meal", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -157,7 +183,7 @@ const Upload = () => {
         {/* Submit Button */}
         <Button
           onClick={handleSubmit}
-          disabled={!selectedMeal || !image || uploading}
+          disabled={!selectedMeal || !image || uploading || !currentUser}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white py-6 font-medium shadow-lg"
         >
           {uploading ? (

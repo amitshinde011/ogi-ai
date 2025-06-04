@@ -41,9 +41,18 @@ const Home = () => {
         }
 
         console.log('Authenticated user found:', user.id);
+        
+        // Fetch user profile for avatar
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('name, profile_photo_url')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
         setUser({
           ...user,
-          avatar: user.user_metadata?.avatar_url || '/placeholder.svg'
+          name: profile?.name || user.email?.split('@')[0] || 'User',
+          avatar: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`
         });
 
         // Fetch real tracking data
@@ -77,7 +86,7 @@ const Home = () => {
         .select('steps_count')
         .eq('user_id', userId)
         .eq('date', today)
-        .single();
+        .maybeSingle();
 
       const mealTypes = meals?.map(m => m.meal_type) || [];
       const todaySteps = steps?.steps_count || 0;
@@ -141,7 +150,7 @@ const Home = () => {
       <Header 
         title={getGreeting()}
         rightElement={
-          <div className="w-8 h-8 rounded-full overflow-hidden">
+          <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-sage/30">
             <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
           </div>
         }
