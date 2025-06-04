@@ -5,8 +5,8 @@
 
 @layer base {
   :root {
-    --background: 243 244 246;              /* Light gray */
-    --foreground: 0 0 0;                    /* Black */
+    --background: 64 64 64;                 /* Dark gray */
+    --foreground: 255 255 255;              /* White text */
 
     --card: 255 255 255;                    /* White for cards */
     --card-foreground: 0 0 0;
@@ -82,28 +82,28 @@
   body {
     @apply bg-background text-foreground;
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    color: black !important;
-    background-color: rgb(243, 244, 246) !important;
+    color: white !important;
+    background-color: rgb(64, 64, 64) !important;
   }
 
   html, body, #root {
-    background-color: rgb(243, 244, 246) !important;
-    color: black !important;
+    background-color: rgb(64, 64, 64) !important;
+    color: white !important;
     min-height: 100vh;
   }
 }
 
 @layer utilities {
   .gradient-sage {
-    background: rgb(243, 244, 246) !important;
+    background: rgb(64, 64, 64) !important;
   }
 
   .gradient-lavender {
-    background: rgb(243, 244, 246) !important;
+    background: rgb(64, 64, 64) !important;
   }
 
   .gradient-peaceful {
-    background: rgb(243, 244, 246) !important;
+    background: rgb(64, 64, 64) !important;
   }
 
   .glass-effect {
