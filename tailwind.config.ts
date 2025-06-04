@@ -54,10 +54,9 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				sage: 'rgb(var(--sage))',
-				sky: 'rgb(var(--sky))',
-				lavender: 'rgb(var(--lavender))',
-				cream: 'rgb(var(--cream))',
-				stone: 'rgb(var(--stone))',
+				'light-gray': 'rgb(var(--light-gray))',
+				'card-gray': 'rgb(var(--card-gray))',
+				'dark-text': 'rgb(var(--dark-text))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

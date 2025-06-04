@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -19,6 +20,7 @@ const ProfileSetup = () => {
   const [formData, setFormData] = useState({
     name: '',
     age: '',
+    gender: '',
     weight: '',
     height: '',
     physical_activity_basic: '',
@@ -35,12 +37,10 @@ const ProfileSetup = () => {
       console.log('Starting profile save process...');
       console.log('Form data:', formData);
 
-      // Validate required fields
-      if (!formData.name || !formData.age || !formData.weight || !formData.height) {
-        throw new Error('Please fill in all required fields (Name, Age, Weight, Height)');
+      if (!formData.name || !formData.age || !formData.weight || !formData.height || !formData.gender) {
+        throw new Error('Please fill in all required fields (Name, Age, Gender, Weight, Height)');
       }
 
-      // Validate numeric fields
       const age = parseInt(formData.age);
       const weight = parseFloat(formData.weight);
       const height = parseFloat(formData.height);
@@ -76,6 +76,7 @@ const ProfileSetup = () => {
         user_id: user.id,
         name: formData.name.trim(),
         age: age,
+        gender: formData.gender,
         weight: weight,
         height: height,
         physical_activity_basic: formData.physical_activity_basic || null,
@@ -122,14 +123,14 @@ const ProfileSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
+    <div className="min-h-screen bg-light-gray p-4">
       <div className="max-w-2xl mx-auto">
-        <Card>
+        <Card className="bg-card-gray border border-gray-200">
           <CardHeader>
-            <CardTitle className="text-2xl text-center text-primary">
+            <CardTitle className="text-2xl text-center text-dark-text">
               Tell Us About Yourself
             </CardTitle>
-            <p className="text-center text-muted-foreground">
+            <p className="text-center text-gray-600">
               Help us create a personalized wellness journey for you
             </p>
           </CardHeader>
@@ -137,17 +138,18 @@ const ProfileSetup = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Full Name *</Label>
+                  <Label htmlFor="name" className="text-dark-text">Full Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     required
                     placeholder="Enter your full name"
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="age">Age *</Label>
+                  <Label htmlFor="age" className="text-dark-text">Age *</Label>
                   <Input
                     id="age"
                     type="number"
@@ -157,10 +159,25 @@ const ProfileSetup = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
                     required
                     placeholder="Enter your age"
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="weight">Weight (kg) *</Label>
+                  <Label htmlFor="gender" className="text-dark-text">Gender *</Label>
+                  <Select value={formData.gender} onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}>
+                    <SelectTrigger className="bg-white border-gray-300 text-dark-text">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-gray-200">
+                      <SelectItem value="male" className="text-dark-text">Male</SelectItem>
+                      <SelectItem value="female" className="text-dark-text">Female</SelectItem>
+                      <SelectItem value="other" className="text-dark-text">Other</SelectItem>
+                      <SelectItem value="prefer-not-to-say" className="text-dark-text">Prefer not to say</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="weight" className="text-dark-text">Weight (kg) *</Label>
                   <Input
                     id="weight"
                     type="number"
@@ -171,10 +188,11 @@ const ProfileSetup = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
                     required
                     placeholder="Enter your weight"
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="height">Height (cm) *</Label>
+                  <Label htmlFor="height" className="text-dark-text">Height (cm) *</Label>
                   <Input
                     id="height"
                     type="number"
@@ -184,87 +202,89 @@ const ProfileSetup = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, height: e.target.value }))}
                     required
                     placeholder="Enter your height"
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <Label>How does your body feel after basic physical activity? (walking, light exercise)</Label>
+                  <Label className="text-dark-text">How does your body feel after basic physical activity? (walking, light exercise)</Label>
                   <RadioGroup
                     value={formData.physical_activity_basic}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, physical_activity_basic: value }))}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="energized" id="basic-energized" />
-                      <Label htmlFor="basic-energized">Energized and refreshed</Label>
+                      <Label htmlFor="basic-energized" className="text-dark-text">Energized and refreshed</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="slightly-tired" id="basic-tired" />
-                      <Label htmlFor="basic-tired">Slightly tired but good</Label>
+                      <Label htmlFor="basic-tired" className="text-dark-text">Slightly tired but good</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="exhausted" id="basic-exhausted" />
-                      <Label htmlFor="basic-exhausted">Exhausted and breathless</Label>
+                      <Label htmlFor="basic-exhausted" className="text-dark-text">Exhausted and breathless</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 <div>
-                  <Label>How does your body feel after medium physical activity? (jogging, cycling)</Label>
+                  <Label className="text-dark-text">How does your body feel after medium physical activity? (jogging, cycling)</Label>
                   <RadioGroup
                     value={formData.physical_activity_medium}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, physical_activity_medium: value }))}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="energized" id="medium-energized" />
-                      <Label htmlFor="medium-energized">Energized and refreshed</Label>
+                      <Label htmlFor="medium-energized" className="text-dark-text">Energized and refreshed</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="slightly-tired" id="medium-tired" />
-                      <Label htmlFor="medium-tired">Slightly tired but good</Label>
+                      <Label htmlFor="medium-tired" className="text-dark-text">Slightly tired but good</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="exhausted" id="medium-exhausted" />
-                      <Label htmlFor="medium-exhausted">Exhausted and breathless</Label>
+                      <Label htmlFor="medium-exhausted" className="text-dark-text">Exhausted and breathless</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 <div>
-                  <Label>How does your body feel after intense physical activity? (running, sports)</Label>
+                  <Label className="text-dark-text">How does your body feel after intense physical activity? (running, sports)</Label>
                   <RadioGroup
                     value={formData.physical_activity_intense}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, physical_activity_intense: value }))}
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="energized" id="intense-energized" />
-                      <Label htmlFor="intense-energized">Energized and refreshed</Label>
+                      <Label htmlFor="intense-energized" className="text-dark-text">Energized and refreshed</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="slightly-tired" id="intense-tired" />
-                      <Label htmlFor="intense-tired">Slightly tired but good</Label>
+                      <Label htmlFor="intense-tired" className="text-dark-text">Slightly tired but good</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="exhausted" id="intense-exhausted" />
-                      <Label htmlFor="intense-exhausted">Exhausted and breathless</Label>
+                      <Label htmlFor="intense-exhausted" className="text-dark-text">Exhausted and breathless</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 <div>
-                  <Label htmlFor="health-issues">Existing Health Issues (if any)</Label>
+                  <Label htmlFor="health-issues" className="text-dark-text">Existing Health Issues (if any)</Label>
                   <Textarea
                     id="health-issues"
                     value={formData.health_issues}
                     onChange={(e) => setFormData(prev => ({ ...prev, health_issues: e.target.value }))}
                     placeholder="Please describe any health conditions, medications, or concerns..."
                     rows={3}
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full bg-sage hover:bg-sage/90 text-white" disabled={loading}>
                 {loading ? 'Saving...' : 'Continue to Subscriptions'}
               </Button>
             </form>

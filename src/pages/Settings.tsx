@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Bell, Shield, HelpCircle, LogOut, ChevronRight, Edit } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,9 +7,11 @@ import { Switch } from '@/components/ui/switch';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const Settings = () => {
   const navigate = useNavigate();
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [notifications, setNotifications] = useState({
     mealReminders: true,
     communityActivity: true,
@@ -17,7 +19,39 @@ const Settings = () => {
     newRecipes: true
   });
 
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+
+          setUserProfile({
+            id: user.id,
+            name: profile?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            email: user.email,
+            avatar: profile?.profile_photo_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`,
+            age: profile?.age,
+            gender: profile?.gender,
+            weight: profile?.weight,
+            height: profile?.height,
+            health_issues: profile?.health_issues,
+            physical_activity_basic: profile?.physical_activity_basic,
+            physical_activity_medium: profile?.physical_activity_medium,
+            physical_activity_intense: profile?.physical_activity_intense
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -120,24 +154,43 @@ const Settings = () => {
     }
   ];
 
+  if (!userProfile) {
+    return (
+      <Layout>
+        <Header title="Settings" />
+        <div className="flex items-center justify-center min-h-screen bg-light-gray">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <Header title="Settings" />
       
-      <div className="p-4 space-y-6 max-w-md mx-auto">
-        {/* Profile Section */}
-        <Card className="shadow-lg border-lavender/20">
+      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+        <Card className="bg-card-gray border border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-center">
               <img
-                src={user.avatar}
+                src={userProfile.avatar}
                 alt="Profile"
                 className="w-16 h-16 rounded-full mr-4 shadow-md"
               />
               <div className="flex-1">
-                <h3 className="font-semibold text-stone text-lg">{user.name}</h3>
-                <p className="text-stone/70">{user.email}</p>
-                <p className="text-sm text-stone/60 mt-1">{user.dietaryGoals}</p>
+                <h3 className="font-semibold text-dark-text text-lg">{userProfile.name}</h3>
+                <p className="text-gray-600">{userProfile.email}</p>
+                {userProfile.age && userProfile.gender && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    {userProfile.age} years • {userProfile.gender}
+                  </p>
+                )}
+                {userProfile.weight && userProfile.height && (
+                  <p className="text-sm text-gray-500">
+                    {userProfile.weight}kg • {userProfile.height}cm
+                  </p>
+                )}
               </div>
               <Button
                 variant="ghost"
@@ -151,33 +204,32 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
           <div key={sectionIndex}>
-            <h4 className="font-semibold text-stone mb-3 px-1">{section.title}</h4>
-            <Card className="shadow-lg border-lavender/20">
+            <h4 className="font-semibold text-dark-text mb-3 px-1">{section.title}</h4>
+            <Card className="bg-card-gray border border-gray-200">
               <CardContent className="p-0">
                 {section.items.map((item, itemIndex) => (
                   <div key={itemIndex}>
                     <div
                       className={`flex items-center justify-between p-4 ${
-                        item.action ? 'cursor-pointer hover:bg-lavender/10' : ''
+                        item.action ? 'cursor-pointer hover:bg-gray-100' : ''
                       }`}
                       onClick={item.action}
                     >
                       <div className="flex items-center">
-                        <item.icon className="text-stone/60 mr-3" size={20} />
-                        <span className="font-medium text-stone">{item.label}</span>
+                        <item.icon className="text-gray-600 mr-3" size={20} />
+                        <span className="font-medium text-dark-text">{item.label}</span>
                       </div>
                       <div className="flex items-center">
                         {item.component}
                         {item.hasArrow && (
-                          <ChevronRight className="text-stone/60" size={16} />
+                          <ChevronRight className="text-gray-600" size={16} />
                         )}
                       </div>
                     </div>
                     {itemIndex < section.items.length - 1 && (
-                      <div className="border-b border-lavender/20 ml-11" />
+                      <div className="border-b border-gray-200 ml-11" />
                     )}
                   </div>
                 ))}
@@ -186,18 +238,16 @@ const Settings = () => {
           </div>
         ))}
 
-        {/* Logout Button */}
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 shadow-md"
+          className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 bg-white"
         >
           <LogOut size={16} className="mr-2" />
           Sign Out
         </Button>
 
-        {/* App Version */}
-        <div className="text-center text-sm text-stone/60">
+        <div className="text-center text-sm text-gray-500">
           Yogi-ai v1.0.0
         </div>
       </div>

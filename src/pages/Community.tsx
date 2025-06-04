@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Users, Plus, Clock, Share } from 'lucide-react';
+import { Heart, MessageCircle, Users, Plus, Clock, Share, MoreHorizontal, Edit, Trash } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -14,6 +15,7 @@ interface Post {
   user: {
     name: string;
     avatar: string;
+    id?: string;
   };
   mealType: string;
   image: string;
@@ -31,7 +33,6 @@ const Community = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
-    // Get current user for proper display
     const getCurrentUser = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -52,7 +53,6 @@ const Community = () => {
 
   useEffect(() => {
     try {
-      // Load posts from localStorage
       const savedPosts = localStorage.getItem('communityPosts');
       let parsedPosts = [];
       
@@ -65,19 +65,18 @@ const Community = () => {
         }
       }
       
-      // Ensure parsedPosts is an array
       if (!Array.isArray(parsedPosts)) {
         console.warn('Community posts data is not an array, initializing with empty array');
         parsedPosts = [];
         localStorage.setItem('communityPosts', JSON.stringify([]));
       }
 
-      // Add some mock posts if none exist
       if (parsedPosts.length === 0) {
         const mockPosts = [
           {
             id: '1',
             user: { 
+              id: 'mock-user-1',
               name: 'Sarah Chen', 
               avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' 
             },
@@ -91,6 +90,7 @@ const Community = () => {
           {
             id: '2',
             user: { 
+              id: 'mock-user-2',
               name: 'Mike Johnson', 
               avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike' 
             },
@@ -106,12 +106,12 @@ const Community = () => {
         localStorage.setItem('communityPosts', JSON.stringify(parsedPosts));
       }
 
-      // Process posts to ensure proper user data
       const processedPosts = parsedPosts.map(post => ({
         ...post,
         user: {
-          name: post.user?.name || currentUser?.name || 'Anonymous User',
-          avatar: post.user?.avatar || currentUser?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
+          id: post.user?.id || 'unknown',
+          name: post.user?.name || 'Anonymous User',
+          avatar: post.user?.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
         }
       }));
 
@@ -141,6 +141,18 @@ const Community = () => {
     });
   };
 
+  const handleDeletePost = (postId: string) => {
+    setPosts(prevPosts => {
+      const updatedPosts = prevPosts.filter(post => post.id !== postId);
+      localStorage.setItem('communityPosts', JSON.stringify(updatedPosts));
+      return updatedPosts;
+    });
+  };
+
+  const canEditPost = (post: Post) => {
+    return currentUser && (post.user.id === currentUser.id || post.user.id === 'unknown');
+  };
+
   const formatTime = (timestamp: string) => {
     const now = new Date();
     const time = new Date(timestamp);
@@ -164,7 +176,7 @@ const Community = () => {
     <Layout>
       <Header title="Community Feed" />
       
-      <div className="space-y-4 max-w-md mx-auto pb-4">
+      <div className="space-y-4 max-w-md mx-auto pb-4 bg-light-gray min-h-screen">
         {location.state?.uploaded && (
           <div className="mx-4 p-4 bg-green-50 border border-green-200 rounded-xl text-center">
             <p className="text-green-800 font-medium">🎉 Meal shared successfully!</p>
@@ -172,9 +184,8 @@ const Community = () => {
         )}
 
         {Array.isArray(posts) && posts.length > 0 ? posts.map((post) => (
-          <Card key={post.id} className="mx-4 overflow-hidden animate-fade-in bg-white">
+          <Card key={post.id} className="mx-4 overflow-hidden animate-fade-in bg-card-gray border border-gray-200">
             <CardContent className="p-0">
-              {/* Post Header */}
               <div className="p-4 flex items-center justify-between">
                 <div className="flex items-center">
                   <Avatar>
@@ -184,20 +195,42 @@ const Community = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="ml-3">
-                    <h4 className="font-semibold text-gray-900">
+                    <h4 className="font-semibold text-dark-text">
                       {post.user?.name || 'Anonymous User'}
                     </h4>
                     <div className="flex items-center text-sm text-gray-600">
                       <span className="mr-1">{getMealEmoji(post.mealType)}</span>
-                      <span className="capitalize mr-2">{post.mealType}</span>
-                      <Clock size={12} className="mr-1" />
-                      <span>{formatTime(post.timestamp)}</span>
+                      <span className="capitalize mr-2 text-dark-text">{post.mealType}</span>
+                      <Clock size={12} className="mr-1 text-gray-500" />
+                      <span className="text-gray-500">{formatTime(post.timestamp)}</span>
                     </div>
                   </div>
                 </div>
+                
+                {canEditPost(post) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreHorizontal size={16} className="text-dark-text" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-white border border-gray-200">
+                      <DropdownMenuItem onClick={() => navigate(`/edit-post/${post.id}`)} className="text-dark-text">
+                        <Edit size={14} className="mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleDeletePost(post.id)}
+                        className="text-red-600"
+                      >
+                        <Trash size={14} className="mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
 
-              {/* Post Image */}
               <div className="relative">
                 <img
                   src={post.image}
@@ -206,7 +239,6 @@ const Community = () => {
                 />
               </div>
 
-              {/* Post Actions */}
               <div className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-4">
@@ -236,16 +268,14 @@ const Community = () => {
                   </div>
                 </div>
 
-                {/* Likes Count */}
                 {post.likes > 0 && (
-                  <p className="font-semibold text-sm mb-2 text-gray-900">
+                  <p className="font-semibold text-sm mb-2 text-dark-text">
                     {post.likes} {post.likes === 1 ? 'like' : 'likes'}
                   </p>
                 )}
 
-                {/* Description */}
                 {post.description && (
-                  <p className="text-sm text-gray-900">
+                  <p className="text-sm text-dark-text">
                     <span className="font-semibold mr-2">
                       {post.user?.name || 'Anonymous User'}
                     </span>
@@ -253,7 +283,6 @@ const Community = () => {
                   </p>
                 )}
 
-                {/* Comments Link */}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -270,7 +299,7 @@ const Community = () => {
             <div className="w-16 h-16 bg-sage/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="text-sage" size={32} />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No posts yet</h3>
+            <h3 className="text-lg font-semibold text-dark-text mb-2">No posts yet</h3>
             <p className="text-gray-600 mb-4">Be the first to share your meal!</p>
             <Button onClick={() => navigate('/upload')} className="rounded-xl bg-sage hover:bg-sage/90 text-white">
               Upload Your First Meal
