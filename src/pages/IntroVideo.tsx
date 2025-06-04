@@ -36,22 +36,22 @@ const IntroVideo = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
+    <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto">
-        <Card className="bg-white text-black">
+        <Card className="bg-white text-black border-gray-200">
           <CardHeader>
-            <CardTitle className="text-2xl text-center text-primary">
+            <CardTitle className="text-2xl text-center text-sage">
               Welcome to Your Wellness Journey
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="bg-gray-100 rounded-lg aspect-video flex items-center justify-center">
               <div className="text-center">
-                <Play className="w-16 h-16 text-primary mx-auto mb-4" />
+                <Play className="w-16 h-16 text-sage mx-auto mb-4" />
                 <p className="text-lg font-semibold text-black">Introduction Video</p>
-                <p className="text-black/70">Learn how to use the app effectively</p>
+                <p className="text-black">Learn how to use the app effectively</p>
                 <Button 
-                  className="mt-4" 
+                  className="mt-4 bg-sage hover:bg-sage/90 text-white" 
                   onClick={handleVideoComplete}
                   disabled={videoWatched}
                 >
@@ -75,12 +75,12 @@ const IntroVideo = () => {
                   </div>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-800">Important Instructions</h3>
-                  <p className="text-gray-700 mt-1">
+                  <h3 className="text-lg font-semibold text-black">Important Instructions</h3>
+                  <p className="text-black mt-1">
                     Please watch the entire video before proceeding. This is a one-time guide that contains 
                     essential information for your journey including:
                   </p>
-                  <ul className="list-disc list-inside text-gray-700 mt-2 space-y-1">
+                  <ul className="list-disc list-inside text-black mt-2 space-y-1">
                     <li>How to track your daily diet effectively</li>
                     <li>Water consumption monitoring techniques</li>
                     <li>Yoga routine guidance and tips</li>
@@ -96,11 +96,12 @@ const IntroVideo = () => {
                 onClick={handleContinue}
                 disabled={!videoWatched}
                 size="lg"
+                className="bg-sage hover:bg-sage/90 text-white"
               >
                 Continue to Assessment
               </Button>
               {!videoWatched && (
-                <p className="text-sm text-black/60 mt-2">
+                <p className="text-sm text-black mt-2">
                   Please complete the video to continue
                 </p>
               )}
