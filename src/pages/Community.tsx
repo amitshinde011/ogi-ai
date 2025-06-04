@@ -1,15 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share2, Plus, Edit, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Card, CardContent } from '@/components/ui/card';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
+import PostCard from '@/components/PostCard';
+import CreatePostDialog from '@/components/CreatePostDialog';
+import EditPostDialog from '@/components/EditPostDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { getRelativeTime } from '@/utils/dateUtils';
 
 interface Post {
   id: string;
@@ -183,51 +181,14 @@ const Community = () => {
       <Header title="Community" />
       
       <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
-        {/* Create Post Button */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white">
-              <Plus size={16} className="mr-2" />
-              Share Your Journey
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-card-gray border border-gray-200">
-            <DialogHeader>
-              <DialogTitle className="text-dark-text">Create New Post</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Input
-                placeholder="Post title..."
-                value={newPost.title}
-                onChange={(e) => setNewPost(prev => ({ ...prev, title: e.target.value }))}
-                className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
-              />
-              <Textarea
-                placeholder="Share your wellness journey..."
-                value={newPost.content}
-                onChange={(e) => setNewPost(prev => ({ ...prev, content: e.target.value }))}
-                className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 min-h-24"
-              />
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="flex-1 rounded-xl border-gray-300 text-dark-text hover:bg-gray-100 bg-white"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreatePost}
-                  className="flex-1 rounded-xl bg-sage hover:bg-sage/90 text-white"
-                >
-                  Post
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <CreatePostDialog
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          newPost={newPost}
+          onPostChange={setNewPost}
+          onSubmit={handleCreatePost}
+        />
 
-        {/* Posts */}
         {posts.length === 0 ? (
           <Card className="bg-card-gray border border-gray-200">
             <CardContent className="p-6 text-center">
@@ -236,113 +197,21 @@ const Community = () => {
           </Card>
         ) : (
           posts.map((post) => (
-            <Card key={post.id} className="bg-card-gray border border-gray-200">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <img
-                      src={post.user_avatar}
-                      alt={post.user_name}
-                      className="w-10 h-10 rounded-full mr-3"
-                    />
-                    <div>
-                      <h4 className="font-semibold text-dark-text">{post.user_name}</h4>
-                      <p className="text-sm text-dark-text opacity-70">
-                        {getRelativeTime(post.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                  {currentUser?.id === post.user_id && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingPost(post)}
-                        className="text-dark-text hover:bg-gray-100"
-                      >
-                        <Edit size={16} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeletePost(post.id)}
-                        className="text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <h3 className="font-semibold text-dark-text mb-2">{post.title}</h3>
-                <p className="text-dark-text mb-4">{post.content}</p>
-                {post.image_url && (
-                  <img
-                    src={post.image_url}
-                    alt="Post"
-                    className="w-full rounded-lg mb-4"
-                  />
-                )}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                  <div className="flex items-center space-x-4">
-                    <button className="flex items-center text-dark-text hover:text-red-500">
-                      <Heart size={16} className="mr-1" />
-                      <span className="text-sm">{post.likes_count}</span>
-                    </button>
-                    <button className="flex items-center text-dark-text hover:text-blue-500">
-                      <MessageCircle size={16} className="mr-1" />
-                      <span className="text-sm">{post.comments_count}</span>
-                    </button>
-                  </div>
-                  <button className="flex items-center text-dark-text hover:text-green-500">
-                    <Share2 size={16} />
-                  </button>
-                </div>
-              </CardContent>
-            </Card>
+            <PostCard
+              key={post.id}
+              post={post}
+              currentUserId={currentUser?.id}
+              onEdit={setEditingPost}
+              onDelete={handleDeletePost}
+            />
           ))
         )}
 
-        {/* Edit Post Dialog */}
-        {editingPost && (
-          <Dialog open={!!editingPost} onOpenChange={() => setEditingPost(null)}>
-            <DialogContent className="bg-card-gray border border-gray-200">
-              <DialogHeader>
-                <DialogTitle className="text-dark-text">Edit Post</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  placeholder="Post title..."
-                  value={editingPost.title}
-                  onChange={(e) => setEditingPost(prev => prev ? { ...prev, title: e.target.value } : null)}
-                  className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
-                />
-                <Textarea
-                  placeholder="Share your wellness journey..."
-                  value={editingPost.content}
-                  onChange={(e) => setEditingPost(prev => prev ? { ...prev, content: e.target.value } : null)}
-                  className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 min-h-24"
-                />
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setEditingPost(null)}
-                    className="flex-1 rounded-xl border-gray-300 text-dark-text hover:bg-gray-100 bg-white"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleEditPost}
-                    className="flex-1 rounded-xl bg-sage hover:bg-sage/90 text-white"
-                  >
-                    Update
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
+        <EditPostDialog
+          editingPost={editingPost}
+          onEditingPostChange={setEditingPost}
+          onSubmit={handleEditPost}
+        />
       </div>
     </Layout>
   );
