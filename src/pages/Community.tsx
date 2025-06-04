@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Share2, Plus, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { getRelativeTime } from '@/utils/dateUtils';
 
 interface Post {
   id: string;
@@ -45,7 +45,7 @@ const Community = () => {
           .from('user_profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         setCurrentUser({
           id: user.id,
@@ -60,12 +60,18 @@ const Community = () => {
 
   const fetchPosts = async () => {
     try {
+      console.log('Fetching community posts...');
       const { data: posts, error } = await supabase
         .from('community_posts')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching posts:', error);
+        throw error;
+      }
+
+      console.log('Fetched posts:', posts);
 
       // Fetch user profiles for each post
       const postsWithUserInfo = await Promise.all(
@@ -74,19 +80,24 @@ const Community = () => {
             .from('user_profiles')
             .select('name, profile_photo_url')
             .eq('user_id', post.user_id)
-            .single();
+            .maybeSingle();
+
+          const { data: { user } } = await supabase.auth.getUser();
+          const fallbackName = user?.email?.split('@')[0] || 'User';
 
           return {
             ...post,
-            user_name: profile?.name || 'User',
+            user_name: profile?.name || fallbackName,
             user_avatar: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`
           };
         })
       );
 
+      console.log('Posts with user info:', postsWithUserInfo);
       setPosts(postsWithUserInfo);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      toast({ title: "Failed to load posts", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -237,7 +248,7 @@ const Community = () => {
                     <div>
                       <h4 className="font-semibold text-dark-text">{post.user_name}</h4>
                       <p className="text-sm text-dark-text opacity-70">
-                        {new Date(post.created_at).toLocaleDateString()}
+                        {getRelativeTime(post.created_at)}
                       </p>
                     </div>
                   </div>
