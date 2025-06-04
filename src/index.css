@@ -4,71 +4,70 @@
 
 @layer base {
   :root {
-    --background: 255 252 249;                 /* Soft cream */
-    --foreground: 51 51 51;                    /* Deep gray */
+    --background: 250 253 250;                   /* Very soft green-tinted white */
+    --foreground: 34 34 34;                      /* Dark gray for readability */
 
-    --card: 255 255 255;                       /* White */
-    --card-foreground: 51 51 51;
+    --card: 255 255 255;                         /* Pure white cards */
+    --card-foreground: 34 34 34;
 
     --popover: 255 255 255;
-    --popover-foreground: 51 51 51;
+    --popover-foreground: 34 34 34;
 
-    --primary: 186 230 253;                    /* Pastel sky blue */
-    --primary-foreground: 51 51 51;
+    --primary: 174 232 188;                      /* Pastel mint green (refreshing) */
+    --primary-foreground: 34 34 34;
 
-    --secondary: 255 221 221;                  /* Pastel pink */
-    --secondary-foreground: 51 51 51;
+    --secondary: 255 238 184;                    /* Soft yellow (energy/sunshine) */
+    --secondary-foreground: 34 34 34;
 
-    --muted: 255 243 235;                      /* Light peach */
-    --muted-foreground: 113 113 122;
+    --muted: 236 252 203;                        /* Light avocado green */
+    --muted-foreground: 90 90 90;
 
-    --accent: 221 237 255;                     /* Pastel lavender-blue */
-    --accent-foreground: 51 51 51;
+    --accent: 207 235 255;                       /* Sky blue (hydration) */
+    --accent-foreground: 34 34 34;
 
-    --destructive: 255 179 186;                /* Soft red-pink */
-    --destructive-foreground: 51 51 51;
+    --destructive: 255 179 186;                  /* Gentle pink for errors or warnings */
+    --destructive-foreground: 34 34 34;
 
-    --border: 234 234 239;
+    --border: 221 229 213;
     --input: 255 255 255;
-    --ring: 186 230 253;
+    --ring: 174 232 188;
 
     --radius: 0.5rem;
 
-    --sage: 202 240 248;                       /* Pastel teal */
-    --sky: 186 230 253;
-    --lavender: 230 224 255;
-    --cream: 255 252 249;
-    --stone: 200 200 200;
+    --mint: 174 232 188;
+    --lemon: 255 238 184;
+    --sky: 207 235 255;
+    --peach: 255 243 225;
   }
 
   .dark {
-    --background: 39 39 42;
+    --background: 24 24 27;
     --foreground: 243 244 246;
 
-    --card: 55 55 60;
+    --card: 30 30 35;
     --card-foreground: 243 244 246;
 
-    --popover: 55 55 60;
+    --popover: 30 30 35;
     --popover-foreground: 243 244 246;
 
-    --primary: 186 230 253;
-    --primary-foreground: 39 39 42;
+    --primary: 174 232 188;
+    --primary-foreground: 24 24 27;
 
-    --secondary: 255 221 221;
-    --secondary-foreground: 39 39 42;
+    --secondary: 255 238 184;
+    --secondary-foreground: 24 24 27;
 
-    --muted: 64 64 69;
-    --muted-foreground: 161 161 170;
+    --muted: 51 51 51;
+    --muted-foreground: 200 200 200;
 
-    --accent: 230 224 255;
-    --accent-foreground: 39 39 42;
+    --accent: 207 235 255;
+    --accent-foreground: 24 24 27;
 
     --destructive: 255 179 186;
-    --destructive-foreground: 39 39 42;
+    --destructive-foreground: 24 24 27;
 
-    --border: 75 85 99;
-    --input: 55 55 60;
-    --ring: 186 230 253;
+    --border: 80 80 90;
+    --input: 38 38 45;
+    --ring: 174 232 188;
   }
 }
 
@@ -92,21 +91,21 @@
 }
 
 @layer utilities {
-  .gradient-sage {
-    background: linear-gradient(135deg, #caf0f8, #ade8f4); /* Teal gradient */
+  .gradient-energize {
+    background: linear-gradient(135deg, #caffbf, #fdffb6); /* Mint to lemon */
   }
 
-  .gradient-lavender {
-    background: linear-gradient(135deg, #e6e0ff, #f3f0ff); /* Soft lavender */
+  .gradient-refresh {
+    background: linear-gradient(135deg, #a0e9ff, #caffbf); /* Sky to mint */
   }
 
-  .gradient-peaceful {
-    background: linear-gradient(135deg, #ffe8cc, #fff0e6); /* Creamy orange */
+  .gradient-balance {
+    background: linear-gradient(135deg, #ffe9c7, #fff7d6); /* Soft peach to cream */
   }
 
   .glass-effect {
-    background: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(14px);
-    border: 1px solid rgba(234, 234, 239, 0.3);
+    border: 1px solid rgba(200, 255, 200, 0.25);
   }
 }
