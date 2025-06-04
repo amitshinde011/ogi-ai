@@ -3,8 +3,8 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-  background-color: rgb(255, 255, 255) !important;
-  color: rgb(0, 0, 0) !important;
+  background-color: rgb(255, 255, 255);
+  color: rgb(17, 24, 39);
   font-family: 'Inter', sans-serif;
   min-height: 100vh;
 }
@@ -12,16 +12,16 @@
 .logo {
   height: 6em;
   padding: 1.5em;
-  will-change: filter;
   transition: filter 300ms;
+  will-change: filter;
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em rgba(0, 174, 239, 0.6)); /* Cyan hover */
+  filter: drop-shadow(0 0 2em rgba(245, 96, 64, 0.6)); /* coral-orange glow */
 }
 
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em rgba(236, 0, 140, 0.6)); /* Magenta hover */
+  filter: drop-shadow(0 0 2em rgba(225, 48, 108, 0.6)); /* magenta glow */
 }
 
 @keyframes logo-spin {
@@ -41,12 +41,26 @@
 
 .card {
   padding: 2em;
-  background-color: rgb(255, 255, 255) !important;
-  color: rgb(0, 0, 0) !important;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: rgb(255, 255, 255);
+  color: rgb(17, 24, 39);
   border-radius: 1rem;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
 }
 
 .read-the-docs {
-  color: #666;
+  color: #888;
+}
+
+.button-gradient {
+  background: linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: opacity 0.3s;
+}
+
+.button-gradient:hover {
+  opacity: 0.85;
 }
