@@ -42,6 +42,37 @@ const Index = () => {
           return;
         }
 
+        // Check if user has completed their program
+        const today = new Date().toISOString().split('T')[0];
+        
+        const { data: completedSubscription } = await supabase
+          .from('user_subscriptions')
+          .select('*, programs(*)')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .lte('end_date', today)
+          .maybeSingle();
+
+        if (completedSubscription) {
+          // Check if final assessment is already completed
+          const { data: finalAssessment } = await supabase
+            .from('final_assessments')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('subscription_id', completedSubscription.id)
+            .maybeSingle();
+
+          if (!finalAssessment) {
+            console.log('Program completed but final assessment not done, redirecting to program complete');
+            window.location.href = '/program-complete';
+            return;
+          } else {
+            console.log('Program completed and final assessment done, redirecting to subscriptions');
+            window.location.href = '/subscriptions';
+            return;
+          }
+        }
+
         // Navigate based on onboarding progress
         if (!onboardingState.profile_completed) {
           console.log('Profile not completed, redirecting to profile setup');
