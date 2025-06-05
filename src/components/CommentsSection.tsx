@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import Comment from './Comment';
 import CommentForm from './CommentForm';
 
-interface Comment {
+interface CommentType {
   id: string;
   content: string;
   created_at: string;
@@ -14,7 +14,7 @@ interface Comment {
   parent_comment_id?: string;
   user_name?: string;
   user_avatar?: string;
-  replies?: Comment[];
+  replies?: CommentType[];
 }
 
 interface CommentsSectionProps {
@@ -25,7 +25,7 @@ interface CommentsSectionProps {
 }
 
 const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDeleted }: CommentsSectionProps) => {
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<CommentType[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -76,7 +76,7 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
           acc[comment.parent_comment_id].push(comment);
         }
         return acc;
-      }, {} as Record<string, Comment[]>);
+      }, {} as Record<string, CommentType[]>);
 
       const threaded = parentComments.map(comment => ({
         ...comment,
@@ -187,7 +187,7 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
       )}
 
       {/* Comments list */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {comments.length === 0 ? (
           <p className="text-center text-gray-500 py-4">No comments yet. Be the first to comment!</p>
         ) : (

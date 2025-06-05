@@ -18,19 +18,26 @@ const CommentForm = ({ onSubmit, placeholder = "Add a comment..." }: CommentForm
     setContent('');
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      handleSubmit();
+    }
+  };
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder={placeholder}
-        className="min-h-20"
+        onKeyDown={handleKeyPress}
+        placeholder={`${placeholder} (Ctrl+Enter to submit)`}
+        className="min-h-16 resize-none"
       />
       <div className="flex justify-end">
         <Button
           onClick={handleSubmit}
           disabled={!content.trim()}
-          className="bg-sage hover:bg-sage/90 text-white"
+          className="bg-sage hover:bg-sage/90 text-white h-8 px-4 text-sm"
         >
           <Send size={14} className="mr-1" />
           Comment
