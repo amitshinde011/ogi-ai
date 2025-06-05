@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Camera, Award, TrendingUp } from 'lucide-react';
+import { Plus, Camera, Award, TrendingUp, Trophy } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -8,6 +8,7 @@ import Header from '@/components/Header';
 import WellnessTracker from '@/components/WellnessTracker';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ const Home = () => {
     walkScore: 0
   });
   const [weeklyStreak, setWeeklyStreak] = useState<boolean[]>([]);
+  const { isCompleted, completedSubscription } = useProgramCompletion();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -157,6 +159,23 @@ const Home = () => {
       />
       
       <div className="p-4 space-y-6 max-w-md mx-auto">
+        {/* Program Completion Notification */}
+        {isCompleted && completedSubscription && (
+          <Card className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white animate-pulse">
+            <CardContent className="p-4 text-center">
+              <Trophy className="w-8 h-8 mx-auto mb-2" />
+              <h3 className="font-bold text-lg">Congratulations! 🎉</h3>
+              <p className="text-sm mb-3">You've completed your {completedSubscription.programs?.name}!</p>
+              <Button 
+                onClick={() => navigate('/program-complete')}
+                className="bg-white text-orange-500 hover:bg-gray-100 text-sm px-4 py-2"
+              >
+                View Your Achievement
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Daily Progress Card */}
         <Card className="bg-gradient-sage text-white animate-fade-in">
           <CardContent className="p-6">

@@ -9,6 +9,64 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assessment_comparisons: {
+        Row: {
+          before_assessment_id: string | null
+          created_at: string
+          final_assessment_id: string | null
+          id: string
+          shared_to_community: boolean | null
+          shared_to_social: boolean | null
+          subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          before_assessment_id?: string | null
+          created_at?: string
+          final_assessment_id?: string | null
+          id?: string
+          shared_to_community?: boolean | null
+          shared_to_social?: boolean | null
+          subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          before_assessment_id?: string | null
+          created_at?: string
+          final_assessment_id?: string | null
+          id?: string
+          shared_to_community?: boolean | null
+          shared_to_social?: boolean | null
+          subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_comparisons_before_assessment_id_fkey"
+            columns: ["before_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "journey_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_comparisons_final_assessment_id_fkey"
+            columns: ["final_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "final_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_comparisons_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_comments: {
         Row: {
           content: string
@@ -189,6 +247,56 @@ export type Database = {
           water_litres?: number | null
         }
         Relationships: []
+      }
+      final_assessments: {
+        Row: {
+          assessment_type: string | null
+          climb_mountain_comfort: string | null
+          comments: string | null
+          created_at: string
+          current_health_conditions: string | null
+          full_body_photo_url: string | null
+          id: string
+          run_10km_comfort: string | null
+          subscription_id: string | null
+          user_id: string
+          walk_10km_comfort: string | null
+        }
+        Insert: {
+          assessment_type?: string | null
+          climb_mountain_comfort?: string | null
+          comments?: string | null
+          created_at?: string
+          current_health_conditions?: string | null
+          full_body_photo_url?: string | null
+          id?: string
+          run_10km_comfort?: string | null
+          subscription_id?: string | null
+          user_id: string
+          walk_10km_comfort?: string | null
+        }
+        Update: {
+          assessment_type?: string | null
+          climb_mountain_comfort?: string | null
+          comments?: string | null
+          created_at?: string
+          current_health_conditions?: string | null
+          full_body_photo_url?: string | null
+          id?: string
+          run_10km_comfort?: string | null
+          subscription_id?: string | null
+          user_id?: string
+          walk_10km_comfort?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "final_assessments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       journey_assessments: {
         Row: {
