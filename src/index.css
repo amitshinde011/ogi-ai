@@ -6,31 +6,31 @@
 @layer base {
   :root {
     --background: 252 252 252;                /* Soft white */
-    --foreground: 88 88 88;                   /* Soft gray */
+    --foreground: 51 65 85;                   /* Darker gray for better contrast */
 
     --card: 255 255 255;
-    --card-foreground: 88 88 88;
+    --card-foreground: 51 65 85;              /* Darker text on cards */
 
     --popover: 255 255 255;
-    --popover-foreground: 88 88 88;
+    --popover-foreground: 51 65 85;
 
     --primary: 186 147 216;                   /* Pastel Purple */
     --primary-foreground: 255 255 255;
 
     --secondary: 255 182 193;                 /* Pastel Pink */
-    --secondary-foreground: 88 88 88;
+    --secondary-foreground: 51 65 85;         /* Darker text */
 
     --accent: 173 216 230;                    /* Pastel Blue */
-    --accent-foreground: 88 88 88;
+    --accent-foreground: 51 65 85;            /* Darker text */
 
-    --muted: 248 248 248;
-    --muted-foreground: 156 163 175;
+    --muted: 243 244 246;                     /* Light gray background */
+    --muted-foreground: 107 114 128;          /* Medium gray text */
 
     --destructive: 248 180 180;               /* Pastel Red */
-    --destructive-foreground: 88 88 88;
+    --destructive-foreground: 51 65 85;       /* Darker text */
 
-    --border: 229 231 235;
-    --input: 255 255 255;
+    --border: 209 213 219;                    /* More visible border */
+    --input: 255 255 255;                     /* White input background */
     --ring: 186 147 216;
 
     --radius: 0.75rem;
@@ -49,7 +49,7 @@
     --sage: 159 183 162;
     --light-gray: 248 250 252;
     --card-gray: 255 255 255;
-    --dark-text: 75 85 99;
+    --dark-text: 51 65 85;                    /* Darker for better contrast */
   }
 
   .dark {
@@ -97,6 +97,27 @@
     min-height: 100vh;
     background-color: rgb(var(--background)) !important;
     color: rgb(var(--foreground)) !important;
+  }
+
+  /* Better contrast for form elements */
+  label {
+    color: rgb(var(--dark-text)) !important;
+    font-weight: 500;
+  }
+
+  input, textarea, select {
+    color: rgb(var(--dark-text)) !important;
+    border: 1px solid rgb(var(--border)) !important;
+    background-color: rgb(var(--input)) !important;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: rgb(var(--muted-foreground)) !important;
+  }
+
+  /* Ensure text visibility on cards */
+  .card p, .card span, .card div {
+    color: rgb(var(--card-foreground));
   }
 }
 
@@ -176,9 +197,13 @@
   .bg-pastel-lavender { background-color: rgb(221, 160, 221); }
   .bg-pastel-mint { background-color: rgb(175, 238, 238); }
 
-  /* Text colors */
+  /* Text colors with better contrast */
   .text-pastel-purple { color: rgb(186, 147, 216); }
   .text-pastel-pink { color: rgb(255, 182, 193); }
   .text-pastel-blue { color: rgb(173, 216, 230); }
   .text-pastel-green { color: rgb(182, 215, 168); }
+
+  /* Utility classes for better text visibility */
+  .text-dark { color: rgb(var(--dark-text)) !important; }
+  .text-medium { color: rgb(var(--muted-foreground)) !important; }
 }
