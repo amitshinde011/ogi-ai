@@ -52,10 +52,10 @@ const WeeklyStreak = ({ streak }: WeeklyStreakProps) => {
           )}
         </div>
         
-        <div className="flex justify-between">
+        <div className="grid grid-cols-7 gap-2">
           {weekDays.map((day, index) => (
             <div key={`${day.name}-${day.date}`} className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-200 ${
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 transition-all duration-200 ${
                 streak[index] 
                   ? 'bg-green-500 text-white shadow-lg scale-105' 
                   : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
