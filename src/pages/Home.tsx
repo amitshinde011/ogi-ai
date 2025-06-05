@@ -106,11 +106,17 @@ const Home = () => {
   const fetchWeeklyStreak = async (userId: string) => {
     try {
       const today = new Date();
-      const weekDates = [];
+      const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      const monday = new Date(today);
       
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
+      // Calculate Monday of current week (adjust for Sunday = 0)
+      const daysToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+      monday.setDate(today.getDate() + daysToMonday);
+      
+      const weekDates = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
         weekDates.push(date.toISOString().split('T')[0]);
       }
 
