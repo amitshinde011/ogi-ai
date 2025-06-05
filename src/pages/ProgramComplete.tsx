@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trophy, Star, Sparkles } from 'lucide-react';
+import { Trophy, Star, Sparkles, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 
@@ -46,7 +46,7 @@ const ProgramComplete = () => {
               </h2>
               <p className="text-center text-gray-600 mb-6">
                 Help us track your amazing transformation by completing a final assessment. 
-                You'll be able to see your before and after comparison!
+                You'll be able to see your before and after comparison and share your success!
               </p>
               
               <Button 
@@ -54,6 +54,7 @@ const ProgramComplete = () => {
                 onClick={() => navigate('/final-assessment')}
               >
                 Start Final Assessment
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>
           </Card>

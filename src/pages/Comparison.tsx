@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Share2, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Share2, MessageCircle, ArrowLeft, ShoppingCart } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +22,7 @@ const Comparison = () => {
   const [data, setData] = useState<BeforeAfterData | null>(null);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const [hasShared, setHasShared] = useState(false);
 
   useEffect(() => {
     fetchComparisonData();
@@ -83,6 +84,11 @@ const Comparison = () => {
         after: finalAssessment,
         comparison
       });
+
+      // Check if user has already shared
+      if (comparison.shared_to_community || comparison.shared_to_social) {
+        setHasShared(true);
+      }
     } catch (error) {
       console.error('Error fetching comparison data:', error);
       toast({
@@ -122,6 +128,7 @@ const Comparison = () => {
         window.open(twitterUrl, '_blank');
       }
 
+      setHasShared(true);
       toast({
         title: "Shared Successfully!",
         description: "Your transformation has been shared.",
@@ -163,12 +170,11 @@ const Comparison = () => {
         .update({ shared_to_community: true })
         .eq('id', data.comparison.id);
 
+      setHasShared(true);
       toast({
         title: "Posted to Community!",
         description: "Your transformation has been shared with the community.",
       });
-
-      navigate('/community');
     } catch (error) {
       console.error('Error sharing to community:', error);
       toast({
@@ -267,7 +273,7 @@ const Comparison = () => {
             </Card>
           )}
 
-          {/* Comfort Levels Comparison */}
+          {/* Progress Comparison */}
           <Card className="bg-white">
             <CardHeader>
               <CardTitle className="text-center text-primary">Progress Comparison</CardTitle>
@@ -329,26 +335,49 @@ const Comparison = () => {
             </Card>
           )}
 
-          {/* Share Buttons */}
+          {/* Action Buttons */}
           <div className="space-y-3">
-            <Button
-              onClick={shareToCommunity}
-              className="w-full bg-gradient-sage text-white"
-              disabled={sharing}
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              {sharing ? 'Sharing...' : 'Share with Community'}
-            </Button>
+            {!hasShared && (
+              <>
+                <Button
+                  onClick={shareToCommunity}
+                  className="w-full bg-gradient-sage text-white"
+                  disabled={sharing}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  {sharing ? 'Sharing...' : 'Share with Community'}
+                </Button>
 
-            <Button
-              onClick={shareToSocial}
-              variant="outline"
-              className="w-full"
-              disabled={sharing}
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              {sharing ? 'Sharing...' : 'Share on Social Media'}
-            </Button>
+                <Button
+                  onClick={shareToSocial}
+                  variant="outline"
+                  className="w-full"
+                  disabled={sharing}
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  {sharing ? 'Sharing...' : 'Share on Social Media'}
+                </Button>
+              </>
+            )}
+
+            {hasShared && (
+              <Card className="bg-gradient-sage text-white">
+                <CardContent className="p-4 text-center">
+                  <h3 className="font-semibold mb-2">🎉 Congratulations!</h3>
+                  <p className="text-sm mb-4">
+                    You've completed your transformation journey and shared your success! 
+                    Ready to take on your next wellness challenge?
+                  </p>
+                  <Button
+                    onClick={() => navigate('/subscriptions')}
+                    className="w-full bg-white text-primary hover:bg-gray-100"
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Start New Program
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             <Button
               onClick={() => navigate('/home')}
