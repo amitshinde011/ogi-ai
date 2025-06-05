@@ -34,24 +34,24 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 pb-20">
       {children}
       
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-sage/20 px-4 py-2 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t-2 border-gray-200 px-4 py-3 z-50">
         <div className="flex justify-around items-center max-w-md mx-auto">
           {navItems.map(({ path, icon: Icon, label }) => (
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center px-3 py-2 rounded-xl transition-all duration-200 ${
-                isActive(path)
-                  ? 'text-primary bg-sage/10 scale-105'
-                  : 'text-muted-foreground hover:text-primary hover:bg-sage/5'
+              className={`flex flex-col items-center px-3 py-2 rounded-xl transition-all duration-200 nav-item ${
+                isActive(path) ? 'active bg-primary/10 scale-105' : 'hover:bg-gray-100'
               }`}
             >
-              <Icon size={20} />
-              <span className="text-xs mt-1 font-medium">{label}</span>
+              <Icon size={22} className={isActive(path) ? 'text-primary' : 'text-medium'} />
+              <span className={`text-xs mt-1 font-semibold ${isActive(path) ? 'text-primary' : 'text-medium'}`}>
+                {label}
+              </span>
             </Link>
           ))}
         </div>
