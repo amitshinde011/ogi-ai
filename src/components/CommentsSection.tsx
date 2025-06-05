@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Send, Reply, Edit, Trash2, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -205,10 +204,10 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
         <img
           src={comment.user_avatar}
           alt={comment.user_name}
-          className="w-8 h-8 rounded-full"
+          className="w-8 h-8 rounded-full flex-shrink-0"
         />
-        <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-1">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2 mb-1 flex-wrap">
             <span className="font-semibold text-sm text-dark-text">{comment.user_name}</span>
             <span className="text-xs text-gray-500">{getRelativeTime(comment.created_at)}</span>
             {comment.updated_at !== comment.created_at && (
@@ -224,7 +223,7 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
                 className="min-h-16"
                 placeholder="Edit your comment..."
               />
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button size="sm" onClick={() => handleEditComment(comment.id)}>
                   Save
                 </Button>
@@ -235,14 +234,14 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
             </div>
           ) : (
             <>
-              <p className="text-sm text-dark-text mb-2">{comment.content}</p>
-              <div className="flex items-center space-x-3">
+              <p className="text-sm text-dark-text mb-2 break-words">{comment.content}</p>
+              <div className="flex items-center gap-2 flex-wrap">
                 {!isReply && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                    className="text-xs text-gray-500 hover:text-blue-500"
+                    className="text-xs text-gray-500 hover:text-blue-500 h-auto p-1"
                   >
                     <Reply size={12} className="mr-1" />
                     Reply
@@ -254,7 +253,7 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
                       variant="ghost"
                       size="sm"
                       onClick={() => startEdit(comment)}
-                      className="text-xs text-gray-500 hover:text-green-500"
+                      className="text-xs text-gray-500 hover:text-green-500 h-auto p-1"
                     >
                       <Edit size={12} className="mr-1" />
                       Edit
@@ -263,7 +262,7 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteComment(comment.id)}
-                      className="text-xs text-gray-500 hover:text-red-500"
+                      className="text-xs text-gray-500 hover:text-red-500 h-auto p-1"
                     >
                       <Trash2 size={12} className="mr-1" />
                       Delete
@@ -284,7 +283,7 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
             placeholder="Write a reply..."
             className="min-h-16"
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button size="sm" onClick={() => handleAddReply(comment.id)}>
               <Send size={14} className="mr-1" />
               Reply
