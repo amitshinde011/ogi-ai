@@ -1,10 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
-import { Send, Reply, Edit, Trash2, Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { getRelativeTime } from '@/utils/dateUtils';
+import Comment from './Comment';
+import CommentForm from './CommentForm';
 
 interface Comment {
   id: string;
@@ -27,11 +26,6 @@ interface CommentsSectionProps {
 
 const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDeleted }: CommentsSectionProps) => {
   const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState('');
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState('');
-  const [editingComment, setEditingComment] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -99,8 +93,8 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
     }
   };
 
-  const handleAddComment = async () => {
-    if (!currentUserId || !newComment.trim()) return;
+  const handleAddComment = async (content: string) => {
+    if (!currentUserId) return;
 
     try {
       const { error } = await supabase
@@ -108,12 +102,11 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
         .insert({
           post_id: postId,
           user_id: currentUserId,
-          content: newComment.trim()
+          content: content
         });
 
       if (error) throw error;
 
-      setNewComment('');
       await fetchComments();
       onCommentAdded();
       toast({ title: "Comment added successfully!" });
@@ -123,8 +116,8 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
     }
   };
 
-  const handleAddReply = async (parentCommentId: string) => {
-    if (!currentUserId || !replyContent.trim()) return;
+  const handleAddReply = async (parentCommentId: string, content: string) => {
+    if (!currentUserId) return;
 
     try {
       const { error } = await supabase
@@ -132,14 +125,12 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
         .insert({
           post_id: postId,
           user_id: currentUserId,
-          content: replyContent.trim(),
+          content: content,
           parent_comment_id: parentCommentId
         });
 
       if (error) throw error;
 
-      setReplyContent('');
-      setReplyingTo(null);
       await fetchComments();
       onCommentAdded();
       toast({ title: "Reply added successfully!" });
@@ -149,19 +140,15 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
     }
   };
 
-  const handleEditComment = async (commentId: string) => {
-    if (!editContent.trim()) return;
-
+  const handleEditComment = async (commentId: string, content: string) => {
     try {
       const { error } = await supabase
         .from('community_post_comments')
-        .update({ content: editContent.trim() })
+        .update({ content: content })
         .eq('id', commentId);
 
       if (error) throw error;
 
-      setEditingComment(null);
-      setEditContent('');
       await fetchComments();
       toast({ title: "Comment updated successfully!" });
     } catch (error) {
@@ -188,117 +175,6 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
     }
   };
 
-  const startEdit = (comment: Comment) => {
-    setEditingComment(comment.id);
-    setEditContent(comment.content);
-  };
-
-  const cancelEdit = () => {
-    setEditingComment(null);
-    setEditContent('');
-  };
-
-  const renderComment = (comment: Comment, isReply = false) => (
-    <div key={comment.id} className={`${isReply ? 'ml-8 mt-3' : 'mb-4'} bg-white rounded-lg p-3 border border-gray-100`}>
-      <div className="flex items-start space-x-3">
-        <img
-          src={comment.user_avatar}
-          alt={comment.user_name}
-          className="w-8 h-8 rounded-full flex-shrink-0"
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-1 flex-wrap">
-            <span className="font-semibold text-sm text-dark-text">{comment.user_name}</span>
-            <span className="text-xs text-gray-500">{getRelativeTime(comment.created_at)}</span>
-            {comment.updated_at !== comment.created_at && (
-              <span className="text-xs text-gray-400">(edited)</span>
-            )}
-          </div>
-          
-          {editingComment === comment.id ? (
-            <div className="space-y-2">
-              <Textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className="min-h-16"
-                placeholder="Edit your comment..."
-              />
-              <div className="flex gap-2 flex-wrap">
-                <Button size="sm" onClick={() => handleEditComment(comment.id)}>
-                  Save
-                </Button>
-                <Button size="sm" variant="outline" onClick={cancelEdit}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <p className="text-sm text-dark-text mb-2 break-words">{comment.content}</p>
-              <div className="flex items-center gap-2 flex-wrap">
-                {!isReply && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                    className="text-xs text-gray-500 hover:text-blue-500 h-auto p-1"
-                  >
-                    <Reply size={12} className="mr-1" />
-                    Reply
-                  </Button>
-                )}
-                {currentUserId === comment.user_id && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => startEdit(comment)}
-                      className="text-xs text-gray-500 hover:text-green-500 h-auto p-1"
-                    >
-                      <Edit size={12} className="mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteComment(comment.id)}
-                      className="text-xs text-gray-500 hover:text-red-500 h-auto p-1"
-                    >
-                      <Trash2 size={12} className="mr-1" />
-                      Delete
-                    </Button>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-      
-      {replyingTo === comment.id && (
-        <div className="ml-11 mt-3 space-y-2">
-          <Textarea
-            value={replyContent}
-            onChange={(e) => setReplyContent(e.target.value)}
-            placeholder="Write a reply..."
-            className="min-h-16"
-          />
-          <div className="flex gap-2 flex-wrap">
-            <Button size="sm" onClick={() => handleAddReply(comment.id)}>
-              <Send size={14} className="mr-1" />
-              Reply
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setReplyingTo(null)}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-      
-      {comment.replies && comment.replies.map(reply => renderComment(reply, true))}
-    </div>
-  );
-
   if (loading) {
     return <div className="text-center py-4">Loading comments...</div>;
   }
@@ -307,24 +183,7 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
     <div className="space-y-4">
       {/* Add new comment */}
       {currentUserId && (
-        <div className="space-y-2">
-          <Textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add a comment..."
-            className="min-h-20"
-          />
-          <div className="flex justify-end">
-            <Button
-              onClick={handleAddComment}
-              disabled={!newComment.trim()}
-              className="bg-sage hover:bg-sage/90 text-white"
-            >
-              <Send size={14} className="mr-1" />
-              Comment
-            </Button>
-          </div>
-        </div>
+        <CommentForm onSubmit={handleAddComment} />
       )}
 
       {/* Comments list */}
@@ -332,7 +191,16 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
         {comments.length === 0 ? (
           <p className="text-center text-gray-500 py-4">No comments yet. Be the first to comment!</p>
         ) : (
-          comments.map(comment => renderComment(comment))
+          comments.map(comment => (
+            <Comment
+              key={comment.id}
+              comment={comment}
+              currentUserId={currentUserId}
+              onEdit={handleEditComment}
+              onDelete={handleDeleteComment}
+              onReply={handleAddReply}
+            />
+          ))
         )}
       </div>
     </div>
