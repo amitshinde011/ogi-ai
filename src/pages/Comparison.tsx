@@ -1,99 +1,70 @@
-
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Share2, MessageCircle, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Share2, Users, ExternalLink, ArrowRight, Trophy } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
-interface BeforeAfterData {
-  before: any;
-  after: any;
-  comparison: any;
+interface AssessmentData {
+  walk_10km_comfort: string;
+  run_10km_comfort: string;
+  climb_mountain_comfort: string;
+  current_health_conditions: string;
+  full_body_photo_url?: string;
+  comments?: string;
 }
 
 const Comparison = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
-  const [data, setData] = useState<BeforeAfterData | null>(null);
+  const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
+  const [beforeAssessment, setBeforeAssessment] = useState<AssessmentData | null>(null);
+  const [finalAssessment, setFinalAssessment] = useState<AssessmentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
-  const [hasShared, setHasShared] = useState(false);
 
   useEffect(() => {
-    fetchComparisonData();
+    fetchAssessments();
   }, []);
 
-  const fetchComparisonData = async () => {
+  const fetchAssessments = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const finalAssessmentId = location.state?.finalAssessmentId;
-      if (!finalAssessmentId) {
-        navigate('/home');
+      if (!user) {
+        navigate('/login');
         return;
       }
 
-      // Get final assessment
-      const { data: finalAssessment } = await supabase
-        .from('final_assessments')
-        .select('*')
-        .eq('id', finalAssessmentId)
-        .single();
-
-      if (!finalAssessment) throw new Error('Final assessment not found');
-
-      // Get before assessment
-      const { data: beforeAssessment } = await supabase
+      // Get the most recent assessments
+      const { data: beforeData } = await supabase
         .from('journey_assessments')
         .select('*')
         .eq('user_id', user.id)
-        .eq('subscription_id', finalAssessment.subscription_id)
         .eq('assessment_type', 'before')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      // Create or get comparison record
-      let { data: comparison } = await supabase
-        .from('assessment_comparisons')
+      const { data: finalData } = await supabase
+        .from('final_assessments')
         .select('*')
         .eq('user_id', user.id)
-        .eq('final_assessment_id', finalAssessmentId)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (!comparison) {
-        const { data: newComparison } = await supabase
-          .from('assessment_comparisons')
-          .insert({
-            user_id: user.id,
-            subscription_id: finalAssessment.subscription_id,
-            before_assessment_id: beforeAssessment?.id,
-            final_assessment_id: finalAssessmentId
-          })
-          .select()
-          .single();
-        comparison = newComparison;
-      }
-
-      setData({
-        before: beforeAssessment,
-        after: finalAssessment,
-        comparison
-      });
-
-      // Check if user has already shared
-      if (comparison.shared_to_community || comparison.shared_to_social) {
-        setHasShared(true);
-      }
+      setBeforeAssessment(beforeData);
+      setFinalAssessment(finalData);
     } catch (error) {
-      console.error('Error fetching comparison data:', error);
+      console.error('Error fetching assessments:', error);
       toast({
         title: "Error",
-        description: "Failed to load comparison data.",
+        description: "Failed to load assessment data.",
         variant: "destructive",
       });
     } finally {
@@ -101,43 +72,60 @@ const Comparison = () => {
     }
   };
 
-  const shareToSocial = async () => {
-    if (!data) return;
-    
+  const handleShare = async (platform: 'community' | 'social') => {
+    if (!finalAssessment) return;
+
     try {
       setSharing(true);
-      
-      // Update comparison record
-      await supabase
+
+      // Create or update comparison record
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const updateData = platform === 'community' 
+        ? { shared_to_community: true }
+        : { shared_to_social: true };
+
+      const { error } = await supabase
         .from('assessment_comparisons')
-        .update({ shared_to_social: true })
-        .eq('id', data.comparison.id);
-
-      const shareText = "Check out my amazing wellness transformation! 🌟";
-      const shareUrl = window.location.origin;
-
-      if (navigator.share) {
-        await navigator.share({
-          title: 'My Wellness Journey',
-          text: shareText,
-          url: shareUrl,
+        .upsert({
+          user_id: user.id,
+          final_assessment_id: finalAssessment.id,
+          subscription_id: completedSubscription?.id,
+          ...updateData
         });
-      } else {
-        // Fallback for browsers that don't support Web Share API
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
-        window.open(twitterUrl, '_blank');
-      }
 
-      setHasShared(true);
+      if (error) throw error;
+
       toast({
         title: "Shared Successfully!",
-        description: "Your transformation has been shared.",
+        description: `Your transformation has been shared to ${platform}.`,
       });
+
+      // Check if both shares are complete, then redirect to subscriptions
+      const { data: comparison } = await supabase
+        .from('assessment_comparisons')
+        .select('shared_to_community, shared_to_social')
+        .eq('user_id', user.id)
+        .eq('final_assessment_id', finalAssessment.id)
+        .maybeSingle();
+
+      if (comparison?.shared_to_community && comparison?.shared_to_social) {
+        // Mark subscription as completed
+        if (completedSubscription) {
+          await markSubscriptionCompleted(completedSubscription.id);
+        }
+        
+        // Redirect to subscriptions after a short delay
+        setTimeout(() => {
+          navigate('/subscriptions?completed=true');
+        }, 2000);
+      }
     } catch (error) {
       console.error('Error sharing:', error);
       toast({
-        title: "Error",
-        description: "Failed to share. Please try again.",
+        title: "Sharing Failed",
+        description: "There was an error sharing your transformation.",
         variant: "destructive",
       });
     } finally {
@@ -145,57 +133,26 @@ const Comparison = () => {
     }
   };
 
-  const shareToCommunity = async () => {
-    if (!data) return;
-
-    try {
-      setSharing(true);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
-      // Create community post
-      await supabase
-        .from('community_posts')
-        .insert({
-          user_id: user.id,
-          title: 'My Wellness Transformation Journey! 🌟',
-          content: 'I just completed my wellness program and wanted to share my amazing progress with the community! The journey has been incredible and I feel so much better than when I started.',
-          image_url: data.after.full_body_photo_url
-        });
-
-      // Update comparison record
-      await supabase
-        .from('assessment_comparisons')
-        .update({ shared_to_community: true })
-        .eq('id', data.comparison.id);
-
-      setHasShared(true);
-      toast({
-        title: "Posted to Community!",
-        description: "Your transformation has been shared with the community.",
-      });
-    } catch (error) {
-      console.error('Error sharing to community:', error);
-      toast({
-        title: "Error",
-        description: "Failed to post to community. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSharing(false);
+  const handleContinueToPrograms = async () => {
+    // Mark subscription as completed
+    if (completedSubscription) {
+      await markSubscriptionCompleted(completedSubscription.id);
     }
+    
+    navigate('/subscriptions?completed=true');
   };
 
-  const getComfortLevelText = (level: string) => {
-    const levels = {
-      'very_comfortable': 'Very Comfortable',
-      'comfortable': 'Comfortable',
-      'somewhat_comfortable': 'Somewhat Comfortable',
-      'uncomfortable': 'Uncomfortable',
-      'very_uncomfortable': 'Very Uncomfortable'
-    };
-    return levels[level as keyof typeof levels] || level;
+  const comfortLevelMap: { [key: string]: string } = {
+    'very_uncomfortable': 'Very Uncomfortable',
+    'uncomfortable': 'Uncomfortable',
+    'neutral': 'Neutral',
+    'comfortable': 'Comfortable',
+    'very_comfortable': 'Very Comfortable',
+  };
+
+  const renderComfortLevel = (level: string | undefined) => {
+    if (!level) return 'No data';
+    return comfortLevelMap[level] || 'Unknown';
   };
 
   if (loading) {
@@ -209,186 +166,101 @@ const Comparison = () => {
     );
   }
 
-  if (!data) {
-    return (
-      <Layout>
-        <Header title="Your Transformation" />
-        <div className="min-h-screen bg-light-gray p-4">
-          <div className="max-w-md mx-auto text-center mt-8">
-            <p className="text-gray-600">No comparison data available.</p>
-            <Button onClick={() => navigate('/home')} className="mt-4">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
   return (
     <Layout>
       <Header title="Your Amazing Transformation!" />
       
-      <div className="min-h-screen bg-light-gray p-4">
-        <div className="max-w-md mx-auto space-y-6">
-          {/* Photos Comparison */}
-          {(data.before?.full_body_photo_url || data.after.full_body_photo_url) && (
-            <Card className="bg-white">
-              <CardHeader>
-                <CardTitle className="text-center text-primary">Photo Comparison</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Before</p>
-                    {data.before?.full_body_photo_url ? (
-                      <img 
-                        src={data.before.full_body_photo_url} 
-                        alt="Before" 
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <p className="text-gray-400 text-sm">No photo</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-gray-600 mb-2">After</p>
-                    {data.after.full_body_photo_url ? (
-                      <img 
-                        src={data.after.full_body_photo_url} 
-                        alt="After" 
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <p className="text-gray-400 text-sm">No photo</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+        {/* Celebration Header */}
+        <Card className="bg-gradient-sage text-white text-center">
+          <CardContent className="p-6">
+            <Trophy className="w-16 h-16 text-yellow-300 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold mb-2">Incredible Transformation!</h1>
+            <p className="text-white/90">Look how far you've come on your wellness journey</p>
+          </CardContent>
+        </Card>
 
-          {/* Progress Comparison */}
+        {/* Before & After Photos */}
+        {beforeAssessment?.full_body_photo_url && finalAssessment?.full_body_photo_url && (
           <Card className="bg-white">
             <CardHeader>
-              <CardTitle className="text-center text-primary">Progress Comparison</CardTitle>
+              <CardTitle className="text-center text-primary">Before & After</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <p className="font-medium">Walking 10km Comfort</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Before: </span>
-                    <span>{data.before ? getComfortLevelText(data.before.walk_10km_comfort) : 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">After: </span>
-                    <span className="text-green-600 font-medium">{getComfortLevelText(data.after.walk_10km_comfort)}</span>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <Badge variant="outline" className="mb-2">Before</Badge>
+                  <img 
+                    src={beforeAssessment.full_body_photo_url} 
+                    alt="Before" 
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="font-medium">Running 10km Comfort</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Before: </span>
-                    <span>{data.before ? getComfortLevelText(data.before.run_10km_comfort) : 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">After: </span>
-                    <span className="text-green-600 font-medium">{getComfortLevelText(data.after.run_10km_comfort)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="font-medium">Mountain Climbing Comfort</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Before: </span>
-                    <span>{data.before ? getComfortLevelText(data.before.climb_mountain_comfort) : 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">After: </span>
-                    <span className="text-green-600 font-medium">{getComfortLevelText(data.after.climb_mountain_comfort)}</span>
-                  </div>
+                <div className="text-center">
+                  <Badge className="mb-2 bg-primary">After</Badge>
+                  <img 
+                    src={finalAssessment.full_body_photo_url} 
+                    alt="After" 
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
+        )}
 
-          {/* Comments */}
-          {data.after.comments && (
-            <Card className="bg-white">
-              <CardHeader>
-                <CardTitle className="text-center text-primary">Your Reflection</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 italic">"{data.after.comments}"</p>
-              </CardContent>
-            </Card>
-          )}
+        {/* Sharing Section */}
+        <Card className="bg-white">
+          <CardHeader>
+            <CardTitle className="text-primary flex items-center">
+              <Share2 className="w-5 h-5 mr-2" />
+              Share Your Success
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-600 text-sm">
+              Inspire others by sharing your amazing transformation!
+            </p>
+            
+            <div className="space-y-3">
+              <Button 
+                onClick={() => handleShare('community')}
+                disabled={sharing}
+                className="w-full bg-primary hover:bg-primary/90"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Share to Community
+              </Button>
+              
+              <Button 
+                onClick={() => handleShare('social')}
+                disabled={sharing}
+                variant="outline"
+                className="w-full"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Share to Social Media
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            {!hasShared && (
-              <>
-                <Button
-                  onClick={shareToCommunity}
-                  className="w-full bg-gradient-sage text-white"
-                  disabled={sharing}
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  {sharing ? 'Sharing...' : 'Share with Community'}
-                </Button>
-
-                <Button
-                  onClick={shareToSocial}
-                  variant="outline"
-                  className="w-full"
-                  disabled={sharing}
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  {sharing ? 'Sharing...' : 'Share on Social Media'}
-                </Button>
-              </>
-            )}
-
-            {hasShared && (
-              <Card className="bg-gradient-sage text-white">
-                <CardContent className="p-4 text-center">
-                  <h3 className="font-semibold mb-2">🎉 Congratulations!</h3>
-                  <p className="text-sm mb-4">
-                    You've completed your transformation journey and shared your success! 
-                    Ready to take on your next wellness challenge?
-                  </p>
-                  <Button
-                    onClick={() => navigate('/subscriptions')}
-                    className="w-full bg-white text-primary hover:bg-gray-100"
-                  >
-                    <ShoppingCart className="w-4 h-4 mr-2" />
-                    Start New Program
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            <Button
-              onClick={() => navigate('/home')}
-              variant="ghost"
-              className="w-full"
+        {/* Continue Button */}
+        <Card className="bg-white">
+          <CardContent className="p-6 text-center">
+            <h3 className="text-lg font-semibold text-primary mb-2">Ready for Your Next Journey?</h3>
+            <p className="text-gray-600 mb-4 text-sm">
+              Continue your wellness transformation with a new program!
+            </p>
+            <Button 
+              onClick={handleContinueToPrograms}
+              className="w-full bg-gradient-sage text-white hover:opacity-90"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
+              Explore New Programs
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

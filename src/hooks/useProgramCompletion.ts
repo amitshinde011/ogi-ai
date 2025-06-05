@@ -2,9 +2,21 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+interface CompletedSubscription {
+  id: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  programs: {
+    name: string;
+    duration_days: number;
+  };
+}
+
 export const useProgramCompletion = () => {
   const [isCompleted, setIsCompleted] = useState(false);
-  const [completedSubscription, setCompletedSubscription] = useState<any>(null);
+  const [completedSubscription, setCompletedSubscription] = useState<CompletedSubscription | null>(null);
+  const [hasFinalAssessment, setHasFinalAssessment] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,7 +26,10 @@ export const useProgramCompletion = () => {
   const checkProgramCompletion = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const today = new Date().toISOString().split('T')[0];
       
@@ -36,10 +51,9 @@ export const useProgramCompletion = () => {
           .eq('subscription_id', subscription.id)
           .maybeSingle();
 
-        if (!finalAssessment) {
-          setIsCompleted(true);
-          setCompletedSubscription(subscription);
-        }
+        setIsCompleted(true);
+        setCompletedSubscription(subscription);
+        setHasFinalAssessment(!!finalAssessment);
       }
     } catch (error) {
       console.error('Error checking program completion:', error);
@@ -48,5 +62,31 @@ export const useProgramCompletion = () => {
     }
   };
 
-  return { isCompleted, completedSubscription, loading, checkProgramCompletion };
+  const markSubscriptionCompleted = async (subscriptionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'completed' })
+        .eq('id', subscriptionId);
+
+      if (error) {
+        console.error('Error marking subscription as completed:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error marking subscription as completed:', error);
+      return false;
+    }
+  };
+
+  return { 
+    isCompleted, 
+    completedSubscription, 
+    hasFinalAssessment, 
+    loading, 
+    checkProgramCompletion,
+    markSubscriptionCompleted
+  };
 };

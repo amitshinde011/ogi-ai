@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check } from 'lucide-react';
+import { Check, Trophy, Star, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
 interface Program {
   id: string;
@@ -21,11 +22,23 @@ interface Program {
 
 const Subscriptions = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { updateOnboardingState } = useOnboarding();
+  const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState<string | null>(null);
+  const [showAchievementBanner, setShowAchievementBanner] = useState(false);
+
+  // Check if user arrived here after completing a program
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const completed = urlParams.get('completed');
+    if (completed === 'true' && completedSubscription) {
+      setShowAchievementBanner(true);
+    }
+  }, [location.search, completedSubscription]);
 
   useEffect(() => {
     fetchPrograms();
@@ -80,6 +93,11 @@ const Subscriptions = () => {
       }
 
       console.log('Selected program:', program);
+
+      // Mark previous subscription as completed if it exists
+      if (completedSubscription) {
+        await markSubscriptionCompleted(completedSubscription.id);
+      }
 
       // Check if user already has an active subscription
       const { data: existingSub, error: existingError } = await supabase
@@ -141,6 +159,9 @@ const Subscriptions = () => {
         description: `You've subscribed to ${program.name}`,
       });
 
+      // Hide achievement banner after successful subscription
+      setShowAchievementBanner(false);
+      
       navigate('/intro-video');
     } catch (error) {
       console.error('Error subscribing:', error);
@@ -165,8 +186,45 @@ const Subscriptions = () => {
   return (
     <div className="min-h-screen bg-gradient-peaceful p-4">
       <div className="max-w-6xl mx-auto">
+        {/* Achievement Banner */}
+        {showAchievementBanner && completedSubscription && (
+          <Card className="mb-6 bg-gradient-sage text-white border-none">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Trophy className="w-8 h-8 text-yellow-300" />
+                    <div className="flex space-x-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 text-yellow-300 fill-current" />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">Congratulations! 🎉</h3>
+                    <p className="text-white/90">
+                      You've successfully completed your {completedSubscription.programs?.name} journey! 
+                      Ready to start your next transformation?
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAchievementBanner(false)}
+                  className="text-white hover:bg-white/20"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">Choose Your Transformation Journey</h1>
+          <h1 className="text-3xl font-bold text-primary mb-2">
+            {showAchievementBanner ? "Choose Your Next Journey" : "Choose Your Transformation Journey"}
+          </h1>
           <p className="text-black">Select the program that best fits your wellness goals</p>
         </div>
 

@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Home, Users, ChefHat, BarChart, Settings } from 'lucide-react';
+import { Home, Users, ChefHat, BarChart, Settings, Trophy } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,9 +10,17 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
+  const { isCompleted, hasFinalAssessment } = useProgramCompletion();
 
-  const navItems = [
-    { path: '/', icon: Home, label: 'Home' },
+  // Show different navigation based on program completion status
+  const navItems = isCompleted && hasFinalAssessment ? [
+    { path: '/subscriptions', icon: Trophy, label: 'Programs' },
+    { path: '/community', icon: Users, label: 'Community' },
+    { path: '/recipes', icon: ChefHat, label: 'Recipes' },
+    { path: '/progress', icon: BarChart, label: 'Progress' },
+    { path: '/settings', icon: Settings, label: 'Settings' },
+  ] : [
+    { path: '/home', icon: Home, label: 'Home' },
     { path: '/community', icon: Users, label: 'Community' },
     { path: '/recipes', icon: ChefHat, label: 'Recipes' },
     { path: '/progress', icon: BarChart, label: 'Progress' },
@@ -19,7 +28,8 @@ const Layout = ({ children }: LayoutProps) => {
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
+    if (path === '/home') return location.pathname === '/home';
+    if (path === '/subscriptions') return location.pathname === '/subscriptions';
     return location.pathname.startsWith(path);
   };
 

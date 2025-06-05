@@ -3,10 +3,12 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
 const Index = () => {
   const location = useLocation();
-  const { onboardingState, loading } = useOnboarding();
+  const { onboardingState, loading: onboardingLoading } = useOnboarding();
+  const { isCompleted, hasFinalAssessment, loading: completionLoading } = useProgramCompletion();
 
   useEffect(() => {
     // Only run redirect logic if we're actually on the root path
@@ -35,6 +37,7 @@ const Index = () => {
 
         console.log('User found:', user.id);
         console.log('Onboarding state:', onboardingState);
+        console.log('Program completion:', { isCompleted, hasFinalAssessment });
 
         if (!onboardingState) {
           console.log('No onboarding state, redirecting to profile setup');
@@ -42,33 +45,15 @@ const Index = () => {
           return;
         }
 
-        // Check if user has completed their program
-        const today = new Date().toISOString().split('T')[0];
-        
-        const { data: completedSubscription } = await supabase
-          .from('user_subscriptions')
-          .select('*, programs(*)')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .lte('end_date', today)
-          .maybeSingle();
-
-        if (completedSubscription) {
-          // Check if final assessment is already completed
-          const { data: finalAssessment } = await supabase
-            .from('final_assessments')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('subscription_id', completedSubscription.id)
-            .maybeSingle();
-
-          if (!finalAssessment) {
+        // Check program completion status first
+        if (isCompleted) {
+          if (!hasFinalAssessment) {
             console.log('Program completed but final assessment not done, redirecting to program complete');
             window.location.href = '/program-complete';
             return;
           } else {
             console.log('Program completed and final assessment done, redirecting to subscriptions');
-            window.location.href = '/subscriptions';
+            window.location.href = '/subscriptions?completed=true';
             return;
           }
         }
@@ -100,10 +85,10 @@ const Index = () => {
     };
 
     // Only run redirect if not loading and we have the data we need
-    if (!loading) {
+    if (!onboardingLoading && !completionLoading) {
       handleRedirect();
     }
-  }, [loading, onboardingState, location.pathname]);
+  }, [onboardingLoading, completionLoading, onboardingState, isCompleted, hasFinalAssessment, location.pathname]);
 
   // Show loading screen while checking
   return (
