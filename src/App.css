@@ -1,10 +1,11 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
-  background-color: rgb(255, 255, 255);
-  color: rgb(17, 24, 39);
+  background: linear-gradient(135deg, #fafafa 0%, #f8f9fa 100%);
+  color: rgb(38, 38, 38);
   font-family: 'Inter', sans-serif;
   min-height: 100vh;
 }
@@ -17,11 +18,11 @@
 }
 
 .logo:hover {
-  filter: drop-shadow(0 0 2em rgba(245, 96, 64, 0.6)); /* coral-orange glow */
+  filter: drop-shadow(0 0 2em rgba(245, 96, 64, 0.6)); /* Instagram orange glow */
 }
 
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em rgba(225, 48, 108, 0.6)); /* magenta glow */
+  filter: drop-shadow(0 0 2em rgba(225, 48, 108, 0.6)); /* Instagram pink glow */
 }
 
 @keyframes logo-spin {
@@ -41,26 +42,62 @@
 
 .card {
   padding: 2em;
-  background-color: rgb(255, 255, 255);
-  color: rgb(17, 24, 39);
-  border-radius: 1rem;
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.9);
+  color: rgb(38, 38, 38);
+  border-radius: 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .read-the-docs {
-  color: #888;
+  color: #8e8e93;
 }
 
 .button-gradient {
-  background: linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+  background: linear-gradient(135deg, #ffd936, #ff8a00, #e1306c, #8134af, #405de6);
   color: white;
   border: none;
-  padding: 0.75rem 1.25rem;
-  border-radius: 9999px;
+  padding: 0.875rem 1.5rem;
+  border-radius: 50px;
   font-weight: 600;
-  transition: opacity 0.3s;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(225, 48, 108, 0.3);
 }
 
 .button-gradient:hover {
-  opacity: 0.85;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(225, 48, 108, 0.4);
+}
+
+.button-gradient:active {
+  transform: translateY(0);
+}
+
+/* Instagram-inspired animations */
+@keyframes instagram-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.instagram-pulse {
+  animation: instagram-pulse 2s infinite;
+}
+
+/* Instagram story ring effect */
+.story-ring {
+  background: linear-gradient(135deg, #ffd936, #ff8a00, #e1306c, #8134af, #405de6);
+  border-radius: 50%;
+  padding: 3px;
+}
+
+.story-ring-inner {
+  background: white;
+  border-radius: 50%;
+  padding: 2px;
 }
