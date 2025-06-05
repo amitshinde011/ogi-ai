@@ -9,50 +9,102 @@ import { useParams } from 'react-router-dom';
 const RecipeDetail = () => {
   const { id } = useParams();
 
-  // Mock recipe data - in real app would fetch from database
-  const recipe = {
-    id,
-    title: 'Quinoa Buddha Bowl',
-    image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600',
-    cookTime: '25 min',
-    prepTime: '15 min',
-    servings: 2,
-    difficulty: 'Easy',
-    rating: 4.8,
-    reviews: 124,
-    description: 'A nutritious and colorful bowl packed with quinoa, fresh vegetables, and a delicious tahini dressing. Perfect for a healthy lunch or dinner.',
-    ingredients: [
-      '1 cup quinoa',
-      '2 cups vegetable broth',
-      '1 cup chickpeas, drained',
-      '1 cup cherry tomatoes, halved',
-      '1 cucumber, diced',
-      '1 avocado, sliced',
-      '1/4 cup red onion, thinly sliced',
-      '2 tbsp olive oil',
-      '2 tbsp lemon juice',
-      '2 tbsp tahini',
-      '1 tbsp maple syrup',
-      'Salt and pepper to taste',
-      'Fresh herbs for garnish'
-    ],
-    instructions: [
-      'Rinse quinoa and cook in vegetable broth according to package instructions.',
-      'While quinoa cooks, prepare all vegetables and slice avocado.',
-      'In a small bowl, whisk together tahini, lemon juice, maple syrup, and a pinch of salt.',
-      'Divide cooked quinoa between two bowls.',
-      'Arrange chickpeas, tomatoes, cucumber, avocado, and onion on top.',
-      'Drizzle with tahini dressing and garnish with fresh herbs.',
-      'Serve immediately and enjoy!'
-    ],
-    nutrition: {
-      calories: 485,
-      protein: 18,
-      carbs: 62,
-      fat: 22,
-      fiber: 12
-    }
+  // Recipe data based on ID
+  const getRecipeData = (recipeId: string) => {
+    const recipes = {
+      '1': {
+        id: recipeId,
+        title: 'Quinoa Buddha Bowl',
+        image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600',
+        cookTime: '25 min',
+        prepTime: '15 min',
+        servings: 2,
+        difficulty: 'Easy',
+        rating: 4.8,
+        reviews: 124,
+        description: 'A nutritious and colorful bowl packed with quinoa, fresh vegetables, and a delicious tahini dressing. Perfect for a healthy lunch or dinner.',
+        ingredients: [
+          '1 cup quinoa',
+          '2 cups vegetable broth',
+          '1 cup chickpeas, drained',
+          '1 cup cherry tomatoes, halved',
+          '1 cucumber, diced',
+          '1 avocado, sliced',
+          '1/4 cup red onion, thinly sliced',
+          '2 tbsp olive oil',
+          '2 tbsp lemon juice',
+          '2 tbsp tahini',
+          '1 tbsp maple syrup',
+          'Salt and pepper to taste',
+          'Fresh herbs for garnish'
+        ],
+        instructions: [
+          'Rinse quinoa and cook in vegetable broth according to package instructions.',
+          'While quinoa cooks, prepare all vegetables and slice avocado.',
+          'In a small bowl, whisk together tahini, lemon juice, maple syrup, and a pinch of salt.',
+          'Divide cooked quinoa between two bowls.',
+          'Arrange chickpeas, tomatoes, cucumber, avocado, and onion on top.',
+          'Drizzle with tahini dressing and garnish with fresh herbs.',
+          'Serve immediately and enjoy!'
+        ],
+        nutrition: {
+          calories: 485,
+          protein: 18,
+          carbs: 62,
+          fat: 22,
+          fiber: 12
+        }
+      },
+      '5': {
+        id: recipeId,
+        title: 'Tangy Mango Lassi',
+        image: '/lovable-uploads/357954c3-c7da-4458-b37b-02c7f7ad3659.png',
+        cookTime: '20 min',
+        prepTime: '10 min',
+        servings: 2,
+        difficulty: 'Easy',
+        rating: 4.7,
+        reviews: 89,
+        description: 'A salty, refreshing summer drink with a bright twist of raw mango and spices. Perfect for hot days and part of the 21-day wellness program.',
+        ingredients: [
+          '1 raw mango, peeled and grated',
+          '2 cups curd (yogurt)',
+          '1½ tsp cumin seeds',
+          '1 tsp black salt',
+          '2 tsp sugar (adjust to taste)',
+          '6–8 fresh mint leaves (for garnish)',
+          'Salt to taste',
+          '1 cup water (for cooking mango)'
+        ],
+        instructions: [
+          'Cook the grated raw mango in a pan with 1 cup water until soft. Let it cool completely.',
+          'In a blender, combine the cooled mango, curd, cumin seeds, black salt, sugar, and regular salt.',
+          'Blend until smooth and creamy.',
+          'For a thick, milkshake-like consistency, whip the lassi well (in a blender or by hand).',
+          'Pour into serving glasses.',
+          'Garnish with hand-torn mint leaves.',
+          'Chill in the refrigerator before serving for best texture and presentation.',
+          'Let the lassi sit in the fridge again after blending to allow the curd to set and keep the drink thick and creamy.'
+        ],
+        nutrition: {
+          calories: 165,
+          protein: 8,
+          carbs: 28,
+          fat: 3,
+          fiber: 2
+        },
+        tips: [
+          'Sweet Variation: Use ripe mangoes instead of raw ones',
+          'Add slivers of almond, cardamom powder, saffron strands, and/or honey to taste',
+          'Optional: Stir in 1 tsp rose water before serving for a floral touch'
+        ]
+      }
+    };
+
+    return recipes[recipeId] || recipes['1']; // Default to quinoa bowl if recipe not found
   };
+
+  const recipe = getRecipeData(id || '1');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10">
@@ -159,6 +211,23 @@ const RecipeDetail = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Tips (for recipes that have them) */}
+          {recipe.tips && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-primary mb-3">Tips & Variations</h3>
+                <div className="space-y-2">
+                  {recipe.tips.map((tip, index) => (
+                    <div key={index} className="flex items-start">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
+                      <span className="text-sm leading-relaxed">{tip}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Action Buttons */}
           <div className="flex space-x-3 pb-4">

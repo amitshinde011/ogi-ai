@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Clock, Users, Star, Search } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,7 +23,7 @@ const Recipes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const categories = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Vegetarian', 'Vegan'];
+  const categories = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks', 'Vegetarian', 'Vegan'];
 
   const recipes: Recipe[] = [
     {
@@ -70,6 +69,17 @@ const Recipes = () => {
       rating: 4.9,
       category: 'Dinner',
       description: 'Omega-rich salmon with roasted seasonal vegetables'
+    },
+    {
+      id: '5',
+      title: 'Tangy Mango Lassi',
+      image: '/lovable-uploads/357954c3-c7da-4458-b37b-02c7f7ad3659.png',
+      cookTime: '20 min',
+      servings: 2,
+      difficulty: 'Easy',
+      rating: 4.7,
+      category: 'Drinks',
+      description: 'A salty, refreshing summer drink with a bright twist of raw mango and spices'
     }
   ];
 
