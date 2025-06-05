@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
-import { Camera } from 'lucide-react';
+import { Camera, User } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import ProfileForm from '@/components/ProfileForm';
@@ -143,32 +142,34 @@ const ProfileEdit = () => {
     <Layout>
       <Header title="Edit Profile" showBack />
       
-      <div className="p-4 max-w-md mx-auto bg-light-gray min-h-screen">
-        <Card className="bg-card-gray border border-gray-200">
-          <CardHeader>
-            <div className="text-center">
-              <div className="relative w-20 h-20 mx-auto mb-4">
-                <img
-                  src={profileImage}
-                  alt="Profile"
-                  className="w-20 h-20 rounded-full shadow-md object-cover"
+      <div className="p-6 max-w-lg mx-auto bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+        <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+          <CardHeader className="text-center pb-6">
+            <div className="relative w-28 h-28 mx-auto mb-6">
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="w-28 h-28 rounded-3xl shadow-xl object-cover border-4 border-white"
+              />
+              <label className="absolute -bottom-2 -right-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-3 cursor-pointer hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                <Camera size={20} className="text-white" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
                 />
-                <label className="absolute bottom-0 right-0 bg-sage rounded-full p-1 cursor-pointer hover:bg-sage/90 transition-colors">
-                  <Camera size={16} className="text-white" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <p className="text-sm text-dark-text">
-                Update your profile information
-              </p>
+              </label>
             </div>
+            <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
+              <User className="w-6 h-6 inline mr-2" />
+              Update Profile
+            </CardTitle>
+            <p className="text-slate-600 font-medium">
+              Keep your information current for the best experience
+            </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8">
             <ProfileForm
               form={form}
               onSubmit={onSubmit}

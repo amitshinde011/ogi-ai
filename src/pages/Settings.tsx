@@ -29,7 +29,7 @@ const Settings = () => {
             .from('user_profiles')
             .select('*')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
           setUserProfile({
             id: user.id,
@@ -56,7 +56,6 @@ const Settings = () => {
 
   const handleLogout = async () => {
     try {
-      // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -69,16 +68,13 @@ const Settings = () => {
         return;
       }
 
-      // Clear localStorage as backup
       localStorage.removeItem('user');
       
-      // Show success message
       toast({
         title: "Signed out successfully",
         description: "You have been logged out of your account."
       });
       
-      // Redirect to login page
       navigate('/login');
     } catch (error) {
       console.error('Unexpected error during logout:', error);
@@ -190,8 +186,8 @@ const Settings = () => {
     return (
       <Layout>
         <Header title="Settings" />
-        <div className="flex items-center justify-center min-h-screen bg-light-gray">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
       </Layout>
     );
@@ -201,67 +197,73 @@ const Settings = () => {
     <Layout>
       <Header title="Settings" />
       
-      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
-        <Card className="bg-card-gray border border-gray-200">
-          <CardContent className="p-4">
-            <div className="flex items-center">
-              <img
-                src={userProfile.avatar}
-                alt="Profile"
-                className="w-16 h-16 rounded-full mr-4 shadow-md"
-              />
-              <div className="flex-1">
-                <h3 className="font-semibold text-dark-text text-lg">{userProfile.name}</h3>
-                <p className="text-dark-text">{userProfile.email}</p>
+      <div className="p-6 space-y-8 max-w-lg mx-auto bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+        {/* Profile Card */}
+        <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <img
+                  src={userProfile.avatar}
+                  alt="Profile"
+                  className="w-20 h-20 rounded-2xl shadow-md object-cover"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/profile-edit')}
+                  className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg"
+                >
+                  <Edit size={14} />
+                </Button>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-xl text-slate-900 truncate">{userProfile.name}</h3>
+                <p className="text-slate-600 text-sm truncate">{userProfile.email}</p>
                 {userProfile.age && userProfile.gender && (
-                  <p className="text-sm text-dark-text mt-1">
+                  <p className="text-slate-500 text-sm mt-1">
                     {userProfile.age} years • {userProfile.gender}
                   </p>
                 )}
                 {userProfile.weight && userProfile.height && (
-                  <p className="text-sm text-dark-text">
+                  <p className="text-slate-500 text-sm">
                     {userProfile.weight}kg • {userProfile.height}cm
                   </p>
                 )}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/profile-edit')}
-                className="text-sage hover:bg-sage/10"
-              >
-                <Edit size={16} />
-              </Button>
             </div>
           </CardContent>
         </Card>
 
+        {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
-          <div key={sectionIndex}>
-            <h4 className="font-semibold text-dark-text mb-3 px-1">{section.title}</h4>
-            <Card className="bg-card-gray border border-gray-200">
+          <div key={sectionIndex} className="space-y-3">
+            <h4 className="font-bold text-lg text-slate-900 px-1">{section.title}</h4>
+            <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
               <CardContent className="p-0">
                 {section.items.map((item, itemIndex) => (
                   <div key={itemIndex}>
                     <div
-                      className={`flex items-center justify-between p-4 ${
-                        item.action ? 'cursor-pointer hover:bg-gray-100' : ''
+                      className={`flex items-center justify-between p-4 transition-colors ${
+                        item.action ? 'cursor-pointer hover:bg-slate-50 active:bg-slate-100' : ''
                       }`}
                       onClick={item.action}
                     >
-                      <div className="flex items-center">
-                        <item.icon className="text-dark-text mr-3" size={20} />
-                        <span className="font-medium text-dark-text">{item.label}</span>
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+                          <item.icon className="text-indigo-600" size={20} />
+                        </div>
+                        <span className="font-semibold text-slate-900">{item.label}</span>
                       </div>
-                      <div className="flex items-center">
+                      <div className="flex items-center space-x-2">
                         {item.component}
                         {item.hasArrow && (
-                          <ChevronRight className="text-dark-text" size={16} />
+                          <ChevronRight className="text-slate-400" size={20} />
                         )}
                       </div>
                     </div>
                     {itemIndex < section.items.length - 1 && (
-                      <div className="border-b border-gray-200 ml-11" />
+                      <div className="border-b border-slate-100 ml-16" />
                     )}
                   </div>
                 ))}
@@ -270,16 +272,18 @@ const Settings = () => {
           </div>
         ))}
 
+        {/* Logout Button */}
         <Button
           onClick={handleLogout}
           variant="outline"
-          className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 bg-white"
+          className="w-full h-14 rounded-2xl border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 bg-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
         >
-          <LogOut size={16} className="mr-2" />
+          <LogOut size={20} className="mr-3" />
           Sign Out
         </Button>
 
-        <div className="text-center text-sm text-dark-text">
+        {/* Version */}
+        <div className="text-center text-sm text-slate-500 font-medium">
           Yogi-ai v1.0.0
         </div>
       </div>
