@@ -12,7 +12,6 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const { isCompleted, hasFinalAssessment } = useProgramCompletion();
 
-  // Show different navigation based on program completion status
   const navItems = isCompleted && hasFinalAssessment ? [
     { path: '/subscriptions', icon: Trophy, label: 'Programs' },
     { path: '/community', icon: Users, label: 'Community' },
@@ -34,22 +33,35 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-gray-50 pb-20">
-      {children}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pb-20">
+      <div className="animate-fade-in">
+        {children}
+      </div>
       
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t-2 border-gray-200 px-4 py-3 z-50">
-        <div className="flex justify-around items-center max-w-md mx-auto">
+      {/* Enhanced Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200/80 backdrop-blur-xl bg-white/95">
+        <div className="flex justify-around items-center max-w-md mx-auto px-4 py-2">
           {navItems.map(({ path, icon: Icon, label }) => (
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center px-3 py-2 rounded-xl transition-all duration-200 nav-item ${
-                isActive(path) ? 'active bg-primary/10 scale-105' : 'hover:bg-gray-100'
+              className={`nav-item flex flex-col items-center px-3 py-2 transition-all duration-200 ${
+                isActive(path) ? 'active' : ''
               }`}
             >
-              <Icon size={22} className={isActive(path) ? 'text-primary' : 'text-medium'} />
-              <span className={`text-xs mt-1 font-semibold ${isActive(path) ? 'text-primary' : 'text-medium'}`}>
+              <Icon 
+                size={22} 
+                className={`transition-colors ${
+                  isActive(path) 
+                    ? 'text-indigo-600' 
+                    : 'text-slate-600 group-hover:text-indigo-600'
+                }`} 
+              />
+              <span className={`text-xs mt-1 font-medium transition-colors ${
+                isActive(path) 
+                  ? 'text-indigo-600' 
+                  : 'text-slate-600'
+              }`}>
                 {label}
               </span>
             </Link>
