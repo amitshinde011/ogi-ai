@@ -272,7 +272,7 @@ const Subscriptions = () => {
                 <Button 
                   className="w-full" 
                   onClick={() => handleSubscribe(program.id)}
-                  variant={program.duration_days === 49 ? "default" : "outline"}
+                  variant={program.duration_days === 49 ? "default" : "secondary"}
                   disabled={subscribing === program.id}
                 >
                   {subscribing === program.id ? 'Processing...' : 'Subscribe & Pay'}
