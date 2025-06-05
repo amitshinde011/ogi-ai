@@ -40,7 +40,7 @@ const TodayMeals = ({ breakfast, lunch, dinner }: TodayMealsProps) => {
                 ) : (
                   <Button 
                     size="sm" 
-                    variant="outline" 
+                    variant="secondary" 
                     className="rounded-lg"
                     onClick={() => navigate('/upload', { state: { mealType: meal.toLowerCase() } })}
                   >
