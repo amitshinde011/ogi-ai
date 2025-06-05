@@ -1,0 +1,135 @@
+
+@layer base {
+  /* Enhanced form elements with proper contrast */
+  label {
+    color: rgb(51, 65, 85) !important;
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  input, textarea, select {
+    color: rgb(15, 23, 42) !important;
+    background-color: rgb(255, 255, 255) !important;
+    border: 2px solid rgb(203, 213, 225) !important;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: rgb(99, 102, 241) !important;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: rgb(100, 116, 139) !important;
+    font-weight: 400;
+  }
+
+  /* Button enhancements with proper contrast */
+  button {
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border-radius: 0.75rem;
+    color: rgb(15, 23, 42) !important;
+  }
+
+  /* Primary buttons */
+  button[class*="bg-primary"], 
+  button[class*="bg-indigo"] {
+    background-color: rgb(99, 102, 241) !important;
+    color: rgb(255, 255, 255) !important;
+  }
+
+  button[class*="bg-primary"]:hover, 
+  button[class*="bg-indigo"]:hover {
+    background-color: rgb(79, 70, 229) !important;
+  }
+
+  /* Secondary buttons - now with green background */
+  button[class*="bg-secondary"] {
+    background-color: rgb(34, 197, 94) !important;
+    color: rgb(255, 255, 255) !important;
+  }
+
+  button[class*="bg-secondary"]:hover {
+    background-color: rgb(22, 163, 74) !important;
+  }
+
+  /* Success/Green buttons */
+  button[class*="bg-green"], 
+  button[class*="bg-sage"] {
+    background-color: rgb(34, 197, 94) !important;
+    color: rgb(255, 255, 255) !important;
+  }
+
+  button[class*="bg-green"]:hover, 
+  button[class*="bg-sage"]:hover {
+    background-color: rgb(22, 163, 74) !important;
+  }
+
+  /* Outline buttons */
+  button[class*="variant-outline"] {
+    background-color: rgb(255, 255, 255) !important;
+    color: rgb(15, 23, 42) !important;
+    border: 2px solid rgb(203, 213, 225) !important;
+  }
+
+  button[class*="variant-outline"]:hover {
+    background-color: rgb(248, 250, 252) !important;
+    border-color: rgb(99, 102, 241) !important;
+  }
+
+  /* Default buttons */
+  button:not([class*="bg-"]):not([class*="variant-"]) {
+    background-color: rgb(255, 255, 255) !important;
+    color: rgb(15, 23, 42) !important;
+    border: 2px solid rgb(203, 213, 225) !important;
+  }
+
+  button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+
+  /* Card improvements */
+  .card {
+    background: rgb(255, 255, 255) !important;
+    border: 1px solid rgb(226, 232, 240) !important;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .card:hover {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+  }
+
+  /* Navigation styling with proper contrast */
+  nav {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Header styling with proper contrast */
+  header {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+}
