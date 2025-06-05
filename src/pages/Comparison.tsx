@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
 interface AssessmentData {
+  id?: string;
   walk_10km_comfort: string;
   run_10km_comfort: string;
   climb_mountain_comfort: string;
@@ -73,12 +74,11 @@ const Comparison = () => {
   };
 
   const handleShare = async (platform: 'community' | 'social') => {
-    if (!finalAssessment) return;
+    if (!finalAssessment?.id) return;
 
     try {
       setSharing(true);
 
-      // Create or update comparison record
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -102,7 +102,6 @@ const Comparison = () => {
         description: `Your transformation has been shared to ${platform}.`,
       });
 
-      // Check if both shares are complete, then redirect to subscriptions
       const { data: comparison } = await supabase
         .from('assessment_comparisons')
         .select('shared_to_community, shared_to_social')
@@ -111,12 +110,10 @@ const Comparison = () => {
         .maybeSingle();
 
       if (comparison?.shared_to_community && comparison?.shared_to_social) {
-        // Mark subscription as completed
         if (completedSubscription) {
           await markSubscriptionCompleted(completedSubscription.id);
         }
         
-        // Redirect to subscriptions after a short delay
         setTimeout(() => {
           navigate('/subscriptions?completed=true');
         }, 2000);

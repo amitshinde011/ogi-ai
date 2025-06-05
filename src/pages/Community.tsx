@@ -1,13 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
-import PostCard from '@/components/PostCard';
+import PostList from '@/components/PostList';
 import CreatePostDialog from '@/components/CreatePostDialog';
 import EditPostDialog from '@/components/EditPostDialog';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useCommunityPosts } from '@/hooks/useCommunityPosts';
 
 interface Post {
   id: string;
@@ -23,16 +22,15 @@ interface Post {
 }
 
 const Community = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [newPost, setNewPost] = useState({ title: '', content: '' });
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+
+  const { posts, loading, fetchPosts, createPost, updatePost, deletePost } = useCommunityPosts();
 
   useEffect(() => {
     fetchCurrentUser();
-    fetchPosts();
   }, []);
 
   const fetchCurrentUser = async () => {
@@ -56,112 +54,19 @@ const Community = () => {
     }
   };
 
-  const fetchPosts = async () => {
-    try {
-      console.log('Fetching community posts...');
-      const { data: posts, error } = await supabase
-        .from('community_posts')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching posts:', error);
-        throw error;
-      }
-
-      console.log('Fetched posts:', posts);
-
-      // Fetch user profiles for each post
-      const postsWithUserInfo = await Promise.all(
-        (posts || []).map(async (post) => {
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('name, profile_photo_url')
-            .eq('user_id', post.user_id)
-            .maybeSingle();
-
-          const { data: { user } } = await supabase.auth.getUser();
-          const fallbackName = user?.email?.split('@')[0] || 'User';
-
-          return {
-            ...post,
-            user_name: profile?.name || fallbackName,
-            user_avatar: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`
-          };
-        })
-      );
-
-      console.log('Posts with user info:', postsWithUserInfo);
-      setPosts(postsWithUserInfo);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      toast({ title: "Failed to load posts", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleCreatePost = async () => {
-    if (!currentUser || !newPost.title.trim() || !newPost.content.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from('community_posts')
-        .insert({
-          user_id: currentUser.id,
-          title: newPost.title,
-          content: newPost.content
-        });
-
-      if (error) throw error;
-
+    const success = await createPost(currentUser, newPost);
+    if (success) {
       setNewPost({ title: '', content: '' });
       setIsDialogOpen(false);
-      fetchPosts();
-      toast({ title: "Post created successfully!" });
-    } catch (error) {
-      console.error('Error creating post:', error);
-      toast({ title: "Failed to create post", variant: "destructive" });
     }
   };
 
   const handleEditPost = async () => {
-    if (!editingPost || !editingPost.title.trim() || !editingPost.content.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from('community_posts')
-        .update({
-          title: editingPost.title,
-          content: editingPost.content
-        })
-        .eq('id', editingPost.id);
-
-      if (error) throw error;
-
+    if (!editingPost) return;
+    const success = await updatePost(editingPost);
+    if (success) {
       setEditingPost(null);
-      fetchPosts();
-      toast({ title: "Post updated successfully!" });
-    } catch (error) {
-      console.error('Error updating post:', error);
-      toast({ title: "Failed to update post", variant: "destructive" });
-    }
-  };
-
-  const handleDeletePost = async (postId: string) => {
-    try {
-      const { error } = await supabase
-        .from('community_posts')
-        .delete()
-        .eq('id', postId);
-
-      if (error) throw error;
-
-      fetchPosts();
-      toast({ title: "Post deleted successfully!" });
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      toast({ title: "Failed to delete post", variant: "destructive" });
     }
   };
 
@@ -189,24 +94,13 @@ const Community = () => {
           onSubmit={handleCreatePost}
         />
 
-        {posts.length === 0 ? (
-          <Card className="bg-card-gray border border-gray-200">
-            <CardContent className="p-6 text-center">
-              <p className="text-dark-text">No posts yet. Be the first to share your wellness journey!</p>
-            </CardContent>
-          </Card>
-        ) : (
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              currentUserId={currentUser?.id}
-              onEdit={setEditingPost}
-              onDelete={handleDeletePost}
-              onPostUpdate={fetchPosts}
-            />
-          ))
-        )}
+        <PostList
+          posts={posts}
+          currentUserId={currentUser?.id}
+          onEdit={setEditingPost}
+          onDelete={deletePost}
+          onPostUpdate={fetchPosts}
+        />
 
         <EditPostDialog
           editingPost={editingPost}
