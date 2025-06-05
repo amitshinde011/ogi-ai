@@ -111,7 +111,7 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
   };
 
   return (
-    <Card className="bg-card-gray border border-gray-200">
+    <Card className="bg-white border border-gray-200 shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -121,8 +121,8 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
               className="w-10 h-10 rounded-full mr-3"
             />
             <div>
-              <h4 className="font-semibold text-dark-text">{post.user_name}</h4>
-              <p className="text-sm text-dark-text opacity-70">
+              <h4 className="font-semibold text-gray-900">{post.user_name}</h4>
+              <p className="text-sm text-gray-500">
                 {getRelativeTime(post.created_at)}
               </p>
             </div>
@@ -133,7 +133,7 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
                 variant="ghost"
                 size="sm"
                 onClick={() => onEdit(post)}
-                className="text-dark-text hover:bg-gray-100"
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               >
                 <Edit size={16} />
               </Button>
@@ -141,7 +141,7 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
                 variant="ghost"
                 size="sm"
                 onClick={() => onDelete(post.id)}
-                className="text-red-600 hover:bg-red-50"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <Trash2 size={16} />
               </Button>
@@ -150,8 +150,8 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
         </div>
       </CardHeader>
       <CardContent>
-        <h3 className="font-semibold text-dark-text mb-2">{post.title}</h3>
-        <p className="text-dark-text mb-4">{post.content}</p>
+        <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
+        <p className="text-gray-700 mb-4">{post.content}</p>
         {post.image_url && (
           <img
             src={post.image_url}
@@ -160,27 +160,37 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
           />
         )}
         <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-          <div className="flex items-center space-x-4">
-            <button 
+          <div className="flex items-center space-x-6">
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleLike}
-              className={`flex items-center transition-colors ${
-                isLiked ? 'text-red-500' : 'text-dark-text hover:text-red-500'
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                isLiked 
+                  ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                  : 'text-gray-600 hover:text-red-600 hover:bg-red-50'
               }`}
             >
-              <Heart size={16} className="mr-1" fill={isLiked ? 'currentColor' : 'none'} />
-              <span className="text-sm">{likesCount}</span>
-            </button>
-            <button 
+              <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} />
+              <span className="text-sm font-medium">{likesCount}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowComments(!showComments)}
-              className="flex items-center text-dark-text hover:text-blue-500 transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors"
             >
-              <MessageCircle size={16} className="mr-1" />
-              <span className="text-sm">{commentsCount}</span>
-            </button>
+              <MessageCircle size={18} />
+              <span className="text-sm font-medium">{commentsCount}</span>
+            </Button>
           </div>
-          <button className="flex items-center text-dark-text hover:text-green-500 transition-colors">
-            <Share2 size={16} />
-          </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center px-3 py-2 rounded-lg text-gray-600 hover:text-green-600 hover:bg-green-50 transition-colors"
+          >
+            <Share2 size={18} />
+          </Button>
         </div>
         
         {showComments && (
