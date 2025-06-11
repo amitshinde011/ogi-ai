@@ -1,90 +1,28 @@
+
 import React, { useState } from 'react';
-import { Clock, Users, Star, Search } from 'lucide-react';
+import { Clock, Users, Star, Search, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
+import RecipeImport from '@/components/RecipeImport';
 import { useNavigate } from 'react-router-dom';
-
-interface Recipe {
-  id: string;
-  title: string;
-  image: string;
-  cookTime: string;
-  servings: number;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  rating: number;
-  category: string;
-  description: string;
-}
+import { useRecipes } from '@/hooks/useRecipes';
 
 const Recipes = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showImport, setShowImport] = useState(false);
 
-  const categories = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks', 'Vegetarian', 'Vegan'];
+  const { data: recipes = [], isLoading, error } = useRecipes();
 
-  const recipes: Recipe[] = [
-    {
-      id: '1',
-      title: 'Quinoa Buddha Bowl',
-      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400',
-      cookTime: '25 min',
-      servings: 2,
-      difficulty: 'Easy',
-      rating: 4.8,
-      category: 'Lunch',
-      description: 'Nutritious and colorful bowl packed with protein and vegetables'
-    },
-    {
-      id: '2',
-      title: 'Avocado Toast Supreme',
-      image: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=400',
-      cookTime: '10 min',
-      servings: 1,
-      difficulty: 'Easy',
-      rating: 4.6,
-      category: 'Breakfast',
-      description: 'Perfect morning fuel with healthy fats and fiber'
-    },
-    {
-      id: '3',
-      title: 'Mediterranean Chickpea Salad',
-      image: 'https://images.unsplash.com/photo-1545093149-618ce3bcf49d?w=400',
-      cookTime: '15 min',
-      servings: 4,
-      difficulty: 'Easy',
-      rating: 4.7,
-      category: 'Lunch',
-      description: 'Fresh and filling salad with Mediterranean flavors'
-    },
-    {
-      id: '4',
-      title: 'Grilled Salmon with Vegetables',
-      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400',
-      cookTime: '30 min',
-      servings: 2,
-      difficulty: 'Medium',
-      rating: 4.9,
-      category: 'Dinner',
-      description: 'Omega-rich salmon with roasted seasonal vegetables'
-    },
-    {
-      id: '5',
-      title: 'Tangy Mango Lassi',
-      image: '/lovable-uploads/357954c3-c7da-4458-b37b-02c7f7ad3659.png',
-      cookTime: '20 min',
-      servings: 2,
-      difficulty: 'Easy',
-      rating: 4.7,
-      category: 'Drinks',
-      description: 'A salty, refreshing summer drink with a bright twist of raw mango and spices'
-    }
-  ];
+  // Get unique categories from recipes
+  const categories = ['All', ...new Set(recipes.map(recipe => recipe.category))];
 
   const filteredRecipes = recipes.filter(recipe => {
-    const matchesSearch = recipe.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || recipe.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -98,9 +36,38 @@ const Recipes = () => {
     }
   };
 
+  if (showImport) {
+    return (
+      <Layout>
+        <Header title="Import Recipes" showBack />
+        <div className="p-4">
+          <Button 
+            onClick={() => setShowImport(false)} 
+            variant="outline" 
+            className="mb-4"
+          >
+            Back to Recipes
+          </Button>
+          <RecipeImport />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
-      <Header title="Healthy Recipes" />
+      <Header 
+        title="Healthy Recipes" 
+        rightElement={
+          <Button 
+            size="sm" 
+            onClick={() => setShowImport(true)}
+            className="gradient-sage text-white"
+          >
+            <Plus size={16} />
+          </Button>
+        }
+      />
       
       <div className="p-4 space-y-6 max-w-md mx-auto">
         {/* Search Bar */}
@@ -131,6 +98,21 @@ const Recipes = () => {
           ))}
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="text-slate-600 mt-2">Loading recipes...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-8">
+            <p className="text-red-600">Failed to load recipes. Please try again.</p>
+          </div>
+        )}
+
         {/* Recipe Grid */}
         <div className="space-y-4">
           {filteredRecipes.map((recipe) => (
@@ -141,36 +123,36 @@ const Recipes = () => {
             >
               <div className="flex">
                 <img
-                  src={recipe.image}
-                  alt={recipe.title}
+                  src={recipe.image_url || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400'}
+                  alt={recipe.name}
                   className="w-24 h-24 object-cover"
                 />
                 <CardContent className="flex-1 p-3">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold text-slate-900 text-sm leading-tight">
-                      {recipe.title}
+                      {recipe.name}
                     </h3>
                     <div className="flex items-center ml-2">
                       <Star className="text-yellow-500 mr-1" size={12} fill="currentColor" />
-                      <span className="text-xs text-slate-600">{recipe.rating}</span>
+                      <span className="text-xs text-slate-600">{recipe.rating || 4.5}</span>
                     </div>
                   </div>
                   
                   <p className="text-xs text-slate-600 mb-3 line-clamp-2">
-                    {recipe.description}
+                    {recipe.details || 'Delicious and healthy recipe'}
                   </p>
                   
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center text-slate-600">
                       <Clock size={12} className="mr-1" />
-                      <span>{recipe.cookTime}</span>
+                      <span>{recipe.cook_time || '30 min'}</span>
                     </div>
                     <div className="flex items-center text-slate-600">
                       <Users size={12} className="mr-1" />
-                      <span>{recipe.servings}</span>
+                      <span>{recipe.servings || 2}</span>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty)}`}>
-                      {recipe.difficulty}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty || 'Easy')}`}>
+                      {recipe.difficulty || 'Easy'}
                     </span>
                   </div>
                 </CardContent>
@@ -179,13 +161,16 @@ const Recipes = () => {
           ))}
         </div>
 
-        {filteredRecipes.length === 0 && (
+        {filteredRecipes.length === 0 && !isLoading && !error && (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="text-slate-500" size={32} />
             </div>
             <h3 className="text-lg font-semibold text-slate-900 mb-2">No recipes found</h3>
-            <p className="text-slate-600">Try adjusting your search or category filter</p>
+            <p className="text-slate-600 mb-4">Try adjusting your search or category filter</p>
+            <Button onClick={() => setShowImport(true)} className="gradient-sage text-white">
+              Import Your Recipes
+            </Button>
           </div>
         )}
       </div>

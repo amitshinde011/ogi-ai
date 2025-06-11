@@ -414,6 +414,63 @@ export type Database = {
         }
         Relationships: []
       }
+      recipes: {
+        Row: {
+          category: string
+          cook_time: string | null
+          created_at: string
+          details: string | null
+          difficulty: string | null
+          id: string
+          image_url: string | null
+          ingredients: string[] | null
+          instructions: string[] | null
+          name: string
+          nutrition: Json | null
+          package: string | null
+          rating: number | null
+          servings: number | null
+          tips: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          cook_time?: string | null
+          created_at?: string
+          details?: string | null
+          difficulty?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          instructions?: string[] | null
+          name: string
+          nutrition?: Json | null
+          package?: string | null
+          rating?: number | null
+          servings?: number | null
+          tips?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cook_time?: string | null
+          created_at?: string
+          details?: string | null
+          difficulty?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          instructions?: string[] | null
+          name?: string
+          nutrition?: Json | null
+          package?: string | null
+          rating?: number | null
+          servings?: number | null
+          tips?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       steps_tracking: {
         Row: {
           created_at: string
