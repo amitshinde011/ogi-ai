@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
-import { Clock, Users, Star, Search, Plus } from 'lucide-react';
+import { Clock, Users, Star, Search } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
-import RecipeImport from '@/components/RecipeImport';
 import { useNavigate } from 'react-router-dom';
 import { useRecipes } from '@/hooks/useRecipes';
 
@@ -14,7 +13,6 @@ const Recipes = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [showImport, setShowImport] = useState(false);
 
   const { data: recipes = [], isLoading, error } = useRecipes();
 
@@ -36,38 +34,9 @@ const Recipes = () => {
     }
   };
 
-  if (showImport) {
-    return (
-      <Layout>
-        <Header title="Import Recipes" showBack />
-        <div className="p-4">
-          <Button 
-            onClick={() => setShowImport(false)} 
-            variant="outline" 
-            className="mb-4"
-          >
-            Back to Recipes
-          </Button>
-          <RecipeImport />
-        </div>
-      </Layout>
-    );
-  }
-
   return (
     <Layout>
-      <Header 
-        title="Healthy Recipes" 
-        rightElement={
-          <Button 
-            size="sm" 
-            onClick={() => setShowImport(true)}
-            className="gradient-sage text-white"
-          >
-            <Plus size={16} />
-          </Button>
-        }
-      />
+      <Header title="Healthy Recipes" />
       
       <div className="p-4 space-y-6 max-w-md mx-auto">
         {/* Search Bar */}
@@ -167,10 +136,7 @@ const Recipes = () => {
               <Search className="text-slate-500" size={32} />
             </div>
             <h3 className="text-lg font-semibold text-slate-900 mb-2">No recipes found</h3>
-            <p className="text-slate-600 mb-4">Try adjusting your search or category filter</p>
-            <Button onClick={() => setShowImport(true)} className="gradient-sage text-white">
-              Import Your Recipes
-            </Button>
+            <p className="text-slate-600">Try adjusting your search or category filter</p>
           </div>
         )}
       </div>
