@@ -73,7 +73,7 @@ const RecipeDetail = () => {
       <Header title="Recipe" showBack />
       
       <div className="max-w-md mx-auto">
-        {/* Hero Image */}
+        {/* Hero Image - removed upload buttons */}
         <div className="relative">
           <img
             src={recipe.image_url || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600'}
