@@ -6,18 +6,28 @@ import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import { useParams } from 'react-router-dom';
 import { useRecipe } from '@/hooks/useRecipes';
+import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { toast } from '@/hooks/use-toast';
 
 const RecipeDetail = () => {
   const { id } = useParams();
   const { data: recipe, isLoading, error } = useRecipe(id || '');
+  const { saveRecipe, unsaveRecipe, isRecipeSaved } = useSavedRecipes();
 
-  const handleStartCooking = () => {
-    toast({ title: "Happy cooking! 👨‍🍳", description: "Enjoy making this delicious recipe!" });
-  };
-
-  const handleSaveRecipe = () => {
-    toast({ title: "Recipe saved! ❤️", description: "You can find it in your saved recipes." });
+  const handleSaveRecipe = async () => {
+    if (!recipe) return;
+    
+    try {
+      if (isRecipeSaved(recipe.id)) {
+        await unsaveRecipe(recipe.id);
+        toast({ title: "Recipe removed! 🗑️", description: "Recipe removed from your saved recipes." });
+      } else {
+        await saveRecipe(recipe.id);
+        toast({ title: "Recipe saved! ❤️", description: "You can find it in your saved recipes." });
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to save recipe. Please try again.", variant: "destructive" });
+    }
   };
 
   const handleLikeRecipe = () => {
@@ -67,6 +77,11 @@ const RecipeDetail = () => {
     fat: 12,
     fiber: 8
   };
+
+  console.log('Recipe data:', recipe);
+  console.log('Ingredients:', recipe.ingredients);
+  console.log('Instructions:', recipe.instructions);
+  console.log('Tips:', recipe.tips);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10">
@@ -155,7 +170,7 @@ const RecipeDetail = () => {
           </Card>
 
           {/* Ingredients */}
-          {recipe.ingredients && recipe.ingredients.length > 0 && (
+          {recipe.ingredients && Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0 && (
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold text-primary mb-3">Ingredients</h3>
@@ -172,7 +187,7 @@ const RecipeDetail = () => {
           )}
 
           {/* Instructions */}
-          {recipe.instructions && recipe.instructions.length > 0 && (
+          {recipe.instructions && Array.isArray(recipe.instructions) && recipe.instructions.length > 0 && (
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold text-primary mb-3">Instructions</h3>
@@ -191,7 +206,7 @@ const RecipeDetail = () => {
           )}
 
           {/* Tips */}
-          {recipe.tips && recipe.tips.length > 0 && (
+          {recipe.tips && Array.isArray(recipe.tips) && recipe.tips.length > 0 && (
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold text-primary mb-3">Tips & Variations</h3>
@@ -207,20 +222,13 @@ const RecipeDetail = () => {
             </Card>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex space-x-3 pb-4">
+          {/* Action Button */}
+          <div className="pb-4">
             <Button 
-              className="flex-1 rounded-xl gradient-sage text-white"
-              onClick={handleStartCooking}
-            >
-              Start Cooking
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex-1 rounded-xl border-sage text-sage hover:bg-sage/5"
+              className={`w-full rounded-xl ${isRecipeSaved(recipe.id) ? 'bg-red-500 hover:bg-red-600' : 'gradient-sage'} text-white`}
               onClick={handleSaveRecipe}
             >
-              Save Recipe
+              {isRecipeSaved(recipe.id) ? 'Remove from Saved' : 'Save Recipe'}
             </Button>
           </div>
         </div>
