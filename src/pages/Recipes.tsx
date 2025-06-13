@@ -88,7 +88,7 @@ const Recipes = () => {
             <Card 
               key={recipe.id} 
               className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer bg-white border-slate-200"
-              onClick={() => navigate(`/recipe/${recipe.id}`)}
+              onClick={() => navigate(`/recipes/${recipe.id}`)}
             >
               <div className="flex">
                 <img

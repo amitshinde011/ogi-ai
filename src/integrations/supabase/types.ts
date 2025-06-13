@@ -469,7 +469,15 @@ export type Database = {
           tips?: string[] | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recipes_package_fkey"
+            columns: ["package"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       steps_tracking: {
         Row: {
