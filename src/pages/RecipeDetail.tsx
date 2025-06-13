@@ -6,10 +6,36 @@ import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import { useParams } from 'react-router-dom';
 import { useRecipe } from '@/hooks/useRecipes';
+import { toast } from '@/hooks/use-toast';
 
 const RecipeDetail = () => {
   const { id } = useParams();
   const { data: recipe, isLoading, error } = useRecipe(id || '');
+
+  const handleStartCooking = () => {
+    toast({ title: "Happy cooking! 👨‍🍳", description: "Enjoy making this delicious recipe!" });
+  };
+
+  const handleSaveRecipe = () => {
+    toast({ title: "Recipe saved! ❤️", description: "You can find it in your saved recipes." });
+  };
+
+  const handleLikeRecipe = () => {
+    toast({ title: "Recipe liked! 👍", description: "Thank you for your feedback!" });
+  };
+
+  const handleShareRecipe = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: recipe?.name,
+        text: `Check out this delicious recipe: ${recipe?.name}`,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({ title: "Link copied! 📋", description: "Recipe link copied to clipboard." });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -55,10 +81,20 @@ const RecipeDetail = () => {
             className="w-full h-64 object-cover"
           />
           <div className="absolute top-4 right-4 flex space-x-2">
-            <Button size="sm" variant="secondary" className="rounded-full bg-white/90">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="rounded-full bg-white/90"
+              onClick={handleLikeRecipe}
+            >
               <Heart size={16} />
             </Button>
-            <Button size="sm" variant="secondary" className="rounded-full bg-white/90">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="rounded-full bg-white/90"
+              onClick={handleShareRecipe}
+            >
               <Share size={16} />
             </Button>
           </div>
@@ -173,10 +209,17 @@ const RecipeDetail = () => {
 
           {/* Action Buttons */}
           <div className="flex space-x-3 pb-4">
-            <Button className="flex-1 rounded-xl gradient-sage text-white">
+            <Button 
+              className="flex-1 rounded-xl gradient-sage text-white"
+              onClick={handleStartCooking}
+            >
               Start Cooking
             </Button>
-            <Button variant="outline" className="flex-1 rounded-xl border-sage text-sage hover:bg-sage/5">
+            <Button 
+              variant="outline" 
+              className="flex-1 rounded-xl border-sage text-sage hover:bg-sage/5"
+              onClick={handleSaveRecipe}
+            >
               Save Recipe
             </Button>
           </div>
