@@ -7,9 +7,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Camera, Upload } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
+import PhotoUpload from '@/components/PhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -39,16 +39,18 @@ const FinalAssessment = () => {
     }
   });
 
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleImageSelect = (file: File) => {
+    setSelectedImage(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageRemove = () => {
+    setSelectedImage(null);
+    setImagePreview('');
   };
 
   const uploadImage = async (file: File): Promise<string | null> => {
@@ -58,7 +60,7 @@ const FinalAssessment = () => {
       if (!user) throw new Error('No user found');
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-final-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/final-${Date.now()}.${fileExt}`;
 
       const { data, error } = await supabase.storage
         .from('assessments')
@@ -128,7 +130,7 @@ const FinalAssessment = () => {
 
       toast({
         title: "Assessment Completed!",
-        description: "Your final assessment has been saved successfully.",
+        description: "Congratulations on completing your wellness journey!",
       });
 
       navigate('/comparison', { state: { finalAssessmentId: finalAssessment.id } });
@@ -156,54 +158,27 @@ const FinalAssessment = () => {
     <Layout>
       <Header title="Final Assessment" />
       
-      <div className="min-h-screen bg-light-gray p-4">
+      <div className="min-h-screen bg-gradient-peaceful p-4">
         <div className="max-w-md mx-auto">
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="text-center text-primary">How do you feel now?</CardTitle>
-              <p className="text-center text-gray-600 text-sm">
-                Please provide your current status after completing the program
+          <Card className="bg-white shadow-xl border-0">
+            <CardHeader className="text-center pb-6">
+              <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel now?</CardTitle>
+              <p className="text-gray-600">
+                Let's capture your amazing transformation!
               </p>
             </CardHeader>
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Photo Upload */}
-                  <div className="space-y-2">
-                    <Label>Full Body Photo (Optional)</Label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                      {imagePreview ? (
-                        <div className="space-y-2">
-                          <img src={imagePreview} alt="Preview" className="w-32 h-48 object-cover mx-auto rounded" />
-                          <Button type="button" variant="outline" size="sm" onClick={() => {
-                            setSelectedImage(null);
-                            setImagePreview('');
-                          }}>
-                            Remove Photo
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <Camera className="w-12 h-12 text-gray-400 mx-auto" />
-                          <p className="text-sm text-gray-600">Upload your current photo</p>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageSelect}
-                            className="hidden"
-                            id="photo-upload"
-                          />
-                          <Label htmlFor="photo-upload" className="cursor-pointer">
-                            <div className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
-                              <Upload className="w-4 h-4 mr-2" />
-                              Choose Photo
-                            </div>
-                          </Label>
-                        </div>
-                      )}
-                    </div>
-                    {uploading && <p className="text-sm text-gray-600">Uploading photo...</p>}
-                  </div>
+                  <PhotoUpload
+                    selectedImage={imagePreview}
+                    onImageSelect={handleImageSelect}
+                    onImageRemove={handleImageRemove}
+                    uploading={uploading}
+                    title="Final Photo"
+                    description="Show off your amazing progress!"
+                  />
 
                   {/* Comfort Level Questions */}
                   <FormField
@@ -310,10 +285,10 @@ const FinalAssessment = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-sage text-white"
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
                     disabled={isSubmitting || uploading}
                   >
-                    {isSubmitting ? 'Submitting...' : uploading ? 'Uploading Photo...' : 'Complete Assessment'}
+                    {isSubmitting ? 'Completing Assessment...' : uploading ? 'Uploading Photo...' : 'Complete My Journey'}
                   </Button>
                 </form>
               </Form>

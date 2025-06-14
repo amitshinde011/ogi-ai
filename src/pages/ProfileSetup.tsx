@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,12 +10,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import ProfileImageUpload from '@/components/ProfileImageUpload';
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { updateOnboardingState } = useOnboarding();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -28,6 +31,53 @@ const ProfileSetup = () => {
     physical_activity_intense: '',
     health_issues: ''
   });
+
+  const handleImageSelect = (file: File) => {
+    setSelectedImage(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageRemove = () => {
+    setSelectedImage(null);
+    setImagePreview('');
+  };
+
+  const uploadProfileImage = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/profile-${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('assessments')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('assessments')
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload profile picture. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +122,15 @@ const ProfileSetup = () => {
 
       console.log('User found:', user.id);
 
+      // Upload profile image if selected
+      let profileImageUrl = null;
+      if (selectedImage) {
+        profileImageUrl = await uploadProfileImage(selectedImage);
+        if (!profileImageUrl) {
+          return; // Upload failed, error already shown
+        }
+      }
+
       const profileData = {
         user_id: user.id,
         name: formData.name.trim(),
@@ -82,7 +141,8 @@ const ProfileSetup = () => {
         physical_activity_basic: formData.physical_activity_basic || null,
         physical_activity_medium: formData.physical_activity_medium || null,
         physical_activity_intense: formData.physical_activity_intense || null,
-        health_issues: formData.health_issues.trim() || null
+        health_issues: formData.health_issues.trim() || null,
+        profile_photo_url: profileImageUrl
       };
 
       console.log('Attempting to save profile with data:', profileData);
@@ -123,33 +183,40 @@ const ProfileSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-light-gray p-4">
+    <div className="min-h-screen bg-gradient-peaceful p-4">
       <div className="max-w-2xl mx-auto">
-        <Card className="bg-card-gray border border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center text-dark-text">
+        <Card className="bg-white border border-gray-200 shadow-xl">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-3xl font-bold text-dark-text mb-2">
               Tell Us About Yourself
             </CardTitle>
-            <p className="text-center text-gray-600">
+            <p className="text-gray-600 text-lg">
               Help us create a personalized wellness journey for you
             </p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-8">
+            <ProfileImageUpload
+              selectedImage={imagePreview}
+              onImageSelect={handleImageSelect}
+              onImageRemove={handleImageRemove}
+              uploading={uploading}
+            />
+
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="name" className="text-dark-text">Full Name *</Label>
+                  <Label htmlFor="name" className="text-dark-text font-medium">Full Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     required
                     placeholder="Enter your full name"
-                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 mt-2"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="age" className="text-dark-text">Age *</Label>
+                  <Label htmlFor="age" className="text-dark-text font-medium">Age *</Label>
                   <Input
                     id="age"
                     type="number"
@@ -159,13 +226,13 @@ const ProfileSetup = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
                     required
                     placeholder="Enter your age"
-                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 mt-2"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="gender" className="text-dark-text">Gender *</Label>
+                  <Label htmlFor="gender" className="text-dark-text font-medium">Gender *</Label>
                   <Select value={formData.gender} onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}>
-                    <SelectTrigger className="bg-white border-gray-300 text-dark-text">
+                    <SelectTrigger className="bg-white border-gray-300 text-dark-text mt-2">
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-gray-200">
@@ -177,7 +244,7 @@ const ProfileSetup = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="weight" className="text-dark-text">Weight (kg) *</Label>
+                  <Label htmlFor="weight" className="text-dark-text font-medium">Weight (kg) *</Label>
                   <Input
                     id="weight"
                     type="number"
@@ -188,11 +255,11 @@ const ProfileSetup = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
                     required
                     placeholder="Enter your weight"
-                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 mt-2"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="height" className="text-dark-text">Height (cm) *</Label>
+                <div className="md:col-span-1">
+                  <Label htmlFor="height" className="text-dark-text font-medium">Height (cm) *</Label>
                   <Input
                     id="height"
                     type="number"
@@ -202,7 +269,7 @@ const ProfileSetup = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, height: e.target.value }))}
                     required
                     placeholder="Enter your height"
-                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 mt-2"
                   />
                 </div>
               </div>
@@ -279,13 +346,17 @@ const ProfileSetup = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, health_issues: e.target.value }))}
                     placeholder="Please describe any health conditions, medications, or concerns..."
                     rows={3}
-                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 mt-2"
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full bg-sage hover:bg-sage/90 text-white" disabled={loading}>
-                {loading ? 'Saving...' : 'Continue to Subscriptions'}
+              <Button 
+                type="submit" 
+                className="w-full bg-sage hover:bg-sage/90 text-white py-3 text-lg font-medium" 
+                disabled={loading || uploading}
+              >
+                {loading ? 'Saving...' : uploading ? 'Uploading Photo...' : 'Continue to Subscriptions'}
               </Button>
             </form>
           </CardContent>
