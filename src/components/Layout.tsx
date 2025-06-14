@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { Home, Users, ChefHat, BarChart, Settings, Trophy } from 'lucide-react';
 import { useLocation, Link } from 'react-router-dom';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +11,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const { isCompleted, hasFinalAssessment } = useProgramCompletion();
+  const { trackButtonClick } = useAnalytics();
 
   const navItems = isCompleted && hasFinalAssessment ? [
     { path: '/subscriptions', icon: Trophy, label: 'Programs' },
@@ -46,6 +47,7 @@ const Layout = ({ children }: LayoutProps) => {
             <Link
               key={path}
               to={path}
+              onClick={() => trackButtonClick(label, 'Bottom Navigation')}
               className={`nav-item flex flex-col items-center px-3 py-2 transition-all duration-200 ${
                 isActive(path) ? 'active' : ''
               }`}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +6,7 @@ import { ArrowLeft, CreditCard, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface Program {
   id: string;
@@ -20,6 +20,7 @@ const Payment = () => {
   const location = useLocation();
   const { toast } = useToast();
   const { updateOnboardingState } = useOnboarding();
+  const { trackButtonClick, trackPayment, trackEvent } = useAnalytics();
   const [loading, setLoading] = useState(false);
   const [program, setProgram] = useState<Program | null>(null);
   const [gateway, setGateway] = useState<'braintree' | 'razorpay'>('braintree');
@@ -47,6 +48,9 @@ const Payment = () => {
       } else {
         setGateway('braintree');
       }
+      
+      // Track location detection
+      trackEvent('location_detected', 'Payment', data.country_name);
     } catch (error) {
       console.error('Failed to detect location:', error);
       // Default to Braintree for global
@@ -57,7 +61,9 @@ const Payment = () => {
   const createPaymentSession = async () => {
     if (!program) return;
 
+    trackButtonClick('Pay Now', 'Payment Page');
     setLoading(true);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -92,6 +98,7 @@ const Payment = () => {
       }
     } catch (error) {
       console.error('Payment session creation error:', error);
+      trackEvent('payment_error', 'Payment', 'Session Creation Failed');
       toast({
         title: "Payment Error",
         description: "Failed to initialize payment. Please try again.",
@@ -103,6 +110,8 @@ const Payment = () => {
   };
 
   const handleBraintreePayment = async (sessionData: any) => {
+    trackEvent('payment_initiated', 'Payment', 'Braintree');
+    
     // Load Braintree script
     if (!window.braintree) {
       const script = document.createElement('script');
@@ -122,6 +131,8 @@ const Payment = () => {
   };
 
   const handleRazorpayPayment = async (sessionData: any) => {
+    trackEvent('payment_initiated', 'Payment', 'Razorpay');
+    
     // Load Razorpay script
     if (!window.Razorpay) {
       const script = document.createElement('script');
@@ -170,6 +181,11 @@ const Payment = () => {
 
       if (error) throw error;
 
+      if (program) {
+        const currency = gateway === 'razorpay' ? 'INR' : 'USD';
+        trackPayment(program.name, program.price, currency, gateway);
+      }
+
       await updateOnboardingState({ subscription_selected: true });
 
       toast({
@@ -180,6 +196,7 @@ const Payment = () => {
       navigate('/intro-video');
     } catch (error) {
       console.error('Payment verification error:', error);
+      trackEvent('payment_error', 'Payment', 'Verification Failed');
       toast({
         title: "Payment Verification Failed",
         description: "Please contact support for assistance.",
@@ -201,7 +218,10 @@ const Payment = () => {
       <div className="max-w-2xl mx-auto">
         <Button
           variant="ghost"
-          onClick={() => navigate('/subscriptions')}
+          onClick={() => {
+            trackButtonClick('Back to Subscriptions', 'Payment Page');
+            navigate('/subscriptions');
+          }}
           className="mb-6"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />

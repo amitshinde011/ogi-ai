@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -30,38 +31,46 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const AppWithAnalytics = () => {
+  useAnalytics(); // This will track page views automatically
+  
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/home" element={<Home />} />
+      <Route path="/upload" element={<Upload />} />
+      <Route path="/community" element={<Community />} />
+      <Route path="/community/post/:id" element={<PostDetail />} />
+      <Route path="/progress" element={<Progress />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/recipes" element={<Recipes />} />
+      <Route path="/recipes/:id" element={<RecipeDetail />} />
+      <Route path="/saved-recipes" element={<SavedRecipes />} />
+      <Route path="/profile-setup" element={<ProfileSetup />} />
+      <Route path="/profile-edit" element={<ProfileEdit />} />
+      <Route path="/subscriptions" element={<Subscriptions />} />
+      <Route path="/payment" element={<Payment />} />
+      <Route path="/intro-video" element={<IntroVideo />} />
+      <Route path="/before-assessment" element={<BeforeAssessment />} />
+      <Route path="/journey-start" element={<JourneyStart />} />
+      <Route path="/program-complete" element={<ProgramComplete />} />
+      <Route path="/final-assessment" element={<FinalAssessment />} />
+      <Route path="/comparison" element={<Comparison />} />
+      <Route path="/404" element={<NotFound />} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
+    </Routes>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/upload" element={<Upload />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/community/post/:id" element={<PostDetail />} />
-          <Route path="/progress" element={<Progress />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/recipes" element={<Recipes />} />
-          <Route path="/recipes/:id" element={<RecipeDetail />} />
-          <Route path="/saved-recipes" element={<SavedRecipes />} />
-          <Route path="/profile-setup" element={<ProfileSetup />} />
-          <Route path="/profile-edit" element={<ProfileEdit />} />
-          <Route path="/subscriptions" element={<Subscriptions />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/intro-video" element={<IntroVideo />} />
-          <Route path="/before-assessment" element={<BeforeAssessment />} />
-          <Route path="/journey-start" element={<JourneyStart />} />
-          <Route path="/program-complete" element={<ProgramComplete />} />
-          <Route path="/final-assessment" element={<FinalAssessment />} />
-          <Route path="/comparison" element={<Comparison />} />
-          <Route path="/404" element={<NotFound />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
-        </Routes>
+        <AppWithAnalytics />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

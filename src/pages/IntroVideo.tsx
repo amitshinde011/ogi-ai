@@ -6,15 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Play, CheckCircle, AlertCircle } from 'lucide-react';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useToast } from '@/hooks/use-toast';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const IntroVideo = () => {
   const navigate = useNavigate();
   const { updateOnboardingState } = useOnboarding();
   const { toast } = useToast();
+  const { trackVideoComplete, trackButtonClick } = useAnalytics();
   const [videoWatched, setVideoWatched] = useState(false);
 
   const handleVideoComplete = () => {
     setVideoWatched(true);
+    trackVideoComplete('Intro Video');
     toast({
       title: "Video Completed!",
       description: "You can now proceed to the next step.",
@@ -22,6 +25,8 @@ const IntroVideo = () => {
   };
 
   const handleContinue = async () => {
+    trackButtonClick('Continue to Assessment', 'Intro Video Page');
+    
     try {
       await updateOnboardingState({ intro_video_watched: true });
       navigate('/before-assessment');
@@ -68,7 +73,10 @@ const IntroVideo = () => {
                       ? 'bg-green-600 hover:bg-green-700' 
                       : 'bg-indigo-600 hover:bg-indigo-700'
                   }`}
-                  onClick={handleVideoComplete}
+                  onClick={() => {
+                    trackButtonClick(videoWatched ? 'Video Completed' : 'Watch Video', 'Intro Video Page');
+                    handleVideoComplete();
+                  }}
                   disabled={videoWatched}
                 >
                   {videoWatched ? (
