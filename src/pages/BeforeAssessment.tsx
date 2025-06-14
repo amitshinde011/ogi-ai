@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +15,9 @@ const BeforeAssessment = () => {
   const { toast } = useToast();
   const { updateOnboardingState } = useOnboarding();
   const [loading, setLoading] = useState(false);
-  const [photoUploaded, setPhotoUploaded] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     current_health_conditions: '',
     walk_10km_comfort: '',
@@ -25,19 +26,50 @@ const BeforeAssessment = () => {
     comments: ''
   });
 
-  const handlePhotoUpload = () => {
-    // Simulate photo upload
-    setPhotoUploaded(true);
-    toast({
-      title: "Photo Uploaded!",
-      description: "Your full body photo has been saved.",
-    });
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-before-${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('assessments')
+        .upload(fileName, file);
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('assessments')
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return null;
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!photoUploaded) {
+    if (!selectedImage) {
       toast({
         title: "Photo Required",
         description: "Please upload your full body photo to continue.",
@@ -71,6 +103,17 @@ const BeforeAssessment = () => {
       }
 
       console.log('Current user:', user.id);
+
+      // Upload image first
+      const imageUrl = await uploadImage(selectedImage);
+      if (!imageUrl) {
+        toast({
+          title: "Upload Error",
+          description: "Failed to upload photo. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Get user's active subscription
       const { data: subscription, error: subError } = await supabase
@@ -115,7 +158,7 @@ const BeforeAssessment = () => {
           user_id: user.id,
           subscription_id: subscription.id,
           assessment_type: 'before',
-          full_body_photo_url: 'placeholder-photo-url',
+          full_body_photo_url: imageUrl,
           current_health_conditions: formData.current_health_conditions,
           walk_10km_comfort: formData.walk_10km_comfort,
           run_10km_comfort: formData.run_10km_comfort,
@@ -166,23 +209,33 @@ const BeforeAssessment = () => {
                 <div>
                   <Label className="text-lg font-semibold text-black">Full Body Photo</Label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-white">
-                    {!photoUploaded ? (
-                      <div>
-                        <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-black mb-4">Upload your full body photo</p>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={handlePhotoUpload}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload Photo
+                    {imagePreview ? (
+                      <div className="space-y-2">
+                        <img src={imagePreview} alt="Preview" className="w-32 h-48 object-cover mx-auto rounded" />
+                        <Button type="button" variant="outline" size="sm" onClick={() => {
+                          setSelectedImage(null);
+                          setImagePreview('');
+                        }}>
+                          Remove Photo
                         </Button>
                       </div>
                     ) : (
-                      <div className="text-green-600">
-                        <Camera className="w-12 h-12 mx-auto mb-2" />
-                        <p>Photo uploaded successfully!</p>
+                      <div>
+                        <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-black mb-4">Upload your full body photo</p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="hidden"
+                          id="photo-upload"
+                        />
+                        <Label htmlFor="photo-upload" className="cursor-pointer">
+                          <div className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choose Photo
+                          </div>
+                        </Label>
                       </div>
                     )}
                   </div>
@@ -295,8 +348,8 @@ const BeforeAssessment = () => {
                 </p>
               </div>
 
-              <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                {loading ? 'Starting Journey...' : 'Start My Transformation Journey'}
+              <Button type="submit" className="w-full" size="lg" disabled={loading || uploading}>
+                {loading ? 'Starting Journey...' : uploading ? 'Uploading Photo...' : 'Start My Transformation Journey'}
               </Button>
             </form>
           </CardContent>

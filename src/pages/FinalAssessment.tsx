@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -28,6 +27,7 @@ const FinalAssessment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
 
   const form = useForm<FinalAssessmentForm>({
     defaultValues: {
@@ -53,6 +53,7 @@ const FinalAssessment = () => {
 
   const uploadImage = async (file: File): Promise<string | null> => {
     try {
+      setUploading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
@@ -73,6 +74,8 @@ const FinalAssessment = () => {
     } catch (error) {
       console.error('Error uploading image:', error);
       return null;
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -99,6 +102,9 @@ const FinalAssessment = () => {
       let imageUrl = null;
       if (selectedImage) {
         imageUrl = await uploadImage(selectedImage);
+        if (!imageUrl) {
+          throw new Error('Failed to upload image');
+        }
       }
 
       // Create final assessment
@@ -191,6 +197,7 @@ const FinalAssessment = () => {
                         </div>
                       )}
                     </div>
+                    {uploading && <p className="text-sm text-gray-600">Uploading photo...</p>}
                   </div>
 
                   {/* Comfort Level Questions */}
@@ -299,9 +306,9 @@ const FinalAssessment = () => {
                   <Button
                     type="submit"
                     className="w-full bg-gradient-sage text-white"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || uploading}
                   >
-                    {isSubmitting ? 'Submitting...' : 'Complete Assessment'}
+                    {isSubmitting ? 'Submitting...' : uploading ? 'Uploading Photo...' : 'Complete Assessment'}
                   </Button>
                 </form>
               </Form>
