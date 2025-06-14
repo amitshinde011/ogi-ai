@@ -73,6 +73,11 @@ const FinalAssessment = () => {
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive",
+      });
       return null;
     } finally {
       setUploading(false);
@@ -85,7 +90,7 @@ const FinalAssessment = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
-      // Get current active subscription
+      // Get current active subscription that has ended (completed program)
       const today = new Date().toISOString().split('T')[0];
       const { data: subscription } = await supabase
         .from('user_subscriptions')
@@ -103,7 +108,7 @@ const FinalAssessment = () => {
       if (selectedImage) {
         imageUrl = await uploadImage(selectedImage);
         if (!imageUrl) {
-          throw new Error('Failed to upload image');
+          return; // Upload failed, error already shown
         }
       }
 
