@@ -21,13 +21,39 @@ const Recipes = () => {
   // Create category options with 'all' as the first option
   const categoryOptions = ['all', ...categories];
 
-  const filteredRecipes = recipes?.filter(recipe => {
-    const matchesSearch = searchTerm === '' || 
-                         recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         recipe.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || recipe.category.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
-  }) || [];
+  // Add debugging and remove duplicates
+  const filteredRecipes = React.useMemo(() => {
+    if (!recipes) return [];
+    
+    console.log('Total recipes loaded:', recipes.length);
+    console.log('Search term:', searchTerm);
+    console.log('Selected category:', selectedCategory);
+    
+    // Remove duplicates first by recipe id
+    const uniqueRecipes = recipes.filter((recipe, index, self) => 
+      index === self.findIndex(r => r.id === recipe.id)
+    );
+    
+    console.log('Unique recipes after deduplication:', uniqueRecipes.length);
+    
+    const filtered = uniqueRecipes.filter(recipe => {
+      const matchesSearch = searchTerm === '' || 
+                           recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           recipe.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || recipe.category.toLowerCase() === selectedCategory.toLowerCase();
+      
+      const result = matchesSearch && matchesCategory;
+      
+      if (searchTerm && result) {
+        console.log('Recipe matches search:', recipe.name, recipe.id);
+      }
+      
+      return result;
+    });
+    
+    console.log('Filtered recipes count:', filtered.length);
+    return filtered;
+  }, [recipes, searchTerm, selectedCategory]);
 
   if (isLoading || categoriesLoading) {
     return (
