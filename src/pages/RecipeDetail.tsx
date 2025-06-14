@@ -82,14 +82,18 @@ const RecipeDetail = () => {
   console.log('Raw ingredients:', recipe.ingredients);
   console.log('Raw instructions:', recipe.instructions);
   console.log('Raw tips:', recipe.tips);
-  console.log('Ingredients type:', typeof recipe.ingredients);
-  console.log('Instructions type:', typeof recipe.instructions);
-  console.log('Tips type:', typeof recipe.tips);
 
-  // Helper function to safely check if array has content
-  const hasArrayContent = (arr: any) => {
-    return arr && Array.isArray(arr) && arr.length > 0;
+  // Helper function to split semicolon-separated text into array
+  const parseTextField = (text: string | string[] | null): string[] => {
+    if (!text) return [];
+    if (Array.isArray(text)) return text; // In case it's already an array
+    return text.split(';').map(item => item.trim()).filter(item => item.length > 0);
   };
+
+  // Parse the text fields
+  const ingredientsList = parseTextField(recipe.ingredients);
+  const instructionsList = parseTextField(recipe.instructions);
+  const tipsList = parseTextField(recipe.tips);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10">
@@ -178,12 +182,12 @@ const RecipeDetail = () => {
           </Card>
 
           {/* Ingredients */}
-          {hasArrayContent(recipe.ingredients) && (
+          {ingredientsList.length > 0 && (
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold text-primary mb-3">Ingredients</h3>
                 <div className="space-y-2">
-                  {recipe.ingredients.map((ingredient, index) => (
+                  {ingredientsList.map((ingredient, index) => (
                     <div key={index} className="flex items-center">
                       <div className="w-2 h-2 bg-sage rounded-full mr-3 flex-shrink-0"></div>
                       <span className="text-sm">{ingredient}</span>
@@ -195,12 +199,12 @@ const RecipeDetail = () => {
           )}
 
           {/* Instructions */}
-          {hasArrayContent(recipe.instructions) && (
+          {instructionsList.length > 0 && (
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold text-primary mb-3">Instructions</h3>
                 <div className="space-y-4">
-                  {recipe.instructions.map((instruction, index) => (
+                  {instructionsList.map((instruction, index) => (
                     <div key={index} className="flex">
                       <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
                         {index + 1}
@@ -214,31 +218,17 @@ const RecipeDetail = () => {
           )}
 
           {/* Tips */}
-          {hasArrayContent(recipe.tips) && (
+          {tipsList.length > 0 && (
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold text-primary mb-3">Tips & Variations</h3>
                 <div className="space-y-2">
-                  {recipe.tips.map((tip, index) => (
+                  {tipsList.map((tip, index) => (
                     <div key={index} className="flex items-start">
                       <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
                       <span className="text-sm leading-relaxed">{tip}</span>
                     </div>
                   ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Debug info - remove this in production */}
-          {!hasArrayContent(recipe.ingredients) && !hasArrayContent(recipe.instructions) && !hasArrayContent(recipe.tips) && (
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-red-600 mb-3">Debug Info (No recipe details found)</h3>
-                <div className="text-xs space-y-1">
-                  <p>Ingredients: {JSON.stringify(recipe.ingredients)}</p>
-                  <p>Instructions: {JSON.stringify(recipe.instructions)}</p>
-                  <p>Tips: {JSON.stringify(recipe.tips)}</p>
                 </div>
               </CardContent>
             </Card>
