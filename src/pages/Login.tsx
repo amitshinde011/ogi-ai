@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -98,8 +99,12 @@ const Login = () => {
       <Card className="w-full max-w-md animate-fade-in shadow-lg border-lavender/20 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
-            <div className="w-16 h-16 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-4 shadow-md">
-              <span className="text-2xl text-white">🧘</span>
+            <div className="w-16 h-16 mx-auto flex items-center justify-center mb-4">
+              <img 
+                src="/lovable-uploads/282dc416-05e6-46a1-83bc-f3f54eed6b80.png" 
+                alt="Yogi-ai Logo" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <h1 className="text-2xl font-bold text-black">Welcome to Yogi-ai</h1>
             <p className="text-black/70">Track Your Meals. Share the Journey.</p>
