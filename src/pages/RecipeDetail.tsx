@@ -69,15 +69,6 @@ const RecipeDetail = () => {
     );
   }
 
-  // Default nutrition values if not provided
-  const nutrition = recipe.nutrition || {
-    calories: 350,
-    protein: 15,
-    carbs: 45,
-    fat: 12,
-    fiber: 8
-  };
-
   console.log('Recipe data:', recipe);
   console.log('Raw ingredients:', recipe.ingredients);
   console.log('Raw instructions:', recipe.instructions);
@@ -94,6 +85,32 @@ const RecipeDetail = () => {
   const ingredientsList = parseTextField(recipe.ingredients);
   const instructionsList = parseTextField(recipe.instructions);
   const tipsList = parseTextField(recipe.tips);
+
+  // Helper function to get nutrition values that exist
+  const getNutritionItems = () => {
+    const nutrition = recipe.nutrition || {};
+    const items = [];
+    
+    if (nutrition.calories) {
+      items.push({ label: 'Calories', value: nutrition.calories });
+    }
+    if (nutrition.protein) {
+      items.push({ label: 'Protein', value: nutrition.protein });
+    }
+    if (nutrition.carbs) {
+      items.push({ label: 'Carbs', value: nutrition.carbs });
+    }
+    if (nutrition.fat) {
+      items.push({ label: 'Fat', value: nutrition.fat });
+    }
+    if (nutrition.fiber) {
+      items.push({ label: 'Fiber', value: nutrition.fiber });
+    }
+    
+    return items;
+  };
+
+  const nutritionItems = getNutritionItems();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10">
@@ -156,41 +173,33 @@ const RecipeDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Nutrition Facts */}
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-primary mb-3">Nutrition per serving</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-3 bg-sage/5 rounded-lg">
-                  <div className="text-lg font-bold text-primary">{nutrition.calories}</div>
-                  <div className="text-sm text-muted-foreground">Calories</div>
+          {/* Nutrition Facts - only show if there are nutrition items */}
+          {nutritionItems.length > 0 && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-primary mb-4">Nutrition per serving</h3>
+                <div className={`grid gap-3 ${nutritionItems.length === 1 ? 'grid-cols-1' : nutritionItems.length === 2 ? 'grid-cols-2' : nutritionItems.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                  {nutritionItems.map((item, index) => (
+                    <div key={index} className="text-center p-3 bg-sage/5 rounded-lg">
+                      <div className="text-lg font-bold text-primary">{item.value}</div>
+                      <div className="text-sm text-muted-foreground">{item.label}</div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-center p-3 bg-sage/5 rounded-lg">
-                  <div className="text-lg font-bold text-primary">{nutrition.protein}g</div>
-                  <div className="text-sm text-muted-foreground">Protein</div>
-                </div>
-                <div className="text-center p-3 bg-sage/5 rounded-lg">
-                  <div className="text-lg font-bold text-primary">{nutrition.carbs}g</div>
-                  <div className="text-sm text-muted-foreground">Carbs</div>
-                </div>
-                <div className="text-center p-3 bg-sage/5 rounded-lg">
-                  <div className="text-lg font-bold text-primary">{nutrition.fat}g</div>
-                  <div className="text-sm text-muted-foreground">Fat</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Ingredients */}
           {ingredientsList.length > 0 && (
             <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-primary mb-3">Ingredients</h3>
-                <div className="space-y-2">
+              <CardContent className="p-5">
+                <h3 className="font-semibold text-primary mb-4 text-lg">Ingredients</h3>
+                <div className="space-y-3">
                   {ingredientsList.map((ingredient, index) => (
-                    <div key={index} className="flex items-center">
-                      <div className="w-2 h-2 bg-sage rounded-full mr-3 flex-shrink-0"></div>
-                      <span className="text-sm">{ingredient}</span>
+                    <div key={index} className="flex items-start py-1">
+                      <div className="w-1.5 h-1.5 bg-sage rounded-full mr-4 flex-shrink-0 mt-2"></div>
+                      <span className="text-sm leading-relaxed text-gray-700">{ingredient}</span>
                     </div>
                   ))}
                 </div>
@@ -201,15 +210,15 @@ const RecipeDetail = () => {
           {/* Instructions */}
           {instructionsList.length > 0 && (
             <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-primary mb-3">Instructions</h3>
-                <div className="space-y-4">
+              <CardContent className="p-5">
+                <h3 className="font-semibold text-primary mb-4 text-lg">Instructions</h3>
+                <div className="space-y-5">
                   {instructionsList.map((instruction, index) => (
                     <div key={index} className="flex">
-                      <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 text-sm font-medium">
+                      <div className="w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0 text-sm font-semibold">
                         {index + 1}
                       </div>
-                      <p className="text-sm leading-relaxed">{instruction}</p>
+                      <p className="text-sm leading-relaxed text-gray-700 pt-1">{instruction}</p>
                     </div>
                   ))}
                 </div>
@@ -220,13 +229,13 @@ const RecipeDetail = () => {
           {/* Tips */}
           {tipsList.length > 0 && (
             <Card>
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-primary mb-3">Tips & Variations</h3>
-                <div className="space-y-2">
+              <CardContent className="p-5">
+                <h3 className="font-semibold text-primary mb-4 text-lg">Tips & Variations</h3>
+                <div className="space-y-3">
                   {tipsList.map((tip, index) => (
-                    <div key={index} className="flex items-start">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
-                      <span className="text-sm leading-relaxed">{tip}</span>
+                    <div key={index} className="flex items-start py-1">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full mr-4 flex-shrink-0 mt-2"></div>
+                      <span className="text-sm leading-relaxed text-gray-700">{tip}</span>
                     </div>
                   ))}
                 </div>

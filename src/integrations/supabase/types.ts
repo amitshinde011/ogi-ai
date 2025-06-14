@@ -423,14 +423,14 @@ export type Database = {
           difficulty: string | null
           id: string
           image_url: string | null
-          ingredients: string[] | null
-          instructions: string[] | null
+          ingredients: string | null
+          instructions: string | null
           name: string
           nutrition: Json | null
           package: string | null
           rating: number | null
           servings: number | null
-          tips: string[] | null
+          tips: string | null
           updated_at: string
         }
         Insert: {
@@ -441,14 +441,14 @@ export type Database = {
           difficulty?: string | null
           id?: string
           image_url?: string | null
-          ingredients?: string[] | null
-          instructions?: string[] | null
+          ingredients?: string | null
+          instructions?: string | null
           name: string
           nutrition?: Json | null
           package?: string | null
           rating?: number | null
           servings?: number | null
-          tips?: string[] | null
+          tips?: string | null
           updated_at?: string
         }
         Update: {
@@ -459,14 +459,14 @@ export type Database = {
           difficulty?: string | null
           id?: string
           image_url?: string | null
-          ingredients?: string[] | null
-          instructions?: string[] | null
+          ingredients?: string | null
+          instructions?: string | null
           name?: string
           nutrition?: Json | null
           package?: string | null
           rating?: number | null
           servings?: number | null
-          tips?: string[] | null
+          tips?: string | null
           updated_at?: string
         }
         Relationships: [
