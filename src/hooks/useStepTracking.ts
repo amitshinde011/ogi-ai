@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +5,13 @@ import { useToast } from '@/hooks/use-toast';
 interface StepData {
   steps: number;
   lastUpdated: Date;
+}
+
+// Extend the DeviceMotionEvent interface for iOS permission
+declare global {
+  interface DeviceMotionEvent {
+    requestPermission?: () => Promise<'granted' | 'denied'>;
+  }
 }
 
 export const useStepTracking = () => {
@@ -20,21 +26,23 @@ export const useStepTracking = () => {
   }, []);
 
   const checkPermissionAndStartTracking = async () => {
-    // Check if device motion is available
-    if (typeof DeviceMotionEvent !== 'undefined' && DeviceMotionEvent.requestPermission) {
+    // Check if device motion is available and requires permission (iOS)
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
       try {
-        const permission = await DeviceMotionEvent.requestPermission();
+        const permission = await (DeviceMotionEvent as any).requestPermission();
         setPermission(permission);
         if (permission === 'granted') {
           startStepTracking();
         }
       } catch (error) {
         console.log('Device motion permission error:', error);
+        setPermission('denied');
         // Fallback for browsers that don't support permission request
         startStepTracking();
       }
     } else {
       // For browsers that don't require permission
+      setPermission('granted');
       startStepTracking();
     }
   };
