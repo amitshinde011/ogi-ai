@@ -28,7 +28,6 @@ const Subscriptions = () => {
   const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
-  const [subscribing, setSubscribing] = useState<string | null>(null);
   const [showAchievementBanner, setShowAchievementBanner] = useState(false);
 
   // Check if user arrived here after completing a program
@@ -72,7 +71,6 @@ const Subscriptions = () => {
 
   const handleSubscribe = async (programId: string) => {
     try {
-      setSubscribing(programId);
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -123,46 +121,11 @@ const Subscriptions = () => {
         return;
       }
 
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(startDate.getDate() + program.duration_days);
-
-      console.log('Creating subscription with data:', {
-        user_id: user.id,
-        program_id: programId,
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
-        status: 'active',
-        payment_status: 'paid'
-      });
-
-      const { error } = await supabase
-        .from('user_subscriptions')
-        .insert({
-          user_id: user.id,
-          program_id: programId,
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
-          status: 'active',
-          payment_status: 'paid' // Simulating successful payment
-        });
-
-      if (error) {
-        console.error('Subscription insert error:', error);
-        throw error;
-      }
-
-      await updateOnboardingState({ subscription_selected: true });
-
-      toast({
-        title: "Subscription Successful!",
-        description: `You've subscribed to ${program.name}`,
-      });
-
-      // Hide achievement banner after successful subscription
+      // Hide achievement banner when navigating to payment
       setShowAchievementBanner(false);
       
-      navigate('/intro-video');
+      // Navigate to payment page with program data
+      navigate('/payment', { state: { program } });
     } catch (error) {
       console.error('Error subscribing:', error);
       toast({
@@ -170,8 +133,6 @@ const Subscriptions = () => {
         description: `There was an error processing your subscription: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
-    } finally {
-      setSubscribing(null);
     }
   };
 
@@ -273,9 +234,8 @@ const Subscriptions = () => {
                   className="w-full" 
                   onClick={() => handleSubscribe(program.id)}
                   variant={program.duration_days === 49 ? "default" : "secondary"}
-                  disabled={subscribing === program.id}
                 >
-                  {subscribing === program.id ? 'Processing...' : 'Subscribe & Pay'}
+                  Subscribe & Pay
                 </Button>
               </CardContent>
             </Card>

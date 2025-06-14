@@ -19,6 +19,7 @@ import SavedRecipes from "./pages/SavedRecipes";
 import ProfileSetup from "./pages/ProfileSetup";
 import ProfileEdit from "./pages/ProfileEdit";
 import Subscriptions from "./pages/Subscriptions";
+import Payment from "./pages/Payment";
 import IntroVideo from "./pages/IntroVideo";
 import BeforeAssessment from "./pages/BeforeAssessment";
 import JourneyStart from "./pages/JourneyStart";
@@ -51,6 +52,7 @@ const App = () => (
           <Route path="/profile-setup" element={<ProfileSetup />} />
           <Route path="/profile-edit" element={<ProfileEdit />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
+          <Route path="/payment" element={<Payment />} />
           <Route path="/intro-video" element={<IntroVideo />} />
           <Route path="/before-assessment" element={<BeforeAssessment />} />
           <Route path="/journey-start" element={<JourneyStart />} />
