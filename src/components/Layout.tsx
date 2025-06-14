@@ -29,6 +29,7 @@ const Layout = ({ children }: LayoutProps) => {
   const isActive = (path: string) => {
     if (path === '/home') return location.pathname === '/home';
     if (path === '/subscriptions') return location.pathname === '/subscriptions';
+    if (path === '/recipes') return location.pathname.startsWith('/recipes') || location.pathname.startsWith('/saved-recipes');
     return location.pathname.startsWith(path);
   };
 

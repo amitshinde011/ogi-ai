@@ -1,142 +1,165 @@
 
 import React, { useState } from 'react';
-import { Clock, Users, Star, Search } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Search, Filter, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import Layout from '@/components/Layout';
+import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
-import { useNavigate } from 'react-router-dom';
+import Layout from '@/components/Layout';
 import { useRecipes } from '@/hooks/useRecipes';
+import { useSavedRecipes } from '@/hooks/useSavedRecipes';
+import { Link } from 'react-router-dom';
 
 const Recipes = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const { data: recipes, isLoading, error } = useRecipes();
+  const { savedRecipeIds } = useSavedRecipes();
 
-  const { data: recipes = [], isLoading, error } = useRecipes();
+  const categories = ['all', 'breakfast', 'lunch', 'dinner', 'snacks', 'beverages'];
 
-  // Get unique categories from recipes
-  const categories = ['All', ...new Set(recipes.map(recipe => recipe.category))];
-
-  const filteredRecipes = recipes.filter(recipe => {
-    const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || recipe.category === selectedCategory;
+  const filteredRecipes = recipes?.filter(recipe => {
+    const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         recipe.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || recipe.category.toLowerCase() === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }) || [];
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Easy': return 'text-green-700 bg-green-100 border border-green-200';
-      case 'Medium': return 'text-yellow-700 bg-yellow-100 border border-yellow-200';
-      case 'Hard': return 'text-red-700 bg-red-100 border border-red-200';
-      default: return 'text-slate-700 bg-slate-100 border border-slate-200';
-    }
-  };
+  if (isLoading) {
+    return (
+      <Layout>
+        <Header title="Recipes" />
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <Header title="Recipes" />
+        <div className="text-center py-12">
+          <p className="text-red-600">Failed to load recipes. Please try again later.</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
-      <Header title="Healthy Recipes" />
+      <Header 
+        title="Recipes" 
+        rightElement={
+          <Link to="/saved-recipes">
+            <Button variant="ghost" size="sm" className="p-2">
+              <Heart size={20} className={savedRecipeIds.length > 0 ? 'text-red-500 fill-current' : 'text-gray-400'} />
+              {savedRecipeIds.length > 0 && (
+                <span className="ml-1 text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] h-[18px] flex items-center justify-center">
+                  {savedRecipeIds.length}
+                </span>
+              )}
+            </Button>
+          </Link>
+        }
+      />
       
-      <div className="p-4 space-y-6 max-w-md mx-auto">
+      <div className="max-w-md mx-auto p-4 space-y-6">
+        {/* Quick Access to Saved Recipes */}
+        {savedRecipeIds.length > 0 && (
+          <Link to="/saved-recipes">
+            <Card className="bg-gradient-to-r from-red-50 to-pink-50 border-red-200 hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Heart size={20} className="text-red-500 fill-current mr-3" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Saved Recipes</h3>
+                      <p className="text-sm text-gray-600">{savedRecipeIds.length} recipe{savedRecipeIds.length !== 1 ? 's' : ''} saved</p>
+                    </div>
+                  </div>
+                  <div className="text-red-500 text-sm font-medium">View All →</div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500" size={20} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <Input
             placeholder="Search recipes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 rounded-xl bg-white border-slate-300 text-slate-900 placeholder:text-slate-500"
+            className="pl-10"
           />
         </div>
 
         {/* Category Filter */}
-        <div className="flex overflow-x-auto space-x-2 pb-2">
+        <div className="flex space-x-2 overflow-x-auto pb-2">
           {categories.map((category) => (
-            <button
+            <Button
               key={category}
+              variant={selectedCategory === category ? "default" : "outline"}
+              size="sm"
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors border ${
-                selectedCategory === category
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50 hover:border-indigo-300'
-              }`}
+              className="whitespace-nowrap capitalize"
             >
               {category}
-            </button>
+            </Button>
           ))}
         </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="text-slate-600 mt-2">Loading recipes...</p>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="text-center py-8">
-            <p className="text-red-600">Failed to load recipes. Please try again.</p>
-          </div>
-        )}
-
-        {/* Recipe Grid */}
-        <div className="space-y-4">
+        {/* Recipes Grid */}
+        <div className="grid grid-cols-1 gap-4">
           {filteredRecipes.map((recipe) => (
-            <Card 
-              key={recipe.id} 
-              className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer bg-white border-slate-200"
-              onClick={() => navigate(`/recipes/${recipe.id}`)}
-            >
-              <div className="flex">
-                <img
-                  src={recipe.image_url || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400'}
-                  alt={recipe.name}
-                  className="w-24 h-24 object-cover"
-                />
-                <CardContent className="flex-1 p-3">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-slate-900 text-sm leading-tight">
-                      {recipe.name}
-                    </h3>
-                    <div className="flex items-center ml-2">
-                      <Star className="text-yellow-500 mr-1" size={12} fill="currentColor" />
-                      <span className="text-xs text-slate-600">{recipe.rating || 4.5}</span>
+            <Link key={recipe.id} to={`/recipes/${recipe.id}`}>
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="p-0">
+                  <div className="relative">
+                    <img
+                      src={recipe.image_url || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600'}
+                      alt={recipe.name}
+                      className="w-full h-48 object-cover rounded-t-lg"
+                    />
+                    {savedRecipeIds.includes(recipe.id) && (
+                      <div className="absolute top-3 right-3">
+                        <Heart size={16} className="text-red-500 fill-current" />
+                      </div>
+                    )}
+                    <div className="absolute bottom-3 left-3">
+                      <span className="bg-black/60 text-white px-2 py-1 rounded-full text-xs capitalize">
+                        {recipe.category}
+                      </span>
                     </div>
                   </div>
-                  
-                  <p className="text-xs text-slate-600 mb-3 line-clamp-2">
-                    {recipe.details || 'Delicious and healthy recipe'}
-                  </p>
-                  
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center text-slate-600">
-                      <Clock size={12} className="mr-1" />
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 mb-1">{recipe.name}</h3>
+                    {recipe.package && (
+                      <p className="text-sm text-indigo-600 mb-2">From: {recipe.package}</p>
+                    )}
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {recipe.details || 'A delicious and healthy recipe'}
+                    </p>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
                       <span>{recipe.cook_time || '30 min'}</span>
+                      <div className="flex items-center">
+                        <span className="mr-1">⭐</span>
+                        <span>{recipe.rating || 4.5}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center text-slate-600">
-                      <Users size={12} className="mr-1" />
-                      <span>{recipe.servings || 2}</span>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty || 'Easy')}`}>
-                      {recipe.difficulty || 'Easy'}
-                    </span>
                   </div>
                 </CardContent>
-              </div>
-            </Card>
+              </Card>
+            </Link>
           ))}
         </div>
 
-        {filteredRecipes.length === 0 && !isLoading && !error && (
+        {filteredRecipes.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="text-slate-500" size={32} />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">No recipes found</h3>
-            <p className="text-slate-600">Try adjusting your search or category filter</p>
+            <p className="text-gray-500">No recipes found matching your criteria.</p>
           </div>
         )}
       </div>

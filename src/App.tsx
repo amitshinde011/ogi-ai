@@ -15,6 +15,7 @@ import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
+import SavedRecipes from "./pages/SavedRecipes";
 import ProfileSetup from "./pages/ProfileSetup";
 import ProfileEdit from "./pages/ProfileEdit";
 import Subscriptions from "./pages/Subscriptions";
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/recipes" element={<Recipes />} />
           <Route path="/recipes/:id" element={<RecipeDetail />} />
+          <Route path="/saved-recipes" element={<SavedRecipes />} />
           <Route path="/profile-setup" element={<ProfileSetup />} />
           <Route path="/profile-edit" element={<ProfileEdit />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
