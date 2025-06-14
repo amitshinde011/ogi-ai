@@ -96,7 +96,7 @@ const Index = () => {
       <div className="text-center">
         <div className="w-32 h-32 mx-auto flex items-center justify-center mb-6 animate-scale-in">
           <img 
-            src="/lovable-uploads/79970f68-38e9-4317-9205-1a64c8814a23.png" 
+            src="/lovable-uploads/282dc416-05e6-46a1-83bc-f3f54eed6b80.png" 
             alt="Yogi-ai Logo" 
             className="w-full h-full object-contain"
           />
