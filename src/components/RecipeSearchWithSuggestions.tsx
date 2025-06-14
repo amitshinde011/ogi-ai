@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useRecipeCategories } from '@/hooks/useRecipeCategories';
+import { useRecipes } from '@/hooks/useRecipes';
 
 interface RecipeSearchWithSuggestionsProps {
   searchTerm: string;
@@ -12,15 +12,18 @@ interface RecipeSearchWithSuggestionsProps {
 const RecipeSearchWithSuggestions = ({ searchTerm, onSearchChange }: RecipeSearchWithSuggestionsProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const { data: categories = [] } = useRecipeCategories();
+  const { data: recipes = [] } = useRecipes();
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Filter categories based on search term
-  const filteredSuggestions = categories.filter(category =>
-    category.toLowerCase().includes(searchTerm.toLowerCase()) && 
-    category.toLowerCase() !== searchTerm.toLowerCase()
-  );
+  // Filter recipes based on search term
+  const filteredSuggestions = recipes
+    .filter(recipe =>
+      recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+      recipe.name.toLowerCase() !== searchTerm.toLowerCase()
+    )
+    .slice(0, 5) // Limit to 5 suggestions
+    .map(recipe => recipe.name);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -121,7 +124,7 @@ const RecipeSearchWithSuggestions = ({ searchTerm, onSearchChange }: RecipeSearc
             <button
               key={suggestion}
               onClick={() => handleSuggestionClick(suggestion)}
-              className={`w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors capitalize ${
+              className={`w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors ${
                 index === focusedIndex ? 'bg-gray-50' : ''
               }`}
             >
