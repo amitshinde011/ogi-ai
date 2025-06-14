@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import Header from '@/components/Header';
 import Layout from '@/components/Layout';
 import RecipeSearchWithSuggestions from '@/components/RecipeSearchWithSuggestions';
 import { useRecipes } from '@/hooks/useRecipes';
+import { useRecipeCategories } from '@/hooks/useRecipeCategories';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { Link } from 'react-router-dom';
 
@@ -13,9 +15,11 @@ const Recipes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const { data: recipes, isLoading, error } = useRecipes();
+  const { data: categories = [], isLoading: categoriesLoading } = useRecipeCategories();
   const { savedRecipeIds } = useSavedRecipes();
 
-  const categories = ['all', 'breakfast', 'lunch', 'dinner', 'snacks', 'beverages'];
+  // Create category options with 'all' as the first option
+  const categoryOptions = ['all', ...categories];
 
   const filteredRecipes = recipes?.filter(recipe => {
     const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,7 +28,7 @@ const Recipes = () => {
     return matchesSearch && matchesCategory;
   }) || [];
 
-  if (isLoading) {
+  if (isLoading || categoriesLoading) {
     return (
       <Layout>
         <Header title="Recipes" />
@@ -93,7 +97,7 @@ const Recipes = () => {
 
         {/* Category Filter */}
         <div className="flex space-x-2 overflow-x-auto pb-2">
-          {categories.map((category) => (
+          {categoryOptions.map((category) => (
             <Button
               key={category}
               variant={selectedCategory === category ? "default" : "outline"}
