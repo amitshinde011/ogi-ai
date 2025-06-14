@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Users, Star, Heart, Share } from 'lucide-react';
+import { Clock, Users, Star, Heart, Share, ChefHat, Utensils, Lightbulb } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
@@ -69,15 +69,9 @@ const RecipeDetail = () => {
     );
   }
 
-  console.log('Recipe data:', recipe);
-  console.log('Raw ingredients:', recipe.ingredients);
-  console.log('Raw instructions:', recipe.instructions);
-  console.log('Raw tips:', recipe.tips);
-
   // Helper function to split semicolon-separated text into array
-  const parseTextField = (text: string | string[] | null): string[] => {
+  const parseTextField = (text: string | null): string[] => {
     if (!text) return [];
-    if (Array.isArray(text)) return text; // In case it's already an array
     return text.split(';').map(item => item.trim()).filter(item => item.length > 0);
   };
 
@@ -192,14 +186,21 @@ const RecipeDetail = () => {
 
           {/* Ingredients */}
           {ingredientsList.length > 0 && (
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="font-semibold text-primary mb-4 text-lg">Ingredients</h3>
-                <div className="space-y-3">
+            <Card className="border-l-4 border-l-green-500">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-5">
+                  <div className="p-2 bg-green-100 rounded-lg mr-3">
+                    <ChefHat className="text-green-600" size={20} />
+                  </div>
+                  <h3 className="font-bold text-xl text-primary">Ingredients</h3>
+                </div>
+                <div className="space-y-4">
                   {ingredientsList.map((ingredient, index) => (
-                    <div key={index} className="flex items-start py-1">
-                      <div className="w-1.5 h-1.5 bg-sage rounded-full mr-4 flex-shrink-0 mt-2"></div>
-                      <span className="text-sm leading-relaxed text-gray-700">{ingredient}</span>
+                    <div key={index} className="flex items-start bg-gray-50 p-4 rounded-xl">
+                      <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0 text-xs font-bold mt-0.5">
+                        {index + 1}
+                      </div>
+                      <span className="text-gray-700 leading-relaxed font-medium">{ingredient}</span>
                     </div>
                   ))}
                 </div>
@@ -209,16 +210,23 @@ const RecipeDetail = () => {
 
           {/* Instructions */}
           {instructionsList.length > 0 && (
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="font-semibold text-primary mb-4 text-lg">Instructions</h3>
-                <div className="space-y-5">
+            <Card className="border-l-4 border-l-blue-500">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-5">
+                  <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                    <Utensils className="text-blue-600" size={20} />
+                  </div>
+                  <h3 className="font-bold text-xl text-primary">Instructions</h3>
+                </div>
+                <div className="space-y-6">
                   {instructionsList.map((instruction, index) => (
                     <div key={index} className="flex">
-                      <div className="w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0 text-sm font-semibold">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center mr-4 flex-shrink-0 text-sm font-bold shadow-lg">
                         {index + 1}
                       </div>
-                      <p className="text-sm leading-relaxed text-gray-700 pt-1">{instruction}</p>
+                      <div className="flex-1">
+                        <p className="text-gray-700 leading-relaxed bg-blue-50 p-4 rounded-xl border border-blue-100">{instruction}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -228,14 +236,21 @@ const RecipeDetail = () => {
 
           {/* Tips */}
           {tipsList.length > 0 && (
-            <Card>
-              <CardContent className="p-5">
-                <h3 className="font-semibold text-primary mb-4 text-lg">Tips & Variations</h3>
-                <div className="space-y-3">
+            <Card className="border-l-4 border-l-yellow-500">
+              <CardContent className="p-6">
+                <div className="flex items-center mb-5">
+                  <div className="p-2 bg-yellow-100 rounded-lg mr-3">
+                    <Lightbulb className="text-yellow-600" size={20} />
+                  </div>
+                  <h3 className="font-bold text-xl text-primary">Tips & Variations</h3>
+                </div>
+                <div className="space-y-4">
                   {tipsList.map((tip, index) => (
-                    <div key={index} className="flex items-start py-1">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full mr-4 flex-shrink-0 mt-2"></div>
-                      <span className="text-sm leading-relaxed text-gray-700">{tip}</span>
+                    <div key={index} className="flex items-start bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200">
+                      <div className="w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
+                        <Lightbulb size={12} className="text-white" />
+                      </div>
+                      <span className="text-gray-700 leading-relaxed font-medium">{tip}</span>
                     </div>
                   ))}
                 </div>

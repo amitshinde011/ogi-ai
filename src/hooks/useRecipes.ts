@@ -13,10 +13,10 @@ export interface Recipe {
   servings?: number;
   difficulty?: string;
   rating?: number;
-  ingredients?: string[];
-  instructions?: string[];
+  ingredients?: string; // Changed from string[] to string
+  instructions?: string; // Changed from string[] to string
   nutrition?: any;
-  tips?: string[];
+  tips?: string; // Changed from string[] to string
   created_at: string;
   updated_at: string;
 }
