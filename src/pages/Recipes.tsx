@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
-import { Search, Filter, Heart } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
+import RecipeSearchWithSuggestions from '@/components/RecipeSearchWithSuggestions';
 import { useRecipes } from '@/hooks/useRecipes';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { Link } from 'react-router-dom';
@@ -86,16 +85,11 @@ const Recipes = () => {
           </Link>
         )}
 
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <Input
-            placeholder="Search recipes..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        {/* Search Bar with Suggestions */}
+        <RecipeSearchWithSuggestions 
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
 
         {/* Category Filter */}
         <div className="flex space-x-2 overflow-x-auto pb-2">
