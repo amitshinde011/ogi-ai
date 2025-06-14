@@ -114,7 +114,8 @@ const JourneyStart = () => {
               <Button 
                 onClick={handleStartJourney}
                 size="lg"
-                className="h-16 md:h-20 px-8 md:px-16 rounded-3xl font-bold text-lg md:text-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-700 hover:via-indigo-700 hover:to-blue-700 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+                variant="secondary"
+                className="h-16 md:h-20 px-8 md:px-16 rounded-3xl font-bold text-lg md:text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
               >
                 <Trophy className="w-6 h-6 md:w-8 md:h-8 mr-3 md:mr-4" />
                 <span className="text-base md:text-xl">Enter My Wellness Dashboard</span>

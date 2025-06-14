@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -112,12 +113,13 @@ const BeforeAssessment = () => {
         }
       }
 
-      // Create before assessment
+      // Create before assessment using journey_assessments table
       const { error } = await supabase
-        .from('before_assessments')
+        .from('journey_assessments')
         .insert({
           user_id: user.id,
           subscription_id: subscription.id,
+          assessment_type: 'before',
           ...data,
           full_body_photo_url: imageUrl
         });
@@ -281,7 +283,8 @@ const BeforeAssessment = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-primary to-primary/80 text-white py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                    variant="secondary"
+                    className="w-full py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
                     disabled={isSubmitting || uploading}
                   >
                     {isSubmitting ? 'Saving Assessment...' : uploading ? 'Uploading Photo...' : 'Start My Journey'}
