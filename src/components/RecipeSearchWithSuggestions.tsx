@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useRecipes } from '@/hooks/useRecipes';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface RecipeSearchWithSuggestionsProps {
   searchTerm: string;
@@ -12,12 +13,40 @@ interface RecipeSearchWithSuggestionsProps {
 const RecipeSearchWithSuggestions = ({ searchTerm, onSearchChange }: RecipeSearchWithSuggestionsProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const { data: recipes = [] } = useRecipes();
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
+  // Get user's program recipes for suggestions
+  const { data: programRecipes = [] } = useQuery({
+    queryKey: ['user-program-recipes'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data: subscription } = await supabase
+        .from('user_subscriptions')
+        .select('program_id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .gte('end_date', today)
+        .maybeSingle();
+
+      if (!subscription) return [];
+
+      const { data: recipes } = await supabase
+        .from('recipes')
+        .select('name')
+        .eq('package', subscription.program_id)
+        .order('name');
+
+      return recipes || [];
+    },
+  });
+
   // Filter recipes based on search term
-  const filteredSuggestions = recipes
+  const filteredSuggestions = programRecipes
     .filter(recipe =>
       recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
       recipe.name.toLowerCase() !== searchTerm.toLowerCase()

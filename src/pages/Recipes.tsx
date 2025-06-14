@@ -9,53 +9,100 @@ import RecipeSearchWithSuggestions from '@/components/RecipeSearchWithSuggestion
 import { useRecipes } from '@/hooks/useRecipes';
 import { useRecipeCategories } from '@/hooks/useRecipeCategories';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
 const Recipes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const { data: recipes, isLoading, error } = useRecipes();
-  const { data: categories = [], isLoading: categoriesLoading } = useRecipeCategories();
+  const { data: allRecipes, isLoading: recipesLoading } = useRecipes();
   const { savedRecipeIds } = useSavedRecipes();
+
+  // Get user's current program
+  const { data: userProgram, isLoading: programLoading } = useQuery({
+    queryKey: ['user-current-program'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data: subscription } = await supabase
+        .from('user_subscriptions')
+        .select('*, programs(*)')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .gte('end_date', today)
+        .maybeSingle();
+
+      return subscription;
+    },
+  });
+
+  // Filter recipes based on user's current program
+  const programRecipes = React.useMemo(() => {
+    if (!allRecipes) return [];
+    
+    // If user has no active program, show no recipes
+    if (!userProgram) return [];
+    
+    // Filter recipes that belong to the user's current program
+    const filtered = allRecipes.filter(recipe => 
+      recipe.package === userProgram.program_id
+    );
+    
+    // Remove duplicates by recipe id
+    const uniqueRecipes = filtered.filter((recipe, index, self) => 
+      index === self.findIndex(r => r.id === recipe.id)
+    );
+    
+    return uniqueRecipes;
+  }, [allRecipes, userProgram]);
+
+  // Get categories from program-specific recipes
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['program-recipe-categories', userProgram?.program_id],
+    queryFn: async () => {
+      if (!userProgram) return [];
+      
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('category')
+        .eq('package', userProgram.program_id)
+        .order('category');
+
+      if (error) throw error;
+
+      // Extract unique categories
+      const uniqueCategories = [...new Set(data.map(item => item.category))];
+      return uniqueCategories;
+    },
+    enabled: !!userProgram,
+  });
 
   // Create category options with 'all' as the first option
   const categoryOptions = ['all', ...categories];
 
-  // Add debugging and remove duplicates
+  // Filter recipes based on search and category
   const filteredRecipes = React.useMemo(() => {
-    if (!recipes) return [];
+    if (!programRecipes) return [];
     
-    console.log('Total recipes loaded:', recipes.length);
-    console.log('Search term:', searchTerm);
-    console.log('Selected category:', selectedCategory);
-    
-    // Remove duplicates first by recipe id
-    const uniqueRecipes = recipes.filter((recipe, index, self) => 
-      index === self.findIndex(r => r.id === recipe.id)
-    );
-    
-    console.log('Unique recipes after deduplication:', uniqueRecipes.length);
-    
-    const filtered = uniqueRecipes.filter(recipe => {
+    const filtered = programRecipes.filter(recipe => {
       const matchesSearch = searchTerm === '' || 
                            recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            recipe.category.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || recipe.category.toLowerCase() === selectedCategory.toLowerCase();
       
-      const result = matchesSearch && matchesCategory;
-      
-      if (searchTerm && result) {
-        console.log('Recipe matches search:', recipe.name, recipe.id);
-      }
-      
-      return result;
+      return matchesSearch && matchesCategory;
     });
     
-    console.log('Filtered recipes count:', filtered.length);
     return filtered;
-  }, [recipes, searchTerm, selectedCategory]);
+  }, [programRecipes, searchTerm, selectedCategory]);
 
-  if (isLoading || categoriesLoading) {
+  const isLoading = recipesLoading || programLoading || categoriesLoading;
+
+  if (isLoading) {
     return (
       <Layout>
         <Header title="Recipes" />
@@ -66,12 +113,18 @@ const Recipes = () => {
     );
   }
 
-  if (error) {
+  // Show message if user has no active program
+  if (!userProgram) {
     return (
       <Layout>
         <Header title="Recipes" />
-        <div className="text-center py-12">
-          <p className="text-red-600">Failed to load recipes. Please try again later.</p>
+        <div className="max-w-md mx-auto p-4">
+          <div className="text-center py-12">
+            <p className="text-gray-600 mb-4">You need an active program to view recipes.</p>
+            <Link to="/subscriptions">
+              <Button>Browse Programs</Button>
+            </Link>
+          </div>
         </div>
       </Layout>
     );
@@ -96,6 +149,14 @@ const Recipes = () => {
       />
       
       <div className="max-w-md mx-auto p-4 space-y-6">
+        {/* Program Info */}
+        <Card className="bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200">
+          <CardContent className="p-4">
+            <h3 className="font-semibold text-indigo-900 mb-1">{userProgram.programs?.name}</h3>
+            <p className="text-sm text-indigo-600">Program recipes available below</p>
+          </CardContent>
+        </Card>
+
         {/* Quick Access to Saved Recipes */}
         {savedRecipeIds.length > 0 && (
           <Link to="/saved-recipes">
@@ -162,9 +223,6 @@ const Recipes = () => {
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-1">{recipe.name}</h3>
-                    {recipe.package && (
-                      <p className="text-sm text-indigo-600 mb-2">From: {recipe.package}</p>
-                    )}
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                       {recipe.details || 'A delicious and healthy recipe'}
                     </p>
@@ -182,9 +240,15 @@ const Recipes = () => {
           ))}
         </div>
 
-        {filteredRecipes.length === 0 && (
+        {filteredRecipes.length === 0 && programRecipes.length > 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500">No recipes found matching your criteria.</p>
+          </div>
+        )}
+
+        {programRecipes.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No recipes available for your current program yet.</p>
           </div>
         )}
       </div>
