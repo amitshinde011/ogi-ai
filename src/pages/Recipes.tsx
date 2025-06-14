@@ -22,9 +22,10 @@ const Recipes = () => {
   const categoryOptions = ['all', ...categories];
 
   const filteredRecipes = recipes?.filter(recipe => {
-    const matchesSearch = recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = searchTerm === '' || 
+                         recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          recipe.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || recipe.category.toLowerCase() === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || recipe.category.toLowerCase() === selectedCategory.toLowerCase();
     return matchesSearch && matchesCategory;
   }) || [];
 
