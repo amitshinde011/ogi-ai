@@ -42,6 +42,22 @@
     --text-primary: 15 23 42;
     --text-secondary: 71 85 105;
     --text-tertiary: 148 163 184;
+
+    /* Add missing color variables that are referenced in tailwind.config.ts */
+    --sage: 87 114 106;
+    --light-gray: 248 250 252;
+    --card-gray: 241 245 249;
+    --dark-text: 15 23 42;
+    
+    /* Pastel color palette */
+    --pastel-purple: 186 147 216;
+    --pastel-pink: 255 182 193;
+    --pastel-blue: 173 216 230;
+    --pastel-green: 152 251 152;
+    --pastel-yellow: 255 255 224;
+    --pastel-peach: 255 218 185;
+    --pastel-lavender: 230 230 250;
+    --pastel-mint: 245 255 250;
   }
 
   .dark {
@@ -84,7 +100,7 @@
 
   html, body, #root {
     min-height: 100vh;
-    background: linear-gradient(135deg, rgb(248, 250, 252) 0%, rgb(241, 245, 249) 100%);
+    background: linear-gradient(135deg, rgb(248, 250, 252) 0%, rgb(241, 245, 249) 100%) !important;
   }
 
   /* Typography improvements with proper contrast */
