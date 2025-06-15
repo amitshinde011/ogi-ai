@@ -1,18 +1,32 @@
+
 import React, { useState, useEffect } from 'react';
-import { User, Bell, Shield, HelpCircle, LogOut, ChevronRight, Edit } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { User, Bell, Shield, HelpCircle, LogOut, ChevronRight, Edit, Calendar, CreditCard, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
+interface SubscriptionHistory {
+  id: string;
+  program_name: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  payment_status: string;
+  created_at: string;
+}
+
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [subscriptionHistory, setSubscriptionHistory] = useState<SubscriptionHistory[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
   const [notifications, setNotifications] = useState({
     mealReminders: true,
     communityActivity: true,
@@ -51,8 +65,55 @@ const Settings = () => {
       }
     };
 
+    const fetchSubscriptionHistory = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: subscriptions, error } = await supabase
+            .from('user_subscriptions')
+            .select(`
+              id,
+              start_date,
+              end_date,
+              status,
+              payment_status,
+              created_at,
+              programs (
+                name
+              )
+            `)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+
+          const formattedHistory: SubscriptionHistory[] = subscriptions?.map(sub => ({
+            id: sub.id,
+            program_name: sub.programs?.name || 'Unknown Program',
+            start_date: sub.start_date || '',
+            end_date: sub.end_date || '',
+            status: sub.status || 'unknown',
+            payment_status: sub.payment_status || 'unknown',
+            created_at: sub.created_at || ''
+          })) || [];
+
+          setSubscriptionHistory(formattedHistory);
+        }
+      } catch (error) {
+        console.error('Error fetching subscription history:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load subscription history.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
     fetchUserProfile();
-  }, []);
+    fetchSubscriptionHistory();
+  }, [toast]);
 
   const handleLogout = async () => {
     try {
@@ -84,6 +145,41 @@ const Settings = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-blue-600" />;
+      case 'cancelled':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'text-green-600 bg-green-50';
+      case 'completed':
+        return 'text-blue-600 bg-blue-50';
+      case 'cancelled':
+        return 'text-red-600 bg-red-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   const settingsSections = [
@@ -234,6 +330,86 @@ const Settings = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Subscription History */}
+        <div className="space-y-3">
+          <h4 className="font-bold text-lg text-slate-900 px-1 flex items-center">
+            <Calendar className="w-5 h-5 mr-2" />
+            Subscription History
+          </h4>
+          <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center text-slate-900">
+                <CreditCard className="w-5 h-5 mr-2" />
+                Program Subscriptions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingHistory ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : subscriptionHistory.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                  <p>No subscription history found</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/subscriptions')}
+                    className="mt-3"
+                  >
+                    Browse Programs
+                  </Button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-left">Program</TableHead>
+                        <TableHead className="text-center">Status</TableHead>
+                        <TableHead className="text-center">Duration</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {subscriptionHistory.map((subscription) => (
+                        <TableRow key={subscription.id} className="border-b">
+                          <TableCell className="py-4">
+                            <div>
+                              <p className="font-semibold text-slate-900">{subscription.program_name}</p>
+                              <p className="text-sm text-slate-500">
+                                Started: {formatDate(subscription.start_date)}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center py-4">
+                            <div className="flex items-center justify-center">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(subscription.status)}`}>
+                                {getStatusIcon(subscription.status)}
+                                <span className="ml-1 capitalize">{subscription.status}</span>
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center py-4">
+                            <div className="text-sm">
+                              {subscription.end_date ? (
+                                <span className="text-slate-600">
+                                  Ends: {formatDate(subscription.end_date)}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400">No end date</span>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Settings Sections */}
         {settingsSections.map((section, sectionIndex) => (
