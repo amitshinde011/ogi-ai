@@ -111,3 +111,30 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(186, 147, 216, 0.2);
 }
+
+/* Remove yellow backgrounds globally */
+.bg-yellow-400, .bg-yellow-300, .bg-yellow-500, .bg-yellow-100, .bg-yellow-50,
+.bg-yellow-200, .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900 {
+  background: linear-gradient(135deg, rgb(255, 255, 255) 0%, rgb(248, 250, 252) 100%) !important;
+  color: rgb(15, 23, 42) !important;
+  border: 1px solid rgb(226, 232, 240) !important;
+}
+
+/* Remove yellow borders globally */
+.border-yellow-300, .border-yellow-400, .border-yellow-500, .border-yellow-100, .border-yellow-200,
+.border-yellow-600, .border-yellow-700, .border-yellow-800, .border-yellow-900 {
+  border-color: rgb(203, 213, 225) !important;
+}
+
+/* Replace yellow text with appropriate colors */
+.text-yellow-300 {
+  color: rgb(245, 158, 11) !important; /* Amber for star ratings */
+}
+
+.text-yellow-400, .text-yellow-500 {
+  color: rgb(245, 158, 11) !important; /* Amber */
+}
+
+.text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900 {
+  color: rgb(15, 23, 42) !important; /* Dark text */
+}

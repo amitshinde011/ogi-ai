@@ -54,7 +54,7 @@ const DailyProgressCard = ({ mealsLogged, steps, walkScore }: DailyProgressCardP
                     <span 
                       key={i} 
                       className={`text-lg transition-all ${
-                        i < walkScore ? 'text-yellow-300 scale-110' : 'text-white/40'
+                        i < walkScore ? 'text-amber-300 scale-110' : 'text-white/40'
                       }`}
                     >
                       ⭐
