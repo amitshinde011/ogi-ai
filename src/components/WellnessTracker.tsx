@@ -11,7 +11,7 @@ const WellnessTracker = () => {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="bg-white border border-gray-200">
         <CardContent className="p-4">
           <div className="animate-pulse">Loading wellness data...</div>
         </CardContent>
@@ -23,7 +23,7 @@ const WellnessTracker = () => {
   const suryaProgress = Math.min((wellnessData.surya_namaskar_count / 12) * 100, 100);
 
   return (
-    <Card>
+    <Card className="bg-white border border-gray-200">
       <CardContent className="p-4">
         <h3 className="font-semibold text-primary mb-4">Daily Wellness</h3>
         
@@ -111,7 +111,7 @@ const WellnessTracker = () => {
           
           {!wellnessData.meditation_completed ? (
             <Button
-              className="w-full gradient-sage text-white"
+              className="w-full bg-sage hover:bg-sage/90 text-white"
               onClick={() => updateWellnessData({ 
                 meditation_completed: true,
                 meditation_minutes: 10
@@ -120,7 +120,7 @@ const WellnessTracker = () => {
               Complete 10 Min Meditation
             </Button>
           ) : (
-            <div className="flex items-center justify-center p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center justify-center p-3 bg-green-50 rounded-lg border border-green-200">
               <span className="text-green-600 font-medium">✓ Meditation Completed!</span>
             </div>
           )}

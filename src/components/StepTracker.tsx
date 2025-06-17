@@ -21,7 +21,7 @@ const StepTracker = () => {
   };
 
   return (
-    <Card>
+    <Card className="bg-white border border-gray-200">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
@@ -63,8 +63,8 @@ const StepTracker = () => {
         )}
 
         {permission === 'denied' && (
-          <div className="text-center mb-4 p-3 bg-yellow-50 rounded-lg">
-            <p className="text-sm text-yellow-800">
+          <div className="text-center mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800">
               Step tracking permission denied. You can still manually add steps below.
             </p>
           </div>
