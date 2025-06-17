@@ -163,7 +163,7 @@ const Login = () => {
           <Button
             onClick={handleGoogleLogin}
             variant="outline"
-            className="w-full rounded-xl border-gray-300 hover:bg-gray-50 text-black"
+            className="w-full rounded-xl border-gray-300 hover:bg-gray-50 text-black bg-white"
             disabled={isLoading}
           >
             <span className="mr-2">🔍</span>
