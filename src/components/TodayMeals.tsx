@@ -21,15 +21,15 @@ const TodayMeals = ({ breakfast, lunch, dinner }: TodayMealsProps) => {
   ];
 
   return (
-    <Card>
+    <Card className="bg-white border border-gray-200">
       <CardContent className="p-4">
-        <h3 className="font-semibold text-primary mb-4">Today's Meals</h3>
+        <h3 className="font-semibold text-gray-900 mb-4">Today's Meals</h3>
         <div className="space-y-3">
           {meals.map(({ meal, time, logged }) => (
-            <div key={meal} className="flex items-center justify-between p-3 bg-sage/5 rounded-lg">
+            <div key={meal} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
               <div>
-                <p className="font-medium">{meal}</p>
-                <p className="text-sm text-muted-foreground">{time}</p>
+                <p className="font-medium text-gray-900">{meal}</p>
+                <p className="text-sm text-gray-600">{time}</p>
               </div>
               <div className="flex items-center">
                 {logged ? (
@@ -41,7 +41,7 @@ const TodayMeals = ({ breakfast, lunch, dinner }: TodayMealsProps) => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
-                    className="rounded-lg"
+                    className="rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
                     onClick={() => navigate('/upload', { state: { mealType: meal.toLowerCase() } })}
                   >
                     <Plus size={14} className="mr-1" />

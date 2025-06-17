@@ -29,28 +29,28 @@ const CreatePostDialog = ({
           Share Your Journey
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-card-gray border border-gray-200">
+      <DialogContent className="bg-white border border-gray-200">
         <DialogHeader>
-          <DialogTitle className="text-dark-text">Create New Post</DialogTitle>
+          <DialogTitle className="text-gray-900">Create New Post</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <Input
             placeholder="Post title..."
             value={newPost.title}
             onChange={(e) => onPostChange({ ...newPost, title: e.target.value })}
-            className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+            className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
           />
           <Textarea
             placeholder="Share your wellness journey..."
             value={newPost.content}
             onChange={(e) => onPostChange({ ...newPost, content: e.target.value })}
-            className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 min-h-24"
+            className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 min-h-24"
           />
           <div className="flex gap-3 pt-4">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 rounded-xl border-gray-300 text-dark-text hover:bg-gray-100 bg-white"
+              className="flex-1 rounded-xl border-gray-300 text-gray-900 hover:bg-gray-100 bg-white"
             >
               Cancel
             </Button>

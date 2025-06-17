@@ -57,17 +57,17 @@ const RecipeImport = () => {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="max-w-2xl mx-auto bg-white border border-gray-200">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-gray-900">
           <FileSpreadsheet className="text-sage" size={24} />
           Import Recipes from Spreadsheet
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-gray-600">
           <p className="mb-2">Expected format (comma-separated):</p>
-          <code className="bg-muted p-2 rounded block">
+          <code className="bg-gray-100 p-2 rounded block text-gray-800 border border-gray-200">
             name,package,category,details,image_url<br/>
             Recipe Name,Package Name,Category,Recipe Details,Image URL
           </code>
@@ -78,13 +78,13 @@ const RecipeImport = () => {
           value={csvData}
           onChange={(e) => setCsvData(e.target.value)}
           rows={8}
-          className="font-mono text-sm"
+          className="font-mono text-sm bg-white border-gray-300 text-gray-900"
         />
         
         <Button 
           onClick={handleImport}
           disabled={isImporting || !csvData.trim()}
-          className="w-full gradient-sage text-white"
+          className="w-full bg-sage hover:bg-sage/90 text-white"
         >
           <Upload size={16} className="mr-2" />
           {isImporting ? 'Importing...' : 'Import Recipes'}

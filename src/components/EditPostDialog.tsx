@@ -29,28 +29,28 @@ const EditPostDialog = ({ editingPost, onEditingPostChange, onSubmit }: EditPost
 
   return (
     <Dialog open={!!editingPost} onOpenChange={() => onEditingPostChange(null)}>
-      <DialogContent className="bg-card-gray border border-gray-200">
+      <DialogContent className="bg-white border border-gray-200">
         <DialogHeader>
-          <DialogTitle className="text-dark-text">Edit Post</DialogTitle>
+          <DialogTitle className="text-gray-900">Edit Post</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <Input
             placeholder="Post title..."
             value={editingPost.title}
             onChange={(e) => onEditingPostChange({ ...editingPost, title: e.target.value })}
-            className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+            className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
           />
           <Textarea
             placeholder="Share your wellness journey..."
             value={editingPost.content}
             onChange={(e) => onEditingPostChange({ ...editingPost, content: e.target.value })}
-            className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 min-h-24"
+            className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 min-h-24"
           />
           <div className="flex gap-3 pt-4">
             <Button
               variant="outline"
               onClick={() => onEditingPostChange(null)}
-              className="flex-1 rounded-xl border-gray-300 text-dark-text hover:bg-gray-100 bg-white"
+              className="flex-1 rounded-xl border-gray-300 text-gray-900 hover:bg-gray-100 bg-white"
             >
               Cancel
             </Button>

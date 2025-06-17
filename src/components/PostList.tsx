@@ -27,9 +27,9 @@ interface PostListProps {
 const PostList = ({ posts, currentUserId, onEdit, onDelete, onPostUpdate }: PostListProps) => {
   if (posts.length === 0) {
     return (
-      <Card className="bg-card-gray border border-gray-200">
+      <Card className="bg-white border border-gray-200">
         <CardContent className="p-6 text-center">
-          <p className="text-dark-text">No posts yet. Be the first to share your wellness journey!</p>
+          <p className="text-gray-700">No posts yet. Be the first to share your wellness journey!</p>
         </CardContent>
       </Card>
     );

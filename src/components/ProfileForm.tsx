@@ -32,11 +32,11 @@ const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) 
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-dark-text">Full Name</FormLabel>
+              <FormLabel className="text-gray-900">Full Name</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Enter your full name"
-                  className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
                   {...field}
                 />
               </FormControl>
@@ -50,12 +50,12 @@ const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) 
           name="age"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-dark-text">Age</FormLabel>
+              <FormLabel className="text-gray-900">Age</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   placeholder="Enter your age"
-                  className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
                   {...field}
                 />
               </FormControl>
@@ -69,18 +69,18 @@ const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) 
           name="gender"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-dark-text">Gender</FormLabel>
+              <FormLabel className="text-gray-900">Gender</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
-                  <SelectTrigger className="bg-white border-gray-300 text-dark-text">
+                  <SelectTrigger className="bg-white border-gray-300 text-gray-900">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className="bg-white border-gray-200">
-                  <SelectItem value="male" className="text-dark-text">Male</SelectItem>
-                  <SelectItem value="female" className="text-dark-text">Female</SelectItem>
-                  <SelectItem value="other" className="text-dark-text">Other</SelectItem>
-                  <SelectItem value="prefer-not-to-say" className="text-dark-text">Prefer not to say</SelectItem>
+                  <SelectItem value="male" className="text-gray-900">Male</SelectItem>
+                  <SelectItem value="female" className="text-gray-900">Female</SelectItem>
+                  <SelectItem value="other" className="text-gray-900">Other</SelectItem>
+                  <SelectItem value="prefer-not-to-say" className="text-gray-900">Prefer not to say</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -94,13 +94,13 @@ const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) 
             name="weight"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-dark-text">Weight (kg)</FormLabel>
+                <FormLabel className="text-gray-900">Weight (kg)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     step="0.1"
                     placeholder="Weight"
-                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+                    className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
                     {...field}
                   />
                 </FormControl>
@@ -114,12 +114,12 @@ const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) 
             name="height"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-dark-text">Height (cm)</FormLabel>
+                <FormLabel className="text-gray-900">Height (cm)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     placeholder="Height"
-                    className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500"
+                    className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
                     {...field}
                   />
                 </FormControl>
@@ -134,11 +134,11 @@ const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) 
           name="health_issues"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-dark-text">Health Issues</FormLabel>
+              <FormLabel className="text-gray-900">Health Issues</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Any health conditions or concerns..."
-                  className="bg-white border-gray-300 text-dark-text placeholder:text-gray-500 min-h-20"
+                  className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 min-h-20"
                   {...field}
                 />
               </FormControl>
@@ -152,7 +152,7 @@ const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) 
             type="button"
             variant="outline"
             onClick={onCancel}
-            className="flex-1 rounded-xl border-gray-300 text-dark-text hover:bg-gray-100 bg-white"
+            className="flex-1 rounded-xl border-gray-300 text-gray-900 hover:bg-gray-100 bg-white"
             disabled={isLoading}
           >
             Cancel
