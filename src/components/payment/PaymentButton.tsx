@@ -1,0 +1,39 @@
+
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { CreditCard, Loader2 } from 'lucide-react';
+
+interface PaymentButtonProps {
+  onClick: () => void;
+  loading: boolean;
+  currencySymbol: string;
+  displayPrice: number;
+}
+
+export const PaymentButton: React.FC<PaymentButtonProps> = ({
+  onClick,
+  loading,
+  currencySymbol,
+  displayPrice
+}) => {
+  return (
+    <Button
+      onClick={onClick}
+      disabled={loading}
+      className="w-full h-12 text-lg"
+      size="lg"
+    >
+      {loading ? (
+        <>
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          Processing...
+        </>
+      ) : (
+        <>
+          <CreditCard className="w-4 h-4 mr-2" />
+          Pay {currencySymbol}{displayPrice}
+        </>
+      )}
+    </Button>
+  );
+};
