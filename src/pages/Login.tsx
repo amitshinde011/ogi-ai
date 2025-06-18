@@ -102,12 +102,12 @@ const Login = () => {
             <div className="w-16 h-16 mx-auto flex items-center justify-center mb-4">
               <img 
                 src="/lovable-uploads/282dc416-05e6-46a1-83bc-f3f54eed6b80.png" 
-                alt="Yogi-ai Logo" 
+                alt="Yogi Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
-            <h1 className="text-2xl font-bold text-black">Welcome to Yogi-ai</h1>
-            <p className="text-black/70">Track Your Meals. Share the Journey.</p>
+            <h1 className="text-2xl font-bold text-black">Welcome to Yogi</h1>
+            <p className="text-black/70">Become the best version of yourself.</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
