@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,8 @@ interface Program {
   name: string;
   price: number;
   duration_days: number;
+  displayPrice: number;
+  currency: string;
 }
 
 const Payment = () => {
@@ -25,38 +28,29 @@ const Payment = () => {
   const [program, setProgram] = useState<Program | null>(null);
   const [gateway, setGateway] = useState<'braintree' | 'razorpay'>('braintree');
   const [userLocation, setUserLocation] = useState<string>('');
+  const [isIndiaUser, setIsIndiaUser] = useState(false);
 
   useEffect(() => {
     const programData = location.state?.program;
+    const locationData = location.state?.isIndiaUser;
+    const userLocationData = location.state?.userLocation;
+    
     if (!programData) {
       navigate('/subscriptions');
       return;
     }
+    
     setProgram(programData);
-    detectUserLocation();
-  }, [location.state, navigate]);
-
-  const detectUserLocation = async () => {
-    try {
-      const response = await fetch('https://ipapi.co/json/');
-      const data = await response.json();
-      setUserLocation(data.country_name);
-      
-      // Set gateway based on location
-      if (data.country_code === 'IN') {
-        setGateway('razorpay');
-      } else {
-        setGateway('braintree');
-      }
-      
-      // Track location detection
-      trackEvent('location_detected', 'Payment', data.country_name);
-    } catch (error) {
-      console.error('Failed to detect location:', error);
-      // Default to Braintree for global
+    setIsIndiaUser(locationData || false);
+    setUserLocation(userLocationData || '');
+    
+    // Set gateway based on location
+    if (locationData) {
+      setGateway('razorpay');
+    } else {
       setGateway('braintree');
     }
-  };
+  }, [location.state, navigate]);
 
   const createPaymentSession = async () => {
     if (!program) return;
@@ -76,16 +70,14 @@ const Payment = () => {
         return;
       }
 
-      const currency = gateway === 'razorpay' ? 'INR' : 'USD';
-      
       const { data, error } = await supabase.functions.invoke('process-payment', {
         body: {
           action: 'create_payment_session',
           userId: user.id,
           programId: program.id,
           gateway,
-          amount: program.price,
-          currency
+          amount: program.displayPrice,
+          currency: program.currency
         }
       });
 
@@ -182,8 +174,7 @@ const Payment = () => {
       if (error) throw error;
 
       if (program) {
-        const currency = gateway === 'razorpay' ? 'INR' : 'USD';
-        trackPayment(program.name, program.price, currency, gateway);
+        trackPayment(program.name, program.displayPrice, program.currency, gateway);
       }
 
       await updateOnboardingState({ subscription_selected: true });
@@ -213,6 +204,8 @@ const Payment = () => {
     );
   }
 
+  const currencySymbol = program.currency === 'INR' ? '₹' : '$';
+
   return (
     <div className="min-h-screen bg-gradient-peaceful p-4">
       <div className="max-w-2xl mx-auto">
@@ -239,7 +232,7 @@ const Payment = () => {
               <div className="flex justify-between items-center">
                 <span>Duration: {program.duration_days} days</span>
                 <span className="text-2xl font-bold text-primary">
-                  {gateway === 'razorpay' ? '₹' : '$'}{program.price}
+                  {currencySymbol}{program.displayPrice}
                 </span>
               </div>
             </div>
@@ -273,7 +266,7 @@ const Payment = () => {
               ) : (
                 <>
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Pay {gateway === 'razorpay' ? '₹' : '$'}{program.price}
+                  Pay {currencySymbol}{program.displayPrice}
                 </>
               )}
             </Button>

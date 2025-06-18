@@ -15,6 +15,7 @@ interface Program {
   name: string;
   duration_days: number;
   price: number;
+  price_inr: number;
   features: string[];
   benefits: string[];
   description: string;
@@ -29,6 +30,8 @@ const Subscriptions = () => {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAchievementBanner, setShowAchievementBanner] = useState(false);
+  const [isIndiaUser, setIsIndiaUser] = useState(false);
+  const [userLocation, setUserLocation] = useState<string>('');
 
   // Check if user arrived here after completing a program
   useEffect(() => {
@@ -41,7 +44,21 @@ const Subscriptions = () => {
 
   useEffect(() => {
     fetchPrograms();
+    detectUserLocation();
   }, []);
+
+  const detectUserLocation = async () => {
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      console.log('Location detected:', data.country_name, data.country_code);
+      setUserLocation(data.country_name);
+      setIsIndiaUser(data.country_code === 'IN');
+    } catch (error) {
+      console.error('Failed to detect location:', error);
+      setIsIndiaUser(false);
+    }
+  };
 
   const fetchPrograms = async () => {
     try {
@@ -67,6 +84,14 @@ const Subscriptions = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getDisplayPrice = (program: Program) => {
+    return isIndiaUser && program.price_inr ? program.price_inr : program.price;
+  };
+
+  const getCurrencySymbol = () => {
+    return isIndiaUser ? '₹' : '$';
   };
 
   const handleSubscribe = async (programId: string) => {
@@ -124,8 +149,18 @@ const Subscriptions = () => {
       // Hide achievement banner when navigating to payment
       setShowAchievementBanner(false);
       
-      // Navigate to payment page with program data
-      navigate('/payment', { state: { program } });
+      // Navigate to payment page with program data and location info
+      navigate('/payment', { 
+        state: { 
+          program: {
+            ...program,
+            displayPrice: getDisplayPrice(program),
+            currency: isIndiaUser ? 'INR' : 'USD'
+          },
+          isIndiaUser,
+          userLocation
+        } 
+      });
     } catch (error) {
       console.error('Error subscribing:', error);
       toast({
@@ -187,6 +222,11 @@ const Subscriptions = () => {
             {showAchievementBanner ? "Choose Your Next Journey" : "Choose Your Transformation Journey"}
           </h1>
           <p className="text-black">Select the program that best fits your wellness goals</p>
+          {userLocation && (
+            <p className="text-sm text-gray-600 mt-2">
+              Pricing for: {userLocation} ({isIndiaUser ? 'INR' : 'USD'})
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -202,7 +242,9 @@ const Subscriptions = () => {
               <CardHeader>
                 <CardTitle className="text-xl text-center text-black">{program.name}</CardTitle>
                 <div className="text-center">
-                  <span className="text-3xl font-bold text-primary">${program.price}</span>
+                  <span className="text-3xl font-bold text-primary">
+                    {getCurrencySymbol()}{getDisplayPrice(program)}
+                  </span>
                   <span className="text-black">/{program.duration_days} days</span>
                 </div>
                 <p className="text-sm text-black text-center">{program.description}</p>

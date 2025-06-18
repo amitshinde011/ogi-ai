@@ -441,6 +441,7 @@ export type Database = {
           id: string
           name: string
           price: number | null
+          price_inr: number | null
         }
         Insert: {
           benefits?: string[] | null
@@ -451,6 +452,7 @@ export type Database = {
           id?: string
           name: string
           price?: number | null
+          price_inr?: number | null
         }
         Update: {
           benefits?: string[] | null
@@ -461,6 +463,7 @@ export type Database = {
           id?: string
           name?: string
           price?: number | null
+          price_inr?: number | null
         }
         Relationships: []
       }
