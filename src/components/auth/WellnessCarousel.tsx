@@ -33,7 +33,7 @@ const WellnessCarousel = () => {
         <CarouselContent>
           {images.map((image, index) => (
             <CarouselItem key={index} className="basis-full">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
+              <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden rounded-2xl">
                 <img
                   src={image}
                   alt={`Wellness inspiration ${index + 1}`}
