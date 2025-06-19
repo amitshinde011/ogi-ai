@@ -26,7 +26,7 @@ const StepTracker = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Footprints className="text-blue-500 mr-2" size={20} />
-            <span className="font-medium">Step Tracker</span>
+            <span className="font-medium text-gray-800">Step Tracker</span>
           </div>
           <div className="flex items-center">
             {isTracking ? (
@@ -44,9 +44,9 @@ const StepTracker = () => {
         </div>
 
         <div className="text-center mb-4">
-          <div className="text-3xl font-bold text-primary">{stepData.steps.toLocaleString()}</div>
-          <div className="text-sm text-muted-foreground">steps today</div>
-          <div className="text-xs text-muted-foreground mt-1">
+          <div className="text-3xl font-bold text-gray-800">{stepData.steps.toLocaleString()}</div>
+          <div className="text-sm text-gray-600">steps today</div>
+          <div className="text-xs text-gray-500 mt-1">
             Last updated: {stepData.lastUpdated.toLocaleTimeString()}
           </div>
         </div>
@@ -54,7 +54,7 @@ const StepTracker = () => {
         {permission === 'prompt' && (
           <Button 
             onClick={requestPermission}
-            className="w-full mb-4"
+            className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
             variant="outline"
           >
             <Play size={16} className="mr-2" />
@@ -71,13 +71,13 @@ const StepTracker = () => {
         )}
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-center">Manually add steps:</p>
+          <p className="text-sm font-medium text-center text-gray-700">Manually add steps:</p>
           <div className="flex gap-2">
             <Button 
               size="sm" 
               variant="outline" 
               onClick={handleAdd100Steps}
-              className="flex-1"
+              className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-300"
             >
               <Plus size={14} className="mr-1" />
               +100
@@ -86,7 +86,7 @@ const StepTracker = () => {
               size="sm" 
               variant="outline" 
               onClick={handleAdd500Steps}
-              className="flex-1"
+              className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-300"
             >
               <Plus size={14} className="mr-1" />
               +500
@@ -95,7 +95,7 @@ const StepTracker = () => {
               size="sm" 
               variant="outline" 
               onClick={handleAdd1000Steps}
-              className="flex-1"
+              className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-300"
             >
               <Plus size={14} className="mr-1" />
               +1K
@@ -103,7 +103,7 @@ const StepTracker = () => {
           </div>
         </div>
 
-        <div className="mt-4 text-xs text-muted-foreground text-center">
+        <div className="mt-4 text-xs text-gray-500 text-center">
           Goal: 10,000 steps per day
         </div>
       </CardContent>
