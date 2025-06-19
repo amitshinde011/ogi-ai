@@ -36,6 +36,7 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
     handleSeekBack,
     handleSeekForward,
     handleToggleFullscreen,
+    handleQualityChange,
     setIsPlaying
   } = useVideoPlayer({ onVideoComplete, videoWatched });
 
@@ -75,11 +76,13 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
             currentTime={currentTime}
             duration={duration}
             isFullscreen={isFullscreen}
+            currentQuality={currentQuality}
             onPlayPause={handlePlayPause}
             onSeek={handleSeek}
             onSeekBack={handleSeekBack}
             onSeekForward={handleSeekForward}
             onToggleFullscreen={handleToggleFullscreen}
+            onQualityChange={handleQualityChange}
           />
 
           <VideoPlayerStates

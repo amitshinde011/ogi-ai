@@ -91,6 +91,40 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     seekForward(videoRef, state.duration, setState);
   };
 
+  const handleQualityChange = (quality: 'high' | 'medium' | 'low') => {
+    if (!videoRef.current) return;
+    
+    const currentTime = videoRef.current.currentTime;
+    const wasPlaying = state.isPlaying;
+    
+    console.log('Quality change requested:', quality);
+    
+    setState(prev => ({
+      ...prev,
+      currentQuality: quality,
+      videoLoaded: false,
+      videoError: false,
+      loadingStartTime: Date.now()
+    }));
+    
+    // Reload video with new quality
+    videoRef.current.load();
+    
+    // Restore playback state after video loads
+    if (videoRef.current) {
+      const restorePlayback = () => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = currentTime;
+          if (wasPlaying) {
+            videoRef.current.play().catch(console.error);
+          }
+        }
+      };
+      
+      videoRef.current.addEventListener('loadeddata', restorePlayback, { once: true });
+    }
+  };
+
   const handleShowVideo = () => {
     console.log('Show video button clicked - BEFORE state change');
     console.log('Current showVideo state:', state.showVideo);
@@ -212,6 +246,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     handleSeekBack,
     handleSeekForward,
     handleToggleFullscreen,
+    handleQualityChange,
     
     // Setters for state updates
     setIsPlaying

@@ -1,6 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize } from 'lucide-react';
+import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, Settings } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface VideoPlayerControlsProps {
   isPlaying: boolean;
@@ -13,6 +18,8 @@ interface VideoPlayerControlsProps {
   onSeekForward: () => void;
   onToggleFullscreen: () => void;
   isFullscreen: boolean;
+  currentQuality: 'high' | 'medium' | 'low';
+  onQualityChange: (quality: 'high' | 'medium' | 'low') => void;
 }
 
 const VideoPlayerControls = ({ 
@@ -25,7 +32,9 @@ const VideoPlayerControls = ({
   onSeekBack, 
   onSeekForward,
   onToggleFullscreen,
-  isFullscreen
+  isFullscreen,
+  currentQuality,
+  onQualityChange
 }: VideoPlayerControlsProps) => {
   const [showControls, setShowControls] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
@@ -57,6 +66,15 @@ const VideoPlayerControls = ({
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const getQualityLabel = (quality: string) => {
+    switch (quality) {
+      case 'high': return '1080p';
+      case 'medium': return '720p';
+      case 'low': return '480p';
+      default: return quality;
+    }
   };
 
   if (!videoLoaded) return null;
@@ -125,6 +143,50 @@ const VideoPlayerControls = ({
             <div className="text-white/90 text-xs sm:text-sm font-medium">
               {formatTime(currentTime)} / {formatTime(duration)}
             </div>
+
+            {/* Quality Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="p-1.5 sm:p-2 text-white/80 hover:text-white transition-colors flex items-center space-x-1"
+                  title="Video quality"
+                >
+                  <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-xs sm:text-sm hidden sm:inline">
+                    {getQualityLabel(currentQuality)}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="end" 
+                className="bg-black/90 border-white/20 text-white min-w-[120px]"
+              >
+                <DropdownMenuItem
+                  onClick={() => onQualityChange('high')}
+                  className={`cursor-pointer hover:bg-white/20 ${
+                    currentQuality === 'high' ? 'bg-white/20' : ''
+                  }`}
+                >
+                  1080p (High)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onQualityChange('medium')}
+                  className={`cursor-pointer hover:bg-white/20 ${
+                    currentQuality === 'medium' ? 'bg-white/20' : ''
+                  }`}
+                >
+                  720p (Medium)
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onQualityChange('low')}
+                  className={`cursor-pointer hover:bg-white/20 ${
+                    currentQuality === 'low' ? 'bg-white/20' : ''
+                  }`}
+                >
+                  480p (Low)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Fullscreen Button */}
             <button
