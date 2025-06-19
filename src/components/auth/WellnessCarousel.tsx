@@ -21,9 +21,23 @@ const WellnessCarousel = () => {
     '/lovable-uploads/8b74f19c-90e7-4f59-b2f9-e6e787700f29.png'
   ];
 
+  const [api, setApi] = useState<any>(null);
+
+  // Auto-slide functionality
+  useEffect(() => {
+    if (!api) return;
+
+    const interval = setInterval(() => {
+      api.scrollNext();
+    }, 4000); // Change slide every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [api]);
+
   return (
     <div className="w-full max-w-2xl mx-auto">
       <Carousel
+        setApi={setApi}
         opts={{
           align: "start",
           loop: true,
@@ -33,7 +47,7 @@ const WellnessCarousel = () => {
         <CarouselContent>
           {images.map((image, index) => (
             <CarouselItem key={index} className="basis-full">
-              <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden rounded-2xl">
+              <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:aspect-[4/3] overflow-hidden rounded-2xl">
                 <img
                   src={image}
                   alt={`Wellness inspiration ${index + 1}`}
@@ -43,8 +57,8 @@ const WellnessCarousel = () => {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-4" />
-        <CarouselNext className="right-4" />
+        <CarouselPrevious className="left-4 bg-transparent hover:bg-black/20 border-transparent text-white hover:text-white" />
+        <CarouselNext className="right-4 bg-transparent hover:bg-black/20 border-transparent text-white hover:text-white" />
       </Carousel>
     </div>
   );
