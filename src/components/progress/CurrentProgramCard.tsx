@@ -49,7 +49,7 @@ const CurrentProgramCard = ({ program }: CurrentProgramCardProps) => {
             <span>Progress</span>
             <span>{Math.round(program.progress_percentage)}%</span>
           </div>
-          <Progress value={program.progress_percentage} className="bg-gray-300" />
+          <Progress value={program.progress_percentage} className="bg-gray-400/30" />
         </div>
         
         <div className="flex items-center justify-between text-sm">
