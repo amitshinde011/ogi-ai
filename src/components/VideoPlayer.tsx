@@ -18,6 +18,8 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
     videoLoaded,
     videoError,
     currentQuality,
+    currentTime,
+    duration,
     videoRef,
     videoSources,
     handlePlayPause,
@@ -28,6 +30,9 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
     handleVideoLoadStart,
     handleVideoCanPlay,
     handleRetry,
+    handleSeek,
+    handleSeekBack,
+    handleSeekForward,
     setIsPlaying
   } = useVideoPlayer({ onVideoComplete, videoWatched });
 
@@ -61,7 +66,12 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
           <VideoPlayerControls
             isPlaying={isPlaying}
             videoLoaded={videoLoaded}
+            currentTime={currentTime}
+            duration={duration}
             onPlayPause={handlePlayPause}
+            onSeek={handleSeek}
+            onSeekBack={handleSeekBack}
+            onSeekForward={handleSeekForward}
           />
 
           <VideoPlayerStates

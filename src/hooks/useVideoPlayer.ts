@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
@@ -15,6 +14,8 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
   const [videoError, setVideoError] = useState(false);
   const [currentQuality, setCurrentQuality] = useState<'high' | 'medium' | 'low'>('high');
   const [loadingStartTime, setLoadingStartTime] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Video quality sources
@@ -48,6 +49,25 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
 
     detectNetworkSpeed();
   }, []);
+
+  // Video time update listener
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const updateTime = () => {
+      setCurrentTime(video.currentTime);
+      setDuration(video.duration || 0);
+    };
+
+    video.addEventListener('timeupdate', updateTime);
+    video.addEventListener('loadedmetadata', updateTime);
+
+    return () => {
+      video.removeEventListener('timeupdate', updateTime);
+      video.removeEventListener('loadedmetadata', updateTime);
+    };
+  }, [videoLoaded]);
 
   // Monitor showVideo state changes
   useEffect(() => {
@@ -87,6 +107,26 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
       });
       setIsPlaying(true);
     }
+  };
+
+  const handleSeek = (time: number) => {
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = time;
+    setCurrentTime(time);
+  };
+
+  const handleSeekBack = () => {
+    if (!videoRef.current) return;
+    const newTime = Math.max(0, videoRef.current.currentTime - 10);
+    videoRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const handleSeekForward = () => {
+    if (!videoRef.current) return;
+    const newTime = Math.min(duration, videoRef.current.currentTime + 10);
+    videoRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
   };
 
   const handleShowVideo = () => {
@@ -170,6 +210,8 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     videoLoaded,
     videoError,
     currentQuality,
+    currentTime,
+    duration,
     videoRef,
     videoSources,
     
@@ -182,6 +224,9 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     handleVideoLoadStart,
     handleVideoCanPlay,
     handleRetry,
+    handleSeek,
+    handleSeekBack,
+    handleSeekForward,
     
     // Setters for state updates
     setIsPlaying
