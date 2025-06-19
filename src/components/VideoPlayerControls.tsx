@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, Settings } from 'lucide-react';
 import {
@@ -159,6 +160,7 @@ const VideoPlayerControls = ({
               </DropdownMenuTrigger>
               <DropdownMenuContent 
                 align="end" 
+                side="top"
                 className="bg-black/90 border-white/20 text-white min-w-[120px]"
               >
                 <DropdownMenuItem
