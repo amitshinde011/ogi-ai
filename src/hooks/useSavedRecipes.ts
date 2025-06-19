@@ -1,32 +1,79 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-// For now, using localStorage to simulate saved recipes functionality
-// This can be replaced with actual database calls later
 export const useSavedRecipes = () => {
-  const [savedRecipeIds, setSavedRecipeIds] = useState<string[]>([]);
+  const queryClient = useQueryClient();
 
-  // Load saved recipes from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('savedRecipes');
-    if (saved) {
-      setSavedRecipeIds(JSON.parse(saved));
-    }
-  }, []);
+  // Get saved recipe IDs for current user
+  const { data: savedRecipeIds = [], isLoading } = useQuery({
+    queryKey: ['saved-recipes'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
 
-  // Save recipes to localStorage whenever the list changes
-  useEffect(() => {
-    localStorage.setItem('savedRecipes', JSON.stringify(savedRecipeIds));
-  }, [savedRecipeIds]);
+      const { data, error } = await supabase
+        .from('user_saved_recipes')
+        .select('recipe_id')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching saved recipes:', error);
+        return [];
+      }
+
+      return data.map(item => item.recipe_id);
+    },
+  });
+
+  // Save recipe mutation
+  const saveRecipeMutation = useMutation({
+    mutationFn: async (recipeId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('user_saved_recipes')
+        .insert({
+          user_id: user.id,
+          recipe_id: recipeId
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['saved-recipes'] });
+    },
+  });
+
+  // Unsave recipe mutation
+  const unsaveRecipeMutation = useMutation({
+    mutationFn: async (recipeId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('user_saved_recipes')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('recipe_id', recipeId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['saved-recipes'] });
+    },
+  });
 
   const saveRecipe = async (recipeId: string) => {
     if (!savedRecipeIds.includes(recipeId)) {
-      setSavedRecipeIds(prev => [...prev, recipeId]);
+      await saveRecipeMutation.mutateAsync(recipeId);
     }
   };
 
   const unsaveRecipe = async (recipeId: string) => {
-    setSavedRecipeIds(prev => prev.filter(id => id !== recipeId));
+    await unsaveRecipeMutation.mutateAsync(recipeId);
   };
 
   const isRecipeSaved = (recipeId: string) => {
@@ -37,6 +84,7 @@ export const useSavedRecipes = () => {
     savedRecipeIds,
     saveRecipe,
     unsaveRecipe,
-    isRecipeSaved
+    isRecipeSaved,
+    isLoading
   };
 };

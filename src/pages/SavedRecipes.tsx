@@ -4,15 +4,45 @@ import { Heart, Clock, Users, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
-import { useRecipes } from '@/hooks/useRecipes';
+import { useQuery } from '@tanstack/react-query';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
+import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 
 const SavedRecipes = () => {
-  const { data: allRecipes, isLoading } = useRecipes();
-  const { savedRecipeIds } = useSavedRecipes();
+  const { savedRecipeIds, isLoading: savedRecipesLoading } = useSavedRecipes();
 
-  const savedRecipes = allRecipes?.filter(recipe => savedRecipeIds.includes(recipe.id)) || [];
+  // Fetch the actual recipe data for saved recipes
+  const { data: savedRecipes = [], isLoading: recipesLoading } = useQuery({
+    queryKey: ['saved-recipes-data', savedRecipeIds],
+    queryFn: async () => {
+      if (savedRecipeIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .in('id', savedRecipeIds);
+
+      if (error) {
+        console.error('Error fetching saved recipes data:', error);
+        return [];
+      }
+
+      return data || [];
+    },
+    enabled: savedRecipeIds.length > 0,
+  });
+
+  // Check if user is authenticated
+  const { data: user } = useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
+  const isLoading = savedRecipesLoading || recipesLoading;
 
   if (isLoading) {
     return (
@@ -20,6 +50,28 @@ const SavedRecipes = () => {
         <Header title="Saved Recipes" showBack />
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show login message if user is not authenticated
+  if (!user) {
+    return (
+      <Layout>
+        <Header title="Saved Recipes" showBack />
+        <div className="max-w-md mx-auto p-4">
+          <div className="text-center py-12">
+            <Heart size={48} className="mx-auto text-gray-300 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">Please log in</h3>
+            <p className="text-gray-500 mb-6">You need to be logged in to view your saved recipes.</p>
+            <Link 
+              to="/login" 
+              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Log In
+            </Link>
+          </div>
         </div>
       </Layout>
     );
