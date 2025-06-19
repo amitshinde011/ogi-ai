@@ -14,9 +14,11 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handlePlayPause = () => {
+    console.log('Play/Pause clicked, video ref:', videoRef.current);
     if (!videoRef.current) return;
 
     if (isPlaying) {
@@ -31,7 +33,9 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
   };
 
   const handleShowVideo = () => {
+    console.log('Show video button clicked');
     setShowVideo(true);
+    setVideoError(false);
     trackButtonClick('Show Video Player', 'Intro Video Page');
   };
 
@@ -47,12 +51,24 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     console.error('Video error:', e.currentTarget.error);
+    setVideoError(true);
+    setVideoLoaded(false);
+  };
+
+  const handleVideoLoadStart = () => {
+    console.log('Video load started');
+  };
+
+  const handleVideoCanPlay = () => {
+    console.log('Video can play');
   };
 
   // Prevent right-click context menu on video
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
   };
+
+  console.log('VideoPlayer render - showVideo:', showVideo, 'videoLoaded:', videoLoaded, 'videoError:', videoError);
 
   return (
     <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-3xl aspect-video flex items-center justify-center shadow-inner overflow-hidden">
@@ -82,6 +98,8 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             onLoadedData={handleVideoLoadedData}
+            onLoadStart={handleVideoLoadStart}
+            onCanPlay={handleVideoCanPlay}
             onError={handleVideoError}
             onContextMenu={handleContextMenu}
             controls={false}
@@ -116,9 +134,30 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
           </div>
 
           {/* Loading indicator */}
-          {!videoLoaded && (
+          {!videoLoaded && !videoError && (
             <div className="absolute inset-0 flex items-center justify-center bg-slate-800/50">
               <div className="text-white text-lg">Loading video...</div>
+            </div>
+          )}
+
+          {/* Error indicator */}
+          {videoError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-red-500/50">
+              <div className="text-white text-lg text-center">
+                <p>Video failed to load</p>
+                <button 
+                  className="mt-2 px-4 py-2 bg-white text-red-600 rounded"
+                  onClick={() => {
+                    setVideoError(false);
+                    setVideoLoaded(false);
+                    if (videoRef.current) {
+                      videoRef.current.load();
+                    }
+                  }}
+                >
+                  Retry
+                </button>
+              </div>
             </div>
           )}
           
