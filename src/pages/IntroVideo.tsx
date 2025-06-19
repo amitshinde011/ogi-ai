@@ -61,6 +61,11 @@ const IntroVideo = () => {
     }
   };
 
+  // Prevent right-click context menu on video
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6 flex items-center justify-center">
       <div className="max-w-4xl w-full space-y-8">
@@ -101,14 +106,24 @@ const IntroVideo = () => {
                 <div className="w-full h-full relative">
                   <video
                     ref={videoRef}
-                    className="w-full h-full object-cover rounded-3xl"
+                    className="w-full h-full object-cover rounded-3xl select-none"
                     onEnded={handleVideoComplete}
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
-                    controls
+                    onContextMenu={handleContextMenu}
+                    controlsList="nodownload nofullscreen noremoteplayback"
+                    disablePictureInPicture
                     preload="metadata"
+                    style={{ 
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      pointerEvents: isPlaying ? 'auto' : 'none'
+                    }}
+                    onDragStart={(e) => e.preventDefault()}
+                    draggable={false}
                   >
-                    {/* You can replace this with your actual video URL */}
                     <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
                     <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.webm" type="video/webm" />
                     Your browser does not support the video tag.
