@@ -26,9 +26,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
 
   // Fullscreen change listener
   useEffect(() => {
-    return setupFullscreenListener((isFullscreen) => 
-      setState(prev => ({ ...prev, isFullscreen }))
-    );
+    return setupFullscreenListener(setState);
   }, []);
 
   // Network speed detection
@@ -39,12 +37,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
 
   // Video time update listener
   useEffect(() => {
-    return setupVideoTimeListeners(
-      videoRef,
-      (currentTime) => setState(prev => ({ ...prev, currentTime })),
-      (duration) => setState(prev => ({ ...prev, duration })),
-      state.videoLoaded
-    );
+    return setupVideoTimeListeners(videoRef, setState, state.videoLoaded);
   }, [state.videoLoaded]);
 
   // Monitor showVideo state changes
@@ -87,21 +80,15 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
   };
 
   const handleSeek = (time: number) => {
-    seekToTime(videoRef, time, (currentTime) => 
-      setState(prev => ({ ...prev, currentTime }))
-    );
+    seekToTime(videoRef, time, setState);
   };
 
   const handleSeekBack = () => {
-    seekBackward(videoRef, (currentTime) => 
-      setState(prev => ({ ...prev, currentTime }))
-    );
+    seekBackward(videoRef, setState);
   };
 
   const handleSeekForward = () => {
-    seekForward(videoRef, state.duration, (currentTime) => 
-      setState(prev => ({ ...prev, currentTime }))
-    );
+    seekForward(videoRef, state.duration, setState);
   };
 
   const handleShowVideo = () => {

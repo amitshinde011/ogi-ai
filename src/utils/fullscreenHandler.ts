@@ -14,10 +14,10 @@ export const toggleFullscreen = async (containerRef: React.RefObject<HTMLDivElem
 };
 
 export const setupFullscreenListener = (
-  setIsFullscreen: React.Dispatch<React.SetStateAction<boolean>>
+  setState: React.Dispatch<React.SetStateAction<any>>
 ) => {
   const handleFullscreenChange = () => {
-    setIsFullscreen(!!document.fullscreenElement);
+    setState((prev: any) => ({ ...prev, isFullscreen: !!document.fullscreenElement }));
   };
 
   document.addEventListener('fullscreenchange', handleFullscreenChange);

@@ -1,16 +1,18 @@
 
 export const setupVideoTimeListeners = (
   videoRef: React.RefObject<HTMLVideoElement>,
-  setCurrentTime: React.Dispatch<React.SetStateAction<number>>,
-  setDuration: React.Dispatch<React.SetStateAction<number>>,
+  setState: React.Dispatch<React.SetStateAction<any>>,
   videoLoaded: boolean
 ) => {
   const video = videoRef.current;
   if (!video) return;
 
   const updateTime = () => {
-    setCurrentTime(video.currentTime);
-    setDuration(video.duration || 0);
+    setState((prev: any) => ({
+      ...prev,
+      currentTime: video.currentTime,
+      duration: video.duration || 0
+    }));
   };
 
   video.addEventListener('timeupdate', updateTime);
@@ -25,30 +27,30 @@ export const setupVideoTimeListeners = (
 export const seekToTime = (
   videoRef: React.RefObject<HTMLVideoElement>,
   time: number,
-  setCurrentTime: React.Dispatch<React.SetStateAction<number>>
+  setState: React.Dispatch<React.SetStateAction<any>>
 ) => {
   if (!videoRef.current) return;
   videoRef.current.currentTime = time;
-  setCurrentTime(time);
+  setState((prev: any) => ({ ...prev, currentTime: time }));
 };
 
 export const seekBackward = (
   videoRef: React.RefObject<HTMLVideoElement>,
-  setCurrentTime: React.Dispatch<React.SetStateAction<number>>
+  setState: React.Dispatch<React.SetStateAction<any>>
 ) => {
   if (!videoRef.current) return;
   const newTime = Math.max(0, videoRef.current.currentTime - 10);
   videoRef.current.currentTime = newTime;
-  setCurrentTime(newTime);
+  setState((prev: any) => ({ ...prev, currentTime: newTime }));
 };
 
 export const seekForward = (
   videoRef: React.RefObject<HTMLVideoElement>,
   duration: number,
-  setCurrentTime: React.Dispatch<React.SetStateAction<number>>
+  setState: React.Dispatch<React.SetStateAction<any>>
 ) => {
   if (!videoRef.current) return;
   const newTime = Math.min(duration, videoRef.current.currentTime + 10);
   videoRef.current.currentTime = newTime;
-  setCurrentTime(newTime);
+  setState((prev: any) => ({ ...prev, currentTime: newTime }));
 };
