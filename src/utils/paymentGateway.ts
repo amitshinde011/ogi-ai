@@ -22,7 +22,7 @@ export const createPaymentSession = async (
       userId: user.id,
       programId: program.id,
       gateway,
-      amount: program.displayPrice,
+      amount: program.finalPrice || program.displayPrice, // Use final price if available
       currency: program.currency
     }
   });

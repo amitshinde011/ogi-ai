@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
+import { usePricingConfig } from '@/hooks/usePricingConfig';
+import { calculatePricing } from '@/utils/pricingUtils';
 import { AchievementBanner } from '@/components/AchievementBanner';
 import { PricingDisplay } from '@/components/PricingDisplay';
 import { SubscriptionCard } from '@/components/SubscriptionCard';
@@ -28,6 +29,7 @@ const Subscriptions = () => {
   const { updateOnboardingState } = useOnboarding();
   const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
   const { isIndiaUser, userLocation } = useLocationDetection();
+  const pricingConfig = usePricingConfig();
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAchievementBanner, setShowAchievementBanner] = useState(false);
@@ -130,13 +132,28 @@ const Subscriptions = () => {
       // Hide achievement banner when navigating to payment
       setShowAchievementBanner(false);
       
-      // Navigate to payment page with program data and location info
+      const originalPrice = getDisplayPrice(program);
+      const pricing = calculatePricing(
+        originalPrice,
+        pricingConfig.discountPercentage,
+        pricingConfig.taxPercentage
+      );
+      
+      // Navigate to payment page with program data, pricing info, and location info
       navigate('/payment', { 
         state: { 
           program: {
             ...program,
-            displayPrice: getDisplayPrice(program),
+            displayPrice: originalPrice,
+            finalPrice: pricing.finalPrice,
             currency: isIndiaUser ? 'INR' : 'USD'
+          },
+          pricing: {
+            ...pricing,
+            discountPercentage: pricingConfig.discountPercentage,
+            taxPercentage: pricingConfig.taxPercentage,
+            isSpecialOccasion: pricingConfig.isSpecialOccasion,
+            occasionName: pricingConfig.occasionName
           },
           isIndiaUser,
           userLocation

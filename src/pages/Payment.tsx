@@ -8,6 +8,7 @@ import { usePayment } from '@/hooks/usePayment';
 import { ProgramDetailsCard } from '@/components/payment/ProgramDetailsCard';
 import { LocationGatewayInfo } from '@/components/payment/LocationGatewayInfo';
 import { PaymentButton } from '@/components/payment/PaymentButton';
+import { PricingBreakdown } from '@/components/subscription/PricingBreakdown';
 import { createPaymentSession, handleBraintreePayment, handleRazorpayPayment } from '@/utils/paymentGateway';
 
 const Payment = () => {
@@ -16,6 +17,7 @@ const Payment = () => {
     loading,
     setLoading,
     program,
+    pricing,
     gateway,
     userLocation,
     isIndiaUser,
@@ -26,20 +28,27 @@ const Payment = () => {
   } = usePayment();
 
   const createPaymentSessionHandler = async () => {
-    if (!program) return;
+    if (!program || !pricing) return;
 
     trackButtonClick('Pay Now', 'Payment Page');
     setLoading(true);
     
     try {
-      const sessionData = await createPaymentSession(program, gateway);
+      // Use final price including tax and discount
+      const sessionData = await createPaymentSession({
+        ...program,
+        displayPrice: pricing.finalPrice
+      }, gateway);
 
       if (gateway === 'braintree') {
         trackEvent('payment_initiated', 'Payment', 'Braintree');
         await handleBraintreePayment(sessionData, verifyPayment);
       } else {
         trackEvent('payment_initiated', 'Payment', 'Razorpay');
-        await handleRazorpayPayment(sessionData, program, verifyPayment);
+        await handleRazorpayPayment(sessionData, {
+          ...program,
+          finalPrice: pricing.finalPrice
+        }, verifyPayment);
       }
     } catch (error) {
       console.error('Payment session creation error:', error);
@@ -54,7 +63,7 @@ const Payment = () => {
     }
   };
 
-  if (!program) {
+  if (!program || !pricing) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
@@ -89,6 +98,21 @@ const Payment = () => {
               currencySymbol={currencySymbol} 
             />
 
+            {/* Pricing Breakdown */}
+            <Card className="bg-gray-50">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-lg mb-3">Pricing Details</h3>
+                <PricingBreakdown
+                  originalPrice={pricing.originalPrice}
+                  currency={program.currency}
+                  discountPercentage={pricing.discountPercentage}
+                  taxPercentage={pricing.taxPercentage}
+                  isSpecialOccasion={pricing.isSpecialOccasion}
+                  occasionName={pricing.occasionName}
+                />
+              </CardContent>
+            </Card>
+
             <LocationGatewayInfo 
               userLocation={userLocation} 
               gateway={gateway} 
@@ -98,7 +122,7 @@ const Payment = () => {
               onClick={createPaymentSessionHandler}
               loading={loading}
               currencySymbol={currencySymbol}
-              displayPrice={program.displayPrice}
+              displayPrice={pricing.finalPrice}
             />
 
             <p className="text-sm text-gray-500 text-center">

@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { PricingCalculation } from '@/utils/pricingUtils';
 
 interface Program {
   id: string;
@@ -12,7 +13,13 @@ interface Program {
   price: number;
   duration_days: number;
   displayPrice: number;
+  finalPrice: number;
   currency: string;
+}
+
+interface PricingInfo extends PricingCalculation {
+  isSpecialOccasion: boolean;
+  occasionName?: string;
 }
 
 export const usePayment = () => {
@@ -23,21 +30,24 @@ export const usePayment = () => {
   const { trackButtonClick, trackPayment, trackEvent } = useAnalytics();
   const [loading, setLoading] = useState(false);
   const [program, setProgram] = useState<Program | null>(null);
+  const [pricing, setPricing] = useState<PricingInfo | null>(null);
   const [gateway, setGateway] = useState<'braintree' | 'razorpay'>('braintree');
   const [userLocation, setUserLocation] = useState<string>('');
   const [isIndiaUser, setIsIndiaUser] = useState(false);
 
   useEffect(() => {
     const programData = location.state?.program;
+    const pricingData = location.state?.pricing;
     const locationData = location.state?.isIndiaUser;
     const userLocationData = location.state?.userLocation;
     
-    if (!programData) {
+    if (!programData || !pricingData) {
       navigate('/subscriptions');
       return;
     }
     
     setProgram(programData);
+    setPricing(pricingData);
     setIsIndiaUser(locationData || false);
     setUserLocation(userLocationData || '');
     
@@ -62,8 +72,8 @@ export const usePayment = () => {
 
       if (error) throw error;
 
-      if (program) {
-        trackPayment(program.name, program.displayPrice, program.currency, gateway);
+      if (program && pricing) {
+        trackPayment(program.name, pricing.finalPrice, program.currency, gateway);
       }
 
       await updateOnboardingState({ subscription_selected: true });
@@ -89,6 +99,7 @@ export const usePayment = () => {
     loading,
     setLoading,
     program,
+    pricing,
     gateway,
     userLocation,
     isIndiaUser,

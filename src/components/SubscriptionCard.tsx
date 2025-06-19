@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check } from 'lucide-react';
+import { PricingBreakdown } from '@/components/subscription/PricingBreakdown';
+import { usePricingConfig } from '@/hooks/usePricingConfig';
 
 interface Program {
   id: string;
@@ -27,12 +29,14 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   isIndiaUser,
   onSubscribe
 }) => {
+  const pricingConfig = usePricingConfig();
+
   const getDisplayPrice = () => {
     return isIndiaUser && program.price_inr ? program.price_inr : program.price;
   };
 
-  const getCurrencySymbol = () => {
-    return isIndiaUser ? '₹' : '$';
+  const getCurrency = () => {
+    return isIndiaUser ? 'INR' : 'USD';
   };
 
   const isPopular = program.duration_days === 49;
@@ -49,14 +53,21 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       <CardHeader>
         <CardTitle className="text-xl text-center text-black">{program.name}</CardTitle>
         <div className="text-center">
-          <span className="text-3xl font-bold text-primary">
-            {getCurrencySymbol()}{getDisplayPrice()}
-          </span>
           <span className="text-black">/{program.duration_days} days</span>
         </div>
         <p className="text-sm text-black text-center">{program.description}</p>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Pricing Breakdown */}
+        <PricingBreakdown
+          originalPrice={getDisplayPrice()}
+          currency={getCurrency()}
+          discountPercentage={pricingConfig.discountPercentage}
+          taxPercentage={pricingConfig.taxPercentage}
+          isSpecialOccasion={pricingConfig.isSpecialOccasion}
+          occasionName={pricingConfig.occasionName}
+        />
+
         <div>
           <h4 className="font-semibold mb-2 text-black">Features:</h4>
           <ul className="space-y-1">
