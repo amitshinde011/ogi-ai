@@ -124,8 +124,7 @@ const IntroVideo = () => {
                     onDragStart={(e) => e.preventDefault()}
                     draggable={false}
                   >
-                    <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4" />
-                    <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.webm" type="video/webm" />
+                    <source src="https://mxigbftmmkqnhmocyeeo.supabase.co/storage/v1/object/sign/videos/pArts.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yNDBlZGRiZS05OTQxLTQwODktYjRjZi03OGJiZjJkMTQyMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvcEFydHMubXA0IiwiaWF0IjoxNzUwMzMwMzg4LCJleHAiOjE5MDgwMTAzODh9.aFAPFE-DGjM4-fl0tk40VEELJBIgjDDy3ZXHvwP-T4s" type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                   
