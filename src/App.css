@@ -47,7 +47,7 @@
   border-radius: 1.5rem;
   box-shadow: 0 20px 25px -5px rgba(186, 147, 216, 0.1), 0 10px 10px -5px rgba(255, 182, 193, 0.05);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(203, 213, 225, 0.3);
 }
 
 .read-the-docs {
@@ -117,7 +117,7 @@
 .bg-yellow-200, .bg-yellow-600, .bg-yellow-700, .bg-yellow-800, .bg-yellow-900 {
   background: linear-gradient(135deg, rgb(255, 255, 255) 0%, rgb(248, 250, 252) 100%) !important;
   color: rgb(15, 23, 42) !important;
-  border: 1px solid rgb(226, 232, 240) !important;
+  border: 1px solid rgb(203, 213, 225) !important;
 }
 
 /* Remove yellow borders globally */

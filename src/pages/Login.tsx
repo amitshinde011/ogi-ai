@@ -48,7 +48,7 @@ const Login = () => {
 
           {/* Right side - Login Form */}
           <div className="w-full max-w-md mx-auto">
-            <Card className="animate-fade-in shadow-lg border-lavender/20 bg-white">
+            <Card className="animate-fade-in shadow-lg border-gray-300 bg-white">
               <CardHeader className="text-center">
                 <LoginHeader showVerificationMessage={showVerificationMessage} />
               </CardHeader>
