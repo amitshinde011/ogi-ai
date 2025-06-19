@@ -1,169 +1,26 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
+import { Form } from '@/components/ui/form';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import PhotoUpload from '@/components/PhotoUpload';
-import ComfortSlider from '@/components/ComfortSlider';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-
-interface FinalAssessmentForm {
-  walk_10km_comfort: number;
-  run_10km_comfort: number;
-  climb_mountain_comfort: number;
-  current_health_conditions: string;
-  comments: string;
-}
+import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
+import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
+import { useFinalAssessment } from '@/hooks/useFinalAssessment';
 
 const FinalAssessment = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
-  const [uploading, setUploading] = useState(false);
-
-  const form = useForm<FinalAssessmentForm>({
-    defaultValues: {
-      walk_10km_comfort: 3,
-      run_10km_comfort: 3,
-      climb_mountain_comfort: 3,
-      current_health_conditions: '',
-      comments: ''
-    }
-  });
-
-  const handleImageSelect = (file: File) => {
-    setSelectedImage(file);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setImagePreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleImageRemove = () => {
-    setSelectedImage(null);
-    setImagePreview('');
-  };
-
-  const uploadImage = async (file: File): Promise<string | null> => {
-    try {
-      setUploading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/final-${Date.now()}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from('assessments')
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from('assessments')
-        .getPublicUrl(fileName);
-
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Upload Error",
-        description: "Failed to upload image. Please try again.",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const onSubmit = async (data: FinalAssessmentForm) => {
-    try {
-      setIsSubmitting(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
-      // Get current active subscription that has ended (completed program)
-      const today = new Date().toISOString().split('T')[0];
-      const { data: subscription } = await supabase
-        .from('user_subscriptions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .lte('end_date', today)
-        .maybeSingle();
-
-      if (!subscription) {
-        throw new Error('No completed program found');
-      }
-
-      let imageUrl = null;
-      if (selectedImage) {
-        imageUrl = await uploadImage(selectedImage);
-        if (!imageUrl) {
-          return; // Upload failed, error already shown
-        }
-      }
-
-      // Convert numeric values to string format for database compatibility
-      const formattedData = {
-        walk_10km_comfort: getComfortString(data.walk_10km_comfort),
-        run_10km_comfort: getComfortString(data.run_10km_comfort),
-        climb_mountain_comfort: getComfortString(data.climb_mountain_comfort),
-        current_health_conditions: data.current_health_conditions,
-        comments: data.comments
-      };
-
-      // Create final assessment
-      const { data: finalAssessment, error } = await supabase
-        .from('final_assessments')
-        .insert({
-          user_id: user.id,
-          subscription_id: subscription.id,
-          ...formattedData,
-          full_body_photo_url: imageUrl
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: "Assessment Completed!",
-        description: "Congratulations on completing your wellness journey!",
-      });
-
-      navigate('/comparison', { state: { finalAssessmentId: finalAssessment.id } });
-    } catch (error) {
-      console.error('Error submitting assessment:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit assessment. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const getComfortString = (value: number) => {
-    const mapping = {
-      1: 'very_uncomfortable',
-      2: 'uncomfortable',
-      3: 'somewhat_comfortable',
-      4: 'comfortable',
-      5: 'very_comfortable'
-    };
-    return mapping[value as keyof typeof mapping] || 'somewhat_comfortable';
-  };
+  const {
+    form,
+    selectedImage,
+    imagePreview,
+    uploading,
+    isSubmitting,
+    handleImageSelect,
+    handleImageRemove,
+    onSubmit
+  } = useFinalAssessment();
 
   return (
     <Layout>
@@ -192,92 +49,10 @@ const FinalAssessment = () => {
                   />
 
                   {/* Comfort Level Questions with Sliders */}
-                  <FormField
-                    control={form.control}
-                    name="walk_10km_comfort"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <ComfortSlider
-                            label="How comfortable do you feel walking 10km?"
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <ComfortQuestionsSection control={form.control} />
 
-                  <FormField
-                    control={form.control}
-                    name="run_10km_comfort"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <ComfortSlider
-                            label="How comfortable do you feel running 10km?"
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="climb_mountain_comfort"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <ComfortSlider
-                            label="How comfortable do you feel climbing a small mountain?"
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="current_health_conditions"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Current Health Conditions (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Describe any current health conditions..."
-                            className="min-h-[80px]"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="comments"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Additional Comments (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Share your thoughts about the program..."
-                            className="min-h-[80px]"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Health Conditions and Comments */}
+                  <HealthConditionsSection control={form.control} />
 
                   <Button
                     type="submit"
