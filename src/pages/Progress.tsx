@@ -132,7 +132,7 @@ const ProgressPage = () => {
       <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
         {/* Current Program */}
         {currentProgram && (
-          <Card className="bg-gradient-sage text-white">
+          <Card className="bg-gradient-sage text-white border-gray-300">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Current Program</CardTitle>
@@ -152,7 +152,7 @@ const ProgressPage = () => {
                   <span>Progress</span>
                   <span>{Math.round(currentProgram.progress_percentage)}%</span>
                 </div>
-                <Progress value={currentProgram.progress_percentage} className="bg-white/20" />
+                <Progress value={currentProgram.progress_percentage} className="bg-gray-300" />
               </div>
               
               <div className="flex items-center justify-between text-sm">
