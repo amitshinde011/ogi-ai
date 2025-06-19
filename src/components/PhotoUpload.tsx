@@ -118,10 +118,17 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
                 Drag & drop or click to browse
               </p>
               <div className="flex items-center justify-center pt-2">
-                <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary to-primary/80 text-white rounded-xl hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                <Button
+                  type="button"
+                  className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClick();
+                  }}
+                >
                   <Upload className="w-5 h-5 mr-2" />
                   Choose Photo
-                </div>
+                </Button>
               </div>
             </div>
           </div>
