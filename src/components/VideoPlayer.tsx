@@ -1,0 +1,116 @@
+
+import React, { useState, useRef } from 'react';
+import { Play, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { useToast } from '@/hooks/use-toast';
+
+interface VideoPlayerProps {
+  onVideoComplete: () => void;
+  videoWatched: boolean;
+}
+
+const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
+  const { trackButtonClick } = useAnalytics();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlayPause = () => {
+    if (!videoRef.current) return;
+
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const handleShowVideo = () => {
+    setShowVideo(true);
+    trackButtonClick('Show Video Player', 'Intro Video Page');
+  };
+
+  const handleVideoEnd = () => {
+    setIsPlaying(false);
+    onVideoComplete();
+  };
+
+  // Prevent right-click context menu on video
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-3xl aspect-video flex items-center justify-center shadow-inner overflow-hidden">
+      {!showVideo ? (
+        <div className="text-center space-y-6">
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl mx-auto">
+            <Play className="w-10 h-10 text-indigo-600" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">Introduction Video</h3>
+            <p className="text-slate-600 text-lg">Essential guidance for your journey</p>
+          </div>
+          <Button 
+            className="h-14 px-8 rounded-2xl font-semibold text-lg shadow-lg transition-all duration-200 bg-indigo-600 hover:bg-indigo-700"
+            onClick={handleShowVideo}
+          >
+            <Play className="w-6 h-6 mr-3" />
+            Watch Video
+          </Button>
+        </div>
+      ) : (
+        <div className="w-full h-full relative">
+          <video
+            ref={videoRef}
+            className="w-full h-full object-cover rounded-3xl select-none"
+            onEnded={handleVideoEnd}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onContextMenu={handleContextMenu}
+            controlsList="nodownload nofullscreen noremoteplayback"
+            disablePictureInPicture
+            preload="metadata"
+            style={{ 
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none',
+              pointerEvents: isPlaying ? 'auto' : 'none'
+            }}
+            onDragStart={(e) => e.preventDefault()}
+            draggable={false}
+          >
+            <source src="https://mxigbftmmkqnhmocyeeo.supabase.co/storage/v1/object/sign/videos/pArts.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yNDBlZGRiZS05OTQxLTQwODktYjRjZi03OGJiZjJkMTQyMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvcEFydHMubXA0IiwiaWF0IjoxNzUwMzMwMzg4LCJleHAiOjE5MDgwMTAzODh9.aFAPFE-DGjM4-fl0tk40VEELJBIgjDDy3ZXHvwP-T4s" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+          
+          {/* Custom play/pause overlay */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {!isPlaying && !videoWatched && (
+              <button
+                className="w-16 h-16 bg-white/80 rounded-full flex items-center justify-center shadow-lg pointer-events-auto hover:bg-white transition-colors"
+                onClick={handlePlayPause}
+              >
+                <Play className="w-8 h-8 text-indigo-600 ml-1" />
+              </button>
+            )}
+          </div>
+          
+          {/* Video completed indicator */}
+          {videoWatched && (
+            <div className="absolute top-4 right-4 bg-green-600 text-white px-3 py-1 rounded-full flex items-center space-x-2">
+              <CheckCircle className="w-4 h-4" />
+              <span className="text-sm font-medium">Completed</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default VideoPlayer;
