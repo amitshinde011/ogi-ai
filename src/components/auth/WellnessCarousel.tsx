@@ -10,15 +10,14 @@ import {
 
 const WellnessCarousel = () => {
   const images = [
-    '/lovable-uploads/906020d3-1d95-40e6-b186-7bac6f5f47bf.png',
-    '/lovable-uploads/ea82c1d4-6670-43f8-b1d9-453ffdf8c180.png',
-    '/lovable-uploads/aded644f-d28a-41e0-87d6-c2e78e474c1b.png',
-    '/lovable-uploads/1050cead-b512-4b83-b3c4-31b4286048d9.png',
-    '/lovable-uploads/5f229e33-65cf-403e-8336-0e153afa7950.png',
-    '/lovable-uploads/f9bfc242-1704-4d11-8fb4-7d7e5486d7a0.png',
-    '/lovable-uploads/d183ce62-241a-4d56-8eff-e7a895107408.png',
-    '/lovable-uploads/8c1cd0b6-97c5-4b83-8c55-504f1c93a5b8.png',
-    '/lovable-uploads/8b74f19c-90e7-4f59-b2f9-e6e787700f29.png'
+    '/lovable-uploads/0c0444a7-0c07-43d0-8fac-7aed6ee52d41.png',
+    '/lovable-uploads/9007c4a8-556e-4720-b175-bcd1ccd3fa7a.png',
+    '/lovable-uploads/00650227-f546-403b-847b-177618181db4.png',
+    '/lovable-uploads/38e93c2a-67d3-4899-a801-be95bff4bbcb.png',
+    '/lovable-uploads/b81ced20-6a91-448e-bac9-57b644e4787e.png',
+    '/lovable-uploads/16c28ccf-38c0-4b4f-b1e3-a2dd98ddd3fe.png',
+    '/lovable-uploads/f576ca68-0529-41ad-b7ee-dd9aec0bb5b8.png',
+    '/lovable-uploads/1d846cf4-d07a-4a9d-bce2-33f967d61ff8.png'
   ];
 
   const [api, setApi] = useState<any>(null);
