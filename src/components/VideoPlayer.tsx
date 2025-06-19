@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Play, CheckCircle, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -17,6 +17,16 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Add useEffect to monitor showVideo state changes
+  useEffect(() => {
+    console.log('showVideo state changed:', showVideo);
+    if (showVideo && videoRef.current) {
+      console.log('Video element exists after showVideo=true:', videoRef.current);
+      // Force video to load
+      videoRef.current.load();
+    }
+  }, [showVideo]);
+
   const handlePlayPause = () => {
     console.log('Play/Pause clicked, video ref:', videoRef.current);
     if (!videoRef.current) return;
@@ -33,9 +43,12 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
   };
 
   const handleShowVideo = () => {
-    console.log('Show video button clicked');
+    console.log('Show video button clicked - BEFORE state change');
+    console.log('Current showVideo state:', showVideo);
     setShowVideo(true);
     setVideoError(false);
+    setVideoLoaded(false);
+    console.log('Show video button clicked - AFTER setting showVideo to true');
     trackButtonClick('Show Video Player', 'Intro Video Page');
   };
 
@@ -51,12 +64,18 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     console.error('Video error:', e.currentTarget.error);
+    console.error('Video error details:', {
+      code: e.currentTarget.error?.code,
+      message: e.currentTarget.error?.message
+    });
     setVideoError(true);
     setVideoLoaded(false);
   };
 
   const handleVideoLoadStart = () => {
     console.log('Video load started');
+    setVideoLoaded(false);
+    setVideoError(false);
   };
 
   const handleVideoCanPlay = () => {
@@ -90,13 +109,19 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
           </Button>
         </div>
       ) : (
-        <div className="w-full h-full relative">
+        <div className="w-full h-full relative bg-black rounded-3xl">
           <video
             ref={videoRef}
             className="w-full h-full object-cover rounded-3xl select-none"
             onEnded={handleVideoEnd}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
+            onPlay={() => {
+              console.log('Video started playing');
+              setIsPlaying(true);
+            }}
+            onPause={() => {
+              console.log('Video paused');
+              setIsPlaying(false);
+            }}
             onLoadedData={handleVideoLoadedData}
             onLoadStart={handleVideoLoadStart}
             onCanPlay={handleVideoCanPlay}
@@ -135,19 +160,20 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
 
           {/* Loading indicator */}
           {!videoLoaded && !videoError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-800/50">
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-800/50 rounded-3xl">
               <div className="text-white text-lg">Loading video...</div>
             </div>
           )}
 
           {/* Error indicator */}
           {videoError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-red-500/50">
+            <div className="absolute inset-0 flex items-center justify-center bg-red-500/50 rounded-3xl">
               <div className="text-white text-lg text-center">
                 <p>Video failed to load</p>
                 <button 
                   className="mt-2 px-4 py-2 bg-white text-red-600 rounded"
                   onClick={() => {
+                    console.log('Retry button clicked');
                     setVideoError(false);
                     setVideoLoaded(false);
                     if (videoRef.current) {
