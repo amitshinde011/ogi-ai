@@ -1,9 +1,8 @@
 
 import React, { useState, useRef } from 'react';
-import { Play, CheckCircle } from 'lucide-react';
+import { Play, CheckCircle, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { useToast } from '@/hooks/use-toast';
 
 interface VideoPlayerProps {
   onVideoComplete: () => void;
@@ -14,6 +13,7 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
   const { trackButtonClick } = useAnalytics();
   const [isPlaying, setIsPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handlePlayPause = () => {
@@ -23,7 +23,9 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
       videoRef.current.pause();
       setIsPlaying(false);
     } else {
-      videoRef.current.play();
+      videoRef.current.play().catch(error => {
+        console.error('Error playing video:', error);
+      });
       setIsPlaying(true);
     }
   };
@@ -36,6 +38,15 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
   const handleVideoEnd = () => {
     setIsPlaying(false);
     onVideoComplete();
+  };
+
+  const handleVideoLoadedData = () => {
+    setVideoLoaded(true);
+    console.log('Video loaded successfully');
+  };
+
+  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    console.error('Video error:', e.currentTarget.error);
   };
 
   // Prevent right-click context menu on video
@@ -70,16 +81,16 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
             onEnded={handleVideoEnd}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
+            onLoadedData={handleVideoLoadedData}
+            onError={handleVideoError}
             onContextMenu={handleContextMenu}
-            controlsList="nodownload nofullscreen noremoteplayback"
-            disablePictureInPicture
+            controls={false}
             preload="metadata"
             style={{ 
               userSelect: 'none',
               WebkitUserSelect: 'none',
               MozUserSelect: 'none',
               msUserSelect: 'none',
-              pointerEvents: isPlaying ? 'auto' : 'none'
             }}
             onDragStart={(e) => e.preventDefault()}
             draggable={false}
@@ -89,16 +100,27 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
           </video>
           
           {/* Custom play/pause overlay */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            {!isPlaying && !videoWatched && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            {videoLoaded && (
               <button
-                className="w-16 h-16 bg-white/80 rounded-full flex items-center justify-center shadow-lg pointer-events-auto hover:bg-white transition-colors"
+                className="w-16 h-16 bg-white/80 rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-colors"
                 onClick={handlePlayPause}
               >
-                <Play className="w-8 h-8 text-indigo-600 ml-1" />
+                {isPlaying ? (
+                  <Pause className="w-8 h-8 text-indigo-600" />
+                ) : (
+                  <Play className="w-8 h-8 text-indigo-600 ml-1" />
+                )}
               </button>
             )}
           </div>
+
+          {/* Loading indicator */}
+          {!videoLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-800/50">
+              <div className="text-white text-lg">Loading video...</div>
+            </div>
+          )}
           
           {/* Video completed indicator */}
           {videoWatched && (
