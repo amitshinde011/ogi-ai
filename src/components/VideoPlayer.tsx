@@ -20,7 +20,9 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
     currentQuality,
     currentTime,
     duration,
+    isFullscreen,
     videoRef,
+    containerRef,
     videoSources,
     handlePlayPause,
     handleShowVideo,
@@ -33,13 +35,17 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
     handleSeek,
     handleSeekBack,
     handleSeekForward,
+    handleToggleFullscreen,
     setIsPlaying
   } = useVideoPlayer({ onVideoComplete, videoWatched });
 
   console.log('VideoPlayer render - showVideo:', showVideo, 'videoLoaded:', videoLoaded, 'videoError:', videoError);
 
   return (
-    <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl sm:rounded-3xl aspect-video flex items-center justify-center shadow-inner overflow-hidden">
+    <div 
+      ref={containerRef}
+      className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl sm:rounded-3xl aspect-video flex items-center justify-center shadow-inner overflow-hidden"
+    >
       {!showVideo ? (
         <VideoIntro onShowVideo={handleShowVideo} />
       ) : (
@@ -68,10 +74,12 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
             videoLoaded={videoLoaded}
             currentTime={currentTime}
             duration={duration}
+            isFullscreen={isFullscreen}
             onPlayPause={handlePlayPause}
             onSeek={handleSeek}
             onSeekBack={handleSeekBack}
             onSeekForward={handleSeekForward}
+            onToggleFullscreen={handleToggleFullscreen}
           />
 
           <VideoPlayerStates

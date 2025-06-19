@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, RotateCw } from 'lucide-react';
+import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize } from 'lucide-react';
 
 interface VideoPlayerControlsProps {
   isPlaying: boolean;
@@ -11,6 +11,8 @@ interface VideoPlayerControlsProps {
   onSeek: (time: number) => void;
   onSeekBack: () => void;
   onSeekForward: () => void;
+  onToggleFullscreen: () => void;
+  isFullscreen: boolean;
 }
 
 const VideoPlayerControls = ({ 
@@ -21,7 +23,9 @@ const VideoPlayerControls = ({
   onPlayPause, 
   onSeek, 
   onSeekBack, 
-  onSeekForward 
+  onSeekForward,
+  onToggleFullscreen,
+  isFullscreen
 }: VideoPlayerControlsProps) => {
   const [showControls, setShowControls] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
@@ -101,6 +105,7 @@ const VideoPlayerControls = ({
             <button
               className="p-1.5 sm:p-2 text-white/80 hover:text-white transition-colors"
               onClick={onSeekBack}
+              title="Seek back 10 seconds"
             >
               <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -109,14 +114,30 @@ const VideoPlayerControls = ({
             <button
               className="p-1.5 sm:p-2 text-white/80 hover:text-white transition-colors"
               onClick={onSeekForward}
+              title="Seek forward 10 seconds"
             >
               <RotateCw className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
 
-          {/* Time Display */}
-          <div className="text-white/90 text-xs sm:text-sm font-medium">
-            {formatTime(currentTime)} / {formatTime(duration)}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Time Display */}
+            <div className="text-white/90 text-xs sm:text-sm font-medium">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </div>
+
+            {/* Fullscreen Button */}
+            <button
+              className="p-1.5 sm:p-2 text-white/80 hover:text-white transition-colors"
+              onClick={onToggleFullscreen}
+              title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize className="w-4 h-4 sm:w-5 sm:h-5" />
+              ) : (
+                <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
+              )}
+            </button>
           </div>
         </div>
       </div>
