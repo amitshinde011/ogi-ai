@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -6,18 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import PhotoUpload from '@/components/PhotoUpload';
+import ComfortSlider from '@/components/ComfortSlider';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface BeforeAssessmentForm {
-  walk_10km_comfort: string;
-  run_10km_comfort: string;
-  climb_mountain_comfort: string;
+  walk_10km_comfort: number;
+  run_10km_comfort: number;
+  climb_mountain_comfort: number;
   current_health_conditions: string;
   comments: string;
 }
@@ -32,9 +30,9 @@ const BeforeAssessment = () => {
 
   const form = useForm<BeforeAssessmentForm>({
     defaultValues: {
-      walk_10km_comfort: '',
-      run_10km_comfort: '',
-      climb_mountain_comfort: '',
+      walk_10km_comfort: 3,
+      run_10km_comfort: 3,
+      climb_mountain_comfort: 3,
       current_health_conditions: '',
       comments: ''
     }
@@ -113,6 +111,15 @@ const BeforeAssessment = () => {
         }
       }
 
+      // Convert numeric values to string format for database compatibility
+      const formattedData = {
+        walk_10km_comfort: getComfortString(data.walk_10km_comfort),
+        run_10km_comfort: getComfortString(data.run_10km_comfort),
+        climb_mountain_comfort: getComfortString(data.climb_mountain_comfort),
+        current_health_conditions: data.current_health_conditions,
+        comments: data.comments
+      };
+
       // Create before assessment using journey_assessments table
       const { error } = await supabase
         .from('journey_assessments')
@@ -120,7 +127,7 @@ const BeforeAssessment = () => {
           user_id: user.id,
           subscription_id: subscription.id,
           assessment_type: 'before',
-          ...data,
+          ...formattedData,
           full_body_photo_url: imageUrl
         });
 
@@ -144,13 +151,16 @@ const BeforeAssessment = () => {
     }
   };
 
-  const comfortOptions = [
-    { value: 'very_comfortable', label: 'Very Comfortable' },
-    { value: 'comfortable', label: 'Comfortable' },
-    { value: 'somewhat_comfortable', label: 'Somewhat Comfortable' },
-    { value: 'uncomfortable', label: 'Uncomfortable' },
-    { value: 'very_uncomfortable', label: 'Very Uncomfortable' }
-  ];
+  const getComfortString = (value: number) => {
+    const mapping = {
+      1: 'very_uncomfortable',
+      2: 'uncomfortable',
+      3: 'somewhat_comfortable',
+      4: 'comfortable',
+      5: 'very_comfortable'
+    };
+    return mapping[value as keyof typeof mapping] || 'somewhat_comfortable';
+  };
 
   return (
     <Layout>
@@ -167,7 +177,7 @@ const BeforeAssessment = () => {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                   {/* Photo Upload */}
                   <PhotoUpload
                     selectedImage={imagePreview}
@@ -178,23 +188,18 @@ const BeforeAssessment = () => {
                     description="Capture your fitness journey beginning"
                   />
 
-                  {/* Comfort Level Questions */}
+                  {/* Comfort Level Questions with Sliders */}
                   <FormField
                     control={form.control}
                     name="walk_10km_comfort"
-                    rules={{ required: "Please select your comfort level" }}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>How comfortable do you feel walking 10km?</FormLabel>
                         <FormControl>
-                          <RadioGroup value={field.value} onValueChange={field.onChange}>
-                            {comfortOptions.map((option) => (
-                              <div key={option.value} className="flex items-center space-x-2">
-                                <RadioGroupItem value={option.value} id={`walk-${option.value}`} />
-                                <Label htmlFor={`walk-${option.value}`}>{option.label}</Label>
-                              </div>
-                            ))}
-                          </RadioGroup>
+                          <ComfortSlider
+                            label="How comfortable do you feel walking 10km?"
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -204,19 +209,14 @@ const BeforeAssessment = () => {
                   <FormField
                     control={form.control}
                     name="run_10km_comfort"
-                    rules={{ required: "Please select your comfort level" }}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>How comfortable do you feel running 10km?</FormLabel>
                         <FormControl>
-                          <RadioGroup value={field.value} onValueChange={field.onChange}>
-                            {comfortOptions.map((option) => (
-                              <div key={option.value} className="flex items-center space-x-2">
-                                <RadioGroupItem value={option.value} id={`run-${option.value}`} />
-                                <Label htmlFor={`run-${option.value}`}>{option.label}</Label>
-                              </div>
-                            ))}
-                          </RadioGroup>
+                          <ComfortSlider
+                            label="How comfortable do you feel running 10km?"
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -226,19 +226,14 @@ const BeforeAssessment = () => {
                   <FormField
                     control={form.control}
                     name="climb_mountain_comfort"
-                    rules={{ required: "Please select your comfort level" }}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>How comfortable do you feel climbing a small mountain?</FormLabel>
                         <FormControl>
-                          <RadioGroup value={field.value} onValueChange={field.onChange}>
-                            {comfortOptions.map((option) => (
-                              <div key={option.value} className="flex items-center space-x-2">
-                                <RadioGroupItem value={option.value} id={`climb-${option.value}`} />
-                                <Label htmlFor={`climb-${option.value}`}>{option.label}</Label>
-                              </div>
-                            ))}
-                          </RadioGroup>
+                          <ComfortSlider
+                            label="How comfortable do you feel climbing a small mountain?"
+                            value={field.value}
+                            onChange={field.onChange}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
