@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -99,12 +98,11 @@ const Signup = () => {
           <div className="mb-4">
             <div className="w-16 h-16 mx-auto flex items-center justify-center mb-4">
               <img 
-                src="/lovable-uploads/282dc416-05e6-46a1-83bc-f3f54eed6b80.png" 
-                alt="Yogi-ai Logo" 
+                src="/lovable-uploads/6cf2c839-5326-4219-9033-549deb1fb03c.png" 
+                alt="Yogi Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
-            <h1 className="text-2xl font-bold text-black">Join Yogi-ai</h1>
             <p className="text-black">Start your wellness journey today</p>
           </div>
         </CardHeader>

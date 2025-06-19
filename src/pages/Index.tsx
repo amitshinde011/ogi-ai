@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -96,13 +95,11 @@ const Index = () => {
       <div className="text-center">
         <div className="w-32 h-32 mx-auto flex items-center justify-center mb-6 animate-scale-in">
           <img 
-            src="/lovable-uploads/282dc416-05e6-46a1-83bc-f3f54eed6b80.png" 
+            src="/lovable-uploads/6cf2c839-5326-4219-9033-549deb1fb03c.png" 
             alt="Yogi Logo" 
             className="w-full h-full object-contain"
           />
         </div>
-        <h1 className="text-3xl font-bold text-stone mb-2 animate-fade-in">Yogi</h1>
-        <p className="text-stone/70 animate-fade-in">Become the best version of yourself.</p>
         <div className="mt-6">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage mx-auto"></div>
         </div>
