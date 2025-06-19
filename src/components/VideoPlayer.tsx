@@ -34,11 +34,11 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
   console.log('VideoPlayer render - showVideo:', showVideo, 'videoLoaded:', videoLoaded, 'videoError:', videoError);
 
   return (
-    <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-3xl aspect-video flex items-center justify-center shadow-inner overflow-hidden">
+    <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl sm:rounded-3xl aspect-video flex items-center justify-center shadow-inner overflow-hidden">
       {!showVideo ? (
         <VideoIntro onShowVideo={handleShowVideo} />
       ) : (
-        <div className="w-full h-full relative bg-black rounded-3xl">
+        <div className="w-full h-full relative bg-black rounded-2xl sm:rounded-3xl">
           <VideoPlayerCore
             videoRef={videoRef}
             videoSources={videoSources}

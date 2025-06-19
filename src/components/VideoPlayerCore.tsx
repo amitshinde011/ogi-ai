@@ -37,7 +37,7 @@ const VideoPlayerCore = ({
   return (
     <video
       ref={videoRef}
-      className="w-full h-full object-cover rounded-3xl select-none"
+      className="w-full h-full object-cover rounded-2xl sm:rounded-3xl select-none"
       onEnded={onEnded}
       onPlay={onPlay}
       onPause={onPause}
