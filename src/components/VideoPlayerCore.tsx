@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface VideoPlayerCoreProps {
   videoRef: React.RefObject<HTMLVideoElement>;
@@ -37,6 +37,35 @@ const VideoPlayerCore = ({
   // Log current video source
   console.log('VideoPlayerCore: Using video source:', videoSources[currentQuality]);
   console.log('VideoPlayerCore: Source type detected:', videoSources[currentQuality].includes('.m3u8') ? 'HLS' : 'MP4');
+
+  // Effect to handle HLS loading and error recovery
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleLoadError = () => {
+      console.log('Video load error detected, attempting to reload...');
+      setTimeout(() => {
+        if (video && video.src) {
+          video.load();
+        }
+      }, 1000);
+    };
+
+    const handleCanPlayThrough = () => {
+      console.log('Video can play through - HLS stream ready');
+    };
+
+    video.addEventListener('error', handleLoadError);
+    video.addEventListener('canplaythrough', handleCanPlayThrough);
+
+    return () => {
+      if (video) {
+        video.removeEventListener('error', handleLoadError);
+        video.removeEventListener('canplaythrough', handleCanPlayThrough);
+      }
+    };
+  }, [videoRef, videoSources[currentQuality]]);
 
   return (
     <video

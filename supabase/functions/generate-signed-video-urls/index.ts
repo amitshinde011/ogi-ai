@@ -32,8 +32,8 @@ serve(async (req) => {
     if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_SIGNING_KEY_ID || !CLOUDFLARE_SIGNING_KEY) {
       console.log('Missing Cloudflare configuration, returning fallback URL')
       
-      // Return fallback URL - use HLS stream URL as per Cloudflare docs
-      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID || 'cnlj15s4to2idzsi'}.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
+      // Return fallback URL - use the correct account ID from the curl
+      const fallbackUrl = `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
       
       const response = {
         high: fallbackUrl,
@@ -116,9 +116,9 @@ serve(async (req) => {
         key
       )
       
-      // Create signed HLS manifest URLs as per Cloudflare Stream documentation
-      // The signed token becomes part of the URL path, not a query parameter
-      const signedUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/manifest/video.m3u8`
+      // Create signed HLS manifest URLs using the correct account ID format
+      // Based on the curl, the correct format is customer-{hash}.cloudflarestream.com
+      const signedUrl = `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${token}/manifest/video.m3u8`
       
       console.log('Generated signed HLS URL successfully with algorithm:', algorithm)
 
@@ -143,7 +143,7 @@ serve(async (req) => {
       console.error('Error generating signed URL:', signingError)
       
       // Fallback to unsigned HLS URL if signing fails
-      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
+      const fallbackUrl = `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
       
       const response = {
         high: fallbackUrl,
@@ -166,7 +166,7 @@ serve(async (req) => {
     console.error('Error in edge function:', error)
     
     // Return a working fallback HLS URL in case of any error
-    const fallbackUrl = "https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/manifest/video.m3u8"
+    const fallbackUrl = "https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/manifest/video.m3u8"
     
     const response = {
       high: fallbackUrl,
