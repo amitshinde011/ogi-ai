@@ -79,17 +79,17 @@ const TestimonialsCarousel = () => {
 
   const renderStars = (rating: number) => {
     return Array.from({ length: rating }, (_, i) => (
-      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+      <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
     ));
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+    <div className="w-full max-w-5xl mx-auto px-4">
+      <div className="text-center mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">
           Trusted by thousands worldwide
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Real stories from real people on their wellness journey
         </p>
       </div>
@@ -102,17 +102,17 @@ const TestimonialsCarousel = () => {
         }}
         className="w-full"
       >
-        <CarouselContent>
+        <CarouselContent className="-ml-2 sm:-ml-4">
           {testimonials.map((testimonial) => (
-            <CarouselItem key={testimonial.id} className="basis-full">
-              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 mx-2">
-                <div className="flex items-start space-x-6">
+            <CarouselItem key={testimonial.id} className="pl-2 sm:pl-4 basis-full">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-100">
+                <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6">
                   {/* Profile Image */}
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 mx-auto sm:mx-0">
                     <img
                       src={testimonial.image}
                       alt={testimonial.name}
-                      className="w-20 h-20 rounded-full object-cover ring-2 ring-gray-100"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-2 ring-gray-100"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=random&size=400`;
@@ -121,29 +121,29 @@ const TestimonialsCarousel = () => {
                   </div>
                   
                   {/* Content */}
-                  <div className="flex-1">
+                  <div className="flex-1 text-center sm:text-left">
                     {/* Rating */}
-                    <div className="flex items-center mb-3">
+                    <div className="flex items-center justify-center sm:justify-start mb-3">
                       {renderStars(testimonial.rating)}
                     </div>
                     
                     {/* Headline */}
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 leading-tight">
                       "{testimonial.headline}"
                     </h3>
                     
                     {/* Testimonial */}
-                    <p className="text-gray-600 leading-relaxed mb-4 text-sm">
+                    <p className="text-gray-600 leading-relaxed mb-4 text-xs sm:text-sm lg:text-base">
                       "{testimonial.testimonial}"
                     </p>
                     
                     {/* Author Info */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="font-medium text-gray-800">
+                        <p className="font-medium text-gray-800 text-sm sm:text-base">
                           {testimonial.name}, {testimonial.age}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-xs sm:text-sm text-gray-500">
                           {testimonial.location}
                         </p>
                       </div>
@@ -154,8 +154,8 @@ const TestimonialsCarousel = () => {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-4 bg-white/80 hover:bg-white border-gray-200 text-gray-600 hover:text-gray-800" />
-        <CarouselNext className="right-4 bg-white/80 hover:bg-white border-gray-200 text-gray-600 hover:text-gray-800" />
+        <CarouselPrevious className="hidden sm:flex left-2 lg:left-4 bg-white/80 hover:bg-white border-gray-200 text-gray-600 hover:text-gray-800" />
+        <CarouselNext className="hidden sm:flex right-2 lg:right-4 bg-white/80 hover:bg-white border-gray-200 text-gray-600 hover:text-gray-800" />
       </Carousel>
     </div>
   );
