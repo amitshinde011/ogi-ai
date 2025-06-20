@@ -2,7 +2,7 @@
 import { VideoSources } from '@/types/videoPlayer';
 
 export const VIDEO_SOURCES: VideoSources = {
-  high: "https://mxigbftmmkqnhmocyeeo.supabase.co/storage/v1/object/sign/videos/Dhatu1080.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yNDBlZGRiZS05OTQxLTQwODktYjRjZi03OGJiZjJkMTQyMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvRGhhdHUxMDgwLm1wNCIsImlhdCI6MTc1MDM1MDgyNiwiZXhwIjoxOTA4MDMwODI2fQ.4KvBXDXu3rNu-r_FDGv5UYtbeLBUpl-jRpAfH3bFRGg",
-  medium: "https://mxigbftmmkqnhmocyeeo.supabase.co/storage/v1/object/sign/videos/Dhatu720.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yNDBlZGRiZS05OTQxLTQwODktYjRjZi03OGJiZjJkMTQyMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvRGhhdHU3MjAubXA0IiwiaWF0IjoxNzUwMzU0MTkzLCJleHAiOjE5MDgwMzQxOTN9.HxXWMi4fDAxllgebzuZ6lKVcPAVqr0ICIirSHeL4Rh4",
-  low: "https://mxigbftmmkqnhmocyeeo.supabase.co/storage/v1/object/sign/videos/Dhatu480.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8yNDBlZGRiZS05OTQxLTQwODktYjRjZi03OGJiZjJkMTQyMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ2aWRlb3MvRGhhdHU0ODAubXA0IiwiaWF0IjoxNzUwMzU0MTU4LCJleHAiOjE5MDgwMzQxNTh9.P6klpN3sLaRJKB8O0OvN8XXJqmdXPPf2arK3emmKAj0"
+  high: "https://mxigbftmmkqnhmocyeeo.supabase.co/storage/v1/object/public/videos//Dhatu1080.mp4",
+  medium: "https://mxigbftmmkqnhmocyeeo.supabase.co/storage/v1/object/public/videos//Dhatu480.mp4",
+  low: "https://mxigbftmmkqnhmocyeeo.supabase.co/storage/v1/object/public/videos//Dhatu720.mp4"
 };
