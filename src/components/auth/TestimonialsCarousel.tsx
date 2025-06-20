@@ -7,6 +7,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Star } from 'lucide-react';
 
 interface Testimonial {
@@ -83,6 +84,10 @@ const TestimonialsCarousel = () => {
     ));
   };
 
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4">
       <div className="text-center mb-6 sm:mb-8">
@@ -106,47 +111,44 @@ const TestimonialsCarousel = () => {
           {testimonials.map((testimonial) => (
             <CarouselItem key={testimonial.id} className="pl-2 sm:pl-4 basis-full">
               <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-100">
-                <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6">
-                  {/* Profile Image */}
-                  <div className="flex-shrink-0 mx-auto sm:mx-0">
-                    <img
-                      src={testimonial.image}
+                <div className="flex flex-col items-center text-center space-y-4">
+                  {/* Profile Picture */}
+                  <Avatar className="w-16 h-16 sm:w-20 sm:h-20 ring-2 ring-gray-100">
+                    <AvatarImage 
+                      src={testimonial.image} 
                       alt={testimonial.name}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover ring-2 ring-gray-100"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=random&size=400`;
-                      }}
+                      className="object-cover"
                     />
-                  </div>
+                    <AvatarFallback className="bg-sage text-white font-semibold text-lg">
+                      {getInitials(testimonial.name)}
+                    </AvatarFallback>
+                  </Avatar>
                   
                   {/* Content */}
-                  <div className="flex-1 text-center sm:text-left">
+                  <div className="space-y-3">
                     {/* Rating */}
-                    <div className="flex items-center justify-center sm:justify-start mb-3">
+                    <div className="flex items-center justify-center">
                       {renderStars(testimonial.rating)}
                     </div>
                     
                     {/* Headline */}
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 leading-tight">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-800 leading-tight">
                       "{testimonial.headline}"
                     </h3>
                     
                     {/* Testimonial */}
-                    <p className="text-gray-600 leading-relaxed mb-4 text-xs sm:text-sm lg:text-base">
+                    <p className="text-gray-600 leading-relaxed text-xs sm:text-sm lg:text-base max-w-2xl">
                       "{testimonial.testimonial}"
                     </p>
                     
                     {/* Author Info */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="font-medium text-gray-800 text-sm sm:text-base">
-                          {testimonial.name}, {testimonial.age}
-                        </p>
-                        <p className="text-xs sm:text-sm text-gray-500">
-                          {testimonial.location}
-                        </p>
-                      </div>
+                    <div className="pt-2">
+                      <p className="font-medium text-gray-800 text-sm sm:text-base">
+                        {testimonial.name}, {testimonial.age}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-500">
+                        {testimonial.location}
+                      </p>
                     </div>
                   </div>
                 </div>
