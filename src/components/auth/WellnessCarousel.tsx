@@ -9,16 +9,21 @@ import {
 } from '@/components/ui/carousel';
 
 const WellnessCarousel = () => {
-  const images = [
-    '/lovable-uploads/0c0444a7-0c07-43d0-8fac-7aed6ee52d41.png',
-    '/lovable-uploads/9007c4a8-556e-4720-b175-bcd1ccd3fa7a.png',
-    '/lovable-uploads/00650227-f546-403b-847b-177618181db4.png',
-    '/lovable-uploads/38e93c2a-67d3-4899-a801-be95bff4bbcb.png',
-    '/lovable-uploads/b81ced20-6a91-448e-bac9-57b644e4787e.png',
-    '/lovable-uploads/16c28ccf-38c0-4b4f-b1e3-a2dd98ddd3fe.png',
-    '/lovable-uploads/f576ca68-0529-41ad-b7ee-dd9aec0bb5b8.png',
-    '/lovable-uploads/1d846cf4-d07a-4a9d-bce2-33f967d61ff8.png'
+  const imageIds = [
+    'bc37fb04-6356-4903-f35b-b28b2e891300',
+    'bfc0c878-5985-4af9-685c-51a970a6a200',
+    'e505f2f8-50b4-4b3a-4704-0636a265ac00',
+    '5b9282e0-5d2e-463c-6f5d-8c2819a75500',
+    'fb24fed9-1885-412a-b077-500fe5ee8200',
+    'c94586bb-93dc-4216-ce83-509faac19a00',
+    '5031a597-6156-49f8-8171-40399facba00',
+    'dc5473c1-f6a0-4e4e-1a86-bc5253d57300'
   ];
+
+  // Convert Cloudflare image IDs to URLs
+  const images = imageIds.map(id => 
+    `https://imagedelivery.net/your-account-hash/${id}/public`
+  );
 
   const [api, setApi] = useState<any>(null);
 
@@ -45,12 +50,16 @@ const WellnessCarousel = () => {
       >
         <CarouselContent>
           {images.map((image, index) => (
-            <CarouselItem key={index} className="basis-full">
+            <CarouselItem key={imageIds[index]} className="basis-full">
               <div className="relative w-full aspect-[3/3] sm:aspect-[3/3] md:aspect-[3/3] overflow-hidden rounded-2xl">
                 <img
                   src={image}
                   alt={`Wellness inspiration ${index + 1}`}
                   className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  onError={(e) => {
+                    console.error(`Failed to load image: ${image}`);
+                    // Fallback to a placeholder or handle error
+                  }}
                 />
               </div>
             </CarouselItem>
