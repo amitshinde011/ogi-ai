@@ -33,7 +33,7 @@ serve(async (req) => {
       console.log('Missing Cloudflare configuration, returning unsigned URL')
       
       // Return fallback URL without signing - this should work for testing
-      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID || 'cnlj15s4to2idzsi'}.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
+      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID || 'cnlj15s4to2idzsi'}.cloudflarestream.com/${VIDEO_ID}/downloads/default.mp4`
       
       const response = {
         high: fallbackUrl,
@@ -116,16 +116,18 @@ serve(async (req) => {
         key
       )
       
-      // Create the signed URL with token in the path
-      const signedUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/manifest/video.m3u8`
+      // Create signed MP4 URLs instead of HLS manifest URLs
+      const signedUrlHigh = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/downloads/default.mp4`
+      const signedUrlMedium = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/downloads/default.mp4`
+      const signedUrlLow = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/downloads/default.mp4`
       
-      console.log('Generated signed URL successfully with algorithm:', algorithm)
+      console.log('Generated signed MP4 URLs successfully with algorithm:', algorithm)
 
-      // Return the same URL for all qualities since Cloudflare handles adaptation
+      // Return MP4 URLs for all qualities
       const response = {
-        high: signedUrl,
-        medium: signedUrl,
-        low: signedUrl
+        high: signedUrlHigh,
+        medium: signedUrlMedium,
+        low: signedUrlLow
       }
 
       return new Response(
@@ -141,8 +143,8 @@ serve(async (req) => {
     } catch (signingError) {
       console.error('Error generating signed URL:', signingError)
       
-      // Fallback to unsigned URL if signing fails
-      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
+      // Fallback to unsigned MP4 URL if signing fails
+      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${VIDEO_ID}/downloads/default.mp4`
       
       const response = {
         high: fallbackUrl,
@@ -164,8 +166,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in edge function:', error)
     
-    // Return a working fallback URL in case of any error
-    const fallbackUrl = "https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/manifest/video.m3u8"
+    // Return a working fallback MP4 URL in case of any error
+    const fallbackUrl = "https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/downloads/default.mp4"
     
     const response = {
       high: fallbackUrl,
