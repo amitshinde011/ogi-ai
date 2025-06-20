@@ -69,17 +69,49 @@ serve(async (req) => {
       const decodedKey = atob(CLOUDFLARE_SIGNING_KEY)
       const jwk = JSON.parse(decodedKey)
       
-      const key = await crypto.subtle.importKey(
-        'jwk',
-        jwk,
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['sign']
-      )
+      console.log('JWK type:', jwk.kty)
+      
+      // Handle different key types that Cloudflare might provide
+      let key;
+      let algorithm;
+      
+      if (jwk.kty === 'oct') {
+        // HMAC symmetric key
+        key = await crypto.subtle.importKey(
+          'jwk',
+          jwk,
+          { name: 'HMAC', hash: 'SHA-256' },
+          false,
+          ['sign']
+        )
+        algorithm = 'HS256'
+      } else if (jwk.kty === 'RSA') {
+        // RSA key
+        key = await crypto.subtle.importKey(
+          'jwk',
+          jwk,
+          { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+          false,
+          ['sign']
+        )
+        algorithm = 'RS256'
+      } else if (jwk.kty === 'EC') {
+        // ECDSA key
+        key = await crypto.subtle.importKey(
+          'jwk',
+          jwk,
+          { name: 'ECDSA', namedCurve: 'P-256' },
+          false,
+          ['sign']
+        )
+        algorithm = 'ES256'
+      } else {
+        throw new Error(`Unsupported key type: ${jwk.kty}`)
+      }
 
-      // Create the JWT token with kid in the header
+      // Create the JWT token with kid in the header and appropriate algorithm
       const token = await create(
-        { alg: 'HS256', typ: 'JWT', kid: CLOUDFLARE_SIGNING_KEY_ID },
+        { alg: algorithm, typ: 'JWT', kid: CLOUDFLARE_SIGNING_KEY_ID },
         payload,
         key
       )
@@ -87,7 +119,7 @@ serve(async (req) => {
       // Create the signed URL with token in the path
       const signedUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/manifest/video.m3u8`
       
-      console.log('Generated signed URL successfully with kid in header')
+      console.log('Generated signed URL successfully with algorithm:', algorithm)
 
       // Return the same URL for all qualities since Cloudflare handles adaptation
       const response = {
