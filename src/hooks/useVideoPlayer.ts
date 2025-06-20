@@ -26,13 +26,16 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
 
   // Load signed video URLs when component mounts
   useEffect(() => {
+    console.log('useVideoPlayer: Starting to load signed URLs');
     const loadSignedUrls = async () => {
       try {
+        console.log('useVideoPlayer: Calling generateSignedVideoSources');
         const signedSources = await generateSignedVideoSources();
+        console.log('useVideoPlayer: Received signed sources:', signedSources);
         setVideoSources(signedSources);
-        console.log('Loaded signed video URLs');
+        console.log('useVideoPlayer: Successfully loaded signed video URLs');
       } catch (error) {
-        console.error('Failed to load signed URLs, using fallback:', error);
+        console.error('useVideoPlayer: Failed to load signed URLs, using fallback:', error);
       }
     };
 
