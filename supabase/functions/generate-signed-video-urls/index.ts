@@ -1,5 +1,4 @@
 
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { create } from "https://deno.land/x/djwt@v2.9.1/mod.ts"
 
@@ -34,7 +33,7 @@ serve(async (req) => {
       console.log('Missing Cloudflare configuration, returning unsigned URL')
       
       // Return fallback URL without signing - this should work for testing
-      const fallbackUrl = `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
+      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID || 'cnlj15s4to2idzsi'}.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
       
       const response = {
         high: fallbackUrl,
@@ -79,11 +78,10 @@ serve(async (req) => {
       // Create the JWT token
       const token = await create({ alg: 'HS256', typ: 'JWT' }, payload, key)
       
-      // Create the signed URL
-      const baseUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
-      const signedUrl = `${baseUrl}?token=${token}`
+      // CORRECTED: Create the signed URL with token in the path (not as query parameter)
+      const signedUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/manifest/video.m3u8`
       
-      console.log('Generated signed URL successfully')
+      console.log('Generated signed URL successfully with correct structure')
 
       // Return the same URL for all qualities since Cloudflare handles adaptation
       const response = {
@@ -149,4 +147,3 @@ serve(async (req) => {
     )
   }
 })
-
