@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { VideoPlayerHookProps, VideoPlayerState, VideoSources } from '@/types/videoPlayer';
@@ -21,6 +22,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
   });
 
   const [videoSources, setVideoSources] = useState<VideoSources>(VIDEO_SOURCES);
+  const [signedUrlsLoaded, setSignedUrlsLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -33,9 +35,12 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
         const signedSources = await generateSignedVideoSources();
         console.log('useVideoPlayer: Received signed sources:', signedSources);
         setVideoSources(signedSources);
+        setSignedUrlsLoaded(true);
         console.log('useVideoPlayer: Successfully loaded signed video URLs');
       } catch (error) {
-        console.error('useVideoPlayer: Failed to load signed URLs, using fallback:', error);
+        console.error('useVideoPlayer: Failed to load signed URLs:', error);
+        console.log('useVideoPlayer: Will use fallback URLs for development');
+        setSignedUrlsLoaded(false);
       }
     };
 
@@ -63,9 +68,11 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     console.log('showVideo state changed:', state.showVideo);
     if (state.showVideo && videoRef.current) {
       console.log('Video element exists after showVideo=true:', videoRef.current);
+      console.log('Using signed URLs loaded:', signedUrlsLoaded);
+      console.log('Current video sources:', videoSources);
       videoRef.current.load();
     }
-  }, [state.showVideo]);
+  }, [state.showVideo, signedUrlsLoaded, videoSources]);
 
   // Monitor loading time and adjust quality if needed
   useEffect(() => {
@@ -148,6 +155,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     console.log('Current showVideo state:', state.showVideo);
     console.log('Selected video quality:', state.currentQuality);
     console.log('Using video sources:', videoSources);
+    console.log('Signed URLs loaded:', signedUrlsLoaded);
     setState(prev => ({
       ...prev,
       showVideo: true,
@@ -167,15 +175,30 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
   const handleVideoLoadedData = () => {
     setState(prev => ({ ...prev, videoLoaded: true }));
     console.log('Video loaded successfully with quality:', state.currentQuality);
+    console.log('Video loaded from signed URLs:', signedUrlsLoaded);
   };
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     console.error('Video error:', e.currentTarget.error);
     console.error('Video error details:', {
       code: e.currentTarget.error?.code,
-      message: e.currentTarget.error?.message
+      message: e.currentTarget.error?.message,
+      currentSrc: e.currentTarget.currentSrc,
+      signedUrlsLoaded: signedUrlsLoaded
     });
     
+    // If we're using signed URLs and get an error, don't try to fall back to unsigned URLs
+    if (signedUrlsLoaded) {
+      console.log('Error with signed URLs - this might be a network issue or expired token');
+      setState(prev => ({
+        ...prev,
+        videoError: true,
+        videoLoaded: false
+      }));
+      return;
+    }
+    
+    // Quality fallback logic for development/fallback URLs
     if (state.currentQuality === 'high') {
       console.log('High quality failed, trying medium quality');
       setState(prev => ({
@@ -209,6 +232,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
 
   const handleVideoLoadStart = () => {
     console.log('Video load started with quality:', state.currentQuality);
+    console.log('Video load started with signed URLs:', signedUrlsLoaded);
     setState(prev => ({
       ...prev,
       videoLoaded: false,

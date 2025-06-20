@@ -1,9 +1,6 @@
 
 import { VideoSources } from '@/types/videoPlayer';
 
-// Using a working test video URL - you'll need to replace this with your actual video URLs
-const TEST_VIDEO_URL = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
-
 // Function to generate signed URLs (this will be called from a server function)
 export const generateSignedVideoSources = async (): Promise<VideoSources> => {
   console.log('generateSignedVideoSources called - starting fetch to edge function');
@@ -30,23 +27,17 @@ export const generateSignedVideoSources = async (): Promise<VideoSources> => {
     return signedUrls;
   } catch (error) {
     console.error('Error generating signed URLs:', error);
-    console.log('Falling back to test video URL');
+    console.log('Edge function failed - this is expected in development');
     
-    // Use test video URL as fallback
-    const fallbackUrls = {
-      high: TEST_VIDEO_URL,
-      medium: TEST_VIDEO_URL,
-      low: TEST_VIDEO_URL
-    };
-    
-    console.log('Using fallback test video URL:', fallbackUrls);
-    return fallbackUrls;
+    // Important: Do NOT fall back to unsigned URLs in production
+    // This fallback is only for development/testing when the edge function might not be available
+    throw error; // Re-throw the error instead of using fallback
   }
 };
 
-// Default export with test video URL
+// Default export - this should not be used directly in production
 export const VIDEO_SOURCES: VideoSources = {
-  high: TEST_VIDEO_URL,
-  medium: TEST_VIDEO_URL,
-  low: TEST_VIDEO_URL
+  high: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  medium: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  low: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
 };
