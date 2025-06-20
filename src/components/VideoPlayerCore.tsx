@@ -38,7 +38,7 @@ const VideoPlayerCore = ({
   console.log('VideoPlayerCore: Using video source:', videoSources[currentQuality]);
   console.log('VideoPlayerCore: Source type detected:', videoSources[currentQuality].includes('.m3u8') ? 'HLS' : 'MP4');
 
-  // Effect to handle HLS loading with native browser support
+  // Effect to handle video source loading
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -46,27 +46,18 @@ const VideoPlayerCore = ({
     const currentSource = videoSources[currentQuality];
     console.log('VideoPlayerCore: Setting video source to:', currentSource);
 
-    // For HLS streams, we need to handle them differently
-    if (currentSource.includes('.m3u8')) {
-      console.log('VideoPlayerCore: Detected HLS stream, setting up for native playback');
-      
-      // Clear any existing source
-      video.src = '';
-      video.load();
-      
-      // Set the HLS source directly
-      video.src = currentSource;
-      video.load();
-    } else {
-      // For regular MP4 files
-      video.src = currentSource;
-      video.load();
-    }
+    // Set the video source
+    video.src = currentSource;
+    
+    // Load the video
+    video.load();
 
     const handleLoadError = (e: Event) => {
       const target = e.target as HTMLVideoElement;
       console.error('VideoPlayerCore: Video load error:', {
         error: target.error,
+        errorCode: target.error?.code,
+        errorMessage: target.error?.message,
         src: target.src,
         networkState: target.networkState,
         readyState: target.readyState
@@ -79,17 +70,25 @@ const VideoPlayerCore = ({
 
     const handleLoadedMetadata = () => {
       console.log('VideoPlayerCore: Video metadata loaded successfully');
+      console.log('VideoPlayerCore: Video duration:', video.duration);
+      console.log('VideoPlayerCore: Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+    };
+
+    const handleProgress = () => {
+      console.log('VideoPlayerCore: Video loading progress');
     };
 
     video.addEventListener('error', handleLoadError);
     video.addEventListener('canplaythrough', handleCanPlayThrough);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('progress', handleProgress);
 
     return () => {
       if (video) {
         video.removeEventListener('error', handleLoadError);
         video.removeEventListener('canplaythrough', handleCanPlayThrough);
         video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        video.removeEventListener('progress', handleProgress);
       }
     };
   }, [videoRef, videoSources[currentQuality]]);
