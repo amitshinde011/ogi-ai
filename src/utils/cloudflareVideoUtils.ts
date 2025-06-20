@@ -3,11 +3,7 @@ import { VideoSources } from '@/types/videoPlayer';
 
 export interface CloudflareVideoConfig {
   accountId: string;
-  videoIds: {
-    high: string;
-    medium: string;
-    low: string;
-  };
+  videoId: string; // Single video ID instead of multiple
 }
 
 export const generateCloudflareSignedUrls = async (config: CloudflareVideoConfig): Promise<VideoSources> => {
@@ -19,7 +15,7 @@ export const generateCloudflareSignedUrls = async (config: CloudflareVideoConfig
       },
       body: JSON.stringify({
         accountId: config.accountId,
-        videoIds: config.videoIds,
+        videoId: config.videoId,
       }),
     });
 

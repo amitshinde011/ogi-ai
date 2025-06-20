@@ -1,12 +1,8 @@
 
 import { VideoSources } from '@/types/videoPlayer';
 
-// Base URLs for Cloudflare Stream videos
-const CLOUDFLARE_BASE_URLS = {
-  high: "https://customer-xxxxxxxxxxxxxxxx.cloudflarestream.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/manifest/video.m3u8", // Replace with your actual Stream URL
-  medium: "https://customer-xxxxxxxxxxxxxxxx.cloudflarestream.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/manifest/video.m3u8", // Replace with your actual Stream URL
-  low: "https://customer-xxxxxxxxxxxxxxxx.cloudflarestream.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/manifest/video.m3u8" // Replace with your actual Stream URL
-};
+// Single video URL - Cloudflare Stream handles adaptive bitrate automatically
+const CLOUDFLARE_VIDEO_URL = "https://customer-xxxxxxxxxxxxxxxx.cloudflarestream.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/manifest/video.m3u8"; // Replace with your actual Stream URL
 
 // Function to generate signed URLs (this will be called from a server function)
 export const generateSignedVideoSources = async (): Promise<VideoSources> => {
@@ -27,10 +23,18 @@ export const generateSignedVideoSources = async (): Promise<VideoSources> => {
     return signedUrls;
   } catch (error) {
     console.error('Error generating signed URLs:', error);
-    // Fallback to base URLs if signing fails
-    return CLOUDFLARE_BASE_URLS;
+    // Fallback to base URL if signing fails - all qualities use the same URL
+    return {
+      high: CLOUDFLARE_VIDEO_URL,
+      medium: CLOUDFLARE_VIDEO_URL,
+      low: CLOUDFLARE_VIDEO_URL
+    };
   }
 };
 
-// Default export for backward compatibility
-export const VIDEO_SOURCES: VideoSources = CLOUDFLARE_BASE_URLS;
+// Default export for backward compatibility - all qualities use the same URL
+export const VIDEO_SOURCES: VideoSources = {
+  high: CLOUDFLARE_VIDEO_URL,
+  medium: CLOUDFLARE_VIDEO_URL,
+  low: CLOUDFLARE_VIDEO_URL
+};
