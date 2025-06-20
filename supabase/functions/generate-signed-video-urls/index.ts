@@ -1,4 +1,5 @@
 
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { create } from "https://deno.land/x/djwt@v2.9.1/mod.ts"
 
@@ -13,15 +14,27 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Edge function called')
+    
     // Get Cloudflare credentials from Supabase secrets
     const CLOUDFLARE_ACCOUNT_ID = Deno.env.get('CLOUDFLARE_ACCOUNT_ID')
     const CLOUDFLARE_SIGNING_KEY_ID = Deno.env.get('CLOUDFLARE_SIGNING_KEY_ID')
     const CLOUDFLARE_SIGNING_KEY = Deno.env.get('CLOUDFLARE_SIGNING_KEY')
 
+    console.log('Environment check:', {
+      hasAccountId: !!CLOUDFLARE_ACCOUNT_ID,
+      hasSigningKeyId: !!CLOUDFLARE_SIGNING_KEY_ID,
+      hasSigningKey: !!CLOUDFLARE_SIGNING_KEY
+    })
+
+    // Use the video ID from your constants
+    const VIDEO_ID = '8d8f8b1aca7d0f8224683acc56a26c4f'
+
     if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_SIGNING_KEY_ID || !CLOUDFLARE_SIGNING_KEY) {
-      console.log('Missing Cloudflare configuration')
-      // Return fallback URL without signing
-      const fallbackUrl = "https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/manifest/video.m3u8"
+      console.log('Missing Cloudflare configuration, returning unsigned URL')
+      
+      // Return fallback URL without signing - this should work for testing
+      const fallbackUrl = `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
       
       const response = {
         high: fallbackUrl,
@@ -40,10 +53,7 @@ serve(async (req) => {
       )
     }
 
-    console.log('Generating signed URL with account ID:', CLOUDFLARE_ACCOUNT_ID)
-
-    // Use the video ID from your constants
-    const VIDEO_ID = '8d8f8b1aca7d0f8224683acc56a26c4f'
+    console.log('Attempting to generate signed URL')
 
     try {
       // Set expiration time (1 hour from now)
@@ -94,6 +104,7 @@ serve(async (req) => {
 
     } catch (signingError) {
       console.error('Error generating signed URL:', signingError)
+      
       // Fallback to unsigned URL if signing fails
       const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
       
@@ -117,7 +128,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in edge function:', error)
     
-    // Return a fallback URL in case of any error
+    // Return a working fallback URL in case of any error
     const fallbackUrl = "https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/manifest/video.m3u8"
     
     const response = {
@@ -138,3 +149,4 @@ serve(async (req) => {
     )
   }
 })
+
