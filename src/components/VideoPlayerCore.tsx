@@ -62,7 +62,6 @@ const VideoPlayerCore = ({
       draggable={false}
     >
       <source src={videoSources[currentQuality]} type="video/mp4" />
-      <source src={videoSources[currentQuality]} type="application/x-mpegURL" />
       Your browser does not support the video tag.
     </video>
   );

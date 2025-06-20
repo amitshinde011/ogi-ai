@@ -1,8 +1,8 @@
 
 import { VideoSources } from '@/types/videoPlayer';
 
-// Updated Cloudflare Stream URL with correct format
-const CLOUDFLARE_VIDEO_URL = "https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/manifest/video.m3u8";
+// Using a working test video URL - you'll need to replace this with your actual video URLs
+const TEST_VIDEO_URL = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
 // Function to generate signed URLs (this will be called from a server function)
 export const generateSignedVideoSources = async (): Promise<VideoSources> => {
@@ -19,12 +19,9 @@ export const generateSignedVideoSources = async (): Promise<VideoSources> => {
     });
 
     console.log('Edge function response status:', response.status);
-    console.log('Edge function response headers:', response.headers);
 
     if (!response.ok) {
       console.error('Failed to fetch signed URLs:', response.status, response.statusText);
-      const errorText = await response.text();
-      console.error('Error response body:', errorText);
       throw new Error('Failed to generate signed URLs');
     }
 
@@ -33,23 +30,23 @@ export const generateSignedVideoSources = async (): Promise<VideoSources> => {
     return signedUrls;
   } catch (error) {
     console.error('Error generating signed URLs:', error);
-    console.log('Falling back to direct MP4 URLs');
+    console.log('Falling back to test video URL');
     
-    // Fallback to direct MP4 URLs if signing fails
+    // Use test video URL as fallback
     const fallbackUrls = {
-      high: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/downloads/default.mp4`,
-      medium: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/downloads/default.mp4`,
-      low: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/downloads/default.mp4`
+      high: TEST_VIDEO_URL,
+      medium: TEST_VIDEO_URL,
+      low: TEST_VIDEO_URL
     };
     
-    console.log('Using fallback URLs:', fallbackUrls);
+    console.log('Using fallback test video URL:', fallbackUrls);
     return fallbackUrls;
   }
 };
 
-// Default export with MP4 fallback URLs
+// Default export with test video URL
 export const VIDEO_SOURCES: VideoSources = {
-  high: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/downloads/default.mp4`,
-  medium: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/downloads/default.mp4`,
-  low: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/downloads/default.mp4`
+  high: TEST_VIDEO_URL,
+  medium: TEST_VIDEO_URL,
+  low: TEST_VIDEO_URL
 };
