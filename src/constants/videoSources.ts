@@ -2,7 +2,7 @@
 import { VideoSources } from '@/types/videoPlayer';
 
 // Single video URL - Cloudflare Stream handles adaptive bitrate automatically
-const CLOUDFLARE_VIDEO_URL = "https://customer-xxxxxxxxxxxxxxxx.cloudflarestream.com/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/manifest/video.m3u8"; // Replace with your actual Stream URL
+const CLOUDFLARE_VIDEO_URL = "https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/manifest/video.m3u8"; // Replace with your actual Stream URL
 
 // Function to generate signed URLs (this will be called from a server function)
 export const generateSignedVideoSources = async (): Promise<VideoSources> => {
