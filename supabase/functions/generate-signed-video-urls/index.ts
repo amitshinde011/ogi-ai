@@ -30,10 +30,10 @@ serve(async (req) => {
     const VIDEO_ID = '8d8f8b1aca7d0f8224683acc56a26c4f'
 
     if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_SIGNING_KEY_ID || !CLOUDFLARE_SIGNING_KEY) {
-      console.log('Missing Cloudflare configuration, returning unsigned URL')
+      console.log('Missing Cloudflare configuration, returning fallback URL')
       
-      // Return fallback URL without signing - this should work for testing
-      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID || 'cnlj15s4to2idzsi'}.cloudflarestream.com/${VIDEO_ID}/downloads/default.mp4`
+      // Return fallback URL - use HLS stream URL as per Cloudflare docs
+      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID || 'cnlj15s4to2idzsi'}.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
       
       const response = {
         high: fallbackUrl,
@@ -58,14 +58,14 @@ serve(async (req) => {
       // Set expiration time (1 hour from now)
       const exp = Math.floor(Date.now() / 1000) + 3600
       
-      // Create the JWT payload WITHOUT kid (kid goes in header)
+      // Create the JWT payload for Cloudflare Stream
       const payload = {
         sub: VIDEO_ID,
         exp: exp,
         aud: ['video-streaming']
       }
 
-      // FIXED: Decode the Base64 string first, then parse as JSON
+      // Decode the Base64 string and parse as JSON
       const decodedKey = atob(CLOUDFLARE_SIGNING_KEY)
       const jwk = JSON.parse(decodedKey)
       
@@ -116,18 +116,17 @@ serve(async (req) => {
         key
       )
       
-      // Create signed MP4 URLs instead of HLS manifest URLs
-      const signedUrlHigh = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/downloads/default.mp4`
-      const signedUrlMedium = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/downloads/default.mp4`
-      const signedUrlLow = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/downloads/default.mp4`
+      // Create signed HLS manifest URLs as per Cloudflare Stream documentation
+      // The signed token becomes part of the URL path, not a query parameter
+      const signedUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/manifest/video.m3u8`
       
-      console.log('Generated signed MP4 URLs successfully with algorithm:', algorithm)
+      console.log('Generated signed HLS URL successfully with algorithm:', algorithm)
 
-      // Return MP4 URLs for all qualities
+      // Return the same signed URL for all qualities (Cloudflare Stream handles adaptive bitrate)
       const response = {
-        high: signedUrlHigh,
-        medium: signedUrlMedium,
-        low: signedUrlLow
+        high: signedUrl,
+        medium: signedUrl,
+        low: signedUrl
       }
 
       return new Response(
@@ -143,8 +142,8 @@ serve(async (req) => {
     } catch (signingError) {
       console.error('Error generating signed URL:', signingError)
       
-      // Fallback to unsigned MP4 URL if signing fails
-      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${VIDEO_ID}/downloads/default.mp4`
+      // Fallback to unsigned HLS URL if signing fails
+      const fallbackUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`
       
       const response = {
         high: fallbackUrl,
@@ -166,8 +165,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in edge function:', error)
     
-    // Return a working fallback MP4 URL in case of any error
-    const fallbackUrl = "https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/downloads/default.mp4"
+    // Return a working fallback HLS URL in case of any error
+    const fallbackUrl = "https://customer-cnlj15s4to2idzsi.cloudflarestream.com/8d8f8b1aca7d0f8224683acc56a26c4f/manifest/video.m3u8"
     
     const response = {
       high: fallbackUrl,

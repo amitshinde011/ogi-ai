@@ -34,8 +34,9 @@ const VideoPlayerCore = ({
     e.preventDefault();
   };
 
-  // Log the current video source being used
-  console.log('VideoPlayerCore: Current video source:', videoSources[currentQuality]);
+  // Log current video source
+  console.log('VideoPlayerCore: Using video source:', videoSources[currentQuality]);
+  console.log('VideoPlayerCore: Source type detected:', videoSources[currentQuality].includes('.m3u8') ? 'HLS' : 'MP4');
 
   return (
     <video
@@ -51,7 +52,7 @@ const VideoPlayerCore = ({
       onContextMenu={handleContextMenu}
       controls={false}
       preload="metadata"
-      crossOrigin="use-credentials"
+      crossOrigin="anonymous"
       style={{ 
         userSelect: 'none',
         WebkitUserSelect: 'none',
@@ -61,8 +62,8 @@ const VideoPlayerCore = ({
       onDragStart={(e) => e.preventDefault()}
       draggable={false}
       key={`${currentQuality}-${videoSources[currentQuality]}`}
+      src={videoSources[currentQuality]}
     >
-      <source src={videoSources[currentQuality]} type="video/mp4" />
       Your browser does not support the video tag.
     </video>
   );
