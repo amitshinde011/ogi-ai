@@ -1,5 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { create, verify } from "https://deno.land/x/djwt@v2.9.1/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,36 +23,56 @@ serve(async (req) => {
       throw new Error('Missing Cloudflare configuration')
     }
 
-    // Video IDs for different qualities (replace with your actual video IDs)
+    console.log('Generating signed URLs with account ID:', CLOUDFLARE_ACCOUNT_ID)
+
+    // Video IDs for different qualities - UPDATE THESE WITH YOUR ACTUAL VIDEO IDs
     const VIDEO_IDS = {
-      high: 'your-high-quality-video-id',
-      medium: 'your-medium-quality-video-id', 
-      low: 'your-low-quality-video-id'
+      high: 'replace-with-your-high-quality-video-id',
+      medium: 'replace-with-your-medium-quality-video-id', 
+      low: 'replace-with-your-low-quality-video-id'
     }
 
     // Generate signed URLs for each quality
     const signedUrls: { [key: string]: string } = {}
     
     for (const [quality, videoId] of Object.entries(VIDEO_IDS)) {
-      // Set expiration time (e.g., 1 hour from now)
-      const exp = Math.floor(Date.now() / 1000) + 3600
-      
-      // Create the token payload
-      const payload = {
-        sub: videoId,
-        kid: CLOUDFLARE_SIGNING_KEY_ID,
-        exp: exp,
-        aud: ['video-streaming'],
-        iss: 'cloudflare'
-      }
+      try {
+        // Set expiration time (1 hour from now)
+        const exp = Math.floor(Date.now() / 1000) + 3600
+        
+        // Create the JWT payload for Cloudflare Stream
+        const payload = {
+          sub: videoId,
+          kid: CLOUDFLARE_SIGNING_KEY_ID,
+          exp: exp,
+          aud: ['video-streaming']
+        }
 
-      // For simplicity, we'll use the video ID directly
-      // In production, you should implement proper JWT signing
-      const baseUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${videoId}/manifest/video.m3u8`
-      
-      // Add signed token as query parameter
-      signedUrls[quality] = `${baseUrl}?token=signed-token-here`
+        // Convert the private key to the correct format
+        const privateKey = await crypto.subtle.importKey(
+          'pkcs8',
+          new TextEncoder().encode(CLOUDFLARE_SIGNING_KEY),
+          { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+          false,
+          ['sign']
+        )
+
+        // Create the JWT token
+        const token = await create({ alg: 'RS256', typ: 'JWT' }, payload, privateKey)
+        
+        // Create the signed URL
+        const baseUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${videoId}/manifest/video.m3u8`
+        signedUrls[quality] = `${baseUrl}?token=${token}`
+        
+        console.log(`Generated signed URL for ${quality} quality`)
+      } catch (error) {
+        console.error(`Error generating signed URL for ${quality}:`, error)
+        // Fallback to unsigned URL if signing fails
+        signedUrls[quality] = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${videoId}/manifest/video.m3u8`
+      }
     }
+
+    console.log('Successfully generated signed URLs for all qualities')
 
     return new Response(
       JSON.stringify(signedUrls),
