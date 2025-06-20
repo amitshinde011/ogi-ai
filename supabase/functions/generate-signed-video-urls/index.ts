@@ -58,32 +58,35 @@ serve(async (req) => {
       // Set expiration time (1 hour from now)
       const exp = Math.floor(Date.now() / 1000) + 3600
       
-      // Create the JWT payload for Cloudflare Stream
+      // CORRECTED: Create the JWT payload WITHOUT kid (kid goes in header)
       const payload = {
         sub: VIDEO_ID,
-        kid: CLOUDFLARE_SIGNING_KEY_ID,
         exp: exp,
         aud: ['video-streaming']
       }
 
       // CORRECTED: Import the JWK properly
-      const jwk = JSON.parse(CLOUDFLARE_SIGNING_KEY) // Parse the JSON string into an object
+      const jwk = JSON.parse(CLOUDFLARE_SIGNING_KEY)
       
       const key = await crypto.subtle.importKey(
-        'jwk', // Tell the function you are importing a JWK
-        jwk,   // Pass the parsed JavaScript object
-        { name: 'HMAC', hash: 'SHA-256' }, // This algorithm name MUST match the 'alg' in your JWK
+        'jwk',
+        jwk,
+        { name: 'HMAC', hash: 'SHA-256' },
         false,
         ['sign']
       )
 
-      // Create the JWT token
-      const token = await create({ alg: 'HS256', typ: 'JWT' }, payload, key)
+      // CORRECTED: Create the JWT token with kid in the header
+      const token = await create(
+        { alg: 'HS256', typ: 'JWT', kid: CLOUDFLARE_SIGNING_KEY_ID },
+        payload,
+        key
+      )
       
-      // Create the signed URL with token in the path (not as query parameter)
+      // Create the signed URL with token in the path
       const signedUrl = `https://customer-${CLOUDFLARE_ACCOUNT_ID}.cloudflarestream.com/${token}/manifest/video.m3u8`
       
-      console.log('Generated signed URL successfully with correct JWK import and URL structure')
+      console.log('Generated signed URL successfully with kid in header')
 
       // Return the same URL for all qualities since Cloudflare handles adaptation
       const response = {
@@ -140,7 +143,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify(response),
       { 
-        status: 200, // Return 200 to avoid errors on frontend
+        status: 200,
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json'
