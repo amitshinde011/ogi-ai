@@ -5,6 +5,7 @@ import { create } from "https://deno.land/x/djwt@v2.9.1/mod.ts"
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
 serve(async (req) => {
@@ -116,11 +117,11 @@ serve(async (req) => {
         key
       )
       
-      // Create signed HLS manifest URLs using the correct account ID format
-      // Based on the curl, the correct format is customer-{hash}.cloudflarestream.com
+      // Create signed HLS manifest URL using the token in the path as per Cloudflare Stream docs
       const signedUrl = `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${token}/manifest/video.m3u8`
       
       console.log('Generated signed HLS URL successfully with algorithm:', algorithm)
+      console.log('Signed URL format:', signedUrl.substring(0, 100) + '...')
 
       // Return the same signed URL for all qualities (Cloudflare Stream handles adaptive bitrate)
       const response = {

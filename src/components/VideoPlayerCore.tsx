@@ -38,31 +38,58 @@ const VideoPlayerCore = ({
   console.log('VideoPlayerCore: Using video source:', videoSources[currentQuality]);
   console.log('VideoPlayerCore: Source type detected:', videoSources[currentQuality].includes('.m3u8') ? 'HLS' : 'MP4');
 
-  // Effect to handle HLS loading and error recovery
+  // Effect to handle HLS loading with native browser support
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const handleLoadError = () => {
-      console.log('Video load error detected, attempting to reload...');
-      setTimeout(() => {
-        if (video && video.src) {
-          video.load();
-        }
-      }, 1000);
+    const currentSource = videoSources[currentQuality];
+    console.log('VideoPlayerCore: Setting video source to:', currentSource);
+
+    // For HLS streams, we need to handle them differently
+    if (currentSource.includes('.m3u8')) {
+      console.log('VideoPlayerCore: Detected HLS stream, setting up for native playback');
+      
+      // Clear any existing source
+      video.src = '';
+      video.load();
+      
+      // Set the HLS source directly
+      video.src = currentSource;
+      video.load();
+    } else {
+      // For regular MP4 files
+      video.src = currentSource;
+      video.load();
+    }
+
+    const handleLoadError = (e: Event) => {
+      const target = e.target as HTMLVideoElement;
+      console.error('VideoPlayerCore: Video load error:', {
+        error: target.error,
+        src: target.src,
+        networkState: target.networkState,
+        readyState: target.readyState
+      });
     };
 
     const handleCanPlayThrough = () => {
-      console.log('Video can play through - HLS stream ready');
+      console.log('VideoPlayerCore: Video can play through - stream ready');
+    };
+
+    const handleLoadedMetadata = () => {
+      console.log('VideoPlayerCore: Video metadata loaded successfully');
     };
 
     video.addEventListener('error', handleLoadError);
     video.addEventListener('canplaythrough', handleCanPlayThrough);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
 
     return () => {
       if (video) {
         video.removeEventListener('error', handleLoadError);
         video.removeEventListener('canplaythrough', handleCanPlayThrough);
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       }
     };
   }, [videoRef, videoSources[currentQuality]]);
@@ -82,6 +109,7 @@ const VideoPlayerCore = ({
       controls={false}
       preload="metadata"
       crossOrigin="anonymous"
+      playsInline
       style={{ 
         userSelect: 'none',
         WebkitUserSelect: 'none',
@@ -91,7 +119,6 @@ const VideoPlayerCore = ({
       onDragStart={(e) => e.preventDefault()}
       draggable={false}
       key={`${currentQuality}-${videoSources[currentQuality]}`}
-      src={videoSources[currentQuality]}
     >
       Your browser does not support the video tag.
     </video>
