@@ -58,15 +58,16 @@ serve(async (req) => {
       // Set expiration time (1 hour from now)
       const exp = Math.floor(Date.now() / 1000) + 3600
       
-      // CORRECTED: Create the JWT payload WITHOUT kid (kid goes in header)
+      // Create the JWT payload WITHOUT kid (kid goes in header)
       const payload = {
         sub: VIDEO_ID,
         exp: exp,
         aud: ['video-streaming']
       }
 
-      // CORRECTED: Import the JWK properly
-      const jwk = JSON.parse(CLOUDFLARE_SIGNING_KEY)
+      // FIXED: Decode the Base64 string first, then parse as JSON
+      const decodedKey = atob(CLOUDFLARE_SIGNING_KEY)
+      const jwk = JSON.parse(decodedKey)
       
       const key = await crypto.subtle.importKey(
         'jwk',
@@ -76,7 +77,7 @@ serve(async (req) => {
         ['sign']
       )
 
-      // CORRECTED: Create the JWT token with kid in the header
+      // Create the JWT token with kid in the header
       const token = await create(
         { alg: 'HS256', typ: 'JWT', kid: CLOUDFLARE_SIGNING_KEY_ID },
         payload,
