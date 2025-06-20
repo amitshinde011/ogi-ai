@@ -1,8 +1,7 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { VideoPlayerHookProps, VideoPlayerState } from '@/types/videoPlayer';
-import { VIDEO_SOURCES } from '@/constants/videoSources';
+import { VideoPlayerHookProps, VideoPlayerState, VideoSources } from '@/types/videoPlayer';
+import { VIDEO_SOURCES, generateSignedVideoSources } from '@/constants/videoSources';
 import { detectNetworkSpeed, shouldReduceQuality } from '@/utils/videoQualityDetector';
 import { toggleFullscreen, setupFullscreenListener } from '@/utils/fullscreenHandler';
 import { setupVideoTimeListeners, seekToTime, seekBackward, seekForward } from '@/utils/videoTimeManager';
@@ -21,8 +20,24 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     isFullscreen: false,
   });
 
+  const [videoSources, setVideoSources] = useState<VideoSources>(VIDEO_SOURCES);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Load signed video URLs when component mounts
+  useEffect(() => {
+    const loadSignedUrls = async () => {
+      try {
+        const signedSources = await generateSignedVideoSources();
+        setVideoSources(signedSources);
+        console.log('Loaded signed video URLs');
+      } catch (error) {
+        console.error('Failed to load signed URLs, using fallback:', error);
+      }
+    };
+
+    loadSignedUrls();
+  }, []);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -129,6 +144,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     console.log('Show video button clicked - BEFORE state change');
     console.log('Current showVideo state:', state.showVideo);
     console.log('Selected video quality:', state.currentQuality);
+    console.log('Using video sources:', videoSources);
     setState(prev => ({
       ...prev,
       showVideo: true,
@@ -231,7 +247,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     isFullscreen: state.isFullscreen,
     videoRef,
     containerRef,
-    videoSources: VIDEO_SOURCES,
+    videoSources,
     
     // Handlers
     handlePlayPause,
