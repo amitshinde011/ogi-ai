@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -7,6 +6,7 @@ import LoginHeader from '@/components/auth/LoginHeader';
 import LoginForm from '@/components/auth/LoginForm';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
 import WellnessCarousel from '@/components/auth/WellnessCarousel';
+import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -77,6 +77,11 @@ const Login = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Testimonials Section */}
+        <div className="mt-16">
+          <TestimonialsCarousel />
         </div>
       </div>
     </div>
