@@ -63,16 +63,19 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     return setupVideoTimeListeners(videoRef, setState, state.videoLoaded);
   }, [state.videoLoaded]);
 
-  // Monitor showVideo state changes
+  // Monitor showVideo state changes and reload video when sources change
   useEffect(() => {
     console.log('showVideo state changed:', state.showVideo);
     if (state.showVideo && videoRef.current) {
       console.log('Video element exists after showVideo=true:', videoRef.current);
       console.log('Using signed URLs loaded:', signedUrlsLoaded);
       console.log('Current video sources:', videoSources);
+      console.log('Will load video with source:', videoSources[state.currentQuality]);
+      
+      // Force reload the video element
       videoRef.current.load();
     }
-  }, [state.showVideo, signedUrlsLoaded, videoSources]);
+  }, [state.showVideo, signedUrlsLoaded, videoSources, state.currentQuality]);
 
   // Monitor loading time and adjust quality if needed
   useEffect(() => {
@@ -123,6 +126,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     const wasPlaying = state.isPlaying;
     
     console.log('Quality change requested:', quality);
+    console.log('New video source will be:', videoSources[quality]);
     
     setState(prev => ({
       ...prev,
@@ -132,22 +136,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
       loadingStartTime: Date.now()
     }));
     
-    // Reload video with new quality
-    videoRef.current.load();
-    
-    // Restore playback state after video loads
-    if (videoRef.current) {
-      const restorePlayback = () => {
-        if (videoRef.current) {
-          videoRef.current.currentTime = currentTime;
-          if (wasPlaying) {
-            videoRef.current.play().catch(console.error);
-          }
-        }
-      };
-      
-      videoRef.current.addEventListener('loadeddata', restorePlayback, { once: true });
-    }
+    // The video will reload automatically due to the useEffect above
   };
 
   const handleShowVideo = () => {
@@ -173,9 +162,10 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
   };
 
   const handleVideoLoadedData = () => {
-    setState(prev => ({ ...prev, videoLoaded: true }));
     console.log('Video loaded successfully with quality:', state.currentQuality);
+    console.log('Video loaded from source:', videoSources[state.currentQuality]);
     console.log('Video loaded from signed URLs:', signedUrlsLoaded);
+    setState(prev => ({ ...prev, videoLoaded: true }));
   };
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
@@ -184,54 +174,21 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
       code: e.currentTarget.error?.code,
       message: e.currentTarget.error?.message,
       currentSrc: e.currentTarget.currentSrc,
-      signedUrlsLoaded: signedUrlsLoaded
+      signedUrlsLoaded: signedUrlsLoaded,
+      networkState: e.currentTarget.networkState,
+      readyState: e.currentTarget.readyState
     });
     
-    // If we're using signed URLs and get an error, don't try to fall back to unsigned URLs
-    if (signedUrlsLoaded) {
-      console.log('Error with signed URLs - this might be a network issue or expired token');
-      setState(prev => ({
-        ...prev,
-        videoError: true,
-        videoLoaded: false
-      }));
-      return;
-    }
-    
-    // Quality fallback logic for development/fallback URLs
-    if (state.currentQuality === 'high') {
-      console.log('High quality failed, trying medium quality');
-      setState(prev => ({
-        ...prev,
-        currentQuality: 'medium',
-        videoError: false,
-        videoLoaded: false
-      }));
-      if (videoRef.current) {
-        videoRef.current.load();
-      }
-    } else if (state.currentQuality === 'medium') {
-      console.log('Medium quality failed, trying low quality');
-      setState(prev => ({
-        ...prev,
-        currentQuality: 'low',
-        videoError: false,
-        videoLoaded: false
-      }));
-      if (videoRef.current) {
-        videoRef.current.load();
-      }
-    } else {
-      setState(prev => ({
-        ...prev,
-        videoError: true,
-        videoLoaded: false
-      }));
-    }
+    setState(prev => ({
+      ...prev,
+      videoError: true,
+      videoLoaded: false
+    }));
   };
 
   const handleVideoLoadStart = () => {
     console.log('Video load started with quality:', state.currentQuality);
+    console.log('Video load started with source:', videoSources[state.currentQuality]);
     console.log('Video load started with signed URLs:', signedUrlsLoaded);
     setState(prev => ({
       ...prev,
@@ -242,7 +199,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
   };
 
   const handleVideoCanPlay = () => {
-    console.log('Video can play');
+    console.log('Video can play - source:', videoSources[state.currentQuality]);
   };
 
   const handleRetry = () => {

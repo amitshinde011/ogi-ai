@@ -51,7 +51,7 @@ const VideoPlayerCore = ({
       onContextMenu={handleContextMenu}
       controls={false}
       preload="metadata"
-      crossOrigin="anonymous"
+      crossOrigin="use-credentials"
       style={{ 
         userSelect: 'none',
         WebkitUserSelect: 'none',
@@ -60,6 +60,7 @@ const VideoPlayerCore = ({
       }}
       onDragStart={(e) => e.preventDefault()}
       draggable={false}
+      key={`${currentQuality}-${videoSources[currentQuality]}`}
     >
       <source src={videoSources[currentQuality]} type="video/mp4" />
       Your browser does not support the video tag.
