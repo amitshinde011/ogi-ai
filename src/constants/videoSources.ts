@@ -20,9 +20,3 @@ export const VIDEO_SOURCES_SEQUENCE = VIDEO_IDS.map(generateVideoSources);
 
 // For backward compatibility
 export const VIDEO_SOURCES = VIDEO_SOURCES_SEQUENCE[0];
-
-// Function to generate signed video sources (now returns direct URLs)
-export const generateSignedVideoSources = async (): Promise<VideoSources> => {
-  // Return the first video's sources directly since we're not using signed URLs
-  return VIDEO_SOURCES;
-};
