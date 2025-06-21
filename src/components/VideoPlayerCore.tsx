@@ -70,15 +70,25 @@ const VideoPlayerCore = ({
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           console.log('VideoPlayerCore: HLS manifest parsed successfully');
           console.log('VideoPlayerCore: Video ready state:', video.readyState);
+          console.log('VideoPlayerCore: Video duration:', video.duration);
+          console.log('VideoPlayerCore: Video buffered:', video.buffered.length > 0 ? video.buffered.end(0) : 0);
           onLoadedData();
         });
 
         hls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
-          console.log('VideoPlayerCore: HLS level loaded:', data);
+          console.log('VideoPlayerCore: HLS level loaded:', data.level, 'duration:', data.details.totalduration);
         });
 
         hls.on(Hls.Events.FRAG_LOADED, (event, data) => {
-          console.log('VideoPlayerCore: HLS fragment loaded');
+          console.log('VideoPlayerCore: HLS fragment loaded, duration:', data.frag.duration);
+        });
+
+        hls.on(Hls.Events.BUFFER_APPENDED, () => {
+          console.log('VideoPlayerCore: Buffer appended - video should be ready to play');
+          console.log('VideoPlayerCore: Current buffered ranges:', video.buffered.length);
+          if (video.buffered.length > 0) {
+            console.log('VideoPlayerCore: Buffered from 0 to', video.buffered.end(0));
+          }
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
@@ -129,7 +139,9 @@ const VideoPlayerCore = ({
     };
 
     const handleCanPlayThrough = () => {
-      console.log('VideoPlayerCore: Video can play through - stream ready');
+      console.log('VideoPlayerCore: Video can play through - stream fully ready');
+      console.log('VideoPlayerCore: Ready state:', video.readyState);
+      console.log('VideoPlayerCore: Network state:', video.networkState);
     };
 
     const handleLoadedMetadata = () => {
@@ -139,12 +151,22 @@ const VideoPlayerCore = ({
     };
 
     const handleProgress = () => {
-      console.log('VideoPlayerCore: Video loading progress');
+      if (video.buffered.length > 0) {
+        console.log('VideoPlayerCore: Video loading progress - buffered to:', video.buffered.end(0));
+      }
     };
 
     const handleCanPlay = () => {
       console.log('VideoPlayerCore: Video can play - calling onCanPlay');
+      console.log('VideoPlayerCore: Ready state:', video.readyState);
+      console.log('VideoPlayerCore: Paused:', video.paused);
       onCanPlay();
+    };
+
+    const handleLoadedData = () => {
+      console.log('VideoPlayerCore: Video loaded data event fired');
+      console.log('VideoPlayerCore: Current time:', video.currentTime);
+      console.log('VideoPlayerCore: Duration:', video.duration);
     };
 
     video.addEventListener('error', handleLoadError);
@@ -152,6 +174,7 @@ const VideoPlayerCore = ({
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('progress', handleProgress);
     video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('loadeddata', handleLoadedData);
 
     return () => {
       if (hls) {
@@ -163,6 +186,7 @@ const VideoPlayerCore = ({
         video.removeEventListener('loadedmetadata', handleLoadedMetadata);
         video.removeEventListener('progress', handleProgress);
         video.removeEventListener('canplay', handleCanPlay);
+        video.removeEventListener('loadeddata', handleLoadedData);
       }
     };
   }, [videoRef, videoSources[currentQuality], onLoadedData, onCanPlay]);
