@@ -22,4 +22,6 @@ export interface VideoPlayerState {
   currentTime: number;
   duration: number;
   isFullscreen: boolean;
+  currentVideoIndex: number;
+  totalVideos: number;
 }

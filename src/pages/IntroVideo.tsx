@@ -9,6 +9,7 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import VideoPlayer from '@/components/VideoPlayer';
 import VideoInstructions from '@/components/VideoInstructions';
 import ContinueSection from '@/components/ContinueSection';
+import SacredNote from '@/components/SacredNote';
 
 const IntroVideo = () => {
   const navigate = useNavigate();
@@ -19,10 +20,10 @@ const IntroVideo = () => {
 
   const handleVideoComplete = () => {
     setVideoWatched(true);
-    trackVideoComplete('Intro Video');
+    trackVideoComplete('Intro Video Sequence');
     toast({
-      title: "Video Completed!",
-      description: "You can now proceed to the next step.",
+      title: "All Videos Completed!",
+      description: "You have completed the sacred video sequence. You can now proceed to the next step.",
     });
   };
 
@@ -59,6 +60,9 @@ const IntroVideo = () => {
             </p>
           </CardHeader>
           <CardContent className="space-y-6 sm:space-y-8 p-4 sm:p-8">
+            {/* Sacred Note */}
+            <SacredNote />
+
             {/* Video Section */}
             <VideoPlayer 
               onVideoComplete={handleVideoComplete}
