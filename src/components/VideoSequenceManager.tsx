@@ -16,15 +16,15 @@ const VideoSequenceManager = ({
   onVideoSelect 
 }: VideoSequenceManagerProps) => {
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 mb-6 shadow-lg">
-      <h3 className="text-lg font-semibold text-slate-800 mb-3">Video Sequence</h3>
-      <div className="flex items-center space-x-3">
+    <div className="bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 shadow-lg">
+      <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-2 sm:mb-3">Video Sequence</h3>
+      <div className="flex items-center justify-center sm:justify-start space-x-2 sm:space-x-3 overflow-x-auto pb-2">
         {Array.from({ length: totalVideos }, (_, index) => (
           <React.Fragment key={index}>
             <button
               onClick={() => onVideoSelect(index)}
               disabled={index > 0 && !videoWatched[index - 1]}
-              className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
+              className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 flex-shrink-0 ${
                 index === currentVideoIndex
                   ? 'bg-indigo-600 text-white shadow-lg'
                   : videoWatched[index]
@@ -35,20 +35,20 @@ const VideoSequenceManager = ({
               }`}
             >
               {videoWatched[index] ? (
-                <CheckCircle className="w-5 h-5" />
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
               ) : (
-                <Play className="w-4 h-4 ml-0.5" />
+                <Play className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5" />
               )}
             </button>
             {index < totalVideos - 1 && (
-              <div className={`h-0.5 w-8 ${
+              <div className={`h-0.5 w-6 sm:w-8 flex-shrink-0 ${
                 videoWatched[index] ? 'bg-green-600' : 'bg-slate-300'
               }`} />
             )}
           </React.Fragment>
         ))}
       </div>
-      <div className="mt-3 text-sm text-slate-600">
+      <div className="mt-2 sm:mt-3 text-xs sm:text-sm text-slate-600 text-center sm:text-left">
         Video {currentVideoIndex + 1} of {totalVideos}
         {currentVideoIndex > 0 && !videoWatched[currentVideoIndex - 1] && (
           <span className="block text-orange-600 mt-1">
