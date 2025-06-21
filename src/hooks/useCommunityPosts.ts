@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { validateCommunityPost, sanitizeHtml } from '@/utils/inputValidation';
 
 interface Post {
   id: string;
@@ -23,6 +24,15 @@ export const useCommunityPosts = () => {
   const fetchPosts = async () => {
     try {
       console.log('Fetching community posts...');
+      
+      // Verify authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('Authentication required for fetching posts');
+        toast({ title: "Authentication required", variant: "destructive" });
+        return;
+      }
+
       const { data: posts, error } = await supabase
         .from('community_posts')
         .select('*')
@@ -43,7 +53,6 @@ export const useCommunityPosts = () => {
             .eq('user_id', post.user_id)
             .maybeSingle();
 
-          const { data: { user } } = await supabase.auth.getUser();
           const fallbackName = user?.email?.split('@')[0] || 'User';
 
           return {
@@ -65,15 +74,29 @@ export const useCommunityPosts = () => {
   };
 
   const createPost = async (currentUser: any, newPost: { title: string; content: string }) => {
-    if (!currentUser || !newPost.title.trim() || !newPost.content.trim()) return false;
+    if (!currentUser) {
+      toast({ title: "Authentication required", variant: "destructive" });
+      return false;
+    }
+
+    // Validate and sanitize input
+    const validation = validateCommunityPost(newPost);
+    if (!validation.isValid) {
+      toast({ 
+        title: "Invalid input", 
+        description: validation.errors.join(', '),
+        variant: "destructive" 
+      });
+      return false;
+    }
 
     try {
       const { error } = await supabase
         .from('community_posts')
         .insert({
           user_id: currentUser.id,
-          title: newPost.title,
-          content: newPost.content
+          title: validation.sanitized.title,
+          content: validation.sanitized.content
         });
 
       if (error) throw error;
@@ -89,14 +112,36 @@ export const useCommunityPosts = () => {
   };
 
   const updatePost = async (editingPost: Post) => {
-    if (!editingPost || !editingPost.title.trim() || !editingPost.content.trim()) return false;
+    if (!editingPost) return false;
+
+    // Validate and sanitize input
+    const validation = validateCommunityPost({
+      title: editingPost.title,
+      content: editingPost.content
+    });
+    
+    if (!validation.isValid) {
+      toast({ 
+        title: "Invalid input", 
+        description: validation.errors.join(', '),
+        variant: "destructive" 
+      });
+      return false;
+    }
 
     try {
+      // Verify user owns the post
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || user.id !== editingPost.user_id) {
+        toast({ title: "Unauthorized", variant: "destructive" });
+        return false;
+      }
+
       const { error } = await supabase
         .from('community_posts')
         .update({
-          title: editingPost.title,
-          content: editingPost.content
+          title: validation.sanitized.title,
+          content: validation.sanitized.content
         })
         .eq('id', editingPost.id);
 
@@ -114,6 +159,25 @@ export const useCommunityPosts = () => {
 
   const deletePost = async (postId: string) => {
     try {
+      // Verify user owns the post
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({ title: "Authentication required", variant: "destructive" });
+        return;
+      }
+
+      // Get post to verify ownership
+      const { data: post } = await supabase
+        .from('community_posts')
+        .select('user_id')
+        .eq('id', postId)
+        .single();
+
+      if (!post || post.user_id !== user.id) {
+        toast({ title: "Unauthorized", variant: "destructive" });
+        return;
+      }
+
       const { error } = await supabase
         .from('community_posts')
         .delete()
