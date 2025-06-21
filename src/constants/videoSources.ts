@@ -1,18 +1,19 @@
 
 import { VideoSources } from '@/types/videoPlayer';
 
-// Video IDs from Cloudflare Stream (no signed URLs required)
+// Video IDs from Cloudflare Stream
 const VIDEO_IDS = [
   '8d8f8b1aca7d0f8224683acc56a26c4f',
   '584bf0778a5f896ddbce993ab259ef79', 
   '337f864ee97f2e104e2c1c496d90a27a'
 ];
 
-// Generate direct HLS URLs for each video
+// Generate proper Cloudflare Stream URLs for each video
 const generateVideoSources = (videoId: string): VideoSources => ({
-  high: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/manifest/video.m3u8`,
-  medium: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/manifest/video.m3u8`,
-  low: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/manifest/video.m3u8`
+  // Using the proper Cloudflare Stream video URL format
+  high: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/mp4`,
+  medium: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/mp4`,
+  low: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/mp4`
 });
 
 // Export video sources for all three videos
