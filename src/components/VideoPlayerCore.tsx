@@ -59,13 +59,26 @@ const VideoPlayerCore = ({
         video.src = currentSource;
       } else if (Hls.isSupported()) {
         console.log('VideoPlayerCore: Using hls.js for HLS support');
-        hls = new Hls();
+        hls = new Hls({
+          debug: false,
+          enableWorker: true,
+          lowLatencyMode: true,
+        });
         hls.loadSource(currentSource);
         hls.attachMedia(video);
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           console.log('VideoPlayerCore: HLS manifest parsed successfully');
+          console.log('VideoPlayerCore: Video ready state:', video.readyState);
           onLoadedData();
+        });
+
+        hls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
+          console.log('VideoPlayerCore: HLS level loaded:', data);
+        });
+
+        hls.on(Hls.Events.FRAG_LOADED, (event, data) => {
+          console.log('VideoPlayerCore: HLS fragment loaded');
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
@@ -129,10 +142,16 @@ const VideoPlayerCore = ({
       console.log('VideoPlayerCore: Video loading progress');
     };
 
+    const handleCanPlay = () => {
+      console.log('VideoPlayerCore: Video can play - calling onCanPlay');
+      onCanPlay();
+    };
+
     video.addEventListener('error', handleLoadError);
     video.addEventListener('canplaythrough', handleCanPlayThrough);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('progress', handleProgress);
+    video.addEventListener('canplay', handleCanPlay);
 
     return () => {
       if (hls) {
@@ -143,9 +162,10 @@ const VideoPlayerCore = ({
         video.removeEventListener('canplaythrough', handleCanPlayThrough);
         video.removeEventListener('loadedmetadata', handleLoadedMetadata);
         video.removeEventListener('progress', handleProgress);
+        video.removeEventListener('canplay', handleCanPlay);
       }
     };
-  }, [videoRef, videoSources[currentQuality], onLoadedData]);
+  }, [videoRef, videoSources[currentQuality], onLoadedData, onCanPlay]);
 
   return (
     <video
@@ -160,7 +180,7 @@ const VideoPlayerCore = ({
       onError={onError}
       onContextMenu={handleContextMenu}
       controls={false}
-      preload="metadata"
+      preload="auto"
       crossOrigin="anonymous"
       playsInline
       style={{ 
