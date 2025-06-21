@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Hls from 'hls.js';
 
 interface VideoPlayerCoreProps {
@@ -31,13 +31,12 @@ const VideoPlayerCore = ({
   onCanPlay,
   onError
 }: VideoPlayerCoreProps) => {
+  const hlsRef = useRef<Hls | null>(null);
+  const currentSourceRef = useRef<string>('');
+
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
   };
-
-  // Log current video source
-  console.log('VideoPlayerCore: Using video source:', videoSources[currentQuality]);
-  console.log('VideoPlayerCore: Source type detected:', videoSources[currentQuality].includes('.m3u8') ? 'HLS' : 'MP4');
 
   // Effect to handle video source loading with hls.js
   useEffect(() => {
@@ -45,9 +44,20 @@ const VideoPlayerCore = ({
     if (!video) return;
 
     const currentSource = videoSources[currentQuality];
+    
+    // Prevent unnecessary reloads if source hasn't changed
+    if (currentSourceRef.current === currentSource) {
+      return;
+    }
+    
+    currentSourceRef.current = currentSource;
     console.log('VideoPlayerCore: Setting video source to:', currentSource);
 
-    let hls: Hls | null = null;
+    // Cleanup previous HLS instance
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
 
     // For HLS streams
     if (currentSource.includes('.m3u8')) {
@@ -59,36 +69,19 @@ const VideoPlayerCore = ({
         video.src = currentSource;
       } else if (Hls.isSupported()) {
         console.log('VideoPlayerCore: Using hls.js for HLS support');
-        hls = new Hls({
+        const hls = new Hls({
           debug: false,
           enableWorker: true,
           lowLatencyMode: true,
         });
+        
+        hlsRef.current = hls;
         hls.loadSource(currentSource);
         hls.attachMedia(video);
         
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           console.log('VideoPlayerCore: HLS manifest parsed successfully');
-          console.log('VideoPlayerCore: Video ready state:', video.readyState);
-          console.log('VideoPlayerCore: Video duration:', video.duration);
-          console.log('VideoPlayerCore: Video buffered:', video.buffered.length > 0 ? video.buffered.end(0) : 0);
           onLoadedData();
-        });
-
-        hls.on(Hls.Events.LEVEL_LOADED, (event, data) => {
-          console.log('VideoPlayerCore: HLS level loaded:', data.level, 'duration:', data.details.totalduration);
-        });
-
-        hls.on(Hls.Events.FRAG_LOADED, (event, data) => {
-          console.log('VideoPlayerCore: HLS fragment loaded, duration:', data.frag.duration);
-        });
-
-        hls.on(Hls.Events.BUFFER_APPENDED, () => {
-          console.log('VideoPlayerCore: Buffer appended - video should be ready to play');
-          console.log('VideoPlayerCore: Current buffered ranges:', video.buffered.length);
-          if (video.buffered.length > 0) {
-            console.log('VideoPlayerCore: Buffered from 0 to', video.buffered.end(0));
-          }
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
@@ -97,22 +90,22 @@ const VideoPlayerCore = ({
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
                 console.error('VideoPlayerCore: Fatal network error encountered, trying to recover');
-                hls?.startLoad();
+                hls.startLoad();
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
                 console.error('VideoPlayerCore: Fatal media error encountered, trying to recover');
-                hls?.recoverMediaError();
+                hls.recoverMediaError();
                 break;
               default:
                 console.error('VideoPlayerCore: Fatal error, cannot recover');
-                hls?.destroy();
+                hls.destroy();
+                hlsRef.current = null;
                 break;
             }
           }
         });
       } else {
         console.error('VideoPlayerCore: HLS is not supported in this browser');
-        // Fallback: try to load as regular video
         video.src = currentSource;
       }
     } else {
@@ -121,75 +114,16 @@ const VideoPlayerCore = ({
       video.src = currentSource;
     }
     
-    // Load the video if not using hls.js
-    if (!hls) {
-      video.load();
-    }
-
-    const handleLoadError = (e: Event) => {
-      const target = e.target as HTMLVideoElement;
-      console.error('VideoPlayerCore: Video load error:', {
-        error: target.error,
-        errorCode: target.error?.code,
-        errorMessage: target.error?.message,
-        src: target.src,
-        networkState: target.networkState,
-        readyState: target.readyState
-      });
-    };
-
-    const handleCanPlayThrough = () => {
-      console.log('VideoPlayerCore: Video can play through - stream fully ready');
-      console.log('VideoPlayerCore: Ready state:', video.readyState);
-      console.log('VideoPlayerCore: Network state:', video.networkState);
-    };
-
-    const handleLoadedMetadata = () => {
-      console.log('VideoPlayerCore: Video metadata loaded successfully');
-      console.log('VideoPlayerCore: Video duration:', video.duration);
-      console.log('VideoPlayerCore: Video dimensions:', video.videoWidth, 'x', video.videoHeight);
-    };
-
-    const handleProgress = () => {
-      if (video.buffered.length > 0) {
-        console.log('VideoPlayerCore: Video loading progress - buffered to:', video.buffered.end(0));
-      }
-    };
-
-    const handleCanPlay = () => {
-      console.log('VideoPlayerCore: Video can play - calling onCanPlay');
-      console.log('VideoPlayerCore: Ready state:', video.readyState);
-      console.log('VideoPlayerCore: Paused:', video.paused);
-      onCanPlay();
-    };
-
-    const handleLoadedData = () => {
-      console.log('VideoPlayerCore: Video loaded data event fired');
-      console.log('VideoPlayerCore: Current time:', video.currentTime);
-      console.log('VideoPlayerCore: Duration:', video.duration);
-    };
-
-    video.addEventListener('error', handleLoadError);
-    video.addEventListener('canplaythrough', handleCanPlayThrough);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('progress', handleProgress);
-    video.addEventListener('canplay', handleCanPlay);
-    video.addEventListener('loadeddata', handleLoadedData);
+    // Load the video
+    video.load();
 
     return () => {
-      if (hls) {
-        hls.destroy();
-      }
-      if (video) {
-        video.removeEventListener('error', handleLoadError);
-        video.removeEventListener('canplaythrough', handleCanPlayThrough);
-        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        video.removeEventListener('progress', handleProgress);
-        video.removeEventListener('canplay', handleCanPlay);
-        video.removeEventListener('loadeddata', handleLoadedData);
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
       }
     };
-  }, [videoRef, videoSources[currentQuality], onLoadedData, onCanPlay]);
+  }, [videoSources, currentQuality, onLoadedData]); // Simplified dependencies
 
   return (
     <video
