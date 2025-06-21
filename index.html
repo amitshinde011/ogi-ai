@@ -11,13 +11,13 @@
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://yogiai.in;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
       img-src 'self' data: blob: https: http:;
-      media-src 'self' blob: https://yogiai.in;
-      connect-src 'self' https://yogiai.in wss: ws:;
-      frame-src 'self' https://yogiai.in;
+      media-src 'self' blob: https://customer-cnlj15s4to2idzsi.cloudflarestream.com https://*.cloudflarestream.com;
+      connect-src 'self' https://customer-cnlj15s4to2idzsi.cloudflarestream.com https://*.cloudflarestream.com https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com wss: ws:;
+      frame-src 'self' https://customer-cnlj15s4to2idzsi.cloudflarestream.com https://*.cloudflarestream.com;
       worker-src 'self' blob:;
     ">
 

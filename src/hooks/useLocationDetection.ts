@@ -15,7 +15,7 @@ export const useLocationDetection = () => {
   useEffect(() => {
     const detectUserLocation = async () => {
       try {
-        const response = await fetch('https://yogiai.in/api/location');
+        const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
         console.log('Location detected:', data.country_name, data.country_code);
         setLocationData({

@@ -8,27 +8,27 @@ const VIDEO_IDS = [
   '337f864ee97f2e104e2c1c496d90a27a'
 ];
 
-// Using yogiai.in domain for all video requests
-const DOMAIN = 'yogiai.in';
+// Cloudflare Stream customer subdomain
+const CLOUDFLARE_SUBDOMAIN = 'customer-cnlj15s4to2idzsi';
 
-// Generate proper video URLs through your domain
+// Generate proper Cloudflare Stream URLs for each video
 const generateVideoSources = (videoId: string): VideoSources => ({
-  // Using HLS URLs through your domain
-  high: `https://${DOMAIN}/api/video/${videoId}/manifest/video.m3u8`,
-  medium: `https://${DOMAIN}/api/video/${videoId}/manifest/video.m3u8`,
-  low: `https://${DOMAIN}/api/video/${videoId}/manifest/video.m3u8`
+  // Using HLS URLs as primary source (better quality control)
+  high: `https://${CLOUDFLARE_SUBDOMAIN}.cloudflarestream.com/${videoId}/manifest/video.m3u8`,
+  medium: `https://${CLOUDFLARE_SUBDOMAIN}.cloudflarestream.com/${videoId}/manifest/video.m3u8`,
+  low: `https://${CLOUDFLARE_SUBDOMAIN}.cloudflarestream.com/${videoId}/manifest/video.m3u8`
 });
 
-// Generate MP4 fallback URLs through your domain
+// Generate MP4 fallback URLs
 const generateMP4Sources = (videoId: string): VideoSources => ({
-  high: `https://${DOMAIN}/api/video/${videoId}/downloads/default.mp4`,
-  medium: `https://${DOMAIN}/api/video/${videoId}/downloads/default.mp4`,
-  low: `https://${DOMAIN}/api/video/${videoId}/downloads/default.mp4`
+  high: `https://${CLOUDFLARE_SUBDOMAIN}.cloudflarestream.com/${videoId}/downloads/default.mp4`,
+  medium: `https://${CLOUDFLARE_SUBDOMAIN}.cloudflarestream.com/${videoId}/downloads/default.mp4`,
+  low: `https://${CLOUDFLARE_SUBDOMAIN}.cloudflarestream.com/${videoId}/downloads/default.mp4`
 });
 
-// Generate iframe URLs through your domain
+// Generate iframe URLs
 const generateIframeUrl = (videoId: string): string => 
-  `https://${DOMAIN}/api/video/${videoId}/iframe`;
+  `https://${CLOUDFLARE_SUBDOMAIN}.cloudflarestream.com/${videoId}/iframe`;
 
 // Export video sources for all three videos
 export const VIDEO_SOURCES_SEQUENCE = VIDEO_IDS.map(generateVideoSources);
