@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import Hls from 'hls.js';
 
 interface VideoPlayerCoreProps {
   videoRef: React.RefObject<HTMLVideoElement>;
@@ -38,7 +39,7 @@ const VideoPlayerCore = ({
   console.log('VideoPlayerCore: Using video source:', videoSources[currentQuality]);
   console.log('VideoPlayerCore: Source type detected:', videoSources[currentQuality].includes('.m3u8') ? 'HLS' : 'MP4');
 
-  // Effect to handle video source loading
+  // Effect to handle video source loading with hls.js
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -46,7 +47,9 @@ const VideoPlayerCore = ({
     const currentSource = videoSources[currentQuality];
     console.log('VideoPlayerCore: Setting video source to:', currentSource);
 
-    // For HLS streams, check if the browser supports it natively
+    let hls: Hls | null = null;
+
+    // For HLS streams
     if (currentSource.includes('.m3u8')) {
       console.log('VideoPlayerCore: Loading HLS stream');
       
@@ -54,19 +57,51 @@ const VideoPlayerCore = ({
       if (video.canPlayType('application/vnd.apple.mpegurl')) {
         console.log('VideoPlayerCore: Browser supports HLS natively');
         video.src = currentSource;
+      } else if (Hls.isSupported()) {
+        console.log('VideoPlayerCore: Using hls.js for HLS support');
+        hls = new Hls();
+        hls.loadSource(currentSource);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          console.log('VideoPlayerCore: HLS manifest parsed successfully');
+          onLoadedData();
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error('VideoPlayerCore: HLS error:', data);
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.error('VideoPlayerCore: Fatal network error encountered, trying to recover');
+                hls?.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.error('VideoPlayerCore: Fatal media error encountered, trying to recover');
+                hls?.recoverMediaError();
+                break;
+              default:
+                console.error('VideoPlayerCore: Fatal error, cannot recover');
+                hls?.destroy();
+                break;
+            }
+          }
+        });
       } else {
-        console.log('VideoPlayerCore: Browser does not support HLS natively');
-        // For browsers that don't support HLS natively, we'll still try to load it
-        // In a production environment, you would use hls.js library here
+        console.error('VideoPlayerCore: HLS is not supported in this browser');
+        // Fallback: try to load as regular video
         video.src = currentSource;
       }
     } else {
       // Regular MP4 or other formats
+      console.log('VideoPlayerCore: Loading regular video format');
       video.src = currentSource;
     }
     
-    // Load the video
-    video.load();
+    // Load the video if not using hls.js
+    if (!hls) {
+      video.load();
+    }
 
     const handleLoadError = (e: Event) => {
       const target = e.target as HTMLVideoElement;
@@ -100,6 +135,9 @@ const VideoPlayerCore = ({
     video.addEventListener('progress', handleProgress);
 
     return () => {
+      if (hls) {
+        hls.destroy();
+      }
       if (video) {
         video.removeEventListener('error', handleLoadError);
         video.removeEventListener('canplaythrough', handleCanPlayThrough);
@@ -107,7 +145,7 @@ const VideoPlayerCore = ({
         video.removeEventListener('progress', handleProgress);
       }
     };
-  }, [videoRef, videoSources[currentQuality]]);
+  }, [videoRef, videoSources[currentQuality], onLoadedData]);
 
   return (
     <video
