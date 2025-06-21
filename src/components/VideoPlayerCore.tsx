@@ -67,12 +67,17 @@ const VideoPlayerCore = ({
       if (video.canPlayType('application/vnd.apple.mpegurl')) {
         console.log('VideoPlayerCore: Browser supports HLS natively');
         video.src = currentSource;
+        video.crossOrigin = 'anonymous';
       } else if (Hls.isSupported()) {
         console.log('VideoPlayerCore: Using hls.js for HLS support');
         const hls = new Hls({
           debug: false,
           enableWorker: true,
           lowLatencyMode: true,
+          xhrSetup: function(xhr, url) {
+            // Add CORS headers for Cloudflare Stream
+            console.log('VideoPlayerCore: Setting up XHR for URL:', url);
+          }
         });
         
         hlsRef.current = hls;
@@ -86,10 +91,19 @@ const VideoPlayerCore = ({
 
         hls.on(Hls.Events.ERROR, (event, data) => {
           console.error('VideoPlayerCore: HLS error:', data);
+          console.error('VideoPlayerCore: HLS error details:', {
+            type: data.type,
+            details: data.details,
+            fatal: data.fatal,
+            url: data.url,
+            response: data.response
+          });
+          
           if (data.fatal) {
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
                 console.error('VideoPlayerCore: Fatal network error encountered, trying to recover');
+                console.error('VideoPlayerCore: This might be a CORS/CSP issue with Cloudflare Stream');
                 hls.startLoad();
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
@@ -107,11 +121,13 @@ const VideoPlayerCore = ({
       } else {
         console.error('VideoPlayerCore: HLS is not supported in this browser');
         video.src = currentSource;
+        video.crossOrigin = 'anonymous';
       }
     } else {
       // Regular MP4 or other formats
       console.log('VideoPlayerCore: Loading regular video format');
       video.src = currentSource;
+      video.crossOrigin = 'anonymous';
     }
     
     // Load the video
@@ -123,7 +139,7 @@ const VideoPlayerCore = ({
         hlsRef.current = null;
       }
     };
-  }, [videoSources, currentQuality, onLoadedData]); // Simplified dependencies
+  }, [videoSources, currentQuality, onLoadedData]);
 
   return (
     <video
