@@ -10,10 +10,10 @@ const VIDEO_IDS = [
 
 // Generate proper Cloudflare Stream URLs for each video
 const generateVideoSources = (videoId: string): VideoSources => ({
-  // Using the correct Cloudflare Stream HLS manifest format with correct customer subdomain
-  high: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/${videoId}/manifest/video.m3u8`,
-  medium: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/${videoId}/manifest/video.m3u8`,
-  low: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/${videoId}/manifest/video.m3u8`
+  // Using MP4 URLs as they're more reliable than HLS for web browsers
+  high: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/${videoId}/downloads/default.mp4`,
+  medium: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/${videoId}/downloads/default.mp4`,
+  low: `https://customer-cnlj15s4to2idzsi.cloudflarestream.com/${videoId}/downloads/default.mp4`
 });
 
 // Export video sources for all three videos
