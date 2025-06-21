@@ -1,5 +1,4 @@
 
-
 import { VideoSources } from '@/types/videoPlayer';
 
 // Video IDs from Cloudflare Stream
@@ -11,10 +10,10 @@ const VIDEO_IDS = [
 
 // Generate proper Cloudflare Stream URLs for each video
 const generateVideoSources = (videoId: string): VideoSources => ({
-  // Using the correct Cloudflare Stream MP4 delivery format
-  high: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/downloads/default.mp4`,
-  medium: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/downloads/default.mp4`,
-  low: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/downloads/default.mp4`
+  // Using the correct Cloudflare Stream HLS manifest format
+  high: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/manifest/video.m3u8`,
+  medium: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/manifest/video.m3u8`,
+  low: `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${videoId}/manifest/video.m3u8`
 });
 
 // Export video sources for all three videos
@@ -22,4 +21,3 @@ export const VIDEO_SOURCES_SEQUENCE = VIDEO_IDS.map(generateVideoSources);
 
 // For backward compatibility
 export const VIDEO_SOURCES = VIDEO_SOURCES_SEQUENCE[0];
-

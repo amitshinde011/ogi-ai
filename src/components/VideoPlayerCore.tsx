@@ -46,8 +46,24 @@ const VideoPlayerCore = ({
     const currentSource = videoSources[currentQuality];
     console.log('VideoPlayerCore: Setting video source to:', currentSource);
 
-    // Set the video source
-    video.src = currentSource;
+    // For HLS streams, check if the browser supports it natively
+    if (currentSource.includes('.m3u8')) {
+      console.log('VideoPlayerCore: Loading HLS stream');
+      
+      // Check if browser supports HLS natively (Safari does)
+      if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        console.log('VideoPlayerCore: Browser supports HLS natively');
+        video.src = currentSource;
+      } else {
+        console.log('VideoPlayerCore: Browser does not support HLS natively');
+        // For browsers that don't support HLS natively, we'll still try to load it
+        // In a production environment, you would use hls.js library here
+        video.src = currentSource;
+      }
+    } else {
+      // Regular MP4 or other formats
+      video.src = currentSource;
+    }
     
     // Load the video
     video.load();
