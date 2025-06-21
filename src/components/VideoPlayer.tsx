@@ -70,6 +70,7 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
               videoRef={videoRef}
               videoSources={videoSources}
               currentQuality={currentQuality}
+              currentVideoIndex={currentVideoIndex}
               onEnded={handleVideoEnd}
               onPlay={() => {
                 console.log('Video started playing');
