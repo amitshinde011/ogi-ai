@@ -130,9 +130,6 @@ const VideoPlayerCore = ({
       video.crossOrigin = 'anonymous';
     }
     
-    // Load the video
-    video.load();
-
     return () => {
       if (hlsRef.current) {
         hlsRef.current.destroy();
@@ -165,7 +162,6 @@ const VideoPlayerCore = ({
       }}
       onDragStart={(e) => e.preventDefault()}
       draggable={false}
-      key={`${currentQuality}-${videoSources[currentQuality]}`}
     >
       Your browser does not support the video tag.
     </video>
