@@ -16,13 +16,19 @@ export const createPaymentSession = async (
     throw new Error('User not authenticated');
   }
 
+  // If the final price is 0 or very close to 0 (100% discount), don't create a payment session
+  const finalPrice = program.finalPrice || program.displayPrice;
+  if (finalPrice <= 0.01) {
+    throw new Error('FREE_SUBSCRIPTION');
+  }
+
   const { data, error } = await supabase.functions.invoke('process-payment', {
     body: {
       action: 'create_payment_session',
       userId: user.id,
       programId: program.id,
       gateway,
-      amount: program.finalPrice || program.displayPrice, // Use final price if available
+      amount: finalPrice,
       currency: program.currency
     }
   });

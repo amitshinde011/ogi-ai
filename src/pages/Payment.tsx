@@ -34,6 +34,16 @@ const Payment = () => {
     setLoading(true);
     
     try {
+      // Check if this is a free subscription (100% discount)
+      if (pricing.finalPrice <= 0.01) {
+        toast({
+          title: "Free Access",
+          description: "This appears to be a free subscription. Redirecting you back to complete the process.",
+        });
+        navigate('/subscriptions');
+        return;
+      }
+
       // Use final price including tax and discount
       const sessionData = await createPaymentSession({
         ...program,
@@ -52,6 +62,16 @@ const Payment = () => {
       }
     } catch (error) {
       console.error('Payment session creation error:', error);
+      
+      if (error.message === 'FREE_SUBSCRIPTION') {
+        toast({
+          title: "Free Subscription Detected",
+          description: "This subscription is free. Please go back and complete the free subscription process.",
+        });
+        navigate('/subscriptions');
+        return;
+      }
+      
       trackEvent('payment_error', 'Payment', 'Session Creation Failed');
       toast({
         title: "Payment Error",
@@ -72,6 +92,25 @@ const Payment = () => {
   }
 
   const currencySymbol = program.currency === 'INR' ? '₹' : '$';
+
+  // If final price is 0 or very close to 0, show a message and redirect
+  if (pricing.finalPrice <= 0.01) {
+    return (
+      <div className="min-h-screen bg-gradient-peaceful p-4">
+        <div className="max-w-2xl mx-auto">
+          <Card className="bg-white">
+            <CardContent className="p-6 text-center">
+              <h2 className="text-2xl font-bold mb-4">Free Subscription Detected</h2>
+              <p className="mb-6">This subscription is completely free with your coupon. No payment is required.</p>
+              <Button onClick={() => navigate('/subscriptions')}>
+                Go Back to Complete Free Subscription
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-peaceful p-4">
