@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -5,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import ProfileImageUpload from '@/components/ProfileImageUpload';
+import ComfortSlider from '@/components/ComfortSlider';
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -26,9 +27,9 @@ const ProfileSetup = () => {
     gender: '',
     weight: '',
     height: '',
-    physical_activity_basic: '',
-    physical_activity_medium: '',
-    physical_activity_intense: '',
+    physical_activity_basic: 3,
+    physical_activity_medium: 3,
+    physical_activity_intense: 3,
     health_issues: ''
   });
 
@@ -77,6 +78,17 @@ const ProfileSetup = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  const getActivityString = (value: number) => {
+    const mapping = {
+      1: 'exhausted',
+      2: 'slightly-tired', 
+      3: 'slightly-tired',
+      4: 'energized',
+      5: 'energized'
+    };
+    return mapping[value as keyof typeof mapping] || 'slightly-tired';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,9 +150,9 @@ const ProfileSetup = () => {
         gender: formData.gender,
         weight: weight,
         height: height,
-        physical_activity_basic: formData.physical_activity_basic || null,
-        physical_activity_medium: formData.physical_activity_medium || null,
-        physical_activity_intense: formData.physical_activity_intense || null,
+        physical_activity_basic: getActivityString(formData.physical_activity_basic),
+        physical_activity_medium: getActivityString(formData.physical_activity_medium),
+        physical_activity_intense: getActivityString(formData.physical_activity_intense),
         health_issues: formData.health_issues.trim() || null,
         profile_photo_url: profileImageUrl
       };
@@ -274,69 +286,24 @@ const ProfileSetup = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-dark-text">How does your body feel after basic physical activity? (walking, light exercise)</Label>
-                  <RadioGroup
-                    value={formData.physical_activity_basic}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, physical_activity_basic: value }))}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="energized" id="basic-energized" />
-                      <Label htmlFor="basic-energized" className="text-dark-text">Energized and refreshed</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="slightly-tired" id="basic-tired" />
-                      <Label htmlFor="basic-tired" className="text-dark-text">Slightly tired but good</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="exhausted" id="basic-exhausted" />
-                      <Label htmlFor="basic-exhausted" className="text-dark-text">Exhausted and breathless</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+              <div className="space-y-8">
+                <ComfortSlider
+                  label="How does your body feel after basic physical activity? (walking, light exercise)"
+                  value={formData.physical_activity_basic}
+                  onChange={(value) => setFormData(prev => ({ ...prev, physical_activity_basic: value }))}
+                />
 
-                <div>
-                  <Label className="text-dark-text">How does your body feel after medium physical activity? (jogging, cycling)</Label>
-                  <RadioGroup
-                    value={formData.physical_activity_medium}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, physical_activity_medium: value }))}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="energized" id="medium-energized" />
-                      <Label htmlFor="medium-energized" className="text-dark-text">Energized and refreshed</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="slightly-tired" id="medium-tired" />
-                      <Label htmlFor="medium-tired" className="text-dark-text">Slightly tired but good</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="exhausted" id="medium-exhausted" />
-                      <Label htmlFor="medium-exhausted" className="text-dark-text">Exhausted and breathless</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+                <ComfortSlider
+                  label="How does your body feel after medium physical activity? (jogging, cycling)"
+                  value={formData.physical_activity_medium}
+                  onChange={(value) => setFormData(prev => ({ ...prev, physical_activity_medium: value }))}
+                />
 
-                <div>
-                  <Label className="text-dark-text">How does your body feel after intense physical activity? (running, sports)</Label>
-                  <RadioGroup
-                    value={formData.physical_activity_intense}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, physical_activity_intense: value }))}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="energized" id="intense-energized" />
-                      <Label htmlFor="intense-energized" className="text-dark-text">Energized and refreshed</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="slightly-tired" id="intense-tired" />
-                      <Label htmlFor="intense-tired" className="text-dark-text">Slightly tired but good</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="exhausted" id="intense-exhausted" />
-                      <Label htmlFor="intense-exhausted" className="text-dark-text">Exhausted and breathless</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
+                <ComfortSlider
+                  label="How does your body feel after intense physical activity? (running, sports)"
+                  value={formData.physical_activity_intense}
+                  onChange={(value) => setFormData(prev => ({ ...prev, physical_activity_intense: value }))}
+                />
 
                 <div>
                   <Label htmlFor="health-issues" className="text-dark-text">Existing Health Issues (if any)</Label>
