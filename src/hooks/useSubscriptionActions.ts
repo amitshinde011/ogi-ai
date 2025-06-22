@@ -44,7 +44,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
         await markSubscriptionCompleted(completedSubscription.id);
       }
 
-      // Create the subscription directly
+      // Create the subscription directly with 'paid' status since it's processed (even though free)
       const startDate = new Date();
       const endDate = new Date();
       endDate.setDate(startDate.getDate() + program.duration_days);
@@ -57,7 +57,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
           start_date: startDate.toISOString().split('T')[0],
           end_date: endDate.toISOString().split('T')[0],
           status: 'active',
-          payment_status: 'free'
+          payment_status: 'paid' // Use 'paid' instead of 'free' to match database constraints
         });
 
       if (subscriptionError) {
