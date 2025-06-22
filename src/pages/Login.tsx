@@ -37,13 +37,13 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
       <div className="w-full max-w-6xl mx-auto">
         {/* Mobile Carousel - shown at top on mobile screens */}
-        <div className="lg:hidden mb-8 flex justify-center">
+        <div className="lg:hidden mb-6 flex justify-center">
           <div className="w-full max-w-md">
             <WellnessCarousel />
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 items-center justify-items-center">
+        <div className="grid lg:grid-cols-2 gap-4 items-center justify-items-center">
           {/* Left side - Wellness Carousel (Desktop only) */}
           <div className="hidden lg:flex lg:justify-center w-full">
             <div className="w-full max-w-md">
