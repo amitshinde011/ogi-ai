@@ -4,6 +4,8 @@ export interface PricingCalculation {
   discountPercentage: number;
   discountAmount: number;
   discountedPrice: number;
+  couponDiscountPercentage: number;
+  couponDiscountAmount: number;
   taxPercentage: number;
   taxAmount: number;
   finalPrice: number;
@@ -12,18 +14,26 @@ export interface PricingCalculation {
 export const calculatePricing = (
   originalPrice: number,
   discountPercentage: number = 0,
-  taxPercentage: number = 0
+  taxPercentage: number = 0,
+  couponDiscountPercentage: number = 0
 ): PricingCalculation => {
   const discountAmount = (originalPrice * discountPercentage) / 100;
   const discountedPrice = originalPrice - discountAmount;
-  const taxAmount = (discountedPrice * taxPercentage) / 100;
-  const finalPrice = discountedPrice + taxAmount;
+  
+  // Apply coupon discount to the already discounted price
+  const couponDiscountAmount = (discountedPrice * couponDiscountPercentage) / 100;
+  const priceAfterCoupon = discountedPrice - couponDiscountAmount;
+  
+  const taxAmount = (priceAfterCoupon * taxPercentage) / 100;
+  const finalPrice = priceAfterCoupon + taxAmount;
 
   return {
     originalPrice,
     discountPercentage,
     discountAmount,
     discountedPrice,
+    couponDiscountPercentage,
+    couponDiscountAmount,
     taxPercentage,
     taxAmount,
     finalPrice

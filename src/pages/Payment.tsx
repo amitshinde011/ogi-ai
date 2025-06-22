@@ -109,6 +109,7 @@ const Payment = () => {
                   taxPercentage={pricing.taxPercentage}
                   isSpecialOccasion={pricing.isSpecialOccasion}
                   occasionName={pricing.occasionName}
+                  couponDiscountPercentage={pricing.couponDiscountPercentage || 0}
                 />
               </CardContent>
             </Card>

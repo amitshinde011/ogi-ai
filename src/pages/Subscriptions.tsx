@@ -77,7 +77,7 @@ const Subscriptions = () => {
     return isIndiaUser && program.price_inr ? program.price_inr : program.price;
   };
 
-  const handleSubscribe = async (programId: string) => {
+  const handleSubscribe = async (programId: string, couponDiscountPercentage: number = 0) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -136,7 +136,8 @@ const Subscriptions = () => {
       const pricing = calculatePricing(
         originalPrice,
         pricingConfig.discountPercentage,
-        pricingConfig.taxPercentage
+        pricingConfig.taxPercentage,
+        couponDiscountPercentage
       );
       
       // Navigate to payment page with program data, pricing info, and location info
@@ -153,7 +154,8 @@ const Subscriptions = () => {
             discountPercentage: pricingConfig.discountPercentage,
             taxPercentage: pricingConfig.taxPercentage,
             isSpecialOccasion: pricingConfig.isSpecialOccasion,
-            occasionName: pricingConfig.occasionName
+            occasionName: pricingConfig.occasionName,
+            couponDiscountPercentage
           },
           isIndiaUser,
           userLocation

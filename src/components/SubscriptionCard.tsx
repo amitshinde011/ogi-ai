@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check } from 'lucide-react';
 import { PricingBreakdown } from '@/components/subscription/PricingBreakdown';
+import { CouponCodeInput } from '@/components/CouponCodeInput';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
+import { useCouponCode } from '@/hooks/useCouponCode';
 
 interface Program {
   id: string;
@@ -21,7 +23,7 @@ interface Program {
 interface SubscriptionCardProps {
   program: Program;
   isIndiaUser: boolean;
-  onSubscribe: (programId: string) => void;
+  onSubscribe: (programId: string, couponDiscountPercentage?: number) => void;
 }
 
 export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
@@ -30,6 +32,13 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   onSubscribe
 }) => {
   const pricingConfig = usePricingConfig();
+  const { 
+    appliedCoupon, 
+    isValidating, 
+    validateCoupon, 
+    removeCoupon, 
+    getDiscountPercentage 
+  } = useCouponCode();
 
   const getDisplayPrice = () => {
     return isIndiaUser && program.price_inr ? program.price_inr : program.price;
@@ -40,6 +49,10 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   };
 
   const isPopular = program.duration_days === 49;
+
+  const handleSubscribe = () => {
+    onSubscribe(program.id, getDiscountPercentage());
+  };
 
   return (
     <Card className={`relative transition-all hover:shadow-lg bg-white text-black ${
@@ -58,6 +71,14 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <p className="text-sm text-black text-center">{program.description}</p>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Coupon Code Input */}
+        <CouponCodeInput
+          onApplyCoupon={validateCoupon}
+          appliedCoupon={appliedCoupon}
+          onRemoveCoupon={removeCoupon}
+          isValidating={isValidating}
+        />
+
         {/* Pricing Breakdown */}
         <PricingBreakdown
           originalPrice={getDisplayPrice()}
@@ -66,6 +87,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           taxPercentage={pricingConfig.taxPercentage}
           isSpecialOccasion={pricingConfig.isSpecialOccasion}
           occasionName={pricingConfig.occasionName}
+          couponDiscountPercentage={getDiscountPercentage()}
         />
 
         <div>
@@ -92,7 +114,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         </div>
         <Button 
           className="w-full" 
-          onClick={() => onSubscribe(program.id)}
+          onClick={handleSubscribe}
           variant={isPopular ? "default" : "secondary"}
         >
           Subscribe & Pay

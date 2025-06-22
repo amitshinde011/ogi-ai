@@ -212,6 +212,45 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_codes: {
+        Row: {
+          code: string
+          created_at: string
+          discount_percentage: number
+          id: string
+          is_active: boolean
+          updated_at: string
+          usage_count: number
+          usage_limit: number | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          discount_percentage: number
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          discount_percentage?: number
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       daily_wellness: {
         Row: {
           created_at: string

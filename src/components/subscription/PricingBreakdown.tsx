@@ -11,6 +11,7 @@ interface PricingBreakdownProps {
   taxPercentage: number;
   isSpecialOccasion: boolean;
   occasionName?: string;
+  couponDiscountPercentage?: number;
 }
 
 export const PricingBreakdown: React.FC<PricingBreakdownProps> = ({
@@ -19,9 +20,15 @@ export const PricingBreakdown: React.FC<PricingBreakdownProps> = ({
   discountPercentage,
   taxPercentage,
   isSpecialOccasion,
-  occasionName
+  occasionName,
+  couponDiscountPercentage = 0
 }) => {
-  const pricing: PricingCalculation = calculatePricing(originalPrice, discountPercentage, taxPercentage);
+  const pricing: PricingCalculation = calculatePricing(
+    originalPrice, 
+    discountPercentage, 
+    taxPercentage, 
+    couponDiscountPercentage
+  );
 
   return (
     <div className="space-y-3">
@@ -34,7 +41,7 @@ export const PricingBreakdown: React.FC<PricingBreakdownProps> = ({
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600">Original Price:</span>
-          <span className={`${discountPercentage > 0 ? 'line-through text-gray-500' : 'font-semibold'}`}>
+          <span className={`${(discountPercentage > 0 || couponDiscountPercentage > 0) ? 'line-through text-gray-500' : 'font-semibold'}`}>
             {formatCurrency(pricing.originalPrice, currency)}
           </span>
         </div>
@@ -48,6 +55,19 @@ export const PricingBreakdown: React.FC<PricingBreakdownProps> = ({
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">After Discount:</span>
               <span className="font-semibold">{formatCurrency(pricing.discountedPrice, currency)}</span>
+            </div>
+          </>
+        )}
+
+        {couponDiscountPercentage > 0 && (
+          <>
+            <div className="flex justify-between items-center text-blue-600">
+              <span className="text-sm">Coupon Discount ({couponDiscountPercentage}%):</span>
+              <span className="text-sm">-{formatCurrency(pricing.couponDiscountAmount, currency)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">After Coupon:</span>
+              <span className="font-semibold">{formatCurrency(pricing.discountedPrice - pricing.couponDiscountAmount, currency)}</span>
             </div>
           </>
         )}
