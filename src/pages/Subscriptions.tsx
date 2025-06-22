@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -77,6 +78,57 @@ const Subscriptions = () => {
     return isIndiaUser && program.price_inr ? program.price_inr : program.price;
   };
 
+  const createFreeSubscription = async (program: Program) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Mark previous subscription as completed if it exists
+      if (completedSubscription) {
+        await markSubscriptionCompleted(completedSubscription.id);
+      }
+
+      // Create the subscription directly
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(startDate.getDate() + program.duration_days);
+
+      const { error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .insert({
+          user_id: user.id,
+          program_id: program.id,
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+          status: 'active',
+          payment_status: 'free'
+        });
+
+      if (subscriptionError) {
+        throw subscriptionError;
+      }
+
+      await updateOnboardingState({ subscription_selected: true });
+
+      toast({
+        title: "Free Access Granted!",
+        description: `You've successfully got free access to ${program.name}`,
+      });
+
+      navigate('/intro-video');
+    } catch (error) {
+      console.error('Error creating free subscription:', error);
+      toast({
+        title: "Subscription Failed",
+        description: `There was an error processing your free subscription: ${error.message || 'Unknown error'}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubscribe = async (programId: string, couponDiscountPercentage: number = 0) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -100,11 +152,6 @@ const Subscriptions = () => {
 
       console.log('Selected program:', program);
 
-      // Mark previous subscription as completed if it exists
-      if (completedSubscription) {
-        await markSubscriptionCompleted(completedSubscription.id);
-      }
-
       // Check if user already has an active subscription
       const { data: existingSub, error: existingError } = await supabase
         .from('user_subscriptions')
@@ -126,6 +173,12 @@ const Subscriptions = () => {
           description: "You already have an active subscription.",
           variant: "destructive",
         });
+        return;
+      }
+
+      // If 100% discount coupon is applied, create free subscription
+      if (couponDiscountPercentage === 100) {
+        await createFreeSubscription(program);
         return;
       }
 

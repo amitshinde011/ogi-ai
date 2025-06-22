@@ -49,6 +49,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   };
 
   const isPopular = program.duration_days === 49;
+  const isFree = getDiscountPercentage() === 100;
 
   const handleSubscribe = () => {
     onSubscribe(program.id, getDiscountPercentage());
@@ -117,7 +118,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           onClick={handleSubscribe}
           variant={isPopular ? "default" : "secondary"}
         >
-          Subscribe & Pay
+          {isFree ? 'Get Free Access' : 'Subscribe & Pay'}
         </Button>
       </CardContent>
     </Card>
