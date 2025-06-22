@@ -10,7 +10,7 @@ interface VideoIntroProps {
 const VideoIntro = ({ onShowVideo }: VideoIntroProps) => {
   return (
     <div className="text-center space-y-4 sm:space-y-6 px-4 sm:px-0">
-      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center shadow-xl mx-auto">
+      <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center mx-auto">
         <Play className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-600" />
       </div>
       <div className="space-y-2">
