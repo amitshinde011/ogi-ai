@@ -1,14 +1,65 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trophy, Star, Sparkles, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProgramComplete = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if final assessment is already completed
+    const checkFinalAssessmentStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate('/login');
+          return;
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Get active subscription that has ended (completed program)
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .lte('end_date', today)
+          .maybeSingle();
+
+        if (!subscription) {
+          // No completed program, redirect to home
+          console.log('No completed program found, redirecting to home');
+          navigate('/home');
+          return;
+        }
+
+        // Check if final assessment already exists
+        const { data: finalAssessment } = await supabase
+          .from('final_assessments')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('subscription_id', subscription.id)
+          .maybeSingle();
+
+        if (finalAssessment) {
+          // Final assessment already done, redirect to comparison
+          console.log('Final assessment already completed, redirecting to comparison');
+          navigate('/comparison');
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking final assessment status:', error);
+      }
+    };
+
+    checkFinalAssessmentStatus();
+  }, [navigate]);
 
   return (
     <Layout>

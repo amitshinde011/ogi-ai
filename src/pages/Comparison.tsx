@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,8 +31,57 @@ const Comparison = () => {
   const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
-    fetchAssessments();
-  }, []);
+    const checkAccessAndFetchAssessments = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate('/login');
+          return;
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Get active subscription that has ended (completed program)
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .lte('end_date', today)
+          .maybeSingle();
+
+        if (!subscription) {
+          // No completed program, redirect to home
+          console.log('No completed program found, redirecting to home');
+          navigate('/home');
+          return;
+        }
+
+        // Check if final assessment exists
+        const { data: finalAssessmentCheck } = await supabase
+          .from('final_assessments')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('subscription_id', subscription.id)
+          .maybeSingle();
+
+        if (!finalAssessmentCheck) {
+          // Final assessment not done, redirect to program complete
+          console.log('Final assessment not completed, redirecting to program complete');
+          navigate('/program-complete');
+          return;
+        }
+
+        // Fetch assessments
+        await fetchAssessments();
+      } catch (error) {
+        console.error('Error checking access:', error);
+        navigate('/home');
+      }
+    };
+
+    checkAccessAndFetchAssessments();
+  }, [navigate]);
 
   const fetchAssessments = async () => {
     try {

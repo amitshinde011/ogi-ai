@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +20,57 @@ export const useFinalAssessment = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    // Check if program is completed and final assessment is appropriate
+    const checkProgramStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate('/login');
+          return;
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Get active subscription that has ended (completed program)
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('id, end_date')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .lte('end_date', today)
+          .maybeSingle();
+
+        if (!subscription) {
+          // No completed program, redirect to home
+          console.log('No completed program found, redirecting to home');
+          navigate('/home');
+          return;
+        }
+
+        // Check if final assessment already exists
+        const { data: finalAssessment } = await supabase
+          .from('final_assessments')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('subscription_id', subscription.id)
+          .maybeSingle();
+
+        if (finalAssessment) {
+          // Final assessment already done, redirect to comparison
+          console.log('Final assessment already completed, redirecting to comparison');
+          navigate('/comparison');
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking program status:', error);
+        navigate('/home');
+      }
+    };
+
+    checkProgramStatus();
+  }, [navigate]);
 
   const form = useForm<FinalAssessmentForm>({
     defaultValues: {

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,34 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 
 const JourneyStart = () => {
   const navigate = useNavigate();
-  const { updateOnboardingState } = useOnboarding();
+  const { onboardingState, updateOnboardingState } = useOnboarding();
+
+  useEffect(() => {
+    // Check if journey was already started for current subscription
+    const checkJourneyStatus = async () => {
+      try {
+        // If onboarding shows journey is started, redirect to home
+        if (onboardingState?.journey_started) {
+          console.log('Journey already started, redirecting to home');
+          navigate('/home');
+          return;
+        }
+
+        // If before assessment is not completed, redirect back
+        if (!onboardingState?.before_assessment_completed) {
+          console.log('Before assessment not completed, redirecting to before assessment');
+          navigate('/before-assessment');
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking journey status:', error);
+      }
+    };
+
+    if (onboardingState) {
+      checkJourneyStatus();
+    }
+  }, [onboardingState, navigate]);
 
   const handleStartJourney = async () => {
     await updateOnboardingState({ journey_started: true });

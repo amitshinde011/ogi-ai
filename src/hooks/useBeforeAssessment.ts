@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 interface BeforeAssessmentForm {
   walk_10km_comfort: number;
@@ -16,10 +17,58 @@ interface BeforeAssessmentForm {
 export const useBeforeAssessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { onboardingState, updateOnboardingState } = useOnboarding();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    // Check if before assessment was already completed for current subscription
+    const checkAssessmentStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        // If onboarding shows assessment is completed, redirect to journey start
+        if (onboardingState?.before_assessment_completed) {
+          console.log('Before assessment already completed, redirecting to journey start');
+          navigate('/journey-start');
+          return;
+        }
+
+        // Check if there's an active subscription and assessment for it
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (subscription) {
+          const { data: assessment } = await supabase
+            .from('journey_assessments')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('subscription_id', subscription.id)
+            .eq('assessment_type', 'before')
+            .maybeSingle();
+
+          if (assessment) {
+            // Assessment exists, update onboarding and redirect
+            await updateOnboardingState({ before_assessment_completed: true });
+            navigate('/journey-start');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking assessment status:', error);
+      }
+    };
+
+    if (onboardingState) {
+      checkAssessmentStatus();
+    }
+  }, [onboardingState, navigate, updateOnboardingState]);
 
   const form = useForm<BeforeAssessmentForm>({
     defaultValues: {
@@ -136,6 +185,9 @@ export const useBeforeAssessment = () => {
         });
 
       if (error) throw error;
+
+      // Update onboarding state
+      await updateOnboardingState({ before_assessment_completed: true });
 
       toast({
         title: "Assessment Saved!",
