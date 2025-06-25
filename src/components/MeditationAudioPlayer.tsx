@@ -1,10 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { audioCacheManager } from '@/utils/audioCacheManager';
 
 const MeditationAudioPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -16,9 +16,6 @@ const MeditationAudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
-  const CACHE_KEY = 'dhatu-meditation-audio';
-  const CACHE_TIMESTAMP_KEY = 'dhatu-meditation-audio-timestamp';
-
   useEffect(() => {
     return () => {
       if (audioUrl) {
@@ -27,58 +24,16 @@ const MeditationAudioPlayer = () => {
     };
   }, [audioUrl]);
 
-  const getCachedAudio = (): string | null => {
-    try {
-      const cachedAudio = localStorage.getItem(CACHE_KEY);
-      const cacheTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-      
-      if (cachedAudio && cacheTimestamp) {
-        const today = new Date().toDateString();
-        const cachedDate = new Date(parseInt(cacheTimestamp)).toDateString();
-        
-        if (today === cachedDate) {
-          console.log('Found valid cached audio');
-          return cachedAudio;
-        } else {
-          console.log('Cached audio expired, clearing cache');
-          localStorage.removeItem(CACHE_KEY);
-          localStorage.removeItem(CACHE_TIMESTAMP_KEY);
-        }
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Error accessing cache:', error);
-      try {
-        localStorage.removeItem(CACHE_KEY);
-        localStorage.removeItem(CACHE_TIMESTAMP_KEY);
-      } catch (clearError) {
-        console.error('Error clearing cache:', clearError);
-      }
-      return null;
-    }
-  };
-
-  const setCachedAudio = (audioData: string) => {
-    try {
-      localStorage.setItem(CACHE_KEY, audioData);
-      localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
-      console.log('Audio cached successfully');
-    } catch (error) {
-      console.warn('Failed to cache audio:', error);
-    }
-  };
-
   const loadAudio = async () => {
     if (audioUrl) return;
     
     setIsLoading(true);
     try {
-      const cachedAudio = getCachedAudio();
-      if (cachedAudio) {
-        console.log('Loading audio from cache');
-        setAudioUrl(cachedAudio);
-        createAudioElement(cachedAudio);
+      const cachedAudioUrl = await audioCacheManager.getCachedAudio();
+      if (cachedAudioUrl) {
+        console.log('Loading audio from IndexedDB cache');
+        setAudioUrl(cachedAudioUrl);
+        createAudioElement(cachedAudioUrl);
         setIsLoading(false);
         return;
       }
@@ -109,16 +64,8 @@ const MeditationAudioPlayer = () => {
       const url = URL.createObjectURL(audioBlob);
       setAudioUrl(url);
 
-      try {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64data = reader.result as string;
-          setCachedAudio(base64data);
-        };
-        reader.readAsDataURL(audioBlob);
-      } catch (cacheError) {
-        console.warn('Failed to prepare audio for caching:', cacheError);
-      }
+      // Cache the audio blob for future use
+      await audioCacheManager.setCachedAudio(audioBlob);
 
       createAudioElement(url);
 
