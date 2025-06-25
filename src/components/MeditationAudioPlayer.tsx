@@ -32,7 +32,7 @@ const MeditationAudioPlayer = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/get-meditation-audio`, {
+      const response = await fetch(`https://mxigbftmmkqnhmocyeeo.supabase.co/functions/v1/get-meditation-audio`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
         },

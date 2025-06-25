@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Minus, Droplets, Zap, Om } from 'lucide-react';
+import { Plus, Minus, Droplets, Zap, Circle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import MeditationAudioPlayer from './MeditationAudioPlayer';
@@ -141,7 +141,7 @@ const WellnessTracker = () => {
         {/* Surya Namaskar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Om className="w-5 h-5 text-orange-500" />
+            <Circle className="w-5 h-5 text-orange-500" />
             <div>
               <Label className="font-medium">Surya Namaskar</Label>
               <p className="text-sm text-gray-600">{suryaNamaskarCount} rounds</p>
@@ -171,7 +171,7 @@ const WellnessTracker = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label className="font-medium flex items-center gap-2">
-              <Om className="w-5 h-5 text-purple-500" />
+              <Circle className="w-5 h-5 text-purple-500" />
               Meditation
             </Label>
             <Checkbox 
