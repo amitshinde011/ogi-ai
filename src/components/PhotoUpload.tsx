@@ -68,10 +68,10 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
       <div
         className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer
           ${isDragOver 
-            ? 'border-primary bg-primary/10 transform scale-102 shadow-lg' 
+            ? 'border-blue-500 bg-blue-50' 
             : selectedImage 
               ? 'border-green-300 bg-green-50' 
-              : 'border-gray-300 hover:border-primary hover:bg-primary/5 hover:shadow-md'
+              : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
           }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -107,29 +107,27 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
           </div>
         ) : (
           <div className="space-y-4 animate-fade-in">
-            <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center">
-              <Image className="w-10 h-10 text-primary" />
+            <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center">
+              <Image className="w-10 h-10 text-blue-500" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p className="text-lg font-medium text-gray-700">
                 {isDragOver ? 'Drop your photo here!' : description}
               </p>
               <p className="text-sm text-gray-500">
                 Drag & drop or click to browse
               </p>
-              <div className="flex items-center justify-center pt-2">
-                <Button
-                  type="button"
-                  className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleClick();
-                  }}
-                >
-                  <Upload className="w-5 h-5 mr-2" />
-                  Choose Photo
-                </Button>
-              </div>
+              <Button
+                type="button"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClick();
+                }}
+              >
+                <Upload className="w-5 h-5 mr-2" />
+                Choose Photo
+              </Button>
             </div>
           </div>
         )}
@@ -137,9 +135,9 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
         {uploading && (
           <div className="absolute inset-0 bg-white/90 rounded-xl flex items-center justify-center backdrop-blur-sm">
             <div className="text-center space-y-3 animate-pulse">
-              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
               <div className="space-y-1">
-                <p className="text-lg font-medium text-primary">Uploading...</p>
+                <p className="text-lg font-medium text-blue-600">Uploading...</p>
                 <p className="text-sm text-gray-600">Please wait</p>
               </div>
             </div>

@@ -64,10 +64,10 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
       <div
         className={`relative border-2 border-dashed rounded-2xl p-6 text-center transition-all duration-200 cursor-pointer
           ${isDragOver 
-            ? 'border-primary bg-primary/5 transform scale-105' 
+            ? 'border-blue-500 bg-blue-50' 
             : selectedImage 
               ? 'border-gray-200 bg-gray-50' 
-              : 'border-gray-300 hover:border-primary hover:bg-primary/5'
+              : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
           }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -102,19 +102,24 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
             <div className="w-24 h-24 mx-auto bg-gray-100 rounded-2xl flex items-center justify-center">
               <User className="w-12 h-12 text-gray-400" />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p className="text-sm font-medium text-gray-700">
                 {isDragOver ? 'Drop your photo here' : 'Upload your profile picture'}
               </p>
               <p className="text-xs text-gray-500">
                 Drag & drop or click to browse
               </p>
-              <div className="flex items-center justify-center">
-                <div className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-                  <Upload className="w-4 h-4 mr-2" />
-                  Choose Photo
-                </div>
-              </div>
+              <Button
+                type="button"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClick();
+                }}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Choose Photo
+              </Button>
             </div>
           </div>
         )}
