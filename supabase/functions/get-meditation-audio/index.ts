@@ -27,7 +27,11 @@ const s3 = new S3Client({
 });
 
 Deno.serve(async (req) => {
-  console.log("Edge function 'get-meditation-audio' invoked.");
+  console.log("Edge function 'get-meditation-audio' invoked.", {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
+  });
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
