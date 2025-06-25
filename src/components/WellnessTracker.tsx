@@ -12,6 +12,7 @@ import MeditationAudioPlayer from './MeditationAudioPlayer';
 import SuryaNamaskarVideoPlayer from './SuryaNamaskarVideoPlayer';
 
 const WellnessTracker = () => {
+  const [wellnessId, setWellnessId] = useState<string | null>(null);
   const [waterLitres, setWaterLitres] = useState(0);
   const [suryaNamaskarCount, setSuryaNamaskarCount] = useState(0);
   const [meditationCompleted, setMeditationCompleted] = useState(false);
@@ -37,6 +38,7 @@ const WellnessTracker = () => {
         .maybeSingle();
 
       if (data) {
+        setWellnessId(data.id);
         setWaterLitres(data.water_litres || 0);
         setSuryaNamaskarCount(data.surya_namaskar_count || 0);
         setMeditationCompleted(data.meditation_completed || false);
@@ -54,18 +56,39 @@ const WellnessTracker = () => {
 
       const today = new Date().toISOString().split('T')[0];
       
-      const { error } = await supabase
-        .from('daily_wellness')
-        .upsert({
-          user_id: user.id,
-          date: today,
-          water_litres: waterLitres,
-          surya_namaskar_count: suryaNamaskarCount,
-          meditation_completed: meditationCompleted,
-          ...updates
-        });
+      if (wellnessId) {
+        // Update existing record
+        const { error } = await supabase
+          .from('daily_wellness')
+          .update({
+            water_litres: waterLitres,
+            surya_namaskar_count: suryaNamaskarCount,
+            meditation_completed: meditationCompleted,
+            ...updates
+          })
+          .eq('id', wellnessId);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Create new record
+        const { data, error } = await supabase
+          .from('daily_wellness')
+          .insert({
+            user_id: user.id,
+            date: today,
+            water_litres: waterLitres,
+            surya_namaskar_count: suryaNamaskarCount,
+            meditation_completed: meditationCompleted,
+            ...updates
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setWellnessId(data.id);
+        }
+      }
       
       toast({
         title: "Updated successfully",

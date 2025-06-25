@@ -81,17 +81,23 @@ export const useWellnessTracking = () => {
 
         if (error) throw error;
       } else {
-        // Create new record
+        // Create new record - use insert with conflict resolution
         const { data, error } = await supabase
           .from('daily_wellness')
-          .insert({
-            user_id: user.id,
-            date: today,
-            water_litres: updatedData.water_litres,
-            surya_namaskar_count: updatedData.surya_namaskar_count,
-            meditation_minutes: updatedData.meditation_minutes,
-            meditation_completed: updatedData.meditation_completed
-          })
+          .upsert(
+            {
+              user_id: user.id,
+              date: today,
+              water_litres: updatedData.water_litres,
+              surya_namaskar_count: updatedData.surya_namaskar_count,
+              meditation_minutes: updatedData.meditation_minutes,
+              meditation_completed: updatedData.meditation_completed
+            },
+            { 
+              onConflict: 'user_id,date',
+              ignoreDuplicates: false 
+            }
+          )
           .select()
           .single();
 
