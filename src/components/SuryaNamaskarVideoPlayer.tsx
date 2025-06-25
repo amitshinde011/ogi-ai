@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Play, X } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import VideoPlayerCore from '@/components/VideoPlayerCore';
@@ -66,16 +66,8 @@ const SuryaNamaskarVideoPlayer = () => {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-4xl w-full">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
+            <DialogTitle>
               Surya Namaskar Tutorial
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCloseVideo}
-                className="h-6 w-6 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
             </DialogTitle>
           </DialogHeader>
           
