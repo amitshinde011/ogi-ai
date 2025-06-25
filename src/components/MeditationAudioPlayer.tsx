@@ -4,6 +4,7 @@ import { Play, Pause, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const MeditationAudioPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -13,6 +14,7 @@ const MeditationAudioPlayer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { toast } = useToast();
 
   const CACHE_KEY = 'dhatu-meditation-audio';
   const CACHE_TIMESTAMP_KEY = 'dhatu-meditation-audio-timestamp';
@@ -36,23 +38,45 @@ const MeditationAudioPlayer = () => {
         
         // If cached today, return the cached audio
         if (today === cachedDate) {
+          console.log('Found valid cached audio');
           return cachedAudio;
+        } else {
+          console.log('Cached audio expired, clearing cache');
+          // Clear expired cache
+          localStorage.removeItem(CACHE_KEY);
+          localStorage.removeItem(CACHE_TIMESTAMP_KEY);
         }
       }
       
       return null;
     } catch (error) {
       console.error('Error accessing cache:', error);
+      // If cache access fails, clear it
+      try {
+        localStorage.removeItem(CACHE_KEY);
+        localStorage.removeItem(CACHE_TIMESTAMP_KEY);
+      } catch (clearError) {
+        console.error('Error clearing cache:', clearError);
+      }
       return null;
     }
   };
 
   const setCachedAudio = (audioData: string) => {
     try {
+      // Check if we have enough storage space
+      const testKey = 'storage-test';
+      const testData = 'test';
+      localStorage.setItem(testKey, testData);
+      localStorage.removeItem(testKey);
+      
       localStorage.setItem(CACHE_KEY, audioData);
       localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+      console.log('Audio cached successfully');
     } catch (error) {
-      console.error('Error caching audio:', error);
+      console.warn('Failed to cache audio (storage quota exceeded or other error):', error);
+      // Don't show error to user, just log it
+      // The audio will still work, just won't be cached
     }
   };
 
@@ -85,49 +109,83 @@ const MeditationAudioPlayer = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load meditation audio');
+        if (response.status === 401) {
+          throw new Error('Please log in to access meditation audio');
+        } else if (response.status === 403) {
+          throw new Error('Active subscription required to access meditation audio');
+        } else {
+          throw new Error('Failed to load meditation audio');
+        }
       }
 
       const audioBlob = await response.blob();
       const url = URL.createObjectURL(audioBlob);
       setAudioUrl(url);
 
-      // Cache the audio for future use
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64data = reader.result as string;
-        setCachedAudio(base64data);
-      };
-      reader.readAsDataURL(audioBlob);
+      // Try to cache the audio for future use (but don't fail if it doesn't work)
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result as string;
+          setCachedAudio(base64data);
+        };
+        reader.readAsDataURL(audioBlob);
+      } catch (cacheError) {
+        console.warn('Failed to prepare audio for caching:', cacheError);
+      }
 
       createAudioElement(url);
 
     } catch (error) {
       console.error('Error loading meditation audio:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to load meditation audio",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const createAudioElement = (url: string) => {
-    // Create audio element
-    const audio = new Audio(url);
-    audioRef.current = audio;
+    try {
+      // Create audio element
+      const audio = new Audio(url);
+      audioRef.current = audio;
 
-    audio.addEventListener('loadedmetadata', () => {
-      setDuration(audio.duration);
-    });
+      audio.addEventListener('loadedmetadata', () => {
+        setDuration(audio.duration);
+        console.log('Audio metadata loaded, duration:', audio.duration);
+      });
 
-    audio.addEventListener('timeupdate', () => {
-      setCurrentTime(audio.currentTime);
-    });
+      audio.addEventListener('timeupdate', () => {
+        setCurrentTime(audio.currentTime);
+      });
 
-    audio.addEventListener('ended', () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    });
+      audio.addEventListener('ended', () => {
+        setIsPlaying(false);
+        setCurrentTime(0);
+      });
 
-    audio.volume = volume;
+      audio.addEventListener('error', (e) => {
+        console.error('Audio element error:', e);
+        toast({
+          title: "Audio Error",
+          description: "Failed to load audio file",
+          variant: "destructive",
+        });
+      });
+
+      audio.volume = volume;
+    } catch (error) {
+      console.error('Error creating audio element:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create audio player",
+        variant: "destructive",
+      });
+    }
   };
 
   const togglePlayPause = async () => {
@@ -136,12 +194,21 @@ const MeditationAudioPlayer = () => {
       return;
     }
 
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play();
-      setIsPlaying(true);
+    try {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        await audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      toast({
+        title: "Playback Error",
+        description: "Failed to play audio. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
