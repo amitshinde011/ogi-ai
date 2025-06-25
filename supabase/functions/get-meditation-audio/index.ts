@@ -52,8 +52,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch the audio file from Cloudflare R2 using the correct public URL format
-    const r2Url = 'https://customer-onl1554tq2lcrfxf.cloudflarestream.com/96cd81b48a779f3daf9a8db0a0e4c02b/downloads/default.mp3';
+    // Get Cloudflare Account ID from environment variables
+    const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
+    if (!accountId) {
+      return new Response(
+        JSON.stringify({ error: 'Cloudflare configuration missing' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Fetch the audio file from Cloudflare R2 using the correct URL format
+    const r2Url = `https://assets.${accountId}.r2.cloudflarestorage.com/Dhatu%20Meditation.mp3`;
     
     const audioResponse = await fetch(r2Url);
 
