@@ -52,17 +52,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Fetch the audio file from Cloudflare R2
-    // Using the public R2 URL format for Cloudflare R2
-    const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
-    if (!accountId) {
-      return new Response(
-        JSON.stringify({ error: 'Cloudflare configuration missing' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const r2Url = `https://pub-${accountId}.r2.dev/assets/Dhatu%20Meditation.mp3`;
+    // Fetch the audio file from Cloudflare R2 using the correct public URL format
+    const r2Url = 'https://customer-onl1554tq2lcrfxf.cloudflarestream.com/96cd81b48a779f3daf9a8db0a0e4c02b/downloads/default.mp3';
     
     const audioResponse = await fetch(r2Url);
 
