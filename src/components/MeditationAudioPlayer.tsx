@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, Download } from 'lucide-react';
+import { Play, Pause, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,9 @@ const MeditationAudioPlayer = () => {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const CACHE_KEY = 'dhatu-meditation-audio';
+  const CACHE_TIMESTAMP_KEY = 'dhatu-meditation-audio-timestamp';
+
   useEffect(() => {
     return () => {
       if (audioUrl) {
@@ -22,11 +25,54 @@ const MeditationAudioPlayer = () => {
     };
   }, [audioUrl]);
 
+  const getCachedAudio = (): string | null => {
+    try {
+      const cachedAudio = localStorage.getItem(CACHE_KEY);
+      const cacheTimestamp = localStorage.getItem(CACHE_TIMESTAMP_KEY);
+      
+      if (cachedAudio && cacheTimestamp) {
+        const today = new Date().toDateString();
+        const cachedDate = new Date(parseInt(cacheTimestamp)).toDateString();
+        
+        // If cached today, return the cached audio
+        if (today === cachedDate) {
+          return cachedAudio;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error accessing cache:', error);
+      return null;
+    }
+  };
+
+  const setCachedAudio = (audioData: string) => {
+    try {
+      localStorage.setItem(CACHE_KEY, audioData);
+      localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+    } catch (error) {
+      console.error('Error caching audio:', error);
+    }
+  };
+
   const loadAudio = async () => {
     if (audioUrl) return; // Already loaded
     
     setIsLoading(true);
     try {
+      // First, try to get from cache
+      const cachedAudio = getCachedAudio();
+      if (cachedAudio) {
+        console.log('Loading audio from cache');
+        setAudioUrl(cachedAudio);
+        createAudioElement(cachedAudio);
+        setIsLoading(false);
+        return;
+      }
+
+      // If not cached, fetch from server
+      console.log('Fetching audio from server');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         throw new Error('Authentication required');
@@ -46,28 +92,42 @@ const MeditationAudioPlayer = () => {
       const url = URL.createObjectURL(audioBlob);
       setAudioUrl(url);
 
-      // Create audio element
-      const audio = new Audio(url);
-      audioRef.current = audio;
+      // Cache the audio for future use
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        setCachedAudio(base64data);
+      };
+      reader.readAsDataURL(audioBlob);
 
-      audio.addEventListener('loadedmetadata', () => {
-        setDuration(audio.duration);
-      });
-
-      audio.addEventListener('timeupdate', () => {
-        setCurrentTime(audio.currentTime);
-      });
-
-      audio.addEventListener('ended', () => {
-        setIsPlaying(false);
-        setCurrentTime(0);
-      });
+      createAudioElement(url);
 
     } catch (error) {
       console.error('Error loading meditation audio:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const createAudioElement = (url: string) => {
+    // Create audio element
+    const audio = new Audio(url);
+    audioRef.current = audio;
+
+    audio.addEventListener('loadedmetadata', () => {
+      setDuration(audio.duration);
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      setCurrentTime(audio.currentTime);
+    });
+
+    audio.addEventListener('ended', () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    });
+
+    audio.volume = volume;
   };
 
   const togglePlayPause = async () => {
@@ -107,31 +167,10 @@ const MeditationAudioPlayer = () => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const downloadAudio = async () => {
-    if (audioUrl) {
-      const a = document.createElement('a');
-      a.href = audioUrl;
-      a.download = 'Dhatu-Meditation.mp3';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } else {
-      await loadAudio();
-    }
-  };
-
   return (
     <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-gray-900">Dhatu Meditation</h3>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={downloadAudio}
-          className="text-gray-600 hover:text-gray-900"
-        >
-          <Download className="w-4 h-4" />
-        </Button>
       </div>
 
       {/* Progress Bar */}
