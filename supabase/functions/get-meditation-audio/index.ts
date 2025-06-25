@@ -14,23 +14,24 @@ const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
 const accessKeyId = Deno.env.get('CLOUDFLARE_ACCESS_KEY_ID');
 const secretAccessKey = Deno.env.get('CLOUDFLARE_SECRET_ACCESS_KEY');
 
-// Initialize the S3 Client for Cloudflare R2 with explicit configuration to prevent file system access
+if (!accountId || !accessKeyId || !secretAccessKey) {
+  throw new Error('Missing required Cloudflare R2 credentials');
+}
+
+// Initialize the S3 Client for Cloudflare R2 with minimal configuration
 const s3 = new S3Client({
   region: 'auto',
   endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
   credentials: {
-    accessKeyId: accessKeyId!,
-    secretAccessKey: secretAccessKey!,
+    accessKeyId,
+    secretAccessKey,
   },
   forcePathStyle: true,
-  maxAttempts: 1,
-  // Explicitly disable credential chain providers that try to read files
-  credentialDefaultProvider: () => {
-    return () => Promise.resolve({
-      accessKeyId: accessKeyId!,
-      secretAccessKey: secretAccessKey!,
-    });
-  },
+  // Disable all automatic credential loading
+  credentialDefaultProvider: () => () => Promise.resolve({
+    accessKeyId,
+    secretAccessKey,
+  }),
 });
 
 Deno.serve(async (req) => {
