@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import PhotoUpload from '@/components/PhotoUpload';
 import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
@@ -23,7 +22,7 @@ const FinalAssessment = () => {
   } = useFinalAssessment();
 
   return (
-    <Layout>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Header title="Final Assessment" />
       
       <div className="min-h-screen bg-gradient-peaceful p-4">
@@ -67,7 +66,7 @@ const FinalAssessment = () => {
           </Card>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 };
 
