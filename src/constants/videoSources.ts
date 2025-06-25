@@ -3,9 +3,13 @@ import { VideoSources } from '@/types/videoPlayer';
 
 // Video IDs from Cloudflare Stream
 const VIDEO_IDS = [
-  '8d8f8b1aca7d0f8224683acc56a26c4f',
+  '1229a47db5c27ea07a0648ee96f16d02',
   '584bf0778a5f896ddbce993ab259ef79', 
-  '337f864ee97f2e104e2c1c496d90a27a'
+  '337f864ee97f2e104e2c1c496d90a27a',
+  '48b834a7cdab0565972f9886ad4e811e',
+  'bd08fce7148e40231cb7456067ce60a8', 
+  '8bc4e9c8fe29682da551cc800fec904b',
+  '441f91db738ffead3c5700763b4600aa'
 ];
 
 // Cloudflare Stream customer subdomain
