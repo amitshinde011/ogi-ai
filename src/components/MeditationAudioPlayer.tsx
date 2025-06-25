@@ -36,13 +36,11 @@ const MeditationAudioPlayer = () => {
         const today = new Date().toDateString();
         const cachedDate = new Date(parseInt(cacheTimestamp)).toDateString();
         
-        // If cached today, return the cached audio
         if (today === cachedDate) {
           console.log('Found valid cached audio');
           return cachedAudio;
         } else {
           console.log('Cached audio expired, clearing cache');
-          // Clear expired cache
           localStorage.removeItem(CACHE_KEY);
           localStorage.removeItem(CACHE_TIMESTAMP_KEY);
         }
@@ -51,7 +49,6 @@ const MeditationAudioPlayer = () => {
       return null;
     } catch (error) {
       console.error('Error accessing cache:', error);
-      // If cache access fails, clear it
       try {
         localStorage.removeItem(CACHE_KEY);
         localStorage.removeItem(CACHE_TIMESTAMP_KEY);
@@ -64,28 +61,19 @@ const MeditationAudioPlayer = () => {
 
   const setCachedAudio = (audioData: string) => {
     try {
-      // Check if we have enough storage space
-      const testKey = 'storage-test';
-      const testData = 'test';
-      localStorage.setItem(testKey, testData);
-      localStorage.removeItem(testKey);
-      
       localStorage.setItem(CACHE_KEY, audioData);
       localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
       console.log('Audio cached successfully');
     } catch (error) {
-      console.warn('Failed to cache audio (storage quota exceeded or other error):', error);
-      // Don't show error to user, just log it
-      // The audio will still work, just won't be cached
+      console.warn('Failed to cache audio:', error);
     }
   };
 
   const loadAudio = async () => {
-    if (audioUrl) return; // Already loaded
+    if (audioUrl) return;
     
     setIsLoading(true);
     try {
-      // First, try to get from cache
       const cachedAudio = getCachedAudio();
       if (cachedAudio) {
         console.log('Loading audio from cache');
@@ -95,7 +83,6 @@ const MeditationAudioPlayer = () => {
         return;
       }
 
-      // If not cached, fetch from server
       console.log('Fetching audio from server');
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -122,7 +109,6 @@ const MeditationAudioPlayer = () => {
       const url = URL.createObjectURL(audioBlob);
       setAudioUrl(url);
 
-      // Try to cache the audio for future use (but don't fail if it doesn't work)
       try {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -150,8 +136,17 @@ const MeditationAudioPlayer = () => {
 
   const createAudioElement = (url: string) => {
     try {
-      // Create audio element
-      const audio = new Audio(url);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.removeEventListener('loadedmetadata', () => {});
+        audioRef.current.removeEventListener('timeupdate', () => {});
+        audioRef.current.removeEventListener('ended', () => {});
+        audioRef.current.removeEventListener('error', () => {});
+      }
+
+      const audio = new Audio();
+      audio.src = url;
+      audio.preload = 'metadata';
       audioRef.current = audio;
 
       audio.addEventListener('loadedmetadata', () => {
@@ -178,6 +173,9 @@ const MeditationAudioPlayer = () => {
       });
 
       audio.volume = volume;
+      
+      // Load the audio metadata
+      audio.load();
     } catch (error) {
       console.error('Error creating audio element:', error);
       toast({
@@ -199,8 +197,11 @@ const MeditationAudioPlayer = () => {
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        await audioRef.current.play();
-        setIsPlaying(true);
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          await playPromise;
+          setIsPlaying(true);
+        }
       }
     } catch (error) {
       console.error('Error playing audio:', error);
@@ -213,7 +214,7 @@ const MeditationAudioPlayer = () => {
   };
 
   const handleSeek = (value: number[]) => {
-    if (audioRef.current) {
+    if (audioRef.current && duration > 0) {
       const newTime = (value[0] / 100) * duration;
       audioRef.current.currentTime = newTime;
       setCurrentTime(newTime);
@@ -240,13 +241,12 @@ const MeditationAudioPlayer = () => {
         <h3 className="font-semibold text-gray-900">Dhatu Meditation</h3>
       </div>
 
-      {/* Progress Bar */}
       <div className="mb-3">
         <Slider
           value={[duration ? (currentTime / duration) * 100 : 0]}
           onValueChange={handleSeek}
           className="w-full"
-          disabled={!audioRef.current}
+          disabled={!audioRef.current || duration === 0}
         />
         <div className="flex justify-between text-xs text-gray-500 mt-1">
           <span>{formatTime(currentTime)}</span>
@@ -254,7 +254,6 @@ const MeditationAudioPlayer = () => {
         </div>
       </div>
 
-      {/* Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button
