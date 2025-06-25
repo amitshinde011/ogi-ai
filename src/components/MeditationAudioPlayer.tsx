@@ -14,6 +14,7 @@ const MeditationAudioPlayer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const shouldAutoPlayRef = useRef(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -24,10 +25,12 @@ const MeditationAudioPlayer = () => {
     };
   }, [audioUrl]);
 
-  const loadAudio = async () => {
+  const loadAudio = async (shouldAutoPlay = false) => {
     if (audioUrl) return;
     
     setIsLoading(true);
+    shouldAutoPlayRef.current = shouldAutoPlay;
+    
     try {
       const cachedAudioUrl = await audioCacheManager.getCachedAudio();
       if (cachedAudioUrl) {
@@ -76,6 +79,7 @@ const MeditationAudioPlayer = () => {
         description: error instanceof Error ? error.message : "Failed to load meditation audio",
         variant: "destructive",
       });
+      shouldAutoPlayRef.current = false;
     } finally {
       setIsLoading(false);
     }
@@ -96,9 +100,28 @@ const MeditationAudioPlayer = () => {
       audio.preload = 'metadata';
       audioRef.current = audio;
 
-      audio.addEventListener('loadedmetadata', () => {
+      audio.addEventListener('loadedmetadata', async () => {
         setDuration(audio.duration);
         console.log('Audio metadata loaded, duration:', audio.duration);
+        
+        // Auto-play if requested
+        if (shouldAutoPlayRef.current) {
+          shouldAutoPlayRef.current = false;
+          try {
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+              await playPromise;
+              setIsPlaying(true);
+            }
+          } catch (error) {
+            console.error('Error auto-playing audio:', error);
+            toast({
+              title: "Playback Error",
+              description: "Failed to auto-play audio. Please try clicking play again.",
+              variant: "destructive",
+            });
+          }
+        }
       });
 
       audio.addEventListener('timeupdate', () => {
@@ -112,6 +135,7 @@ const MeditationAudioPlayer = () => {
 
       audio.addEventListener('error', (e) => {
         console.error('Audio element error:', e);
+        shouldAutoPlayRef.current = false;
         toast({
           title: "Audio Error",
           description: "Failed to load audio file",
@@ -125,6 +149,7 @@ const MeditationAudioPlayer = () => {
       audio.load();
     } catch (error) {
       console.error('Error creating audio element:', error);
+      shouldAutoPlayRef.current = false;
       toast({
         title: "Error",
         description: "Failed to create audio player",
@@ -135,7 +160,7 @@ const MeditationAudioPlayer = () => {
 
   const togglePlayPause = async () => {
     if (!audioRef.current) {
-      await loadAudio();
+      await loadAudio(true); // Request auto-play when loading for the first time
       return;
     }
 
