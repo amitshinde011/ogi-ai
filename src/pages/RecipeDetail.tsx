@@ -107,7 +107,7 @@ const RecipeDetail = () => {
   const nutritionItems = getNutritionItems();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10">
+    <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10 no-yellow">
       <Header title="Recipe" showBack />
       
       <div className="max-w-md mx-auto">
@@ -160,7 +160,7 @@ const RecipeDetail = () => {
                   </div>
                 </div>
                 <div className="flex items-center">
-                  <Star className="text-yellow-500 mr-1" size={16} fill="currentColor" />
+                  <Star className="text-amber-500 mr-1" size={16} fill="currentColor" />
                   <span className="font-medium">{recipe.rating || 4.5}</span>
                 </div>
               </div>
@@ -234,20 +234,20 @@ const RecipeDetail = () => {
             </Card>
           )}
 
-          {/* Tips */}
+          {/* Tips - replace yellow with orange/amber theme */}
           {tipsList.length > 0 && (
-            <Card className="border-l-4 border-l-yellow-500">
+            <Card className="border-l-4 border-l-orange-500">
               <CardContent className="p-6">
                 <div className="flex items-center mb-5">
-                  <div className="p-2 bg-yellow-100 rounded-lg mr-3">
-                    <Lightbulb className="text-yellow-600" size={20} />
+                  <div className="p-2 bg-orange-100 rounded-lg mr-3">
+                    <Lightbulb className="text-orange-600" size={20} />
                   </div>
                   <h3 className="font-bold text-xl text-primary">Tips & Variations</h3>
                 </div>
                 <div className="space-y-4">
                   {tipsList.map((tip, index) => (
-                    <div key={index} className="flex items-start bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200">
-                      <div className="w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
+                    <div key={index} className="flex items-start bg-gradient-to-r from-orange-50 to-amber-50 p-4 rounded-xl border border-orange-200">
+                      <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-amber-400 rounded-full flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
                         <Lightbulb size={12} className="text-white" />
                       </div>
                       <span className="text-gray-700 leading-relaxed font-medium">{tip}</span>

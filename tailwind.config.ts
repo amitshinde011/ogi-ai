@@ -67,6 +67,9 @@ export default {
 				'pastel-lavender': 'rgb(var(--pastel-lavender))',
 				'pastel-mint': 'rgb(var(--pastel-mint))',
 			},
+			backgroundImage: {
+				'gradient-sage': 'linear-gradient(135deg, rgb(34, 197, 94) 0%, rgb(16, 185, 129) 100%)',
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
