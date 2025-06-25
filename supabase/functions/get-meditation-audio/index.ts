@@ -5,6 +5,8 @@ import { S3Client, GetObjectCommand } from 'https://esm.sh/@aws-sdk/client-s3@3.
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 // Get Cloudflare credentials from environment variables
@@ -20,7 +22,6 @@ const s3 = new S3Client({
     accessKeyId: accessKeyId!,
     secretAccessKey: secretAccessKey!,
   },
-  // Adding these configurations to prevent SDK filesystem lookups and optimize for this environment
   forcePathStyle: true,
   maxAttempts: 1, 
 });
@@ -28,9 +29,13 @@ const s3 = new S3Client({
 Deno.serve(async (req) => {
   console.log("Edge function 'get-meditation-audio' invoked.");
 
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log("Handling OPTIONS preflight request.");
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { 
+      status: 200,
+      headers: corsHeaders 
+    });
   }
 
   try {
@@ -39,26 +44,63 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.error("Authentication Error: No Authorization header provided.");
-      return new Response(JSON.stringify({ error: 'No authorization header' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }});
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }), 
+        { 
+          status: 401, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          }
+        }
+      );
     }
 
-    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!, 
+      Deno.env.get('SUPABASE_ANON_KEY')!, 
+      {
+        global: { headers: { Authorization: authHeader } },
+      }
+    );
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       console.error("Authentication Error: Invalid token.", authError);
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }});
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }), 
+        { 
+          status: 401, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          }
+        }
+      );
     }
     console.log(`User ${user.id} authenticated successfully.`);
 
     // 2. CHECK FOR ACTIVE SUBSCRIPTION
     console.log(`Checking subscription for user ${user.id}...`);
-    const { data: subscription } = await supabase.from('user_subscriptions').select('status').eq('user_id', user.id).eq('status', 'active').single();
+    const { data: subscription } = await supabase
+      .from('user_subscriptions')
+      .select('status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+      
     if (!subscription) {
       console.error(`Authorization Error: No active subscription for user ${user.id}.`);
-      return new Response(JSON.stringify({ error: 'Active subscription required' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }});
+      return new Response(
+        JSON.stringify({ error: 'Active subscription required' }), 
+        { 
+          status: 403, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          }
+        }
+      );
     }
     console.log("User has an active subscription.");
     
@@ -85,15 +127,39 @@ Deno.serve(async (req) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'audio/mpeg',
-        'Content-Length': r2Response.ContentLength!.toString(),
+        'Content-Length': r2Response.ContentLength?.toString() || '0',
+        'Accept-Ranges': 'bytes',
       },
     });
 
   } catch (error) {
     console.error('Edge Function Critical Error:', error);
+    
     if (error.name === 'NoSuchKey') {
-      return new Response(JSON.stringify({ error: 'Audio file not found in storage' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }});
+      return new Response(
+        JSON.stringify({ error: 'Audio file not found in storage' }), 
+        { 
+          status: 404, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          }
+        }
+      );
     }
-    return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }});
+    
+    return new Response(
+      JSON.stringify({ 
+        error: 'Internal Server Error',
+        details: error.message 
+      }), 
+      { 
+        status: 500, 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }
+      }
+    );
   }
 });
