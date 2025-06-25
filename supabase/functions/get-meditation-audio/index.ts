@@ -18,7 +18,7 @@ if (!accountId || !accessKeyId || !secretAccessKey) {
   throw new Error('Missing required Cloudflare R2 credentials');
 }
 
-// Initialize the S3 Client for Cloudflare R2 with minimal configuration
+// Simple S3 client configuration without any credential providers
 const s3 = new S3Client({
   region: 'auto',
   endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
@@ -27,27 +27,18 @@ const s3 = new S3Client({
     secretAccessKey,
   },
   forcePathStyle: true,
-  // Disable all automatic credential loading
-  credentialDefaultProvider: () => () => Promise.resolve({
-    accessKeyId,
-    secretAccessKey,
-  }),
 });
 
 Deno.serve(async (req) => {
   console.log("Edge function 'get-meditation-audio' invoked.", {
     method: req.method,
     url: req.url,
-    headers: Object.fromEntries(req.headers.entries())
   });
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log("Handling OPTIONS preflight request.");
-    return new Response(null, { 
-      status: 200,
-      headers: corsHeaders 
-    });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
