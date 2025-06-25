@@ -1,5 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.9';
+import { S3Client, GetObjectCommand } from 'https://esm.sh/@aws-sdk/client-s3@3.592.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,13 +8,13 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // Handle CORS
+  // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Verify user authentication
+    // User Authentication and Subscription Check
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -52,35 +53,42 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get Cloudflare Account ID from environment variables
+    // Get Cloudflare credentials from environment variables
     const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
-    if (!accountId) {
+    const accessKeyId = Deno.env.get('CLOUDFLARE_ACCESS_KEY_ID');
+    const secretAccessKey = Deno.env.get('CLOUDFLARE_SECRET_ACCESS_KEY');
+
+    if (!accountId || !accessKeyId || !secretAccessKey) {
       return new Response(
         JSON.stringify({ error: 'Cloudflare configuration missing' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Fetch the audio file from Cloudflare R2 using the correct URL format
-    const r2Url = `https://assets.${accountId}.r2.cloudflarestorage.com/Dhatu%20Meditation.mp3`;
+    // Initialize the S3 client for Cloudflare R2
+    const s3 = new S3Client({
+      region: 'auto',
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey,
+      },
+    });
+
+    // Securely fetch the object from your private R2 bucket using the S3 API
+    const command = new GetObjectCommand({
+      Bucket: 'assets', // Your bucket name
+      Key: 'Dhatu Meditation.mp3', // The object key (filename)
+    });
+
+    const r2Response = await s3.send(command);
     
-    const audioResponse = await fetch(r2Url);
-
-    if (!audioResponse.ok) {
-      console.error('Failed to fetch audio from R2:', audioResponse.status, audioResponse.statusText);
-      return new Response(
-        JSON.stringify({ error: 'Audio file not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Stream the audio file back to the client
-    const audioStream = audioResponse.body;
-    
-    return new Response(audioStream, {
+    return new Response(r2Response.Body?.transformToWebStream(), {
       headers: {
         ...corsHeaders,
         'Content-Type': 'audio/mpeg',
+        'Content-Length': r2Response.ContentLength?.toString() || '',
         'Content-Disposition': 'inline; filename="meditation.mp3"',
         'Cache-Control': 'private, max-age=3600',
       },
@@ -88,6 +96,15 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Error serving meditation audio:', error);
+    
+    // Handle cases where the file doesn't exist in R2
+    if (error.name === 'NoSuchKey') {
+      return new Response(
+        JSON.stringify({ error: 'Audio file not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
