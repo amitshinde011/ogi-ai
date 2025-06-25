@@ -12,6 +12,9 @@ const VIDEO_IDS = [
   '441f91db738ffead3c5700763b4600aa'
 ];
 
+// Surya Namaskar instructional video ID
+const SURYA_NAMASKAR_VIDEO_ID = '96cd81b48a779f3daf9a8db0a0e4c02b';
+
 // Cloudflare Stream customer subdomain
 const CLOUDFLARE_SUBDOMAIN = 'customer-cnlj15s4to2idzsi';
 
@@ -38,6 +41,11 @@ const generateIframeUrl = (videoId: string): string =>
 export const VIDEO_SOURCES_SEQUENCE = VIDEO_IDS.map(generateVideoSources);
 export const MP4_SOURCES_SEQUENCE = VIDEO_IDS.map(generateMP4Sources);
 export const IFRAME_URLS = VIDEO_IDS.map(generateIframeUrl);
+
+// Surya Namaskar video sources
+export const SURYA_NAMASKAR_VIDEO_SOURCES = generateVideoSources(SURYA_NAMASKAR_VIDEO_ID);
+export const SURYA_NAMASKAR_MP4_SOURCES = generateMP4Sources(SURYA_NAMASKAR_VIDEO_ID);
+export const SURYA_NAMASKAR_IFRAME_URL = generateIframeUrl(SURYA_NAMASKAR_VIDEO_ID);
 
 // For backward compatibility
 export const VIDEO_SOURCES = VIDEO_SOURCES_SEQUENCE[0];

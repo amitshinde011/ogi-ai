@@ -9,6 +9,7 @@ import { Plus, Minus, Droplets, Zap, Circle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import MeditationAudioPlayer from './MeditationAudioPlayer';
+import SuryaNamaskarVideoPlayer from './SuryaNamaskarVideoPlayer';
 
 const WellnessTracker = () => {
   const [waterLitres, setWaterLitres] = useState(0);
@@ -143,7 +144,10 @@ const WellnessTracker = () => {
           <div className="flex items-center gap-3">
             <Circle className="w-5 h-5 text-orange-500" />
             <div>
-              <Label className="font-medium">Surya Namaskar</Label>
+              <Label className="font-medium flex items-center gap-2">
+                Surya Namaskar
+                <SuryaNamaskarVideoPlayer />
+              </Label>
               <p className="text-sm text-gray-600">{suryaNamaskarCount} rounds</p>
             </div>
           </div>
