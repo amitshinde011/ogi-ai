@@ -18,7 +18,7 @@ const RecipeCard = ({ recipe, isSaved }: RecipeCardProps) => {
         <CardContent className="p-0">
           <div className="relative">
             <img
-              src={getCloudflareImageUrl(recipe.image_url)}
+              src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
               alt={recipe.name}
               className="w-full h-48 object-cover rounded-t-lg"
             />

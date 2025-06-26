@@ -9,6 +9,7 @@ export interface Recipe {
   category: string;
   details?: string;
   image_url?: string;
+  cloudflare_image_id?: string; // Add the new field
   cook_time?: string;
   servings?: number;
   difficulty?: string;

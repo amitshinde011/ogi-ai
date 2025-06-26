@@ -114,7 +114,7 @@ const RecipeDetail = () => {
         {/* Hero Image */}
         <div className="relative">
           <img
-            src={getCloudflareImageUrl(recipe.image_url)}
+            src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
             alt={recipe.name}
             className="w-full h-64 object-cover"
           />

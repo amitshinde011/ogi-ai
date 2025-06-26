@@ -107,7 +107,7 @@ const SavedRecipes = () => {
                   <CardContent className="p-4">
                     <div className="flex space-x-4">
                       <img
-                        src={getCloudflareImageUrl(recipe.image_url)}
+                        src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
                         alt={recipe.name}
                         className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
                       />

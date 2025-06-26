@@ -509,6 +509,7 @@ export type Database = {
       recipes: {
         Row: {
           category: string
+          cloudflare_image_id: string
           cook_time: string | null
           created_at: string
           details: string | null
@@ -527,6 +528,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          cloudflare_image_id: string
           cook_time?: string | null
           created_at?: string
           details?: string | null
@@ -545,6 +547,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          cloudflare_image_id?: string
           cook_time?: string | null
           created_at?: string
           details?: string | null
