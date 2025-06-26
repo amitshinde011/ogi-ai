@@ -6,7 +6,6 @@ import PostCard from '@/components/PostCard';
 interface Post {
   id: string;
   user_id: string;
-  title: string;
   content: string;
   image_url?: string;
   likes_count: number;
@@ -14,6 +13,7 @@ interface Post {
   created_at: string;
   user_name?: string;
   user_avatar?: string;
+  user_profile_picture_url?: string;
 }
 
 interface PostListProps {

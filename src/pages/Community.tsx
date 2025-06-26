@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -17,6 +18,7 @@ interface Post {
   created_at: string;
   user_name?: string;
   user_avatar?: string;
+  user_profile_picture_url?: string;
 }
 
 const Community = () => {
