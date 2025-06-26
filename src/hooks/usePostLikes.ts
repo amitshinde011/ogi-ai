@@ -23,7 +23,9 @@ export const usePostLikes = (postId: string, initialLikesCount: number, currentU
           table: 'community_post_likes',
           filter: `post_id=eq.${postId}`
         },
-        async () => {
+        async (payload) => {
+          console.log('Like change detected:', payload);
+          
           // Refetch likes count when likes change
           const { data } = await supabase
             .from('community_posts')
@@ -32,7 +34,13 @@ export const usePostLikes = (postId: string, initialLikesCount: number, currentU
             .single();
           
           if (data) {
+            console.log('Updated likes count:', data.likes_count);
             setLikesCount(data.likes_count);
+          }
+
+          // Also check if current user's like status changed
+          if (currentUserId) {
+            checkIfLiked();
           }
         }
       )
@@ -41,7 +49,7 @@ export const usePostLikes = (postId: string, initialLikesCount: number, currentU
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [postId]);
+  }, [postId, currentUserId]);
 
   const checkIfLiked = async () => {
     if (!currentUserId) return;
@@ -82,8 +90,9 @@ export const usePostLikes = (postId: string, initialLikesCount: number, currentU
 
         if (error) throw error;
 
+        console.log('Post unliked successfully');
         setIsLiked(false);
-        setLikesCount(prev => prev - 1); // Immediate update
+        setLikesCount(prev => Math.max(0, prev - 1)); // Immediate update with safety check
       } else {
         // Like the post
         const { error } = await supabase
@@ -95,9 +104,25 @@ export const usePostLikes = (postId: string, initialLikesCount: number, currentU
 
         if (error) throw error;
 
+        console.log('Post liked successfully');
         setIsLiked(true);
         setLikesCount(prev => prev + 1); // Immediate update
       }
+
+      // Force a recheck of the actual count from database after a short delay
+      setTimeout(async () => {
+        const { data } = await supabase
+          .from('community_posts')
+          .select('likes_count')
+          .eq('id', postId)
+          .single();
+        
+        if (data) {
+          console.log('Final likes count verification:', data.likes_count);
+          setLikesCount(data.likes_count);
+        }
+      }, 500);
+
     } catch (error) {
       console.error('Error toggling like:', error);
       toast({ title: "Failed to update like", variant: "destructive" });
