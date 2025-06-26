@@ -4,7 +4,7 @@
  */
 
 // Replace this with your actual Cloudflare account hash
-const CLOUDFLARE_ACCOUNT_HASH = 'your-account-hash';
+const CLOUDFLARE_ACCOUNT_HASH = 'A_9Wtx2a2fSW25WEMOQdcw';
 
 /**
  * Generates a Cloudflare Images URL from an image ID
