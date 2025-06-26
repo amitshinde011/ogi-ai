@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -55,17 +56,20 @@ export const useCommunityPosts = () => {
             .eq('user_id', post.user_id)
             .maybeSingle();
 
-          // Get user email as fallback from auth.users if profile doesn't have name
-          const { data: { user: authUser } } = await supabase.auth.getUser();
-          let fallbackName = 'Anonymous User';
-          
-          // If this is the current user's post, we can get their email
-          if (post.user_id === authUser?.id) {
-            fallbackName = authUser?.email?.split('@')[0] || 'You';
+          // Create display name and avatar
+          let displayName = 'Anonymous User';
+          let displayAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
+
+          if (profile?.name) {
+            displayName = profile.name;
+          } else if (post.user_id === user.id) {
+            // For current user, we can use their email
+            displayName = user.email?.split('@')[0] || 'You';
           }
 
-          const displayName = profile?.name || fallbackName;
-          const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
+          if (profile?.profile_photo_url) {
+            displayAvatar = profile.profile_photo_url;
+          }
 
           console.log('Post user info:', { 
             postId: post.id, 
