@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -13,6 +12,19 @@ interface CommentType {
   user_name?: string;
   user_avatar?: string;
   replies?: CommentType[];
+}
+
+// Database response type that includes the optional fields
+interface CommentDbResponse {
+  id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  parent_comment_id?: string;
+  post_id: string;
+  user_name?: string;
+  user_avatar?: string;
 }
 
 export const useComments = (postId: string) => {
@@ -38,7 +50,7 @@ export const useComments = (postId: string) => {
 
       // Use stored user information or fetch as fallback
       const commentsWithUserInfo = await Promise.all(
-        (commentsData || []).map(async (comment) => {
+        (commentsData || []).map(async (comment: CommentDbResponse) => {
           let userName = comment.user_name;
           let userAvatar = comment.user_avatar;
 
