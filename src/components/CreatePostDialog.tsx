@@ -55,10 +55,18 @@ const CreatePostDialog = ({
     setImagePreview(null);
   };
 
+  const handleButtonClick = () => {
+    console.log('Share Your Journey button clicked');
+    onOpenChange(true);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white">
+        <Button 
+          onClick={handleButtonClick}
+          className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white"
+        >
           <Plus size={16} className="mr-2" />
           Share Your Journey
         </Button>
