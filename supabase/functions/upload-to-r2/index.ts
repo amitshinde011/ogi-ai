@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
 
     const authorizationHeader = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
     
-    // Upload the File
+    // Upload the File with public-read ACL
     const uploadUrl = `https://${host}${canonicalURI}`;
     const response = await fetch(uploadUrl, {
       method: 'PUT',
@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
         'Authorization': authorizationHeader,
         'x-amz-date': amzDate,
         'x-amz-content-sha256': hashedPayload,
+        'x-amz-acl': 'public-read', // Make the object publicly readable
         'Content-Type': file.type,
         'Content-Length': file.size.toString(),
       },
@@ -98,21 +99,13 @@ Deno.serve(async (req) => {
     });
 
     if (!response.ok) {
-      throw new Error(`R2 Upload Failed: ${await response.text()}`);
+      const errorText = await response.text();
+      console.error('R2 Upload Error:', errorText);
+      throw new Error(`R2 Upload Failed: ${errorText}`);
     }
 
-    // Generate and Return Public URL using the configured R2 public domain
-    const publicUrlHost = Deno.env.get('R2_PUBLIC_URL_HOST');
-    if (!publicUrlHost) {
-      // Fallback to default R2 public URL format if not configured
-      const imageUrl = `https://pub-${accountId}.r2.dev/${key}`;
-      console.log('Using default R2 public URL:', imageUrl);
-      return new Response(JSON.stringify({ success: true, imageUrl }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    
-    const imageUrl = `https://${publicUrlHost}/${key}`;
+    // Generate simple public URL without any authentication parameters
+    const imageUrl = `https://pub-${accountId}.r2.dev/${key}`;
     console.log('Generated public URL:', imageUrl);
 
     return new Response(JSON.stringify({ success: true, imageUrl }), {
