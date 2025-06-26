@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -49,18 +48,37 @@ export const useCommunityPosts = () => {
 
       const postsWithUserInfo = await Promise.all(
         (posts || []).map(async (post) => {
+          // Fetch user profile for each post
           const { data: profile } = await supabase
             .from('user_profiles')
             .select('name, profile_photo_url')
             .eq('user_id', post.user_id)
             .maybeSingle();
 
-          const fallbackName = user?.email?.split('@')[0] || 'User';
+          // Get user email as fallback from auth.users if profile doesn't have name
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          let fallbackName = 'Anonymous User';
+          
+          // If this is the current user's post, we can get their email
+          if (post.user_id === authUser?.id) {
+            fallbackName = authUser?.email?.split('@')[0] || 'You';
+          }
+
+          const displayName = profile?.name || fallbackName;
+          const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
+
+          console.log('Post user info:', { 
+            postId: post.id, 
+            userId: post.user_id, 
+            profileName: profile?.name, 
+            displayName, 
+            displayAvatar 
+          });
 
           return {
             ...post,
-            user_name: profile?.name || fallbackName,
-            user_avatar: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`
+            user_name: displayName,
+            user_avatar: displayAvatar
           };
         })
       );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -37,17 +36,23 @@ const Community = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // Get user profile information
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('*')
+          .select('name, profile_photo_url')
           .eq('user_id', user.id)
           .maybeSingle();
 
+        const displayName = profile?.name || user.email?.split('@')[0] || 'User';
+        const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
+
         setCurrentUser({
           id: user.id,
-          name: profile?.name || user.email?.split('@')[0] || 'User',
-          avatar: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`
+          name: displayName,
+          avatar: displayAvatar
         });
+
+        console.log('Current user set:', { id: user.id, name: displayName, avatar: displayAvatar });
       }
     } catch (error) {
       console.error('Error fetching current user:', error);
