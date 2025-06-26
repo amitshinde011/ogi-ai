@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -93,7 +92,7 @@ export const useCommunity = () => {
   };
 
   // Create new post
-  const createPost = async (content: string, imageFile?: File) => {
+  const createPost = async (content: string, imageUrl?: string) => {
     if (!currentUser) {
       console.error('No current user found');
       toast({ title: "Authentication required", variant: "destructive" });
@@ -111,38 +110,12 @@ export const useCommunity = () => {
 
     try {
       console.log('Creating post for user:', currentUser);
-      let imageUrl = null;
-
-      // Upload image if provided
-      if (imageFile) {
-        console.log('Uploading image...');
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${currentUser.id}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('community-uploads')
-          .upload(filePath, imageFile);
-
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          toast({ title: "Failed to upload image", variant: "destructive" });
-          return false;
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('community-uploads')
-          .getPublicUrl(filePath);
-
-        imageUrl = publicUrl;
-        console.log('Image uploaded successfully:', imageUrl);
-      }
 
       // Prepare the post data
       const postData = {
         user_id: currentUser.id,
         content: content.trim(),
-        image_url: imageUrl
+        image_url: imageUrl || null
       };
 
       console.log('Inserting post with data:', postData);

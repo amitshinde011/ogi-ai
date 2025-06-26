@@ -4,9 +4,10 @@ import { Plus, Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useR2Upload } from '@/hooks/useR2Upload';
 
 interface CreatePostModalProps {
-  onSubmit: (content: string, imageFile?: File) => Promise<boolean>;
+  onSubmit: (content: string, imageUrl?: string) => Promise<boolean>;
 }
 
 const CreatePostModal = ({ onSubmit }: CreatePostModalProps) => {
@@ -15,6 +16,7 @@ const CreatePostModal = ({ onSubmit }: CreatePostModalProps) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { uploadToR2, uploading } = useR2Upload();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -37,15 +39,31 @@ const CreatePostModal = ({ onSubmit }: CreatePostModalProps) => {
     if (!content.trim()) return;
 
     setIsSubmitting(true);
-    const success = await onSubmit(content, imageFile || undefined);
     
-    if (success) {
-      setContent('');
-      setImageFile(null);
-      setImagePreview(null);
-      setIsOpen(false);
+    try {
+      let imageUrl = undefined;
+      
+      // Upload image to R2 if one is selected
+      if (imageFile) {
+        const uploadResult = await uploadToR2(imageFile, 'community');
+        if (uploadResult) {
+          imageUrl = uploadResult.imageUrl;
+        }
+      }
+      
+      const success = await onSubmit(content, imageUrl);
+      
+      if (success) {
+        setContent('');
+        setImageFile(null);
+        setImagePreview(null);
+        setIsOpen(false);
+      }
+    } catch (error) {
+      console.error('Error submitting post:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const handleClose = () => {
@@ -154,16 +172,16 @@ const CreatePostModal = ({ onSubmit }: CreatePostModalProps) => {
               variant="outline"
               onClick={handleClose}
               className="flex-1 rounded-xl border-gray-300 text-gray-900 hover:bg-gray-100 bg-white"
-              disabled={isSubmitting}
+              disabled={isSubmitting || uploading}
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
               className="flex-1 rounded-xl bg-sage hover:bg-sage/90 text-white"
-              disabled={!content.trim() || isSubmitting}
+              disabled={!content.trim() || isSubmitting || uploading}
             >
-              {isSubmitting ? 'Posting...' : 'Post'}
+              {isSubmitting || uploading ? 'Posting...' : 'Post'}
             </Button>
           </div>
         </div>
