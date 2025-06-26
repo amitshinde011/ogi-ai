@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -31,6 +32,53 @@ const Community = () => {
   useEffect(() => {
     fetchCurrentUser();
   }, []);
+
+  // Set up real-time subscription for new posts
+  useEffect(() => {
+    const channel = supabase
+      .channel('community-posts')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'community_posts'
+        },
+        () => {
+          // Refetch posts when a new post is added
+          fetchPosts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'community_posts'
+        },
+        () => {
+          // Refetch posts when a post is deleted
+          fetchPosts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'community_posts'
+        },
+        () => {
+          // Refetch posts when a post is updated
+          fetchPosts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchPosts]);
 
   const fetchCurrentUser = async () => {
     try {

@@ -40,6 +40,70 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
     checkIfLiked();
   }, [post.id, currentUserId]);
 
+  // Set up real-time subscription for likes count
+  useEffect(() => {
+    const channel = supabase
+      .channel(`post-${post.id}-likes`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'community_post_likes',
+          filter: `post_id=eq.${post.id}`
+        },
+        async () => {
+          // Refetch likes count when likes change
+          const { data } = await supabase
+            .from('community_posts')
+            .select('likes_count')
+            .eq('id', post.id)
+            .single();
+          
+          if (data) {
+            setLikesCount(data.likes_count);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [post.id]);
+
+  // Set up real-time subscription for comments count
+  useEffect(() => {
+    const channel = supabase
+      .channel(`post-${post.id}-comments`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'community_post_comments',
+          filter: `post_id=eq.${post.id}`
+        },
+        async () => {
+          // Refetch comments count when comments change
+          const { data } = await supabase
+            .from('community_posts')
+            .select('comments_count')
+            .eq('id', post.id)
+            .single();
+          
+          if (data) {
+            setCommentsCount(data.comments_count);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [post.id]);
+
   const checkIfLiked = async () => {
     if (!currentUserId) return;
 
@@ -80,7 +144,6 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
         if (error) throw error;
 
         setIsLiked(false);
-        setLikesCount(prev => prev - 1);
       } else {
         // Like the post
         const { error } = await supabase
@@ -93,7 +156,6 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
         if (error) throw error;
 
         setIsLiked(true);
-        setLikesCount(prev => prev + 1);
       }
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -102,27 +164,16 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
   };
 
   const handleCommentAdded = () => {
-    setCommentsCount(prev => prev + 1);
     if (onPostUpdate) onPostUpdate();
   };
 
   const handleCommentDeleted = () => {
-    setCommentsCount(prev => prev - 1);
     if (onPostUpdate) onPostUpdate();
   };
 
   // Use user_profile_picture_url first, then fall back to user_avatar, then default
   const displayAvatar = post.user_profile_picture_url || post.user_avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
   const displayName = post.user_name || 'Anonymous User';
-
-  console.log('PostCard - Post data:', {
-    id: post.id,
-    user_name: post.user_name,
-    user_profile_picture_url: post.user_profile_picture_url,
-    user_avatar: post.user_avatar,
-    displayName,
-    displayAvatar
-  });
 
   return (
     <Card className="bg-white border border-gray-200 shadow-sm">

@@ -32,6 +32,30 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
     fetchComments();
   }, [postId]);
 
+  // Set up real-time subscription for comments
+  useEffect(() => {
+    const channel = supabase
+      .channel(`comments-${postId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'community_post_comments',
+          filter: `post_id=eq.${postId}`
+        },
+        () => {
+          // Refetch comments when any comment changes
+          fetchComments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [postId]);
+
   const fetchComments = async () => {
     try {
       console.log('Fetching comments for post:', postId);
@@ -94,7 +118,10 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
   };
 
   const handleAddComment = async (content: string) => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      toast({ title: "Please log in to comment", variant: "destructive" });
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -107,7 +134,6 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
 
       if (error) throw error;
 
-      await fetchComments();
       onCommentAdded();
       toast({ title: "Comment added successfully!" });
     } catch (error) {
@@ -117,7 +143,10 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
   };
 
   const handleAddReply = async (parentCommentId: string, content: string) => {
-    if (!currentUserId) return;
+    if (!currentUserId) {
+      toast({ title: "Please log in to reply", variant: "destructive" });
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -131,7 +160,6 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
 
       if (error) throw error;
 
-      await fetchComments();
       onCommentAdded();
       toast({ title: "Reply added successfully!" });
     } catch (error) {
@@ -149,7 +177,6 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
 
       if (error) throw error;
 
-      await fetchComments();
       toast({ title: "Comment updated successfully!" });
     } catch (error) {
       console.error('Error updating comment:', error);
@@ -166,7 +193,6 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
 
       if (error) throw error;
 
-      await fetchComments();
       onCommentDeleted();
       toast({ title: "Comment deleted successfully!" });
     } catch (error) {
@@ -181,10 +207,8 @@ const CommentsSection = ({ postId, currentUserId, onCommentAdded, onCommentDelet
 
   return (
     <div className="space-y-4">
-      {/* Add new comment */}
-      {currentUserId && (
-        <CommentForm onSubmit={handleAddComment} />
-      )}
+      {/* Add new comment - allow anyone to comment, but show login prompt if not authenticated */}
+      <CommentForm onSubmit={handleAddComment} />
 
       {/* Comments list */}
       <div className="space-y-3">
