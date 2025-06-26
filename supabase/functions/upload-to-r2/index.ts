@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.9';
 import { hmac } from 'https://deno.land/x/hmac@v2.0.1/mod.ts';
 
@@ -8,7 +9,6 @@ const corsHeaders = {
 
 // --- AWS Signature V4 Manual Signing Helper Functions ---
 
-// ** 1. THIS FUNCTION IS NOW CORRECTED to hash a buffer directly **
 async function sha256(data: ArrayBuffer): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -64,7 +64,6 @@ Deno.serve(async (req) => {
     
     const canonicalURI = `/${bucketName}/${key}`;
     
-    // ** 2. THIS LINE IS NOW CORRECTED to pass the buffer directly **
     const hashedPayload = await sha256(fileBuffer);
     
     const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${hashedPayload}\nx-amz-date:${amzDate}\n`;
@@ -102,10 +101,19 @@ Deno.serve(async (req) => {
       throw new Error(`R2 Upload Failed: ${await response.text()}`);
     }
 
-    // Generate and Return Public URL
+    // Generate and Return Public URL using the configured R2 public domain
     const publicUrlHost = Deno.env.get('R2_PUBLIC_URL_HOST');
-    if (!publicUrlHost) throw new Error('R2 public URL host not configured in secrets.');
+    if (!publicUrlHost) {
+      // Fallback to default R2 public URL format if not configured
+      const imageUrl = `https://pub-${accountId}.r2.dev/${key}`;
+      console.log('Using default R2 public URL:', imageUrl);
+      return new Response(JSON.stringify({ success: true, imageUrl }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
     const imageUrl = `https://${publicUrlHost}/${key}`;
+    console.log('Generated public URL:', imageUrl);
 
     return new Response(JSON.stringify({ success: true, imageUrl }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
