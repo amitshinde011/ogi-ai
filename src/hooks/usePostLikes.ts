@@ -83,6 +83,7 @@ export const usePostLikes = (postId: string, initialLikesCount: number, currentU
         if (error) throw error;
 
         setIsLiked(false);
+        setLikesCount(prev => prev - 1); // Immediate update
       } else {
         // Like the post
         const { error } = await supabase
@@ -95,6 +96,7 @@ export const usePostLikes = (postId: string, initialLikesCount: number, currentU
         if (error) throw error;
 
         setIsLiked(true);
+        setLikesCount(prev => prev + 1); // Immediate update
       }
     } catch (error) {
       console.error('Error toggling like:', error);

@@ -17,16 +17,23 @@ export const usePostComments = (postId: string, initialCommentsCount: number) =>
           table: 'community_post_comments',
           filter: `post_id=eq.${postId}`
         },
-        async () => {
-          // Refetch comments count when comments change
-          const { data } = await supabase
-            .from('community_posts')
-            .select('comments_count')
-            .eq('id', postId)
-            .single();
+        async (payload) => {
+          console.log('Comment change detected:', payload);
           
-          if (data) {
-            setCommentsCount(data.comments_count);
+          // Get actual comment count from database
+          const { count } = await supabase
+            .from('community_post_comments')
+            .select('*', { count: 'exact', head: true })
+            .eq('post_id', postId);
+          
+          if (count !== null) {
+            setCommentsCount(count);
+            
+            // Also update the post table with correct count
+            await supabase
+              .from('community_posts')
+              .update({ comments_count: count })
+              .eq('id', postId);
           }
         }
       )

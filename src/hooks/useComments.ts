@@ -36,21 +36,27 @@ export const useComments = (postId: string) => {
 
       console.log('Raw comments data:', commentsData);
 
-      // Fetch user profiles for comments
+      // Use stored user information or fetch as fallback
       const commentsWithUserInfo = await Promise.all(
         (commentsData || []).map(async (comment) => {
-          console.log('Fetching profile for comment user:', comment.user_id);
-          
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('name, profile_photo_url')
-            .eq('user_id', comment.user_id)
-            .maybeSingle();
+          let userName = comment.user_name;
+          let userAvatar = comment.user_avatar;
 
-          const userName = profile?.name || 'Unknown User';
-          const userAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_id}`;
-          
-          console.log('Profile found for user:', comment.user_id, { name: userName, avatar: userAvatar });
+          // If user info is not stored in comment, fetch from profile
+          if (!userName || !userAvatar) {
+            console.log('Fetching profile for comment user:', comment.user_id);
+            
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('name, profile_photo_url')
+              .eq('user_id', comment.user_id)
+              .maybeSingle();
+
+            userName = userName || profile?.name || 'Unknown User';
+            userAvatar = userAvatar || profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_id}`;
+            
+            console.log('Profile found for user:', comment.user_id, { name: userName, avatar: userAvatar });
+          }
 
           return {
             ...comment,
