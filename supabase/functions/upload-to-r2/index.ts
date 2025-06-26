@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Initialize the R2 Bucket client
 const bucket = new S3Bucket({
   accessKeyID: Deno.env.get('CLOUDFLARE_COMMUNITY_POST_ACCESS_KEY_ID')!,
   secretKey: Deno.env.get('CLOUDFLARE_COMMUNITY_POST_SECRET_ACCESS_KEY')!,
@@ -21,7 +20,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate user
+    // 1. Authenticate the user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error('No authorization header');
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
@@ -30,32 +29,31 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // Parse form data
+    // 2. Parse the form data
     const formData = await req.formData();
     const file = formData.get('file');
     const uploadType = formData.get('uploadType') || 'community';
     if (!file || typeof file === 'string') {
-      throw new Error('No file provided');
+      throw new Error('No file provided or invalid file format');
     }
 
-    // Prepare file for upload
+    // 3. Prepare file for upload
     const fileBuffer = await file.arrayBuffer();
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop();
     const key = `${uploadType}/${user.id}/${timestamp}.${fileExtension}`;
 
-    // =================================================================
-    // ** THE FINAL FIX IS HERE **
-    // We are setting partSize to be the same as the file's size.
-    // This forces the library to upload the file in a single, non-streamed
-    // chunk, which avoids the bug in the Deno runtime.
-    // =================================================================
+    // 4. Securely upload the file to R2 with the fix
     await bucket.putObject(key, fileBuffer, {
+      // =================================================================
+      // ** THIS IS THE DEFINITIVE FIX FOR THE 'toFixed' ERROR **
+      // This forces a single-part upload, bypassing the library bug.
+      // =================================================================
+      partSize: file.size,
       contentType: file.type,
-      partSize: file.size, // Force single-part upload
     });
 
-    // Generate and return the public URL
+    // 5. Generate and return the public URL
     const publicUrlHost = Deno.env.get('R2_PUBLIC_URL_HOST');
     if (!publicUrlHost) throw new Error('R2 public URL host not configured in secrets.');
     const imageUrl = `https://${publicUrlHost}/${key}`;
