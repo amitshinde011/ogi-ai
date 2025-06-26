@@ -104,8 +104,8 @@ Deno.serve(async (req) => {
       throw new Error(`R2 Upload Failed: ${errorText}`);
     }
 
-    // Generate simple public URL without any authentication parameters
-    const imageUrl = `https://pub-${accountId}.r2.dev/${key}`;
+    // Generate the correct public URL format: https://assets.yogiai.in/meal/user_id/timestamp.ext
+    const imageUrl = `https://assets.yogiai.in/${key}`;
     console.log('Generated public URL:', imageUrl);
 
     return new Response(JSON.stringify({ success: true, imageUrl }), {
