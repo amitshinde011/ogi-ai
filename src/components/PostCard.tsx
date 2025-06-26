@@ -19,6 +19,7 @@ interface Post {
   created_at: string;
   user_name?: string;
   user_avatar?: string;
+  user_profile_picture_url?: string;
 }
 
 interface PostCardProps {
@@ -110,18 +111,35 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
     if (onPostUpdate) onPostUpdate();
   };
 
+  // Use user_profile_picture_url first, then fall back to user_avatar, then default
+  const displayAvatar = post.user_profile_picture_url || post.user_avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
+  const displayName = post.user_name || 'Anonymous User';
+
+  console.log('PostCard - Post data:', {
+    id: post.id,
+    user_name: post.user_name,
+    user_profile_picture_url: post.user_profile_picture_url,
+    user_avatar: post.user_avatar,
+    displayName,
+    displayAvatar
+  });
+
   return (
     <Card className="bg-white border border-gray-200 shadow-sm">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img
-              src={post.user_avatar}
-              alt={post.user_name}
-              className="w-10 h-10 rounded-full mr-3"
+              src={displayAvatar}
+              alt={displayName}
+              className="w-10 h-10 rounded-full mr-3 object-cover"
+              onError={(e) => {
+                console.log('Avatar failed to load, using fallback');
+                e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
+              }}
             />
             <div>
-              <h4 className="font-semibold text-gray-900">{post.user_name}</h4>
+              <h4 className="font-semibold text-gray-900">{displayName}</h4>
               <p className="text-sm text-gray-500">
                 {getRelativeTime(post.created_at)}
               </p>
@@ -156,7 +174,7 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
           <img
             src={post.image_url}
             alt="Post"
-            className="w-full rounded-lg mb-4"
+            className="w-full rounded-lg mb-4 object-cover max-h-96"
           />
         )}
         <div className="flex items-center justify-between pt-3 border-t border-gray-200">
