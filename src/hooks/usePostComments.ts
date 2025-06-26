@@ -27,13 +27,20 @@ export const usePostComments = (postId: string, initialCommentsCount: number) =>
             .eq('post_id', postId);
           
           if (count !== null) {
+            console.log('Updated comments count:', count);
             setCommentsCount(count);
             
             // Also update the post table with correct count
-            await supabase
+            const { error } = await supabase
               .from('community_posts')
               .update({ comments_count: count })
               .eq('id', postId);
+              
+            if (error) {
+              console.error('Error updating post comments count:', error);
+            } else {
+              console.log('Post comments count updated successfully');
+            }
           }
         }
       )

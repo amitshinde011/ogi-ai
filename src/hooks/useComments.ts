@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -98,31 +99,11 @@ export const useComments = (postId: string) => {
       console.log('Threaded comments:', threaded);
       setComments(threaded);
       
-      // Update the post's comment count in real-time
-      await updatePostCommentCount(postId, commentsWithUserInfo.length);
-      
     } catch (error) {
       console.error('Error fetching comments:', error);
       toast({ title: "Failed to load comments", variant: "destructive" });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const updatePostCommentCount = async (postId: string, count: number) => {
-    try {
-      const { error } = await supabase
-        .from('community_posts')
-        .update({ comments_count: count })
-        .eq('id', postId);
-      
-      if (error) {
-        console.error('Error updating comment count:', error);
-      } else {
-        console.log('Updated comment count to:', count);
-      }
-    } catch (error) {
-      console.error('Error updating comment count:', error);
     }
   };
 
@@ -142,8 +123,8 @@ export const useComments = (postId: string) => {
           table: 'community_post_comments',
           filter: `post_id=eq.${postId}`
         },
-        () => {
-          console.log('Real-time comment change detected, refetching...');
+        (payload) => {
+          console.log('Real-time comment change detected, refetching...', payload);
           // Refetch comments when any comment changes
           fetchComments();
         }
