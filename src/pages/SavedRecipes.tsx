@@ -8,24 +8,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
 
 const SavedRecipes = () => {
   const { savedRecipeIds, isLoading: savedRecipesLoading } = useSavedRecipes();
-
-  // Helper function to get Cloudflare image URL
-  const getCloudflareImageUrl = (imageId: string | null | undefined) => {
-    if (!imageId) {
-      return 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300';
-    }
-    
-    // If it's already a full URL, return as is
-    if (imageId.startsWith('http')) {
-      return imageId;
-    }
-    
-    // Construct Cloudflare Images URL
-    return `https://imagedelivery.net/your-account-hash/${imageId}/public`;
-  };
 
   // Fetch the actual recipe data for saved recipes
   const { data: savedRecipes = [], isLoading: recipesLoading } = useQuery({

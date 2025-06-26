@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Clock, Users, Star, Heart, Share, ChefHat, Utensils, Lightbulb } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,26 +7,12 @@ import { useParams } from 'react-router-dom';
 import { useRecipe } from '@/hooks/useRecipes';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { toast } from '@/hooks/use-toast';
+import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
 
 const RecipeDetail = () => {
   const { id } = useParams();
   const { data: recipe, isLoading, error } = useRecipe(id || '');
   const { saveRecipe, unsaveRecipe, isRecipeSaved } = useSavedRecipes();
-
-  // Helper function to get Cloudflare image URL
-  const getCloudflareImageUrl = (imageId: string | null | undefined) => {
-    if (!imageId) {
-      return 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600';
-    }
-    
-    // If it's already a full URL, return as is
-    if (imageId.startsWith('http')) {
-      return imageId;
-    }
-    
-    // Construct Cloudflare Images URL
-    return `https://imagedelivery.net/your-account-hash/${imageId}/public`;
-  };
 
   const handleSaveRecipe = async () => {
     if (!recipe) return;
