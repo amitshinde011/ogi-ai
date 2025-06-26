@@ -67,7 +67,7 @@ const CreatePostDialog = ({
           onClick={handleButtonClick}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white"
         >
-          <Plus size={16} className="mr-2" />
+          <Plus className="w-4 h-4 mr-2" />
           Share Your Journey
         </Button>
       </DialogTrigger>
@@ -93,7 +93,7 @@ const CreatePostDialog = ({
           <div className="space-y-3">
             {!imagePreview ? (
               <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <Camera className="text-gray-400 mb-2" size={24} />
+                <Camera className="text-gray-400 mb-2 w-6 h-6" />
                 <span className="text-gray-500 text-sm">Add a photo (optional)</span>
                 <input
                   type="file"

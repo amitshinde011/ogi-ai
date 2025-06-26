@@ -187,6 +187,8 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          user_name: string | null
+          user_profile_picture_url: string | null
         }
         Insert: {
           comments_count?: number | null
@@ -198,6 +200,8 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          user_name?: string | null
+          user_profile_picture_url?: string | null
         }
         Update: {
           comments_count?: number | null
@@ -209,6 +213,8 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          user_name?: string | null
+          user_profile_picture_url?: string | null
         }
         Relationships: []
       }

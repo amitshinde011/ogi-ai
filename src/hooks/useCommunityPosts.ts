@@ -16,6 +16,7 @@ interface Post {
   created_at: string;
   user_name?: string;
   user_avatar?: string;
+  user_profile_picture_url?: string;
 }
 
 export const useCommunityPosts = () => {
@@ -47,45 +48,26 @@ export const useCommunityPosts = () => {
 
       console.log('Fetched posts:', posts);
 
-      const postsWithUserInfo = await Promise.all(
-        (posts || []).map(async (post) => {
-          // Fetch user profile for each post
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('name, profile_photo_url')
-            .eq('user_id', post.user_id)
-            .maybeSingle();
+      const postsWithUserInfo = (posts || []).map((post) => {
+        // Use stored user info from database if available, otherwise generate fallback
+        let displayName = post.user_name || 'Anonymous User';
+        let displayAvatar = post.user_profile_picture_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
 
-          // Create display name and avatar
-          let displayName = 'Anonymous User';
-          let displayAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
+        console.log('Post user info:', { 
+          postId: post.id, 
+          userId: post.user_id, 
+          storedName: post.user_name, 
+          storedAvatar: post.user_profile_picture_url,
+          displayName, 
+          displayAvatar 
+        });
 
-          if (profile?.name) {
-            displayName = profile.name;
-          } else if (post.user_id === user.id) {
-            // For current user, we can use their email
-            displayName = user.email?.split('@')[0] || 'You';
-          }
-
-          if (profile?.profile_photo_url) {
-            displayAvatar = profile.profile_photo_url;
-          }
-
-          console.log('Post user info:', { 
-            postId: post.id, 
-            userId: post.user_id, 
-            profileName: profile?.name, 
-            displayName, 
-            displayAvatar 
-          });
-
-          return {
-            ...post,
-            user_name: displayName,
-            user_avatar: displayAvatar
-          };
-        })
-      );
+        return {
+          ...post,
+          user_name: displayName,
+          user_avatar: displayAvatar
+        };
+      });
 
       console.log('Posts with user info:', postsWithUserInfo);
       setPosts(postsWithUserInfo);
@@ -127,13 +109,25 @@ export const useCommunityPosts = () => {
         imageUrl = uploadResult.imageUrl;
       }
 
+      // Get user profile information
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('name, profile_photo_url')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      const displayName = profile?.name || currentUser.name || currentUser.email?.split('@')[0] || 'User';
+      const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.id}`;
+
       const { error } = await supabase
         .from('community_posts')
         .insert({
           user_id: currentUser.id,
           title: validation.sanitized.title,
           content: validation.sanitized.content,
-          image_url: imageUrl
+          image_url: imageUrl,
+          user_name: displayName,
+          user_profile_picture_url: displayAvatar
         });
 
       if (error) throw error;

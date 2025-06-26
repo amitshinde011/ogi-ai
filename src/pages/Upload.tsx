@@ -35,9 +35,21 @@ const Upload = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // Get user profile information for name and profile picture
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('name, profile_photo_url')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        const displayName = profile?.name || user.email?.split('@')[0] || 'User';
+        const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
+
         setCurrentUser({
           id: user.id,
-          email: user.email
+          email: user.email,
+          name: displayName,
+          profilePictureUrl: displayAvatar
         });
       }
     } catch (error) {
@@ -65,14 +77,16 @@ const Upload = () => {
       const uploadResult = await uploadToR2(imageFile, 'meal');
       if (!uploadResult) return;
 
-      // Create the post in community_posts table
+      // Create the post in community_posts table with user name and profile picture
       const { error } = await supabase
         .from('community_posts')
         .insert({
           user_id: currentUser.id,
           title: `${selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1)} Time!`,
           content: description || `Just had my ${selectedMeal}! 🍽️`,
-          image_url: uploadResult.imageUrl
+          image_url: uploadResult.imageUrl,
+          user_name: currentUser.name,
+          user_profile_picture_url: currentUser.profilePictureUrl
         });
 
       if (error) throw error;
@@ -124,7 +138,7 @@ const Upload = () => {
                       </div>
                     </div>
                     {selectedMeal === meal.id && (
-                      <Check className="text-sage" size={20} />
+                      <Check className="text-sage w-5 h-5" />
                     )}
                   </div>
                 </div>
@@ -139,7 +153,7 @@ const Upload = () => {
             <h3 className="font-semibold text-stone mb-4">Upload Photo</h3>
             {!imagePreview ? (
               <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-sage rounded-xl cursor-pointer hover:bg-sage/5 transition-colors">
-                <Camera className="text-sage mb-2" size={32} />
+                <Camera className="text-sage mb-2 w-8 h-8" />
                 <span className="text-sage font-medium">Tap to take photo</span>
                 <span className="text-sm text-stone/60 mt-1">or select from gallery</span>
                 <input
@@ -199,7 +213,7 @@ const Upload = () => {
             </div>
           ) : (
             <div className="flex items-center">
-              <UploadIcon size={20} className="mr-2" />
+              <UploadIcon className="w-5 h-5 mr-2" />
               Share with Community
             </div>
           )}
