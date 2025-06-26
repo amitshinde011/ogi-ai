@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play } from 'lucide-react';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { supabase } from '@/integrations/supabase/client';
 import VideoPlayer from '@/components/VideoPlayer';
 import VideoInstructions from '@/components/VideoInstructions';
 import ContinueSection from '@/components/ContinueSection';
@@ -13,10 +14,52 @@ import SacredNote from '@/components/SacredNote';
 
 const IntroVideo = () => {
   const navigate = useNavigate();
-  const { updateOnboardingState } = useOnboarding();
+  const { updateOnboardingState, onboardingState } = useOnboarding();
   const { toast } = useToast();
   const { trackVideoComplete, trackButtonClick } = useAnalytics();
   const [videoWatched, setVideoWatched] = useState(false);
+
+  useEffect(() => {
+    const checkVideoCompletionStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate('/login');
+          return;
+        }
+
+        // Check if intro video is already completed in onboarding state
+        if (onboardingState?.intro_video_watched) {
+          console.log('Intro video already completed, redirecting to before-assessment');
+          navigate('/before-assessment');
+          return;
+        }
+
+        // Also check if there's an active subscription and if intro video was completed for it
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (subscription) {
+          // Check if user has already watched intro video for current subscription
+          // We can use onboarding state as the source of truth for intro video completion
+          if (onboardingState?.intro_video_watched) {
+            console.log('Intro video already completed for current subscription, redirecting');
+            navigate('/before-assessment');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking video completion status:', error);
+      }
+    };
+
+    if (onboardingState !== null) {
+      checkVideoCompletionStatus();
+    }
+  }, [onboardingState, navigate]);
 
   const handleVideoComplete = () => {
     setVideoWatched(true);
@@ -42,6 +85,15 @@ const IntroVideo = () => {
       });
     }
   };
+
+  // Show loading while checking onboarding state
+  if (onboardingState === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-3 sm:p-4 md:p-6 flex items-center justify-center">
