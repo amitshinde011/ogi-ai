@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     // Parse the form data
     const formData = await req.formData();
     const file = formData.get('file') as File;
-    const uploadType = formData.get('uploadType') as string; // 'meal' or 'community'
+    const uploadType = formData.get('uploadType') as string;
 
     if (!file) {
       return new Response(JSON.stringify({ error: 'No file provided' }), {
@@ -58,20 +58,25 @@ Deno.serve(async (req) => {
     const fileExtension = file.name.split('.').pop();
     const fileName = `${uploadType}/${user.id}/${timestamp}.${fileExtension}`;
 
+    // Convert file to array buffer
+    const fileBuffer = await file.arrayBuffer();
+
     // Upload to Cloudflare R2
     const r2Response = await fetch(
-      `https://${Deno.env.get('CLOUDFLARE_ACCOUNT_ID')}.r2.cloudflarestorage.com/wellness-images/${fileName}`,
+      `https://api.cloudflare.com/client/v4/accounts/${Deno.env.get('CLOUDFLARE_ACCOUNT_ID')}/r2/buckets/wellness-images/objects/${fileName}`,
       {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${Deno.env.get('CLOUDFLARE_API_TOKEN')}`,
           'Content-Type': file.type,
         },
-        body: file,
+        body: fileBuffer,
       }
     );
 
     if (!r2Response.ok) {
+      const errorText = await r2Response.text();
+      console.error('R2 upload failed:', errorText);
       throw new Error(`R2 upload failed: ${r2Response.statusText}`);
     }
 

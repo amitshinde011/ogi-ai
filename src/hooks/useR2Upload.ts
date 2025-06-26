@@ -15,34 +15,25 @@ export const useR2Upload = () => {
     setUploading(true);
     
     try {
-      // Get the current session for authentication
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({ title: "Authentication required", variant: "destructive" });
-        return null;
-      }
-
       const formData = new FormData();
       formData.append('file', file);
       formData.append('uploadType', uploadType);
 
-      const response = await fetch('/functions/v1/upload-to-r2', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+      const { data, error } = await supabase.functions.invoke('upload-to-r2', {
         body: formData,
       });
 
-      const result = await response.json();
+      if (error) {
+        throw error;
+      }
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Upload failed');
+      if (!data.success) {
+        throw new Error(data.error || 'Upload failed');
       }
 
       return {
-        imageUrl: result.imageUrl,
-        fileName: result.fileName
+        imageUrl: data.imageUrl,
+        fileName: data.fileName
       };
 
     } catch (error) {
