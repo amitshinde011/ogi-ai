@@ -110,7 +110,9 @@ export type Database = {
           parent_comment_id: string | null
           post_id: string
           updated_at: string
+          user_avatar: string | null
           user_id: string
+          user_name: string | null
         }
         Insert: {
           content: string
@@ -119,7 +121,9 @@ export type Database = {
           parent_comment_id?: string | null
           post_id: string
           updated_at?: string
+          user_avatar?: string | null
           user_id: string
+          user_name?: string | null
         }
         Update: {
           content?: string
@@ -128,7 +132,9 @@ export type Database = {
           parent_comment_id?: string | null
           post_id?: string
           updated_at?: string
+          user_avatar?: string | null
           user_id?: string
+          user_name?: string | null
         }
         Relationships: [
           {
