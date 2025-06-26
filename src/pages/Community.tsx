@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -11,7 +10,6 @@ import { useCommunityPosts } from '@/hooks/useCommunityPosts';
 interface Post {
   id: string;
   user_id: string;
-  title: string;
   content: string;
   image_url?: string;
   likes_count: number;
@@ -23,7 +21,7 @@ interface Post {
 
 const Community = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [content, setContent] = useState('');
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -108,9 +106,9 @@ const Community = () => {
   };
 
   const handleCreatePost = async (imageFile?: File) => {
-    const success = await createPost(currentUser, newPost, imageFile);
+    const success = await createPost(currentUser, content, imageFile);
     if (success) {
-      setNewPost({ title: '', content: '' });
+      setContent('');
       setIsDialogOpen(false);
     }
   };
@@ -142,8 +140,8 @@ const Community = () => {
         <CreatePostDialog
           isOpen={isDialogOpen}
           onOpenChange={setIsDialogOpen}
-          newPost={newPost}
-          onPostChange={setNewPost}
+          content={content}
+          onContentChange={setContent}
           onSubmit={handleCreatePost}
         />
 

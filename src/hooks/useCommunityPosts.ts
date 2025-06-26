@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -7,7 +6,6 @@ import { usePostOperations } from '@/hooks/usePostOperations';
 interface Post {
   id: string;
   user_id: string;
-  title: string;
   content: string;
   image_url?: string;
   likes_count: number;
@@ -38,22 +36,9 @@ export const useCommunityPosts = () => {
 
       console.log('Fetched posts:', posts);
 
+      // Get actual comment counts and ensure user info is present
       const postsWithUserInfo = await Promise.all((posts || []).map(async (post) => {
-        // Always fetch fresh user profile data
-        console.log('Fetching user profile for post:', post.id, 'user:', post.user_id);
-        
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('name, profile_photo_url')
-          .eq('user_id', post.user_id)
-          .maybeSingle();
-
-        const displayName = profile?.name || 'Unknown User';
-        const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
-
-        console.log('Fetched profile for user:', post.user_id, { name: displayName, avatar: displayAvatar });
-
-        // Also get the actual comment count from comments table
+        // Get the actual comment count from comments table
         const { count: actualCommentsCount } = await supabase
           .from('community_post_comments')
           .select('*', { count: 'exact', head: true })
@@ -72,14 +57,12 @@ export const useCommunityPosts = () => {
 
         return {
           ...post,
-          user_name: displayName,
-          user_profile_picture_url: displayAvatar,
-          user_avatar: displayAvatar,
-          comments_count: actualCommentsCount || 0
+          comments_count: actualCommentsCount || 0,
+          user_avatar: post.user_profile_picture_url
         };
       }));
 
-      console.log('Posts with corrected user info and comment counts:', postsWithUserInfo);
+      console.log('Posts with corrected comment counts:', postsWithUserInfo);
       setPosts(postsWithUserInfo);
     } catch (error) {
       console.error('Error fetching posts:', error);

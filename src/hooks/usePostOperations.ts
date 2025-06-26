@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { validateCommunityPost } from '@/utils/inputValidation';
@@ -7,7 +6,6 @@ import { useR2Upload } from '@/hooks/useR2Upload';
 interface Post {
   id: string;
   user_id: string;
-  title: string;
   content: string;
   image_url?: string;
   likes_count: number;
@@ -21,18 +19,17 @@ interface Post {
 export const usePostOperations = (fetchPosts: () => void) => {
   const { uploadToR2 } = useR2Upload();
 
-  const createPost = async (currentUser: any, newPost: { title: string; content: string }, imageFile?: File) => {
+  const createPost = async (currentUser: any, content: string, imageFile?: File) => {
     if (!currentUser) {
       toast({ title: "Authentication required", variant: "destructive" });
       return false;
     }
 
-    // Validate and sanitize input
-    const validation = validateCommunityPost(newPost);
-    if (!validation.isValid) {
+    // Validate content
+    if (!content.trim()) {
       toast({ 
-        title: "Invalid input", 
-        description: validation.errors.join(', '),
+        title: "Content required", 
+        description: "Please add a description to your post",
         variant: "destructive" 
       });
       return false;
@@ -51,25 +48,13 @@ export const usePostOperations = (fetchPosts: () => void) => {
         imageUrl = uploadResult.imageUrl;
       }
 
-      // Get user profile information
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('name, profile_photo_url')
-        .eq('user_id', currentUser.id)
-        .maybeSingle();
-
-      const displayName = profile?.name || currentUser.name || currentUser.email?.split('@')[0] || 'User';
-      const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.id}`;
-
+      // The trigger will automatically populate user_name and user_profile_picture_url
       const { error } = await supabase
         .from('community_posts')
         .insert({
           user_id: currentUser.id,
-          title: validation.sanitized.title,
-          content: validation.sanitized.content,
-          image_url: imageUrl,
-          user_name: displayName,
-          user_profile_picture_url: displayAvatar
+          content: content.trim(),
+          image_url: imageUrl
         });
 
       if (error) throw error;
@@ -87,16 +72,10 @@ export const usePostOperations = (fetchPosts: () => void) => {
   const updatePost = async (editingPost: Post) => {
     if (!editingPost) return false;
 
-    // Validate and sanitize input
-    const validation = validateCommunityPost({
-      title: editingPost.title,
-      content: editingPost.content
-    });
-    
-    if (!validation.isValid) {
+    if (!editingPost.content.trim()) {
       toast({ 
-        title: "Invalid input", 
-        description: validation.errors.join(', '),
+        title: "Content required", 
+        description: "Please add a description to your post",
         variant: "destructive" 
       });
       return false;
@@ -113,8 +92,7 @@ export const usePostOperations = (fetchPosts: () => void) => {
       const { error } = await supabase
         .from('community_posts')
         .update({
-          title: validation.sanitized.title,
-          content: validation.sanitized.content
+          content: editingPost.content.trim()
         })
         .eq('id', editingPost.id);
 

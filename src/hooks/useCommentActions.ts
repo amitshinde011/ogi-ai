@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -12,24 +11,13 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
     try {
       console.log('Adding comment for post:', postId, 'user:', currentUserId);
       
-      // Get user profile information first
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('name, profile_photo_url')
-        .eq('user_id', currentUserId)
-        .maybeSingle();
-
-      const userName = profile?.name || 'Unknown User';
-      const userAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUserId}`;
-      
+      // The trigger will automatically populate user_name and user_avatar
       const { error } = await supabase
         .from('community_post_comments')
         .insert({
           post_id: postId,
           user_id: currentUserId,
-          content: content,
-          user_name: userName,
-          user_avatar: userAvatar
+          content: content
         });
 
       if (error) throw error;
@@ -52,25 +40,14 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
     try {
       console.log('Adding reply to comment:', parentCommentId, 'user:', currentUserId);
       
-      // Get user profile information first
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('name, profile_photo_url')
-        .eq('user_id', currentUserId)
-        .maybeSingle();
-
-      const userName = profile?.name || 'Unknown User';
-      const userAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUserId}`;
-      
+      // The trigger will automatically populate user_name and user_avatar
       const { error } = await supabase
         .from('community_post_comments')
         .insert({
           post_id: postId,
           user_id: currentUserId,
           content: content,
-          parent_comment_id: parentCommentId,
-          user_name: userName,
-          user_avatar: userAvatar
+          parent_comment_id: parentCommentId
         });
 
       if (error) throw error;

@@ -77,16 +77,16 @@ const Upload = () => {
       const uploadResult = await uploadToR2(imageFile, 'meal');
       if (!uploadResult) return;
 
-      // Create the post in community_posts table with user name and profile picture
+      const mealName = selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1);
+      const postContent = description || `Just had my ${selectedMeal}! 🍽️`;
+
+      // Create the post in community_posts table (triggers will populate user info)
       const { error } = await supabase
         .from('community_posts')
         .insert({
           user_id: currentUser.id,
-          title: `${selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1)} Time!`,
-          content: description || `Just had my ${selectedMeal}! 🍽️`,
-          image_url: uploadResult.imageUrl,
-          user_name: currentUser.name,
-          user_profile_picture_url: currentUser.profilePictureUrl
+          content: `${mealName} ${postContent}`,
+          image_url: uploadResult.imageUrl
         });
 
       if (error) throw error;

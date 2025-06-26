@@ -10,7 +10,6 @@ import CommentsSection from './CommentsSection';
 interface Post {
   id: string;
   user_id: string;
-  title: string;
   content: string;
   image_url?: string;
   likes_count: number;
@@ -54,7 +53,6 @@ const PostCard = ({ post, currentUserId, onEdit, onDelete, onPostUpdate }: PostC
         />
       </CardHeader>
       <CardContent>
-        <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
         <p className="text-gray-700 mb-4">{post.content}</p>
         {post.image_url && (
           <img

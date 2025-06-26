@@ -2,23 +2,22 @@
 import React, { useState } from 'react';
 import { Plus, Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface CreatePostDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  newPost: { title: string; content: string };
-  onPostChange: (post: { title: string; content: string }) => void;
+  content: string;
+  onContentChange: (content: string) => void;
   onSubmit: (imageFile?: File) => void;
 }
 
 const CreatePostDialog = ({ 
   isOpen, 
   onOpenChange, 
-  newPost, 
-  onPostChange, 
+  content, 
+  onContentChange, 
   onSubmit 
 }: CreatePostDialogProps) => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -55,16 +54,18 @@ const CreatePostDialog = ({
     setImagePreview(null);
   };
 
-  const handleButtonClick = () => {
-    console.log('Share Your Journey button clicked');
-    onOpenChange(true);
+  const addMealPrefix = (mealType: string) => {
+    const prefix = `${mealType} `;
+    if (!content.startsWith(prefix)) {
+      onContentChange(prefix + content);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         <Button 
-          onClick={handleButtonClick}
+          onClick={() => onOpenChange(true)}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -76,16 +77,41 @@ const CreatePostDialog = ({
           <DialogTitle className="text-gray-900">Create New Post</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <Input
-            placeholder="Post title..."
-            value={newPost.title}
-            onChange={(e) => onPostChange({ ...newPost, title: e.target.value })}
-            className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500"
-          />
+          {/* Meal Type Buttons */}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => addMealPrefix('Breakfast')}
+              className="text-xs"
+            >
+              🌅 Breakfast
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => addMealPrefix('Lunch')}
+              className="text-xs"
+            >
+              ☀️ Lunch
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => addMealPrefix('Dinner')}
+              className="text-xs"
+            >
+              🌙 Dinner
+            </Button>
+          </div>
+
           <Textarea
             placeholder="Share your wellness journey..."
-            value={newPost.content}
-            onChange={(e) => onPostChange({ ...newPost, content: e.target.value })}
+            value={content}
+            onChange={(e) => onContentChange(e.target.value)}
             className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 min-h-24"
           />
           

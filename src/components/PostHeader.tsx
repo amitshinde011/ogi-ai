@@ -7,7 +7,6 @@ import { getRelativeTime } from '@/utils/dateUtils';
 interface Post {
   id: string;
   user_id: string;
-  title: string;
   content: string;
   image_url?: string;
   likes_count: number;
@@ -30,14 +29,6 @@ const PostHeader = ({ post, currentUserId, onEdit, onDelete }: PostHeaderProps) 
   const displayAvatar = post.user_profile_picture_url || post.user_avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
   const displayName = post.user_name || 'Unknown User';
 
-  console.log('PostHeader - displaying user info:', { 
-    userId: post.user_id, 
-    displayName, 
-    displayAvatar,
-    postUserName: post.user_name,
-    postUserProfilePictureUrl: post.user_profile_picture_url 
-  });
-
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center">
@@ -46,7 +37,6 @@ const PostHeader = ({ post, currentUserId, onEdit, onDelete }: PostHeaderProps) 
           alt={displayName}
           className="w-10 h-10 rounded-full mr-3 object-cover"
           onError={(e) => {
-            console.log('Avatar failed to load, using fallback for user:', post.user_id);
             e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
           }}
         />
