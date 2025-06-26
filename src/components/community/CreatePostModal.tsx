@@ -5,23 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-interface CreatePostDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  content: string;
-  onContentChange: (content: string) => void;
-  onSubmit: (imageFile?: File) => void;
+interface CreatePostModalProps {
+  onSubmit: (content: string, imageFile?: File) => Promise<boolean>;
 }
 
-const CreatePostDialog = ({ 
-  isOpen, 
-  onOpenChange, 
-  content, 
-  onContentChange, 
-  onSubmit 
-}: CreatePostDialogProps) => {
+const CreatePostModal = ({ onSubmit }: CreatePostModalProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -40,16 +33,24 @@ const CreatePostDialog = ({
     setImagePreview(null);
   };
 
-  const handleSubmit = () => {
-    onSubmit(imageFile || undefined);
-    // Reset form
-    setImageFile(null);
-    setImagePreview(null);
+  const handleSubmit = async () => {
+    if (!content.trim()) return;
+
+    setIsSubmitting(true);
+    const success = await onSubmit(content, imageFile || undefined);
+    
+    if (success) {
+      setContent('');
+      setImageFile(null);
+      setImagePreview(null);
+      setIsOpen(false);
+    }
+    setIsSubmitting(false);
   };
 
   const handleClose = () => {
-    onOpenChange(false);
-    // Reset form when closing
+    setIsOpen(false);
+    setContent('');
     setImageFile(null);
     setImagePreview(null);
   };
@@ -57,15 +58,15 @@ const CreatePostDialog = ({
   const addMealPrefix = (mealType: string) => {
     const prefix = `${mealType} `;
     if (!content.startsWith(prefix)) {
-      onContentChange(prefix + content);
+      setContent(prefix + content);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button 
-          onClick={() => onOpenChange(true)}
+          onClick={() => setIsOpen(true)}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -76,6 +77,7 @@ const CreatePostDialog = ({
         <DialogHeader>
           <DialogTitle className="text-gray-900">Create New Post</DialogTitle>
         </DialogHeader>
+        
         <div className="space-y-4">
           {/* Meal Type Buttons */}
           <div className="flex gap-2">
@@ -111,7 +113,7 @@ const CreatePostDialog = ({
           <Textarea
             placeholder="Share your wellness journey..."
             value={content}
-            onChange={(e) => onContentChange(e.target.value)}
+            onChange={(e) => setContent(e.target.value)}
             className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 min-h-24"
           />
           
@@ -152,14 +154,16 @@ const CreatePostDialog = ({
               variant="outline"
               onClick={handleClose}
               className="flex-1 rounded-xl border-gray-300 text-gray-900 hover:bg-gray-100 bg-white"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               onClick={handleSubmit}
               className="flex-1 rounded-xl bg-sage hover:bg-sage/90 text-white"
+              disabled={!content.trim() || isSubmitting}
             >
-              Post
+              {isSubmitting ? 'Posting...' : 'Post'}
             </Button>
           </div>
         </div>
@@ -168,4 +172,4 @@ const CreatePostDialog = ({
   );
 };
 
-export default CreatePostDialog;
+export default CreatePostModal;
