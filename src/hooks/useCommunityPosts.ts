@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -24,14 +25,6 @@ export const useCommunityPosts = () => {
   const fetchPosts = async () => {
     try {
       console.log('Fetching community posts...');
-      
-      // Verify authentication first
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        console.error('Authentication required for fetching posts');
-        toast({ title: "Authentication required", variant: "destructive" });
-        return;
-      }
 
       const { data: posts, error } = await supabase
         .from('community_posts')
@@ -46,20 +39,7 @@ export const useCommunityPosts = () => {
       console.log('Fetched posts:', posts);
 
       const postsWithUserInfo = await Promise.all((posts || []).map(async (post) => {
-        // If post already has user info, use it
-        if (post.user_name && post.user_profile_picture_url) {
-          console.log('Post already has user info:', { 
-            postId: post.id, 
-            userName: post.user_name, 
-            userAvatar: post.user_profile_picture_url 
-          });
-          return {
-            ...post,
-            user_avatar: post.user_profile_picture_url
-          };
-        }
-
-        // Otherwise, fetch user profile and update the post
+        // Always fetch fresh user profile data
         console.log('Fetching user profile for post:', post.id, 'user:', post.user_id);
         
         const { data: profile } = await supabase
@@ -68,35 +48,38 @@ export const useCommunityPosts = () => {
           .eq('user_id', post.user_id)
           .maybeSingle();
 
-        const displayName = profile?.name || 'Anonymous User';
+        const displayName = profile?.name || 'Unknown User';
         const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.user_id}`;
 
         console.log('Fetched profile for user:', post.user_id, { name: displayName, avatar: displayAvatar });
 
-        // Update the post in the database with user info
-        try {
+        // Also get the actual comment count from comments table
+        const { count: actualCommentsCount } = await supabase
+          .from('community_post_comments')
+          .select('*', { count: 'exact', head: true })
+          .eq('post_id', post.id);
+
+        console.log('Actual comments count for post', post.id, ':', actualCommentsCount);
+
+        // Update the post with correct comment count if it differs
+        if (actualCommentsCount !== post.comments_count) {
+          console.log('Updating comment count from', post.comments_count, 'to', actualCommentsCount);
           await supabase
             .from('community_posts')
-            .update({
-              user_name: displayName,
-              user_profile_picture_url: displayAvatar
-            })
+            .update({ comments_count: actualCommentsCount || 0 })
             .eq('id', post.id);
-          
-          console.log('Updated post with user info:', post.id);
-        } catch (updateError) {
-          console.error('Failed to update post with user info:', updateError);
         }
 
         return {
           ...post,
           user_name: displayName,
           user_profile_picture_url: displayAvatar,
-          user_avatar: displayAvatar
+          user_avatar: displayAvatar,
+          comments_count: actualCommentsCount || 0
         };
       }));
 
-      console.log('Posts with user info:', postsWithUserInfo);
+      console.log('Posts with corrected user info and comment counts:', postsWithUserInfo);
       setPosts(postsWithUserInfo);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -110,6 +93,41 @@ export const useCommunityPosts = () => {
 
   useEffect(() => {
     fetchPosts();
+  }, []);
+
+  // Set up real-time subscription for posts
+  useEffect(() => {
+    const channel = supabase
+      .channel('community-posts-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'community_posts'
+        },
+        () => {
+          console.log('Real-time post change detected, refetching...');
+          fetchPosts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'community_post_comments'
+        },
+        () => {
+          console.log('Real-time comment change detected, refetching posts...');
+          fetchPosts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {

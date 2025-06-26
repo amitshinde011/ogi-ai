@@ -39,16 +39,23 @@ export const useComments = (postId: string) => {
       // Fetch user profiles for comments
       const commentsWithUserInfo = await Promise.all(
         (commentsData || []).map(async (comment) => {
+          console.log('Fetching profile for comment user:', comment.user_id);
+          
           const { data: profile } = await supabase
             .from('user_profiles')
             .select('name, profile_photo_url')
             .eq('user_id', comment.user_id)
             .maybeSingle();
 
+          const userName = profile?.name || 'Unknown User';
+          const userAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_id}`;
+          
+          console.log('Profile found for user:', comment.user_id, { name: userName, avatar: userAvatar });
+
           return {
             ...comment,
-            user_name: profile?.name || 'Unknown User',
-            user_avatar: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_id}`
+            user_name: userName,
+            user_avatar: userAvatar
           };
         })
       );
@@ -72,11 +79,32 @@ export const useComments = (postId: string) => {
 
       console.log('Threaded comments:', threaded);
       setComments(threaded);
+      
+      // Update the post's comment count in real-time
+      await updatePostCommentCount(postId, commentsWithUserInfo.length);
+      
     } catch (error) {
       console.error('Error fetching comments:', error);
       toast({ title: "Failed to load comments", variant: "destructive" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const updatePostCommentCount = async (postId: string, count: number) => {
+    try {
+      const { error } = await supabase
+        .from('community_posts')
+        .update({ comments_count: count })
+        .eq('id', postId);
+      
+      if (error) {
+        console.error('Error updating comment count:', error);
+      } else {
+        console.log('Updated comment count to:', count);
+      }
+    } catch (error) {
+      console.error('Error updating comment count:', error);
     }
   };
 
@@ -97,6 +125,7 @@ export const useComments = (postId: string) => {
           filter: `post_id=eq.${postId}`
         },
         () => {
+          console.log('Real-time comment change detected, refetching...');
           // Refetch comments when any comment changes
           fetchComments();
         }

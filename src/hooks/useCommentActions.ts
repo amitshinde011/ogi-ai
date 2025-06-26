@@ -10,6 +10,8 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
     }
 
     try {
+      console.log('Adding comment for post:', postId, 'user:', currentUserId);
+      
       const { error } = await supabase
         .from('community_post_comments')
         .insert({
@@ -20,6 +22,7 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
 
       if (error) throw error;
 
+      console.log('Comment added successfully');
       onCommentAdded();
       toast({ title: "Comment added successfully!" });
     } catch (error) {
@@ -35,6 +38,8 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
     }
 
     try {
+      console.log('Adding reply to comment:', parentCommentId, 'user:', currentUserId);
+      
       const { error } = await supabase
         .from('community_post_comments')
         .insert({
@@ -46,6 +51,7 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
 
       if (error) throw error;
 
+      console.log('Reply added successfully');
       onCommentAdded();
       toast({ title: "Reply added successfully!" });
     } catch (error) {
@@ -56,6 +62,8 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
 
   const handleEditComment = async (commentId: string, content: string) => {
     try {
+      console.log('Editing comment:', commentId);
+      
       const { error } = await supabase
         .from('community_post_comments')
         .update({ content: content })
@@ -63,6 +71,7 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
 
       if (error) throw error;
 
+      console.log('Comment updated successfully');
       toast({ title: "Comment updated successfully!" });
     } catch (error) {
       console.error('Error updating comment:', error);
@@ -72,6 +81,8 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
 
   const handleDeleteComment = async (commentId: string) => {
     try {
+      console.log('Deleting comment:', commentId);
+      
       const { error } = await supabase
         .from('community_post_comments')
         .delete()
@@ -79,6 +90,7 @@ export const useCommentActions = (postId: string, onCommentAdded: () => void, on
 
       if (error) throw error;
 
+      console.log('Comment deleted successfully');
       onCommentDeleted();
       toast({ title: "Comment deleted successfully!" });
     } catch (error) {
