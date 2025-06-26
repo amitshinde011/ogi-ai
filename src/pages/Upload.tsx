@@ -61,11 +61,11 @@ const Upload = () => {
     if (!selectedMeal || !imageFile || !currentUser) return;
 
     try {
-      // Upload image to R2
-      const uploadResult = await uploadToR2(imageFile, 'meal');
+      // Upload image to R2 using the same process as community posts
+      const uploadResult = await uploadToR2(imageFile, 'community');
       if (!uploadResult) return;
 
-      // Create the post in community_posts table
+      // Create the post in community_posts table with R2 URL
       const { error } = await supabase
         .from('community_posts')
         .insert({
