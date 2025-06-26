@@ -14,6 +14,21 @@ const RecipeDetail = () => {
   const { data: recipe, isLoading, error } = useRecipe(id || '');
   const { saveRecipe, unsaveRecipe, isRecipeSaved } = useSavedRecipes();
 
+  // Helper function to get Cloudflare image URL
+  const getCloudflareImageUrl = (imageId: string | null | undefined) => {
+    if (!imageId) {
+      return 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600';
+    }
+    
+    // If it's already a full URL, return as is
+    if (imageId.startsWith('http')) {
+      return imageId;
+    }
+    
+    // Construct Cloudflare Images URL
+    return `https://imagedelivery.net/your-account-hash/${imageId}/public`;
+  };
+
   const handleSaveRecipe = async () => {
     if (!recipe) return;
     
@@ -114,7 +129,7 @@ const RecipeDetail = () => {
         {/* Hero Image */}
         <div className="relative">
           <img
-            src={recipe.image_url || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600'}
+            src={getCloudflareImageUrl(recipe.image_url)}
             alt={recipe.name}
             className="w-full h-64 object-cover"
           />

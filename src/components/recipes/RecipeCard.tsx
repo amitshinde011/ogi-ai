@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Recipe } from '@/hooks/useRecipes';
+import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -17,7 +18,7 @@ const RecipeCard = ({ recipe, isSaved }: RecipeCardProps) => {
         <CardContent className="p-0">
           <div className="relative">
             <img
-              src={recipe.image_url || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600'}
+              src={getCloudflareImageUrl(recipe.image_url)}
               alt={recipe.name}
               className="w-full h-48 object-cover rounded-t-lg"
             />

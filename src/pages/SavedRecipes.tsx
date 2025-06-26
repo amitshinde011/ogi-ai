@@ -12,6 +12,21 @@ import { Link } from 'react-router-dom';
 const SavedRecipes = () => {
   const { savedRecipeIds, isLoading: savedRecipesLoading } = useSavedRecipes();
 
+  // Helper function to get Cloudflare image URL
+  const getCloudflareImageUrl = (imageId: string | null | undefined) => {
+    if (!imageId) {
+      return 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300';
+    }
+    
+    // If it's already a full URL, return as is
+    if (imageId.startsWith('http')) {
+      return imageId;
+    }
+    
+    // Construct Cloudflare Images URL
+    return `https://imagedelivery.net/your-account-hash/${imageId}/public`;
+  };
+
   // Fetch the actual recipe data for saved recipes
   const { data: savedRecipes = [], isLoading: recipesLoading } = useQuery({
     queryKey: ['saved-recipes-data', savedRecipeIds],
@@ -106,7 +121,7 @@ const SavedRecipes = () => {
                   <CardContent className="p-4">
                     <div className="flex space-x-4">
                       <img
-                        src={recipe.image_url || 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=300'}
+                        src={getCloudflareImageUrl(recipe.image_url)}
                         alt={recipe.name}
                         className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
                       />
