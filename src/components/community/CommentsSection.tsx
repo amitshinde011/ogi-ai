@@ -4,6 +4,7 @@ import { Send, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { getRelativeTime } from '@/utils/dateUtils';
+import ReplyForm from '@/components/ReplyForm';
 
 interface Comment {
   id: string;
@@ -32,7 +33,6 @@ const CommentsSection = ({
 }: CommentsSectionProps) => {
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState('');
 
   const handleSubmitComment = () => {
     if (!newComment.trim()) return;
@@ -40,10 +40,12 @@ const CommentsSection = ({
     setNewComment('');
   };
 
-  const handleSubmitReply = (parentCommentId: string) => {
-    if (!replyContent.trim()) return;
-    onAddComment(replyContent.trim(), currentUserId, parentCommentId);
-    setReplyContent('');
+  const handleSubmitReply = (content: string, parentCommentId: string) => {
+    onAddComment(content, currentUserId, parentCommentId);
+    setReplyingTo(null);
+  };
+
+  const handleCancelReply = () => {
     setReplyingTo(null);
   };
 
@@ -90,34 +92,11 @@ const CommentsSection = ({
       </div>
       
       {replyingTo === comment.id && (
-        <div className="ml-11 mt-3 space-y-2">
-          <Textarea
-            value={replyContent}
-            onChange={(e) => setReplyContent(e.target.value)}
-            placeholder="Write a reply..."
-            className="min-h-12 text-sm"
+        <div className="ml-11 mt-3">
+          <ReplyForm
+            onSubmit={(content) => handleSubmitReply(content, comment.id)}
+            onCancel={handleCancelReply}
           />
-          <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              onClick={() => handleSubmitReply(comment.id)}
-              disabled={!replyContent.trim()}
-              className="h-7 px-3 text-xs bg-sage hover:bg-sage/90"
-            >
-              Reply
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={() => {
-                setReplyingTo(null);
-                setReplyContent('');
-              }}
-              className="h-7 px-3 text-xs"
-            >
-              Cancel
-            </Button>
-          </div>
         </div>
       )}
       
