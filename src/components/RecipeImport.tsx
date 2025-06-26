@@ -23,7 +23,7 @@ const RecipeImport = () => {
       const lines = csvData.trim().split('\n');
       const headers = lines[0].split(',').map(h => h.trim());
       
-      // Expected headers: name, package, category, details, image
+      // Expected headers: name, package, category, details, image_url, cloudflare_image_id
       const recipes = lines.slice(1).map(line => {
         const values = line.split(',').map(v => v.trim());
         return {
@@ -32,6 +32,7 @@ const RecipeImport = () => {
           category: values[2] || 'Other',
           details: values[3] || null,
           image_url: values[4] || null,
+          cloudflare_image_id: values[5] || '', // Add cloudflare_image_id field
         };
       }).filter(recipe => recipe.name); // Filter out empty rows
 
@@ -68,8 +69,8 @@ const RecipeImport = () => {
         <div className="text-sm text-gray-600">
           <p className="mb-2">Expected format (comma-separated):</p>
           <code className="bg-gray-100 p-2 rounded block text-gray-800 border border-gray-200">
-            name,package,category,details,image_url<br/>
-            Recipe Name,Package Name,Category,Recipe Details,Image URL
+            name,package,category,details,image_url,cloudflare_image_id<br/>
+            Recipe Name,Package Name,Category,Recipe Details,Image URL,Cloudflare ID
           </code>
         </div>
         

@@ -42,17 +42,17 @@ export const getCloudflareImageUrl = (
 
 /**
  * Generates a Cloudflare Images URL with specific dimensions
- * @param cloudflareImageId - The Cloudflare image ID
- * @param fallbackImageUrl - The fallback image URL
  * @param width - Desired width
  * @param height - Desired height
+ * @param cloudflareImageId - The Cloudflare image ID
+ * @param fallbackImageUrl - The fallback image URL
  * @returns The full Cloudflare Images URL with custom dimensions
  */
 export const getCloudflareImageUrlWithDimensions = (
-  cloudflareImageId?: string | null,
-  fallbackImageUrl?: string | null,
   width: number,
-  height: number
+  height: number,
+  cloudflareImageId?: string | null,
+  fallbackImageUrl?: string | null
 ): string => {
   if (cloudflareImageId) {
     // For custom dimensions, you would need to create variants in Cloudflare
