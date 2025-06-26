@@ -61,11 +61,11 @@ const Upload = () => {
     if (!selectedMeal || !imageFile || !currentUser) return;
 
     try {
-      // Upload image to R2 with 'meal' type to get correct R2 URL format
-      const uploadResult = await uploadToR2(imageFile, 'meal');
+      // Upload image to R2 using 'community' type to get correct fetchable URL format
+      const uploadResult = await uploadToR2(imageFile, 'community');
       if (!uploadResult) return;
 
-      // Create the post in community_posts table with proper R2 URL
+      // Create the post in community_posts table with proper fetchable R2 URL
       const { error } = await supabase
         .from('community_posts')
         .insert({
