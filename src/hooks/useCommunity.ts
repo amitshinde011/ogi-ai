@@ -38,11 +38,19 @@ export const useCommunity = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile } = await supabase
+        console.log('Current authenticated user:', user.id);
+        
+        const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('name, profile_photo_url')
           .eq('user_id', user.id)
           .maybeSingle();
+
+        if (profileError) {
+          console.error('Error fetching user profile:', profileError);
+        }
+
+        console.log('User profile data:', profile);
 
         const displayName = profile?.name || user.email?.split('@')[0] || 'User';
         const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
@@ -87,6 +95,7 @@ export const useCommunity = () => {
   // Create new post
   const createPost = async (content: string, imageFile?: File) => {
     if (!currentUser) {
+      console.error('No current user found');
       toast({ title: "Authentication required", variant: "destructive" });
       return false;
     }
@@ -101,10 +110,12 @@ export const useCommunity = () => {
     }
 
     try {
+      console.log('Creating post for user:', currentUser);
       let imageUrl = null;
 
       // Upload image if provided
       if (imageFile) {
+        console.log('Uploading image...');
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `${currentUser.id}/${fileName}`;
@@ -124,19 +135,31 @@ export const useCommunity = () => {
           .getPublicUrl(filePath);
 
         imageUrl = publicUrl;
+        console.log('Image uploaded successfully:', imageUrl);
       }
 
+      // Prepare the post data
+      const postData = {
+        user_id: currentUser.id,
+        content: content.trim(),
+        image_url: imageUrl
+      };
+
+      console.log('Inserting post with data:', postData);
+
       // Create post (triggers will populate user info)
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('community_posts')
-        .insert({
-          user_id: currentUser.id,
-          content: content.trim(),
-          image_url: imageUrl
-        });
+        .insert(postData)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating post:', error);
+        throw error;
+      }
 
+      console.log('Post created successfully:', data);
       await fetchPosts();
       toast({ title: "Post created successfully!" });
       return true;
