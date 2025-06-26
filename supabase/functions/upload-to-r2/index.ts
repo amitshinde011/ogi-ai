@@ -8,18 +8,14 @@ const corsHeaders = {
 
 // --- AWS Signature V4 Manual Signing Helper Functions ---
 
-async function sha256(data: string): Promise<string> {
-  const G_textEncoder = new TextEncoder();
-  const G_encodedData = G_textEncoder.encode(data);
-  const G_hashBuffer = await crypto.subtle.digest('SHA-256', G_encodedData);
-  const G_hashArray = Array.from(new Uint8Array(G_hashBuffer));
-  return G_hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+// ** 1. THIS FUNCTION IS NOW CORRECTED to hash a buffer directly **
+async function sha256(data: ArrayBuffer): Promise<string> {
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ** THIS FUNCTION IS NOW CORRECTED **
 function hmacSha256(key: Uint8Array, data: string): Uint8Array {
-  // By removing the 'binary' parameter, we use the default byte array output
-  // which is supported in the Deno environment.
   return hmac('sha256', key, data) as Uint8Array;
 }
 
@@ -31,7 +27,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // 1. AUTHENTICATE USER
+    // Authenticate User
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error('No authorization header');
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
@@ -40,7 +36,7 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // 2. PARSE FORM DATA
+    // Parse Form Data
     const formData = await req.formData();
     const file = formData.get('file');
     const uploadType = formData.get('uploadType') || 'community';
@@ -48,13 +44,13 @@ Deno.serve(async (req) => {
       throw new Error('No file provided');
     }
 
-    // 3. PREPARE FILE AND METADATA
+    // Prepare File and Metadata
     const fileBuffer = await file.arrayBuffer();
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop();
     const key = `${uploadType}/${user.id}/${timestamp}.${fileExtension}`;
     
-    // 4. MANUALLY CREATE THE SECURE AWS V4 SIGNATURE
+    // Manually Create the Secure AWS V4 Signature
     const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID')!;
     const accessKeyId = Deno.env.get('CLOUDFLARE_COMMUNITY_POST_ACCESS_KEY_ID')!;
     const secretAccessKey = Deno.env.get('CLOUDFLARE_COMMUNITY_POST_SECRET_ACCESS_KEY')!;
@@ -67,13 +63,15 @@ Deno.serve(async (req) => {
     const dateStamp = amzDate.substring(0, 8);
     
     const canonicalURI = `/${bucketName}/${key}`;
-    const hashedPayload = await sha256(new TextDecoder().decode(fileBuffer));
+    
+    // ** 2. THIS LINE IS NOW CORRECTED to pass the buffer directly **
+    const hashedPayload = await sha256(fileBuffer);
     
     const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${hashedPayload}\nx-amz-date:${amzDate}\n`;
     const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
     
     const canonicalRequest = `PUT\n${canonicalURI}\n\n${canonicalHeaders}\n${signedHeaders}\n${hashedPayload}`;
-    const hashedCanonicalRequest = await sha256(canonicalRequest);
+    const hashedCanonicalRequest = await sha256(new TextEncoder().encode(canonicalRequest));
     
     const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
     const stringToSign = `AWS4-HMAC-SHA256\n${amzDate}\n${credentialScope}\n${hashedCanonicalRequest}`;
@@ -86,7 +84,7 @@ Deno.serve(async (req) => {
 
     const authorizationHeader = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
     
-    // 5. UPLOAD THE FILE USING FETCH WITH THE MANUAL SIGNATURE
+    // Upload the File
     const uploadUrl = `https://${host}${canonicalURI}`;
     const response = await fetch(uploadUrl, {
       method: 'PUT',
@@ -104,7 +102,7 @@ Deno.serve(async (req) => {
       throw new Error(`R2 Upload Failed: ${await response.text()}`);
     }
 
-    // 6. GENERATE AND RETURN THE PUBLIC URL
+    // Generate and Return Public URL
     const publicUrlHost = Deno.env.get('R2_PUBLIC_URL_HOST');
     if (!publicUrlHost) throw new Error('R2 public URL host not configured in secrets.');
     const imageUrl = `https://${publicUrlHost}/${key}`;
