@@ -1,18 +1,21 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.9';
-import { S3Bucket } from 'https://deno.land/x/s3@0.5.0/mod.ts';
+// ** NEW: Using a different, more modern Deno S3 library **
+import { S3 } from 'https://deno.land/x/aws_api@v0.8.1/s3/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const bucket = new S3Bucket({
+// ** NEW: Client Configuration for the 'aws-api' library **
+const s3 = new S3({
   accessKeyID: Deno.env.get('CLOUDFLARE_COMMUNITY_POST_ACCESS_KEY_ID')!,
   secretKey: Deno.env.get('CLOUDFLARE_COMMUNITY_POST_SECRET_ACCESS_KEY')!,
-  bucket: 'wellness-images', // Make sure this is your correct R2 bucket name
   region: 'auto',
   endpointURL: `https://${Deno.env.get('CLOUDFLARE_ACCOUNT_ID')}.r2.cloudflarestorage.com`,
 });
+
+const bucketName = 'wellness-images';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -20,7 +23,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // 1. Authenticate the user
+    // 1. Authenticate user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error('No authorization header');
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
@@ -29,27 +32,25 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // 2. Parse the form data
+    // 2. Parse form data
     const formData = await req.formData();
     const file = formData.get('file');
     const uploadType = formData.get('uploadType') || 'community';
     if (!file || typeof file === 'string') {
-      throw new Error('No file provided or invalid file format');
+      throw new Error('No file provided');
     }
 
     // 3. Prepare file for upload
-    const fileBuffer = await file.arrayBuffer();
+    const fileBuffer = new Uint8Array(await file.arrayBuffer()); // This library works best with Uint8Array
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop();
     const key = `${uploadType}/${user.id}/${timestamp}.${fileExtension}`;
 
-    // 4. Securely upload the file to R2 with the fix
-    await bucket.putObject(key, fileBuffer, {
-      // =================================================================
-      // ** THIS IS THE DEFINITIVE FIX FOR THE 'toFixed' ERROR **
-      // This forces a single-part upload, bypassing the library bug.
-      // =================================================================
-      partSize: file.size,
+    // 4. Securely upload the file to R2 using the new library
+    await s3.putObject({
+      bucket: bucketName,
+      key: key,
+      body: fileBuffer,
       contentType: file.type,
     });
 
