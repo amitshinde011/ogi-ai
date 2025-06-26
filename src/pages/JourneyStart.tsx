@@ -49,7 +49,7 @@ const JourneyStart = () => {
         <Card className="bg-white border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
           <CardHeader className="text-center pb-6 md:pb-8 px-4 md:px-8">
             <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-orange-400 via-amber-400 to-orange-500 rounded-full mx-auto flex items-center justify-center mb-6 md:mb-8 shadow-2xl animate-pulse">
-              <Trophy className="text-white" size={48} />
+              <Trophy className="text-white w-12 h-12 md:w-16 md:h-16" />
             </div>
             <CardTitle className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight">
               Your Journey Begins Now!
