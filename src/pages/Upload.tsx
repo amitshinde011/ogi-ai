@@ -9,15 +9,17 @@ import Header from '@/components/Header';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useR2Upload } from '@/hooks/useR2Upload';
 
 const Upload = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedMeal, setSelectedMeal] = useState(location.state?.mealType || '');
-  const [image, setImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [description, setDescription] = useState('');
-  const [uploading, setUploading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const { uploadToR2, uploading } = useR2Upload();
 
   const mealTypes = [
     { id: 'breakfast', name: 'Breakfast', icon: '🌅', time: '6:00 - 11:00 AM' },
@@ -46,20 +48,23 @@ const Upload = () => {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImage(e.target?.result as string);
+        setImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleSubmit = async () => {
-    if (!selectedMeal || !image || !currentUser) return;
+    if (!selectedMeal || !imageFile || !currentUser) return;
 
-    setUploading(true);
-    
     try {
+      // Upload image to R2
+      const uploadResult = await uploadToR2(imageFile, 'meal');
+      if (!uploadResult) return;
+
       // Create the post in community_posts table
       const { error } = await supabase
         .from('community_posts')
@@ -67,7 +72,7 @@ const Upload = () => {
           user_id: currentUser.id,
           title: `${selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1)} Time!`,
           content: description || `Just had my ${selectedMeal}! 🍽️`,
-          image_url: image
+          image_url: uploadResult.imageUrl
         });
 
       if (error) throw error;
@@ -87,8 +92,6 @@ const Upload = () => {
     } catch (error) {
       console.error('Error uploading meal:', error);
       toast({ title: "Failed to post meal", variant: "destructive" });
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -134,7 +137,7 @@ const Upload = () => {
         <Card className="shadow-lg border-lavender/20">
           <CardContent className="p-4">
             <h3 className="font-semibold text-stone mb-4">Upload Photo</h3>
-            {!image ? (
+            {!imagePreview ? (
               <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-sage rounded-xl cursor-pointer hover:bg-sage/5 transition-colors">
                 <Camera className="text-sage mb-2" size={32} />
                 <span className="text-sage font-medium">Tap to take photo</span>
@@ -150,12 +153,15 @@ const Upload = () => {
             ) : (
               <div className="relative">
                 <img
-                  src={image}
+                  src={imagePreview}
                   alt="Meal"
                   className="w-full h-48 object-cover rounded-xl shadow-md"
                 />
                 <Button
-                  onClick={() => setImage(null)}
+                  onClick={() => {
+                    setImagePreview(null);
+                    setImageFile(null);
+                  }}
                   variant="outline"
                   size="sm"
                   className="absolute top-2 right-2 bg-white/90 border-lavender/30"
@@ -183,7 +189,7 @@ const Upload = () => {
         {/* Submit Button */}
         <Button
           onClick={handleSubmit}
-          disabled={!selectedMeal || !image || uploading || !currentUser}
+          disabled={!selectedMeal || !imageFile || uploading || !currentUser}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white py-6 font-medium shadow-lg"
         >
           {uploading ? (

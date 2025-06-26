@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { validateCommunityPost, sanitizeHtml } from '@/utils/inputValidation';
+import { useR2Upload } from '@/hooks/useR2Upload';
 
 interface Post {
   id: string;
@@ -20,6 +21,7 @@ interface Post {
 export const useCommunityPosts = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const { uploadToR2 } = useR2Upload();
 
   const fetchPosts = async () => {
     try {
@@ -73,7 +75,7 @@ export const useCommunityPosts = () => {
     }
   };
 
-  const createPost = async (currentUser: any, newPost: { title: string; content: string }) => {
+  const createPost = async (currentUser: any, newPost: { title: string; content: string }, imageFile?: File) => {
     if (!currentUser) {
       toast({ title: "Authentication required", variant: "destructive" });
       return false;
@@ -91,12 +93,25 @@ export const useCommunityPosts = () => {
     }
 
     try {
+      let imageUrl = null;
+
+      // Upload image to R2 if provided
+      if (imageFile) {
+        const uploadResult = await uploadToR2(imageFile, 'community');
+        if (!uploadResult) {
+          toast({ title: "Failed to upload image", variant: "destructive" });
+          return false;
+        }
+        imageUrl = uploadResult.imageUrl;
+      }
+
       const { error } = await supabase
         .from('community_posts')
         .insert({
           user_id: currentUser.id,
           title: validation.sanitized.title,
-          content: validation.sanitized.content
+          content: validation.sanitized.content,
+          image_url: imageUrl
         });
 
       if (error) throw error;

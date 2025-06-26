@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, Camera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +11,7 @@ interface CreatePostDialogProps {
   onOpenChange: (open: boolean) => void;
   newPost: { title: string; content: string };
   onPostChange: (post: { title: string; content: string }) => void;
-  onSubmit: () => void;
+  onSubmit: (imageFile?: File) => void;
 }
 
 const CreatePostDialog = ({ 
@@ -21,8 +21,42 @@ const CreatePostDialog = ({
   onPostChange, 
   onSubmit 
 }: CreatePostDialogProps) => {
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const handleSubmit = () => {
+    onSubmit(imageFile || undefined);
+    // Reset form
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
+    // Reset form when closing
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogTrigger asChild>
         <Button className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white">
           <Plus size={16} className="mr-2" />
@@ -46,16 +80,49 @@ const CreatePostDialog = ({
             onChange={(e) => onPostChange({ ...newPost, content: e.target.value })}
             className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 min-h-24"
           />
+          
+          {/* Image Upload Section */}
+          <div className="space-y-3">
+            {!imagePreview ? (
+              <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <Camera className="text-gray-400 mb-2" size={24} />
+                <span className="text-gray-500 text-sm">Add a photo (optional)</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+            ) : (
+              <div className="relative">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-32 object-cover rounded-lg"
+                />
+                <Button
+                  onClick={handleRemoveImage}
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2 rounded-full w-8 h-8 p-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
           <div className="flex gap-3 pt-4">
             <Button
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
               className="flex-1 rounded-xl border-gray-300 text-gray-900 hover:bg-gray-100 bg-white"
             >
               Cancel
             </Button>
             <Button
-              onClick={onSubmit}
+              onClick={handleSubmit}
               className="flex-1 rounded-xl bg-sage hover:bg-sage/90 text-white"
             >
               Post

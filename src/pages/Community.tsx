@@ -54,8 +54,8 @@ const Community = () => {
     }
   };
 
-  const handleCreatePost = async () => {
-    const success = await createPost(currentUser, newPost);
+  const handleCreatePost = async (imageFile?: File) => {
+    const success = await createPost(currentUser, newPost, imageFile);
     if (success) {
       setNewPost({ title: '', content: '' });
       setIsDialogOpen(false);
