@@ -1,11 +1,20 @@
-
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.9';
+// Using the same Deno-native S3 client as before
+import { S3Bucket } from 'https://deno.land/x/s3@0.5.0/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
+
+// ** NEW: Simplified R2 Bucket Configuration **
+const bucket = new S3Bucket({
+  accessKeyID: Deno.env.get('CLOUDFLARE_ACCESS_KEY_ID')!,
+  secretKey: Deno.env.get('CLOUDFLARE_SECRET_ACCESS_KEY')!,
+  bucket: 'wellness-images', // Your R2 bucket name
+  region: 'auto',
+  endpointURL: `https://${Deno.env.get('CLOUDFLARE_ACCOUNT_ID')}.r2.cloudflarestorage.com`,
+});
 
 Deno.serve(async (req) => {
   // Handle CORS preflight request
@@ -14,106 +23,50 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify authentication
+    // 1. VERIFY USER IS AUTHENTICATED
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'No authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
+    if (!authHeader) throw new Error('No authorization header');
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      {
-        global: {
-          headers: { Authorization: authHeader }
-        }
-      }
-    );
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Parse the form data
-    const formData = await req.formData();
-    const file = formData.get('file') as File;
-    const uploadType = formData.get('uploadType') as string;
-
-    if (!file) {
-      return new Response(JSON.stringify({ error: 'No file provided' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `${uploadType}/${user.id}/${timestamp}.${fileExtension}`;
-
-    // Convert file to array buffer
-    const fileBuffer = await file.arrayBuffer();
-
-    // Upload to Cloudflare R2 using S3-compatible API
-    const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
-    const accessKeyId = Deno.env.get('CLOUDFLARE_ACCESS_KEY_ID');
-    const secretAccessKey = Deno.env.get('CLOUDFLARE_SECRET_ACCESS_KEY');
-
-    if (!accountId || !accessKeyId || !secretAccessKey) {
-      console.error('Missing Cloudflare credentials');
-      return new Response(JSON.stringify({ error: 'Missing Cloudflare configuration' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Create AWS signature for R2
-    const region = 'auto';
-    const service = 's3';
-    const host = `${accountId}.r2.cloudflarestorage.com`;
-    const url = `https://${host}/wellness-images/${fileName}`;
-
-    const r2Response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': file.type,
-        'Content-Length': fileBuffer.byteLength.toString(),
-      },
-      body: fileBuffer,
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
     });
 
-    if (!r2Response.ok) {
-      const errorText = await r2Response.text();
-      console.error('R2 upload failed:', errorText);
-      throw new Error(`R2 upload failed: ${r2Response.statusText}`);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    // 2. PARSE FORM DATA
+    const formData = await req.formData();
+    const file = formData.get('file');
+    const uploadType = formData.get('uploadType') || 'community'; // Default to community
+    
+    if (!file || typeof file === 'string') {
+      throw new Error('No file provided or invalid file format');
     }
 
-    // Generate the public URL
-    const imageUrl = `https://pub-${accountId}.r2.dev/wellness-images/${fileName}`;
+    // 3. SECURELY UPLOAD THE FILE TO R2
+    const fileBuffer = await file.arrayBuffer();
+    const timestamp = Date.now();
+    const fileExtension = file.name.split('.').pop();
+    const key = `${uploadType}/${user.id}/${timestamp}.${fileExtension}`;
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      imageUrl,
-      fileName 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    await bucket.putObject(key, fileBuffer, {
+        contentType: file.type,
+    });
+
+    // 4. GENERATE AND RETURN THE PUBLICLY ACCESSIBLE URL
+    // This assumes your bucket is connected to a public domain for serving images
+    const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
+    const imageUrl = `https://pub-${accountId}.r2.dev/wellness-images/${key}`; // Your public R2.dev URL
+
+    return new Response(JSON.stringify({ success: true, imageUrl }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('Upload error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Upload failed',
-      details: error.message 
-    }), {
+    return new Response(JSON.stringify({ error: 'Upload failed', details: error.message }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
