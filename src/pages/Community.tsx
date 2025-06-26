@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -37,29 +36,12 @@ const Community = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Get or create user profile information
-        let { data: profile } = await supabase
+        // Get user profile information
+        const { data: profile } = await supabase
           .from('user_profiles')
           .select('name, profile_photo_url')
           .eq('user_id', user.id)
           .maybeSingle();
-
-        // If no profile exists, create a basic one
-        if (!profile) {
-          const defaultName = user.email?.split('@')[0] || 'User';
-          const { data: newProfile, error: insertError } = await supabase
-            .from('user_profiles')
-            .insert({
-              user_id: user.id,
-              name: defaultName
-            })
-            .select('name, profile_photo_url')
-            .single();
-
-          if (!insertError) {
-            profile = newProfile;
-          }
-        }
 
         const displayName = profile?.name || user.email?.split('@')[0] || 'User';
         const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;

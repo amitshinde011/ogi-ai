@@ -97,44 +97,11 @@ export const useCommunityPosts = () => {
     }
   };
 
-  const ensureUserProfile = async (user: any) => {
-    try {
-      // Check if user profile exists
-      const { data: existingProfile } = await supabase
-        .from('user_profiles')
-        .select('id, name, profile_photo_url')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!existingProfile) {
-        // Create a basic profile if it doesn't exist
-        const defaultName = user.email?.split('@')[0] || 'User';
-        const { error: insertError } = await supabase
-          .from('user_profiles')
-          .insert({
-            user_id: user.id,
-            name: defaultName
-          });
-
-        if (insertError) {
-          console.error('Error creating user profile:', insertError);
-        } else {
-          console.log('Created basic user profile for:', user.id);
-        }
-      }
-    } catch (error) {
-      console.error('Error ensuring user profile:', error);
-    }
-  };
-
   const createPost = async (currentUser: any, newPost: { title: string; content: string }, imageFile?: File) => {
     if (!currentUser) {
       toast({ title: "Authentication required", variant: "destructive" });
       return false;
     }
-
-    // Ensure user profile exists before creating post
-    await ensureUserProfile(currentUser);
 
     // Validate and sanitize input
     const validation = validateCommunityPost(newPost);
