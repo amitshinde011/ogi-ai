@@ -41,19 +41,39 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   } = useCouponCode();
 
   const getDisplayPrice = () => {
-    return isIndiaUser && program.price_inr ? program.price_inr : program.price;
+    if (isIndiaUser && program.price_inr) {
+      console.log('Using INR price:', program.price_inr);
+      return program.price_inr;
+    }
+    console.log('Using USD price:', program.price);
+    return program.price;
   };
 
   const getCurrency = () => {
     return isIndiaUser ? 'INR' : 'USD';
   };
 
+  const getCurrencySymbol = () => {
+    return isIndiaUser ? '₹' : '$';
+  };
+
   const isPopular = program.duration_days === 49;
   const isFree = getDiscountPercentage() === 100;
 
   const handleSubscribe = () => {
+    console.log('Subscribing with:', {
+      programId: program.id,
+      isIndiaUser,
+      currency: getCurrency(),
+      price: getDisplayPrice(),
+      discountPercentage: getDiscountPercentage()
+    });
     onSubscribe(program.id, getDiscountPercentage());
   };
+
+  const displayPrice = getDisplayPrice();
+  const currency = getCurrency();
+  const currencySymbol = getCurrencySymbol();
 
   return (
     <Card className={`relative transition-all hover:shadow-lg bg-white text-black ${
@@ -67,7 +87,13 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       <CardHeader>
         <CardTitle className="text-xl text-center text-black">{program.name}</CardTitle>
         <div className="text-center">
+          <div className="text-2xl font-bold text-primary">
+            {currencySymbol}{displayPrice}
+          </div>
           <span className="text-black">/{program.duration_days} days</span>
+          <div className="text-xs text-gray-500 mt-1">
+            Payment via {isIndiaUser ? 'Razorpay' : 'Braintree'}
+          </div>
         </div>
         <p className="text-sm text-black text-center">{program.description}</p>
       </CardHeader>
@@ -82,8 +108,8 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
 
         {/* Pricing Breakdown */}
         <PricingBreakdown
-          originalPrice={getDisplayPrice()}
-          currency={getCurrency()}
+          originalPrice={displayPrice}
+          currency={currency}
           discountPercentage={pricingConfig.discountPercentage}
           taxPercentage={pricingConfig.taxPercentage}
           isSpecialOccasion={pricingConfig.isSpecialOccasion}
@@ -118,7 +144,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           onClick={handleSubscribe}
           variant={isPopular ? "default" : "secondary"}
         >
-          {isFree ? 'Get Free Access' : 'Subscribe & Pay'}
+          {isFree ? 'Get Free Access' : `Subscribe & Pay ${currencySymbol}${displayPrice}`}
         </Button>
       </CardContent>
     </Card>

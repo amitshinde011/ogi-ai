@@ -28,7 +28,16 @@ export const useSubscriptionActions = (programs: Program[]) => {
   const pricingConfig = usePricingConfig();
 
   const getDisplayPrice = (program: Program) => {
-    return isIndiaUser && program.price_inr ? program.price_inr : program.price;
+    if (isIndiaUser && program.price_inr) {
+      console.log('Using INR price for program:', program.name, program.price_inr);
+      return program.price_inr;
+    }
+    console.log('Using USD price for program:', program.name, program.price);
+    return program.price;
+  };
+
+  const getCurrency = () => {
+    return isIndiaUser ? 'INR' : 'USD';
   };
 
   const createFreeSubscription = async (program: Program) => {
@@ -97,6 +106,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
       }
 
       console.log('Current user:', user.id);
+      console.log('Location data:', { isIndiaUser, userLocation });
 
       const program = programs.find(p => p.id === programId);
       if (!program) {
@@ -136,12 +146,25 @@ export const useSubscriptionActions = (programs: Program[]) => {
       }
 
       const originalPrice = getDisplayPrice(program);
+      const currency = getCurrency();
+      
+      console.log('Pricing calculation inputs:', {
+        originalPrice,
+        currency,
+        isIndiaUser,
+        discountPercentage: pricingConfig.discountPercentage,
+        taxPercentage: pricingConfig.taxPercentage,
+        couponDiscountPercentage
+      });
+
       const pricing = calculatePricing(
         originalPrice,
         pricingConfig.discountPercentage,
         pricingConfig.taxPercentage,
         couponDiscountPercentage
       );
+      
+      console.log('Calculated pricing:', pricing);
       
       // Navigate to payment page with program data, pricing info, and location info
       navigate('/payment', { 
@@ -150,7 +173,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
             ...program,
             displayPrice: originalPrice,
             finalPrice: pricing.finalPrice,
-            currency: isIndiaUser ? 'INR' : 'USD'
+            currency: currency
           },
           pricing: {
             ...pricing,
