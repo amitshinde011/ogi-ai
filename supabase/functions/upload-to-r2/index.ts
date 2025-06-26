@@ -61,18 +61,33 @@ Deno.serve(async (req) => {
     // Convert file to array buffer
     const fileBuffer = await file.arrayBuffer();
 
-    // Upload to Cloudflare R2
-    const r2Response = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${Deno.env.get('CLOUDFLARE_ACCOUNT_ID')}/r2/buckets/wellness-images/objects/${fileName}`,
-      {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${Deno.env.get('CLOUDFLARE_API_TOKEN')}`,
-          'Content-Type': file.type,
-        },
-        body: fileBuffer,
-      }
-    );
+    // Upload to Cloudflare R2 using S3-compatible API
+    const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
+    const accessKeyId = Deno.env.get('CLOUDFLARE_ACCESS_KEY_ID');
+    const secretAccessKey = Deno.env.get('CLOUDFLARE_SECRET_ACCESS_KEY');
+
+    if (!accountId || !accessKeyId || !secretAccessKey) {
+      console.error('Missing Cloudflare credentials');
+      return new Response(JSON.stringify({ error: 'Missing Cloudflare configuration' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Create AWS signature for R2
+    const region = 'auto';
+    const service = 's3';
+    const host = `${accountId}.r2.cloudflarestorage.com`;
+    const url = `https://${host}/wellness-images/${fileName}`;
+
+    const r2Response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type,
+        'Content-Length': fileBuffer.byteLength.toString(),
+      },
+      body: fileBuffer,
+    });
 
     if (!r2Response.ok) {
       const errorText = await r2Response.text();
@@ -81,7 +96,7 @@ Deno.serve(async (req) => {
     }
 
     // Generate the public URL
-    const imageUrl = `https://pub-${Deno.env.get('CLOUDFLARE_ACCOUNT_ID')}.r2.dev/wellness-images/${fileName}`;
+    const imageUrl = `https://pub-${accountId}.r2.dev/wellness-images/${fileName}`;
 
     return new Response(JSON.stringify({ 
       success: true, 
