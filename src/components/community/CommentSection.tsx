@@ -10,9 +10,10 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface CommentSectionProps {
   postId: number;
+  currentUserId?: string;
 }
 
-export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
+export const CommentSection: React.FC<CommentSectionProps> = ({ postId, currentUserId }) => {
   const { comments, loading, addComment } = useComments(postId);
   const { userProfile, user } = useAuth();
   const [newComment, setNewComment] = useState('');
@@ -77,7 +78,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
       <div className="flex items-center space-x-2">
         <Avatar className="w-6 h-6">
           <AvatarImage 
-            src={userProfile?.profile_photo_url || (user ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}` : undefined)}
+            src={userProfile?.profile_photo_url || (user ? getAvatarUrl(user.id) : undefined)}
             alt="You"
           />
           <AvatarFallback>
