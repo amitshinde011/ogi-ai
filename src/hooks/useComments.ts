@@ -66,23 +66,58 @@ export const useComments = (postId: string) => {
       setLoading(true);
       console.log('💬 Fetching comments for post:', postId);
 
+      // Since comments.user_id now references auth.users.id directly,
+      // we need to join with user_profiles through user_profiles.user_id = comments.user_id
       const { data: comments, error } = await supabase
         .from('comments')
         .select(`
           *,
-          user_profiles!comments_user_id_fkey (
+          user_profiles!inner(
             name,
             profile_photo_url
           )
         `)
         .eq('post_id', postId)
+        .eq('user_profiles.user_id', supabase.rpc('auth.uid'))
         .order('created_at', { ascending: true });
 
-      console.log('💬 Comments query result:', { comments, error });
+      console.log('💬 Comments with inner join result:', { comments, error });
 
-      if (error) throw error;
+      // If inner join fails, try a different approach with manual joining
+      if (error || !comments) {
+        console.log('💬 Trying alternative query approach...');
+        
+        const { data: rawComments, error: rawError } = await supabase
+          .from('comments')
+          .select('*')
+          .eq('post_id', postId)
+          .order('created_at', { ascending: true });
 
-      setComments(comments || []);
+        console.log('💬 Raw comments result:', { rawComments, rawError });
+
+        if (rawError) throw rawError;
+
+        // Manually fetch user profiles for each comment
+        const commentsWithProfiles = await Promise.all(
+          (rawComments || []).map(async (comment) => {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('name, profile_photo_url')
+              .eq('user_id', comment.user_id)
+              .maybeSingle();
+
+            return {
+              ...comment,
+              user_profiles: profile
+            };
+          })
+        );
+
+        console.log('💬 Comments with manually fetched profiles:', commentsWithProfiles);
+        setComments(commentsWithProfiles);
+      } else {
+        setComments(comments);
+      }
     } catch (error) {
       console.error('❌ Error fetching comments:', error);
       toast({ title: "Failed to load comments", variant: "destructive" });
@@ -119,13 +154,7 @@ export const useComments = (postId: string) => {
           user_id: currentUser.auth_user_id, // Use auth.uid() directly
           comment_text: commentText.trim()
         })
-        .select(`
-          *,
-          user_profiles!comments_user_id_fkey (
-            name,
-            profile_photo_url
-          )
-        `)
+        .select()
         .single();
 
       console.log('💬 Comment creation result:', { data, error });
@@ -135,8 +164,17 @@ export const useComments = (postId: string) => {
         throw error;
       }
 
+      // Manually add user profile data to the new comment
+      const commentWithProfile = {
+        ...data,
+        user_profiles: {
+          name: currentUser.name,
+          profile_photo_url: currentUser.profile_photo_url
+        }
+      };
+
       // Add the new comment to the list
-      setComments(prevComments => [...prevComments, data]);
+      setComments(prevComments => [...prevComments, commentWithProfile]);
       
       console.log('✅ Comment added successfully');
       toast({ title: "Comment added successfully!" });
