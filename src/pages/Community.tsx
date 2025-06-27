@@ -15,21 +15,20 @@ const Community = () => {
     currentUser, 
     createPost, 
     toggleLike, 
-    fetchHomeFeed 
+    fetchDiscoverFeed 
   } = useSocialPosts();
   
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchHomeFeed();
-    }
-  }, [currentUser]);
+    // Fetch all posts for the community page
+    fetchDiscoverFeed();
+  }, []);
 
   const handleCreatePost = async (imageUrl: string, caption: string) => {
     const success = await createPost(imageUrl, caption);
     if (success) {
-      fetchHomeFeed(); // Refresh the feed
+      fetchDiscoverFeed(); // Refresh all posts
     }
     return success;
   };
@@ -71,9 +70,9 @@ const Community = () => {
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">Your feed is empty</p>
+            <p className="text-gray-500 mb-4">No posts yet</p>
             <p className="text-sm text-gray-400">
-              Start following people to see their posts here
+              Be the first to share something with the community!
             </p>
           </div>
         ) : (
