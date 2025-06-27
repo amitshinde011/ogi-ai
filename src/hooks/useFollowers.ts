@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { SocialPost } from './useSocialPosts';
 
 interface ProfileUser {
   id: string;
@@ -10,9 +9,24 @@ interface ProfileUser {
   profile_photo_url: string | null;
 }
 
+interface UserPost {
+  id: number;
+  author_id: string;
+  image_url: string;
+  caption: string | null;
+  category: string | null;
+  like_count: number;
+  comment_count: number;
+  created_at: string;
+  author?: {
+    name: string | null;
+    profile_photo_url: string | null;
+  };
+}
+
 export const useFollowers = () => {
   const [profileUser, setProfileUser] = useState<ProfileUser | null>(null);
-  const [userPosts, setUserPosts] = useState<SocialPost[]>([]);
+  const [userPosts, setUserPosts] = useState<UserPost[]>([]);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -56,21 +70,30 @@ export const useFollowers = () => {
       if (profileError) throw profileError;
       setProfileUser(profile);
 
-      // Fetch user posts
+      // Fetch user posts using the new posts table
       const { data: posts, error: postsError } = await supabase
         .from('posts')
-        .select(`
-          *,
-          user_profiles!posts_user_id_fkey (
-            name,
-            profile_photo_url
-          )
-        `)
-        .eq('user_id', userId)
+        .select('*')
+        .eq('author_id', userId)
         .order('created_at', { ascending: false });
 
       if (postsError) throw postsError;
-      setUserPosts(posts || []);
+
+      // Get author profiles for posts
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('user_id, name, profile_photo_url')
+        .eq('user_id', userId);
+
+      const postsWithAuthors = posts?.map(post => ({
+        ...post,
+        author: profiles?.find(profile => profile.user_id === post.author_id) || {
+          name: 'Anonymous User',
+          profile_photo_url: null
+        }
+      })) || [];
+
+      setUserPosts(postsWithAuthors);
 
       // Fetch follower count
       const { count: followers } = await supabase
