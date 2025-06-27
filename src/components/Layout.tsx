@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Camera, Users, Search, MessageCircle, Bell, User } from 'lucide-react';
+import { Home, Camera, Users, Search, MessageCircle, Bell, User, ChefHat } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -16,7 +16,7 @@ const Layout = ({ children }: LayoutProps) => {
   const navigationItems = [
     { icon: Home, path: '/home', label: 'Home' },
     { icon: Search, path: '/discover', label: 'Discover' },
-    { icon: Camera, path: '/upload', label: 'Upload' },
+    { icon: ChefHat, path: '/recipes', label: 'Recipes' },
     { icon: Users, path: '/community', label: 'Community' },
     { icon: MessageCircle, path: '/messages', label: 'Messages' },
   ];
