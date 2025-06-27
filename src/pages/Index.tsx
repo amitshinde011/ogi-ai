@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
+import { Loader2 } from 'lucide-react';
 
 const Index = () => {
   const location = useLocation();
@@ -102,7 +103,7 @@ const Index = () => {
           />
         </div>
         <div className="mt-6">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage mx-auto"></div>
+          <Loader2 size={32} strokeWidth={1.5} className="text-sage mx-auto animate-spin" />
         </div>
       </div>
     </div>

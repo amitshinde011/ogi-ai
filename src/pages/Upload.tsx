@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Camera, Upload as UploadIcon, Check } from 'lucide-react';
+import { Camera, Upload as UploadIcon, Check, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -136,7 +136,7 @@ const Upload = () => {
                       </div>
                     </div>
                     {selectedMeal === meal.id && (
-                      <Check className="text-sage w-5 h-5" />
+                      <Check size={20} strokeWidth={1.5} className="text-sage" />
                     )}
                   </div>
                 </div>
@@ -151,7 +151,7 @@ const Upload = () => {
             <h3 className="font-semibold text-stone mb-4">Upload Photo</h3>
             {!imagePreview ? (
               <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-sage rounded-xl cursor-pointer hover:bg-sage/5 transition-colors">
-                <Camera className="text-sage mb-2 w-8 h-8" />
+                <Camera size={32} strokeWidth={1.5} className="text-sage mb-2" />
                 <span className="text-sage font-medium">Tap to take photo</span>
                 <span className="text-sm text-stone/60 mt-1">or select from gallery</span>
                 <input
@@ -206,12 +206,12 @@ const Upload = () => {
         >
           {uploading ? (
             <div className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              <Loader2 size={16} strokeWidth={1.5} className="animate-spin mr-2" />
               Uploading...
             </div>
           ) : (
             <div className="flex items-center">
-              <UploadIcon className="w-5 h-5 mr-2" />
+              <UploadIcon size={20} strokeWidth={1.5} className="mr-2" />
               Share with Community
             </div>
           )}

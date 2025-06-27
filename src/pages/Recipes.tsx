@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
@@ -44,7 +44,7 @@ const Recipes = () => {
       <Layout>
         <Header title="Recipes" />
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <Loader2 size={32} strokeWidth={1.5} className="text-indigo-600 animate-spin" />
         </div>
       </Layout>
     );
@@ -74,7 +74,7 @@ const Recipes = () => {
         rightElement={
           <Link to="/saved-recipes">
             <Button variant="ghost" size="sm" className="p-2">
-              <Heart size={20} className={savedRecipeIds.length > 0 ? 'text-red-500 fill-current' : 'text-gray-400'} />
+              <Heart size={20} strokeWidth={1.5} className={savedRecipeIds.length > 0 ? 'text-red-500 fill-current' : 'text-gray-400'} />
               {savedRecipeIds.length > 0 && (
                 <span className="ml-1 text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] h-[18px] flex items-center justify-center">
                   {savedRecipeIds.length}

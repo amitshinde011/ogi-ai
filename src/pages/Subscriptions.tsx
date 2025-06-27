@@ -7,6 +7,7 @@ import { SubscriptionHeader } from '@/components/subscription/SubscriptionHeader
 import { SubscriptionGrid } from '@/components/subscription/SubscriptionGrid';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
 import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
+import { Loader2 } from 'lucide-react';
 
 const Subscriptions = () => {
   const location = useLocation();
@@ -28,7 +29,7 @@ const Subscriptions = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <Loader2 size={64} strokeWidth={1.5} className="text-blue-500 animate-spin mx-auto" />
           <p className="text-gray-600 font-medium">Loading your wellness programs...</p>
         </div>
       </div>
