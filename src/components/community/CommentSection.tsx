@@ -6,14 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useComments } from '@/hooks/useComments';
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CommentSectionProps {
   postId: number;
-  currentUserId?: string;
 }
 
-export const CommentSection: React.FC<CommentSectionProps> = ({ postId, currentUserId }) => {
+export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
   const { comments, loading, addComment } = useComments(postId);
+  const { userProfile, user } = useAuth();
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -76,10 +77,12 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, currentU
       <div className="flex items-center space-x-2">
         <Avatar className="w-6 h-6">
           <AvatarImage 
-            src={currentUserId ? getAvatarUrl(currentUserId) : undefined}
+            src={userProfile?.profile_photo_url || (user ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}` : undefined)}
             alt="You"
           />
-          <AvatarFallback>Y</AvatarFallback>
+          <AvatarFallback>
+            {userProfile?.name?.charAt(0).toUpperCase() || 'Y'}
+          </AvatarFallback>
         </Avatar>
         <div className="flex-1 flex items-center space-x-2">
           <Input

@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button';
 import { PostCard } from '@/components/community/PostCard';
 import { CreatePostModal } from '@/components/community/CreatePostModal';
 import { useCommunityFeed } from '@/hooks/useCommunityFeed';
+import { useAuth } from '@/hooks/useAuth';
 
 const Community = () => {
   const { 
     posts, 
     loading, 
-    currentUser, 
     createPost, 
     toggleLike 
   } = useCommunityFeed();
   
+  const { user, isAuthenticated } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleCreatePost = async (imageUrl: string, caption: string, category?: string) => {
@@ -27,7 +28,7 @@ const Community = () => {
     return success;
   };
 
-  if (!currentUser) {
+  if (!isAuthenticated || !user) {
     return (
       <Layout>
         <Header title="Community" />
@@ -71,7 +72,7 @@ const Community = () => {
                 key={post.id}
                 post={post}
                 onLike={toggleLike}
-                currentUserId={currentUser.id}
+                currentUserId={user.id}
               />
             ))}
           </div>

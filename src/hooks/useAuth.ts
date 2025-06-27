@@ -4,9 +4,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { User, Session } from '@supabase/supabase-js';
 
+interface UserProfile {
+  name: string;
+  profile_photo_url: string | null;
+}
+
 interface AuthState {
   user: User | null;
   session: Session | null;
+  userProfile: UserProfile | null;
   loading: boolean;
   isAuthenticated: boolean;
 }
@@ -15,10 +21,36 @@ export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     session: null,
+    userProfile: null,
     loading: true,
     isAuthenticated: false
   });
   const { toast } = useToast();
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      console.log('🔍 Fetching user profile for caching:', userId);
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('name, profile_photo_url')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      const userProfile: UserProfile = {
+        name: profile?.name || 'User',
+        profile_photo_url: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
+      };
+
+      console.log('👤 Cached user profile:', userProfile);
+      return userProfile;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return {
+        name: 'User',
+        profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
+      };
+    }
+  };
 
   useEffect(() => {
     // Get initial session
@@ -33,23 +65,37 @@ export const useAuth = () => {
           setAuthState({
             user: null,
             session: null,
+            userProfile: null,
             loading: false,
             isAuthenticated: false
           });
           return;
         }
 
-        setAuthState({
-          user: session?.user ?? null,
-          session,
-          loading: false,
-          isAuthenticated: !!session?.user
-        });
+        if (session?.user) {
+          const userProfile = await fetchUserProfile(session.user.id);
+          setAuthState({
+            user: session.user,
+            session,
+            userProfile,
+            loading: false,
+            isAuthenticated: true
+          });
+        } else {
+          setAuthState({
+            user: null,
+            session: null,
+            userProfile: null,
+            loading: false,
+            isAuthenticated: false
+          });
+        }
       } catch (error) {
         console.error('Auth initialization error:', error);
         setAuthState({
           user: null,
           session: null,
+          userProfile: null,
           loading: false,
           isAuthenticated: false
         });
@@ -67,18 +113,27 @@ export const useAuth = () => {
       // Handle different auth events
       switch (event) {
         case 'SIGNED_IN':
-          setAuthState({
-            user: session?.user ?? null,
-            session,
-            loading: false,
-            isAuthenticated: !!session?.user
-          });
+          if (session?.user) {
+            // Cache user profile on sign in
+            setTimeout(async () => {
+              const userProfile = await fetchUserProfile(session.user.id);
+              setAuthState(prev => ({
+                ...prev,
+                user: session.user,
+                session,
+                userProfile,
+                loading: false,
+                isAuthenticated: true
+              }));
+            }, 0);
+          }
           break;
           
         case 'SIGNED_OUT':
           setAuthState({
             user: null,
             session: null,
+            userProfile: null,
             loading: false,
             isAuthenticated: false
           });
@@ -105,12 +160,26 @@ export const useAuth = () => {
           break;
           
         default:
-          setAuthState({
-            user: session?.user ?? null,
-            session,
-            loading: false,
-            isAuthenticated: !!session?.user
-          });
+          if (session?.user) {
+            setTimeout(async () => {
+              const userProfile = await fetchUserProfile(session.user.id);
+              setAuthState({
+                user: session.user,
+                session,
+                userProfile,
+                loading: false,
+                isAuthenticated: true
+              });
+            }, 0);
+          } else {
+            setAuthState({
+              user: session?.user ?? null,
+              session,
+              userProfile: null,
+              loading: false,
+              isAuthenticated: !!session?.user
+            });
+          }
       }
     });
 
@@ -137,6 +206,7 @@ export const useAuth = () => {
       setAuthState({
         user: null,
         session: null,
+        userProfile: null,
         loading: false,
         isAuthenticated: false
       });

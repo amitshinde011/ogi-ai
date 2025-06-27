@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -12,10 +13,11 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import ProfileMenu from '@/components/ProfileMenu';
+import { useAuth } from '@/hooks/useAuth';
 
 const Home = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
+  const { user, userProfile, loading: authLoading, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [todayProgress, setTodayProgress] = useState({
     breakfast: false,
@@ -35,42 +37,29 @@ const Home = () => {
   };
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuthAndLoadData = async () => {
+      if (authLoading) return;
+      
+      if (!isAuthenticated || !user) {
+        console.log('No authenticated user found, redirecting to login');
+        navigate('/login');
+        return;
+      }
+
+      console.log('Authenticated user found:', user.id);
+      
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error || !user) {
-          console.log('No authenticated user found, redirecting to login');
-          navigate('/login');
-          return;
-        }
-
-        console.log('Authenticated user found:', user.id);
-        
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('name, profile_photo_url')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        setUser({
-          ...user,
-          name: profile?.name || user.email?.split('@')[0] || 'User',
-          avatar: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`
-        });
-
         await fetchTodayProgress(user.id);
         await fetchWeeklyStreak(user.id);
       } catch (error) {
-        console.error('Error checking authentication:', error);
-        navigate('/login');
+        console.error('Error loading user data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
-  }, [navigate]);
+    checkAuthAndLoadData();
+  }, [navigate, user, isAuthenticated, authLoading]);
 
   const fetchTodayProgress = async (userId: string) => {
     try {
@@ -138,7 +127,7 @@ const Home = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
@@ -146,7 +135,7 @@ const Home = () => {
     );
   }
 
-  if (!user) return null;
+  if (!user || !userProfile) return null;
 
   const mealsLogged = [todayProgress.breakfast, todayProgress.lunch, todayProgress.dinner].filter(Boolean).length;
 
@@ -157,7 +146,7 @@ const Home = () => {
         rightElement={
           <ProfileMenu>
             <button className="w-8 h-8 rounded-full overflow-hidden border-2 border-sage/30 hover:border-sage transition-colors cursor-pointer">
-              <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+              <img src={userProfile.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} alt="Profile" className="w-full h-full object-cover" />
             </button>
           </ProfileMenu>
         }

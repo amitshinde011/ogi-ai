@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Camera, Upload as UploadIcon, Check, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,15 +10,16 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useR2Upload } from '@/hooks/useR2Upload';
+import { useAuth } from '@/hooks/useAuth';
 
 const Upload = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [selectedMeal, setSelectedMeal] = useState(location.state?.mealType || '');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [description, setDescription] = useState('');
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const { uploadToR2, uploading } = useR2Upload();
 
   const mealTypes = [
@@ -27,37 +28,6 @@ const Upload = () => {
     { id: 'dinner', name: 'Dinner', icon: '🌙', time: '3:00 PM - 10:00 PM' },
     { id: 'snack', name: 'Snack', icon: '🍎', time: 'Anytime' }
   ];
-
-  useEffect(() => {
-    fetchCurrentUser();
-  }, []);
-
-  const fetchCurrentUser = async () => {
-    try {
-      console.log('🔍 Fetching current user for upload...');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        console.log('👤 Got authenticated user:', user.id);
-        
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        console.log('👤 User profile for upload:', profile);
-
-        setCurrentUser({
-          auth_id: user.id, // This is what we'll use for posts (auth.uid())
-          profile_id: profile?.id, // This is for user_profiles references
-          name: profile?.name || user.email?.split('@')[0] || 'User',
-          profile_photo_url: profile?.profile_photo_url
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching current user:', error);
-    }
-  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -72,9 +42,9 @@ const Upload = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedMeal || !imageFile || !currentUser || !currentUser.auth_id) {
-      console.log('⚠️ Missing data for upload:', { selectedMeal, imageFile: !!imageFile, currentUser });
-      if (!currentUser?.auth_id) {
+    if (!selectedMeal || !imageFile || !isAuthenticated || !user) {
+      console.log('⚠️ Missing data for upload:', { selectedMeal, imageFile: !!imageFile, user: !!user });
+      if (!isAuthenticated || !user) {
         toast({ title: "Authentication required. Please try logging in again.", variant: "destructive" });
       }
       return;
@@ -91,13 +61,13 @@ const Upload = () => {
 
       const postCaption = description || `Just had my ${selectedMeal}! 🍽️`;
 
-      console.log('📝 Creating post with auth user_id:', currentUser.auth_id);
+      console.log('📝 Creating post with auth user_id:', user.id);
 
       // Create the post in posts table using the new schema
       const { error: postError } = await supabase
         .from('posts')
         .insert({
-          author_id: currentUser.auth_id, // Use author_id instead of user_id
+          author_id: user.id, // Use user.id from cached auth
           image_url: uploadResult.imageUrl,
           caption: postCaption,
           category: selectedMeal // Use category instead of meal_type
@@ -114,7 +84,7 @@ const Upload = () => {
       await supabase
         .from('meal_tracking')
         .insert({
-          user_id: currentUser.auth_id, // Use auth.users.id consistently
+          user_id: user.id, // Use cached user.id
           meal_type: selectedMeal,
           food_item: description || 'Meal logged',
           date: new Date().toISOString().split('T')[0]
@@ -224,7 +194,7 @@ const Upload = () => {
         {/* Submit Button */}
         <Button
           onClick={handleSubmit}
-          disabled={!selectedMeal || !imageFile || uploading || !currentUser?.auth_id}
+          disabled={!selectedMeal || !imageFile || uploading || !isAuthenticated || !user}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white py-6 font-medium shadow-lg"
         >
           {uploading ? (
