@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trophy, Heart, Target, Star, Zap, Users } from 'lucide-react';
+import { Trophy, Heart, Target, Star, Activity, Users } from 'lucide-react';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
 const JourneyStart = () => {
@@ -104,29 +104,29 @@ const JourneyStart = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div className="space-y-3">
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <Activity className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Stay consistent with daily activities</span>
                         </div>
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <Activity className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Track your progress honestly</span>
                         </div>
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <Activity className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Engage with the community</span>
                         </div>
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <Activity className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Follow guided routines</span>
                         </div>
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <Activity className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Stay committed to your program</span>
                         </div>
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <Activity className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Celebrate small victories</span>
                         </div>
                       </div>
