@@ -48,9 +48,8 @@ const Upload = () => {
         console.log('👤 User profile for upload:', profile);
 
         setCurrentUser({
-          id: profile?.id, // user_profiles.id for RLS
-          user_id: user.id, // auth.users.id
-          profile_id: profile?.id, // Add this for clarity
+          auth_id: user.id, // This is what we'll use for posts (auth.uid())
+          profile_id: profile?.id, // This is for user_profiles references
           name: profile?.name || user.email?.split('@')[0] || 'User',
           profile_photo_url: profile?.profile_photo_url
         });
@@ -73,10 +72,10 @@ const Upload = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedMeal || !imageFile || !currentUser || !currentUser.profile_id) {
+    if (!selectedMeal || !imageFile || !currentUser || !currentUser.auth_id) {
       console.log('⚠️ Missing data for upload:', { selectedMeal, imageFile: !!imageFile, currentUser });
-      if (!currentUser?.profile_id) {
-        toast({ title: "Profile not found. Please try logging in again.", variant: "destructive" });
+      if (!currentUser?.auth_id) {
+        toast({ title: "Authentication required. Please try logging in again.", variant: "destructive" });
       }
       return;
     }
@@ -93,13 +92,13 @@ const Upload = () => {
       const mealName = selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1);
       const postCaption = description || `Just had my ${selectedMeal}! 🍽️`;
 
-      console.log('📝 Creating post with profile_id:', currentUser.profile_id);
+      console.log('📝 Creating post with auth user_id:', currentUser.auth_id);
 
-      // Create the post in posts table
+      // Create the post in posts table using auth user ID for RLS
       const { error: postError } = await supabase
         .from('posts')
         .insert({
-          user_id: currentUser.profile_id, // Use user_profiles.id for RLS
+          user_id: currentUser.auth_id, // Use auth.users.id for RLS compatibility
           image_url: uploadResult.imageUrl,
           caption: postCaption,
           meal_type: selectedMeal
@@ -116,7 +115,7 @@ const Upload = () => {
       await supabase
         .from('meal_tracking')
         .insert({
-          user_id: currentUser.user_id, // Use auth.users.id for meal tracking
+          user_id: currentUser.auth_id, // Use auth.users.id consistently
           meal_type: selectedMeal,
           food_item: description || 'Meal logged',
           date: new Date().toISOString().split('T')[0]
@@ -226,7 +225,7 @@ const Upload = () => {
         {/* Submit Button */}
         <Button
           onClick={handleSubmit}
-          disabled={!selectedMeal || !imageFile || uploading || !currentUser?.profile_id}
+          disabled={!selectedMeal || !imageFile || uploading || !currentUser?.auth_id}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white py-6 font-medium shadow-lg"
         >
           {uploading ? (

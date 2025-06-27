@@ -51,9 +51,8 @@ export const useSocialPosts = () => {
         console.log('👤 User profile query result:', { profile, profileError });
 
         const userData = {
-          id: profile?.id, // This is the user_profiles.id
-          user_id: user.id, // This is the auth.users.id
-          profile_id: profile?.id, // Add this for clarity
+          auth_id: user.id, // This is auth.users.id - use for RLS operations
+          profile_id: profile?.id, // This is user_profiles.id - use for profile references
           name: profile?.name || user.email?.split('@')[0] || 'User',
           profile_photo_url: profile?.profile_photo_url
         };
@@ -126,7 +125,7 @@ export const useSocialPosts = () => {
       const { data: userLikes } = await supabase
         .from('likes')
         .select('post_id')
-        .eq('user_id', currentUser.profile_id)
+        .eq('user_id', currentUser.auth_id) // Use auth_id for likes
         .in('post_id', postIds);
 
       console.log('❤️ User likes:', userLikes);
@@ -184,12 +183,12 @@ export const useSocialPosts = () => {
 
       // Check which posts current user has liked
       if (currentUser) {
-        console.log('❤️ Checking likes for current user profile_id:', currentUser.profile_id);
+        console.log('❤️ Checking likes for current user auth_id:', currentUser.auth_id);
         const postIds = posts?.map(p => p.id) || [];
         const { data: userLikes, error: likesError } = await supabase
           .from('likes')
           .select('post_id')
-          .eq('user_id', currentUser.profile_id)
+          .eq('user_id', currentUser.auth_id) // Use auth_id for likes
           .in('post_id', postIds);
 
         console.log('❤️ User likes query result:', { userLikes, likesError });
@@ -217,8 +216,8 @@ export const useSocialPosts = () => {
 
   // Create a new post
   const createPost = async (imageUrl: string, caption: string, mealType?: string) => {
-    if (!currentUser || !currentUser.profile_id) {
-      console.log('⚠️ No current user or profile_id for post creation');
+    if (!currentUser || !currentUser.auth_id) {
+      console.log('⚠️ No current user or auth_id for post creation');
       toast({ title: "Please log in to create posts", variant: "destructive" });
       return false;
     }
@@ -228,13 +227,13 @@ export const useSocialPosts = () => {
         imageUrl, 
         caption, 
         mealType, 
-        profileId: currentUser.profile_id 
+        authId: currentUser.auth_id 
       });
       
       const { data, error } = await supabase
         .from('posts')
         .insert({
-          user_id: currentUser.profile_id, // Use user_profiles.id for RLS
+          user_id: currentUser.auth_id, // Use auth.users.id for RLS
           image_url: imageUrl,
           caption: caption.trim() || null,
           meal_type: mealType || null
@@ -261,14 +260,14 @@ export const useSocialPosts = () => {
 
   // Toggle like on a post
   const toggleLike = async (postId: string) => {
-    if (!currentUser || !currentUser.profile_id) {
+    if (!currentUser || !currentUser.auth_id) {
       console.log('⚠️ No current user for like toggle');
       toast({ title: "Please log in to like posts", variant: "destructive" });
       return;
     }
 
     try {
-      console.log('❤️ Toggling like for post:', postId, 'user profile_id:', currentUser.profile_id);
+      console.log('❤️ Toggling like for post:', postId, 'user auth_id:', currentUser.auth_id);
       
       const post = posts.find(p => p.id === postId);
       if (!post) {
@@ -282,7 +281,7 @@ export const useSocialPosts = () => {
         const { error } = await supabase
           .from('likes')
           .delete()
-          .eq('user_id', currentUser.profile_id)
+          .eq('user_id', currentUser.auth_id) // Use auth_id for likes
           .eq('post_id', postId);
 
         if (error) throw error;
@@ -292,14 +291,16 @@ export const useSocialPosts = () => {
         const { error } = await supabase
           .from('likes')
           .insert({
-            user_id: currentUser.profile_id,
+            user_id: currentUser.auth_id, // Use auth_id for likes
             post_id: postId
           });
 
         if (error) throw error;
 
-        // Create notification for post owner
-        await createNotification(post.user_id, 'like', postId);
+        // Create notification for post owner if we have their profile_id
+        if (currentUser.profile_id) {
+          await createNotification(post.user_id, 'like', postId);
+        }
       }
 
       // Update local state immediately
