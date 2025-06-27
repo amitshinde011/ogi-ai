@@ -20,25 +20,41 @@ export const useComments = (postId: string) => {
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // Get current user
+  // Get current user with profile ID
   const fetchCurrentUser = async () => {
     try {
+      console.log('🔍 Fetching current user for comments...');
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile } = await supabase
+        console.log('👤 Got auth user:', user.id);
+        
+        // Get user profile to get the profile ID
+        const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
-          .select('*')
+          .select('id, name, profile_photo_url')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        setCurrentUser({
-          user_id: user.id,
-          name: profile?.name || user.email?.split('@')[0] || 'User',
-          profile_photo_url: profile?.profile_photo_url
-        });
+        console.log('👤 User profile query result:', { profile, profileError });
+
+        if (profile) {
+          setCurrentUser({
+            auth_user_id: user.id,
+            profile_id: profile.id, // This is what we need for comments
+            name: profile.name || user.email?.split('@')[0] || 'User',
+            profile_photo_url: profile.profile_photo_url
+          });
+          console.log('✅ Current user set with profile ID:', profile.id);
+        } else {
+          console.log('⚠️ No user profile found, user needs to complete profile setup');
+          toast({ 
+            title: "Please complete your profile setup first", 
+            variant: "destructive" 
+          });
+        }
       }
     } catch (error) {
-      console.error('Error fetching current user:', error);
+      console.error('❌ Error fetching current user:', error);
     }
   };
 
@@ -77,8 +93,9 @@ export const useComments = (postId: string) => {
 
   // Add a new comment
   const addComment = async (commentText: string) => {
-    if (!currentUser) {
-      toast({ title: "Please log in to comment", variant: "destructive" });
+    if (!currentUser || !currentUser.profile_id) {
+      console.log('⚠️ No current user or profile ID for comment creation');
+      toast({ title: "Please log in and complete your profile to comment", variant: "destructive" });
       return false;
     }
 
@@ -88,13 +105,18 @@ export const useComments = (postId: string) => {
     }
 
     try {
-      console.log('💬 Adding comment:', { postId, commentText, userId: currentUser.user_id });
+      console.log('💬 Adding comment:', { 
+        postId, 
+        commentText, 
+        profileId: currentUser.profile_id,
+        userName: currentUser.name
+      });
 
       const { data, error } = await supabase
         .from('comments')
         .insert({
           post_id: postId,
-          user_id: currentUser.user_id,
+          user_id: currentUser.profile_id, // Use profile_id, not auth user_id
           comment_text: commentText.trim()
         })
         .select(`
@@ -108,7 +130,10 @@ export const useComments = (postId: string) => {
 
       console.log('💬 Comment creation result:', { data, error });
 
-      if (error) throw error;
+      if (error) {
+        console.error('💬 Comment creation error details:', error);
+        throw error;
+      }
 
       // Add the new comment to the list
       setComments(prevComments => [...prevComments, data]);
