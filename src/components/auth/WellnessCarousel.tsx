@@ -44,7 +44,7 @@ const WellnessCarousel = () => {
   };
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto px-4">
+    <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto px-2 sm:px-4">
       <Carousel
         setApi={setApi}
         opts={{
@@ -82,8 +82,8 @@ const WellnessCarousel = () => {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-2 sm:left-4 bg-white/80 hover:bg-white/90 border-white/20 text-gray-800 hover:text-gray-900 h-8 w-8 sm:h-10 sm:w-10" />
-        <CarouselNext className="right-2 sm:right-4 bg-white/80 hover:bg-white/90 border-white/20 text-gray-800 hover:text-gray-900 h-8 w-8 sm:h-10 sm:w-10" />
+        <CarouselPrevious className="left-1 sm:left-2 md:left-4 bg-white/80 hover:bg-white/90 border-white/20 text-gray-800 hover:text-gray-900 h-8 w-8 sm:h-10 sm:w-10" />
+        <CarouselNext className="right-1 sm:right-2 md:right-4 bg-white/80 hover:bg-white/90 border-white/20 text-gray-800 hover:text-gray-900 h-8 w-8 sm:h-10 sm:w-10" />
       </Carousel>
     </div>
   );
