@@ -21,9 +21,9 @@ const Layout = ({ children }: LayoutProps) => {
       activeIcon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
     },
     { 
-      icon: Search, 
-      path: '/discover', 
-      label: 'Discover'
+      icon: Users, 
+      path: '/community', 
+      label: 'Community'
     },
     { 
       icon: ChefHat, 
@@ -31,14 +31,14 @@ const Layout = ({ children }: LayoutProps) => {
       label: 'Recipes'
     },
     { 
-      icon: Users, 
-      path: '/community', 
-      label: 'Community'
+      icon: Search, 
+      path: '/discover', 
+      label: 'Progress'
     },
     { 
       icon: MessageCircle, 
       path: '/messages', 
-      label: 'Messages'
+      label: 'Settings'
     },
   ];
 
@@ -69,14 +69,15 @@ const Layout = ({ children }: LayoutProps) => {
                   onClick={() => navigate(item.path)}
                   className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
                     active
-                      ? 'text-slate-900'
-                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                      ? 'text-blue-600'
+                      : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
                   <div className="relative">
                     <Icon 
                       size={20} 
                       fill={active ? 'currentColor' : 'none'}
+                      strokeWidth={active ? 2 : 1.5}
                     />
                     {item.path === '/messages' && unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -86,7 +87,9 @@ const Layout = ({ children }: LayoutProps) => {
                       </div>
                     )}
                   </div>
-                  <span className="text-xs mt-1 font-medium">{item.label}</span>
+                  <span className={`text-xs mt-1 font-medium ${active ? 'text-blue-600' : 'text-slate-400'}`}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
@@ -96,20 +99,23 @@ const Layout = ({ children }: LayoutProps) => {
               onClick={() => navigate('/notifications')}
               className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
                 isActive('/notifications')
-                  ? 'text-slate-900'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                  ? 'text-blue-600'
+                  : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               <div className="relative">
                 <Bell 
                   size={20} 
                   fill={isActive('/notifications') ? 'currentColor' : 'none'}
+                  strokeWidth={isActive('/notifications') ? 2 : 1.5}
                 />
                 {unreadCount > 0 && (
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 )}
               </div>
-              <span className="text-xs mt-1 font-medium">Alerts</span>
+              <span className={`text-xs mt-1 font-medium ${isActive('/notifications') ? 'text-blue-600' : 'text-slate-400'}`}>
+                Alerts
+              </span>
             </button>
           </div>
         </div>
