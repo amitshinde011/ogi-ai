@@ -1,15 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Plus, Minus, Droplets, Zap, Sun, Brain } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import MeditationAudioPlayer from './MeditationAudioPlayer';
-import SuryaNamaskarVideoPlayer from './SuryaNamaskarVideoPlayer';
+import { WaterTracker } from './wellness/WaterTracker';
+import { SuryaNamaskarTracker } from './wellness/SuryaNamaskarTracker';
+import { MeditationTracker } from './wellness/MeditationTracker';
 
 const WellnessTracker = () => {
   const [wellnessId, setWellnessId] = useState<string | null>(null);
@@ -57,7 +53,6 @@ const WellnessTracker = () => {
       const today = new Date().toISOString().split('T')[0];
       
       if (wellnessId) {
-        // Update existing record
         const { error } = await supabase
           .from('daily_wellness')
           .update({
@@ -70,7 +65,6 @@ const WellnessTracker = () => {
 
         if (error) throw error;
       } else {
-        // Create new record
         const { data, error } = await supabase
           .from('daily_wellness')
           .insert({
@@ -133,85 +127,23 @@ const WellnessTracker = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Water Intake */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Droplets className="w-5 h-5 text-blue-500" />
-            <div>
-              <Label className="font-medium">Water Intake</Label>
-              <p className="text-sm text-gray-600">{waterLitres} litres</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={() => handleWaterChange(-0.25)}
-              disabled={loading || waterLitres <= 0}
-            >
-              <Minus className="w-4 h-4" />
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={() => handleWaterChange(0.25)}
-              disabled={loading}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Surya Namaskar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Sun className="w-5 h-5 text-orange-500" />
-            <div>
-              <Label className="font-medium flex items-center gap-2">
-                Surya Namaskar
-                <SuryaNamaskarVideoPlayer />
-              </Label>
-              <p className="text-sm text-gray-600">{suryaNamaskarCount} rounds</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={() => handleSuryaNamaskarChange(-1)}
-              disabled={loading || suryaNamaskarCount <= 0}
-            >
-              <Minus className="w-4 h-4" />
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={() => handleSuryaNamaskarChange(1)}
-              disabled={loading}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Meditation */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="font-medium flex items-center gap-2">
-              <Brain className="w-5 h-5 text-purple-500" />
-              Meditation
-            </Label>
-            <Checkbox 
-              checked={meditationCompleted}
-              onCheckedChange={handleMeditationToggle}
-              disabled={loading}
-              className="data-[state=checked]:bg-gray-600 data-[state=checked]:border-gray-600 border-gray-400"
-            />
-          </div>
-          
-          {/* Meditation Audio Player */}
-          <MeditationAudioPlayer />
-        </div>
+        <WaterTracker
+          waterLitres={waterLitres}
+          onWaterChange={handleWaterChange}
+          loading={loading}
+        />
+        
+        <SuryaNamaskarTracker
+          suryaNamaskarCount={suryaNamaskarCount}
+          onSuryaNamaskarChange={handleSuryaNamaskarChange}
+          loading={loading}
+        />
+        
+        <MeditationTracker
+          meditationCompleted={meditationCompleted}
+          onMeditationToggle={handleMeditationToggle}
+          loading={loading}
+        />
       </CardContent>
     </Card>
   );

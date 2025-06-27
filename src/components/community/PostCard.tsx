@@ -1,14 +1,5 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,16 +10,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { CommunityPost } from '@/hooks/useCommunityFeed';
 import { CommentSection } from './CommentSection';
-import { formatDistanceToNow } from 'date-fns';
+import { PostHeader } from './PostHeader';
+import { PostActions } from './PostActions';
+import { PostEditForm } from './PostEditForm';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -39,16 +25,6 @@ interface PostCardProps {
   onDeletePost: (postId: number) => void;
   onUpdatePost: (updatedPost: CommunityPost) => void;
 }
-
-const categories = [
-  'general',
-  'nutrition',
-  'exercise',
-  'meditation',
-  'progress',
-  'recipe',
-  'motivation'
-];
 
 export const PostCard: React.FC<PostCardProps> = ({ 
   post, 
@@ -66,14 +42,6 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isOwner = currentUserId === post.author_id;
-
-  const formatTime = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-  };
-
-  const getAvatarUrl = (authorId: string, profileUrl?: string | null) => {
-    return profileUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authorId}`;
-  };
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -149,65 +117,21 @@ export const PostCard: React.FC<PostCardProps> = ({
   return (
     <>
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
-        {/* Header */}
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Avatar className="w-10 h-10">
-              <AvatarImage 
-                src={getAvatarUrl(post.author_id, post.author?.profile_photo_url)}
-                alt={post.author?.name || 'User'}
-              />
-              <AvatarFallback>
-                {(post.author?.name || 'U').charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-semibold text-sm">
-                {post.author?.name || 'Anonymous User'}
-              </p>
-              <p className="text-xs text-gray-500">{formatTime(post.created_at)}</p>
-            </div>
-          </div>
-          
-          {isOwner && (
-            <Popover open={showPopover} onOpenChange={setShowPopover}>
-              <PopoverTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-2"
-                >
-                  <MoreHorizontal size={16} />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-2">
-                <div className="flex flex-col space-y-1">
-                  <Button
-                    variant="ghost"
-                    onClick={handleEdit}
-                    className="flex items-center justify-start space-x-3 h-10 px-3"
-                  >
-                    <Pencil size={16} />
-                    <span>Edit</span>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setShowDeleteConfirm(true);
-                      setShowPopover(false);
-                    }}
-                    className="flex items-center justify-start space-x-3 h-10 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 size={16} />
-                    <span>Delete</span>
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-        </div>
+        <PostHeader
+          authorId={post.author_id}
+          authorName={post.author?.name}
+          profilePhotoUrl={post.author?.profile_photo_url}
+          createdAt={post.created_at}
+          isOwner={isOwner}
+          onEdit={handleEdit}
+          onDelete={() => {
+            setShowDeleteConfirm(true);
+            setShowPopover(false);
+          }}
+          showPopover={showPopover}
+          setShowPopover={setShowPopover}
+        />
 
-        {/* Image */}
         <div className="aspect-square">
           <img 
             src={post.image_url} 
@@ -216,83 +140,24 @@ export const PostCard: React.FC<PostCardProps> = ({
           />
         </div>
 
-        {/* Actions and Content */}
         <div className="p-4">
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-4 mb-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onLike(post.id)}
-              className={`p-0 h-auto hover:bg-transparent ${
-                post.is_liked ? 'text-red-500' : 'text-gray-700'
-              }`}
-            >
-              <Heart 
-                size={24}
-                strokeWidth={1.5}
-                className={post.is_liked ? 'fill-current' : ''} 
-              />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowComments(!showComments)}
-              className="p-0 h-auto hover:bg-transparent text-gray-700"
-            >
-              <MessageCircle size={24} strokeWidth={1.5} />
-            </Button>
-          </div>
+          <PostActions
+            isLiked={post.is_liked}
+            likeCount={post.like_count}
+            onLike={() => onLike(post.id)}
+            onToggleComments={() => setShowComments(!showComments)}
+          />
 
-          {/* Like Count */}
-          {post.like_count > 0 && (
-            <p className="text-sm font-semibold mb-2">
-              {post.like_count} {post.like_count === 1 ? 'like' : 'likes'}
-            </p>
-          )}
-
-          {/* Caption - Inline Edit or Display */}
           {isEditing ? (
-            <div className="space-y-3 mb-3">
-              <Textarea
-                value={editCaption}
-                onChange={(e) => setEditCaption(e.target.value)}
-                placeholder="What's on your mind?"
-                rows={3}
-                className="resize-none"
-                disabled={isSubmitting}
-              />
-              <div className="flex items-center space-x-2">
-                <Select value={editCategory} onValueChange={setEditCategory} disabled={isSubmitting}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  size="sm"
-                  onClick={handleSaveEdit}
-                  disabled={isSubmitting}
-                  className="bg-sage hover:bg-sage/90"
-                >
-                  {isSubmitting ? 'Saving...' : 'Save'}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleCancelEdit}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
+            <PostEditForm
+              caption={editCaption}
+              category={editCategory}
+              onCaptionChange={setEditCaption}
+              onCategoryChange={setEditCategory}
+              onSave={handleSaveEdit}
+              onCancel={handleCancelEdit}
+              isSubmitting={isSubmitting}
+            />
           ) : (
             post.caption && (
               <p className="text-sm mb-2">
@@ -302,7 +167,6 @@ export const PostCard: React.FC<PostCardProps> = ({
             )
           )}
 
-          {/* Comment Count */}
           {post.comment_count > 0 && (
             <button 
               onClick={() => setShowComments(!showComments)}
@@ -312,14 +176,12 @@ export const PostCard: React.FC<PostCardProps> = ({
             </button>
           )}
 
-          {/* Comments Section */}
           {showComments && (
             <CommentSection postId={post.id} currentUserId={currentUserId} />
           )}
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
