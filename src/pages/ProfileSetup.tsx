@@ -27,14 +27,6 @@ const ProfileSetup = () => {
 
   const showFieldMessage = (fieldKey: string, message: string) => {
     setFieldMessages(prev => ({ ...prev, [fieldKey]: message }));
-    // Clear message after 3 seconds
-    setTimeout(() => {
-      setFieldMessages(prev => {
-        const updated = { ...prev };
-        delete updated[fieldKey];
-        return updated;
-      });
-    }, 3000);
   };
 
   const handleFormDataChange = (field: string, value: string | number) => {
