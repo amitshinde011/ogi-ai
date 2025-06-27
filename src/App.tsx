@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,10 @@ import Home from "./pages/Home";
 import Upload from "./pages/Upload";
 import Community from "./pages/Community";
 import Discover from "./pages/Discover";
+import Profile from "./pages/Profile";
+import Messages from "./pages/Messages";
+import Chat from "./pages/Chat";
+import Notifications from "./pages/Notifications";
 import PostDetail from "./pages/PostDetail";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
@@ -44,6 +47,10 @@ const AppWithAnalytics = () => {
       <Route path="/upload" element={<Upload />} />
       <Route path="/community" element={<Community />} />
       <Route path="/discover" element={<Discover />} />
+      <Route path="/profile/:userId" element={<Profile />} />
+      <Route path="/messages" element={<Messages />} />
+      <Route path="/messages/:conversationId" element={<Chat />} />
+      <Route path="/notifications" element={<Notifications />} />
       <Route path="/community/post/:id" element={<PostDetail />} />
       <Route path="/progress" element={<Progress />} />
       <Route path="/settings" element={<Settings />} />

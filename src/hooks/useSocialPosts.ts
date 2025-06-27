@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export interface SocialPost {
   id: string;
@@ -23,6 +23,7 @@ export const useSocialPosts = () => {
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const { createNotification } = useNotifications();
 
   // Fetch current user
   const fetchCurrentUser = async () => {
@@ -213,6 +214,9 @@ export const useSocialPosts = () => {
             user_id: currentUser.id,
             post_id: postId
           });
+
+        // Create notification for post owner
+        await createNotification(post.user_id, 'like', postId);
       }
 
       // Update local state immediately
