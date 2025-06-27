@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import CreatePostModal from '@/components/social/CreatePostModal';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 
 const Community = () => {
+  const navigate = useNavigate();
   const { 
     posts, 
     loading, 
@@ -34,8 +36,8 @@ const Community = () => {
   };
 
   const handleComment = (postId: string) => {
-    // TODO: Navigate to post detail page or open comments modal
-    console.log('Comment on post:', postId);
+    // Navigate to post detail page
+    navigate(`/post/${postId}`);
   };
 
   if (!currentUser) {

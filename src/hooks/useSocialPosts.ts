@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -171,7 +172,7 @@ export const useSocialPosts = () => {
       const { error } = await supabase
         .from('posts')
         .insert({
-          user_id: currentUser.id,
+          user_id: currentUser.user_id, // Use user_id from auth.users
           image_url: imageUrl,
           caption: caption.trim() || null,
           meal_type: mealType || null
@@ -204,14 +205,14 @@ export const useSocialPosts = () => {
         await supabase
           .from('likes')
           .delete()
-          .eq('user_id', currentUser.id)
+          .eq('user_id', currentUser.user_id)
           .eq('post_id', postId);
       } else {
         // Like
         await supabase
           .from('likes')
           .insert({
-            user_id: currentUser.id,
+            user_id: currentUser.user_id,
             post_id: postId
           });
 
