@@ -17,12 +17,13 @@ const Layout = ({ children }: LayoutProps) => {
     { 
       icon: Home, 
       path: '/home', 
-      label: 'Home'
+      label: 'Home',
+      activeIcon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
     },
     { 
-      icon: Users, 
-      path: '/community', 
-      label: 'Community'
+      icon: Search, 
+      path: '/discover', 
+      label: 'Discover'
     },
     { 
       icon: ChefHat, 
@@ -30,14 +31,14 @@ const Layout = ({ children }: LayoutProps) => {
       label: 'Recipes'
     },
     { 
-      icon: Search, 
-      path: '/discover', 
-      label: 'Progress'
+      icon: Users, 
+      path: '/community', 
+      label: 'Community'
     },
     { 
       icon: MessageCircle, 
       path: '/messages', 
-      label: 'Settings'
+      label: 'Messages'
     },
   ];
 
@@ -55,7 +56,7 @@ const Layout = ({ children }: LayoutProps) => {
       </main>
       
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 backdrop-blur-xl bg-white/95 z-50">
         <div className="max-w-md mx-auto px-4 py-2">
           <div className="flex justify-around items-center">
             {navigationItems.map((item) => {
@@ -66,12 +67,16 @@ const Layout = ({ children }: LayoutProps) => {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className="flex flex-col items-center justify-center p-2"
+                  className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
+                    active
+                      ? 'text-slate-900'
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                  }`}
                 >
                   <div className="relative">
                     <Icon 
                       size={20} 
-                      className={active ? 'text-primary' : 'text-gray-400'}
+                      fill={active ? 'currentColor' : 'none'}
                     />
                     {item.path === '/messages' && unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -81,9 +86,7 @@ const Layout = ({ children }: LayoutProps) => {
                       </div>
                     )}
                   </div>
-                  <span className={`text-xs mt-1 ${active ? 'text-primary' : 'text-gray-400'}`}>
-                    {item.label}
-                  </span>
+                  <span className="text-xs mt-1 font-medium">{item.label}</span>
                 </button>
               );
             })}
@@ -91,20 +94,22 @@ const Layout = ({ children }: LayoutProps) => {
             {/* Notifications */}
             <button
               onClick={() => navigate('/notifications')}
-              className="flex flex-col items-center justify-center p-2"
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
+                isActive('/notifications')
+                  ? 'text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+              }`}
             >
               <div className="relative">
                 <Bell 
                   size={20} 
-                  className={isActive('/notifications') ? 'text-primary' : 'text-gray-400'}
+                  fill={isActive('/notifications') ? 'currentColor' : 'none'}
                 />
                 {unreadCount > 0 && (
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 )}
               </div>
-              <span className={`text-xs mt-1 ${isActive('/notifications') ? 'text-primary' : 'text-gray-400'}`}>
-                Alerts
-              </span>
+              <span className="text-xs mt-1 font-medium">Alerts</span>
             </button>
           </div>
         </div>
