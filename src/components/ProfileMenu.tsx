@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, MessageSquare, Bell, Eye } from 'lucide-react';
+import { Search, MessageSquare, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
 import {
@@ -21,7 +21,6 @@ const ProfileMenu = ({ children }: ProfileMenuProps) => {
     { icon: MessageSquare, label: 'Messages', path: '/messages', hasNotification: unreadCount > 0 },
     { icon: Search, label: 'Discover', path: '/discover' },
     { icon: Bell, label: 'Notifications', path: '/notifications', hasNotification: unreadCount > 0 },
-    { icon: Eye, label: 'Progress', path: '/progress' },
   ];
 
   return (
