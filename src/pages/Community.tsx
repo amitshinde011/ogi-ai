@@ -21,6 +21,9 @@ const Community = () => {
 
   const handleCreatePost = async (imageUrl: string, caption: string, category?: string) => {
     const success = await createPost(imageUrl, caption, category);
+    if (success) {
+      setShowCreateModal(false);
+    }
     return success;
   };
 

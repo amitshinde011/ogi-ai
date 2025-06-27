@@ -26,6 +26,7 @@ export const useComments = (postId: number | null) => {
     try {
       setLoading(true);
       
+      // Fetch comments for the post
       const { data: commentsData, error } = await supabase
         .from('comments')
         .select('*')
@@ -42,9 +43,17 @@ export const useComments = (postId: number | null) => {
         .select('user_id, name, profile_photo_url')
         .in('user_id', authorIds);
 
+      // Create a map of user_id to profile data
+      const profileMap = new Map(
+        profiles?.map(profile => [
+          profile.user_id,
+          { name: profile.name, profile_photo_url: profile.profile_photo_url }
+        ]) || []
+      );
+
       const commentsWithAuthors = commentsData?.map(comment => ({
         ...comment,
-        author: profiles?.find(profile => profile.user_id === comment.author_id) || {
+        author: profileMap.get(comment.author_id) || {
           name: 'Anonymous User',
           profile_photo_url: null
         }
@@ -79,7 +88,7 @@ export const useComments = (postId: number | null) => {
 
       if (error) throw error;
 
-      // Refresh comments
+      // Refresh comments to get the updated list
       await fetchComments();
       return true;
     } catch (error) {

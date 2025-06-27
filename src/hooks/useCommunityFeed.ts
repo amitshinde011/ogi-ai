@@ -85,6 +85,14 @@ export const useCommunityFeed = () => {
         .select('user_id, name, profile_photo_url')
         .in('user_id', authorIds);
 
+      // Create a map of user_id to profile data
+      const profileMap = new Map(
+        profiles?.map(profile => [
+          profile.user_id,
+          { name: profile.name, profile_photo_url: profile.profile_photo_url }
+        ]) || []
+      );
+
       // Check which posts current user has liked
       let userLikes: any[] = [];
       if (currentUser) {
@@ -100,7 +108,7 @@ export const useCommunityFeed = () => {
       // Combine posts with author info and like status
       const postsWithAuthors = postsData?.map(post => ({
         ...post,
-        author: profiles?.find(profile => profile.user_id === post.author_id) || {
+        author: profileMap.get(post.author_id) || {
           name: 'Anonymous User',
           profile_photo_url: null
         },
@@ -190,7 +198,7 @@ export const useCommunityFeed = () => {
     }
   };
 
-  // Set up real-time subscription
+  // Set up real-time subscription as per requirements
   useEffect(() => {
     const channel = supabase
       .channel('public:posts')
