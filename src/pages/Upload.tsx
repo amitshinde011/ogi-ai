@@ -24,7 +24,8 @@ const Upload = () => {
   const mealTypes = [
     { id: 'breakfast', name: 'Breakfast', icon: '🌅', time: '6:00 - 11:00 AM' },
     { id: 'lunch', name: 'Lunch', icon: '☀️', time: '11:00 AM - 3:00 PM' },
-    { id: 'dinner', name: 'Dinner', icon: '🌙', time: '3:00 PM - 10:00 PM' }
+    { id: 'dinner', name: 'Dinner', icon: '🌙', time: '3:00 PM - 10:00 PM' },
+    { id: 'snack', name: 'Snack', icon: '🍎', time: 'Anytime' }
   ];
 
   useEffect(() => {
@@ -35,21 +36,17 @@ const Upload = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Get user profile information for name and profile picture
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('name, profile_photo_url')
+          .select('*')
           .eq('user_id', user.id)
-          .maybeSingle();
-
-        const displayName = profile?.name || user.email?.split('@')[0] || 'User';
-        const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
+          .single();
 
         setCurrentUser({
-          id: user.id,
-          email: user.email,
-          name: displayName,
-          profilePictureUrl: displayAvatar
+          id: profile?.id,
+          user_id: user.id,
+          name: profile?.name || user.email?.split('@')[0] || 'User',
+          profile_photo_url: profile?.profile_photo_url
         });
       }
     } catch (error) {
@@ -77,25 +74,26 @@ const Upload = () => {
       const uploadResult = await uploadToR2(imageFile, 'meal');
       if (!uploadResult) return;
 
-      // Create the post in community_posts table with user name and profile picture
-      const { error } = await supabase
-        .from('community_posts')
+      const mealName = selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1);
+      const postCaption = description || `Just had my ${selectedMeal}! 🍽️`;
+
+      // Create the post in posts table
+      const { error: postError } = await supabase
+        .from('posts')
         .insert({
           user_id: currentUser.id,
-          title: `${selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1)} Time!`,
-          content: description || `Just had my ${selectedMeal}! 🍽️`,
           image_url: uploadResult.imageUrl,
-          user_name: currentUser.name,
-          user_profile_picture_url: currentUser.profilePictureUrl
+          caption: postCaption,
+          meal_type: selectedMeal
         });
 
-      if (error) throw error;
+      if (postError) throw postError;
 
       // Also save to meal_tracking for progress tracking
       await supabase
         .from('meal_tracking')
         .insert({
-          user_id: currentUser.id,
+          user_id: currentUser.user_id,
           meal_type: selectedMeal,
           food_item: description || 'Meal logged',
           date: new Date().toISOString().split('T')[0]

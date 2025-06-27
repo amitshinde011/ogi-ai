@@ -1,134 +1,65 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
-import PostList from '@/components/PostList';
-import CreatePostDialog from '@/components/CreatePostDialog';
-import EditPostDialog from '@/components/EditPostDialog';
-import { supabase } from '@/integrations/supabase/client';
-import { useCommunityPosts } from '@/hooks/useCommunityPosts';
-
-interface Post {
-  id: string;
-  user_id: string;
-  title: string;
-  content: string;
-  image_url?: string;
-  likes_count: number;
-  comments_count: number;
-  created_at: string;
-  user_name?: string;
-  user_avatar?: string;
-}
+import { Button } from '@/components/ui/button';
+import PostCard from '@/components/social/PostCard';
+import CreatePostModal from '@/components/social/CreatePostModal';
+import { useSocialPosts } from '@/hooks/useSocialPosts';
 
 const Community = () => {
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [newPost, setNewPost] = useState({ title: '', content: '' });
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const { posts, loading, fetchPosts, createPost, updatePost, deletePost } = useCommunityPosts();
+  const { 
+    posts, 
+    loading, 
+    currentUser, 
+    createPost, 
+    toggleLike, 
+    fetchDiscoverFeed 
+  } = useSocialPosts();
+  
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
-    fetchCurrentUser();
+    console.log('🏘️ Community component mounted, fetching discover feed...');
+    // Fetch all posts for the community page
+    fetchDiscoverFeed();
   }, []);
 
-  // Set up real-time subscription for new posts
   useEffect(() => {
-    const channel = supabase
-      .channel('community-posts')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'community_posts'
-        },
-        () => {
-          // Refetch posts when a new post is added
-          fetchPosts();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'community_posts'
-        },
-        () => {
-          // Refetch posts when a post is deleted
-          fetchPosts();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'community_posts'
-        },
-        () => {
-          // Refetch posts when a post is updated
-          fetchPosts();
-        }
-      )
-      .subscribe();
+    console.log('📊 Community state update:', {
+      postsCount: posts.length,
+      loading,
+      currentUser: currentUser ? {
+        id: currentUser.id,
+        user_id: currentUser.user_id,
+        name: currentUser.name
+      } : null
+    });
+  }, [posts, loading, currentUser]);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchPosts]);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Get user profile information
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('name, profile_photo_url')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        const displayName = profile?.name || user.email?.split('@')[0] || 'User';
-        const displayAvatar = profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
-
-        setCurrentUser({
-          id: user.id,
-          name: displayName,
-          avatar: displayAvatar
-        });
-
-        console.log('Current user set:', { id: user.id, name: displayName, avatar: displayAvatar });
-      }
-    } catch (error) {
-      console.error('Error fetching current user:', error);
-    }
-  };
-
-  const handleCreatePost = async (imageFile?: File) => {
-    const success = await createPost(currentUser, newPost, imageFile);
+  const handleCreatePost = async (imageUrl: string, caption: string) => {
+    console.log('📝 Creating new post in community...');
+    const success = await createPost(imageUrl, caption);
     if (success) {
-      setNewPost({ title: '', content: '' });
-      setIsDialogOpen(false);
+      console.log('✅ Post created, refreshing feed...');
+      fetchDiscoverFeed(); // Refresh all posts
     }
+    return success;
   };
 
-  const handleEditPost = async () => {
-    if (!editingPost) return;
-    const success = await updatePost(editingPost);
-    if (success) {
-      setEditingPost(null);
-    }
+  const handleComment = (postId: string) => {
+    console.log('💬 Comment action for post:', postId);
+    // Comments are now handled inline in PostCard
   };
 
-  if (loading) {
+  if (!currentUser) {
+    console.log('⚠️ No current user, showing login message');
     return (
       <Layout>
         <Header title="Community" />
-        <div className="flex items-center justify-center min-h-screen bg-light-gray">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-500">Please log in to view the community feed</p>
         </div>
       </Layout>
     );
@@ -138,29 +69,49 @@ const Community = () => {
     <Layout>
       <Header title="Community" />
       
-      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
-        <CreatePostDialog
-          isOpen={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          newPost={newPost}
-          onPostChange={setNewPost}
-          onSubmit={handleCreatePost}
-        />
+      <div className="p-4 max-w-md mx-auto">
+        {/* Create Post Button */}
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="w-full mb-6 bg-sage hover:bg-sage/90 flex items-center justify-center gap-2"
+        >
+          <Plus className="w-5 h-5" />
+          Create Post
+        </Button>
 
-        <PostList
-          posts={posts}
-          currentUserId={currentUser?.id}
-          onEdit={setEditingPost}
-          onDelete={deletePost}
-          onPostUpdate={fetchPosts}
-        />
-
-        <EditPostDialog
-          editingPost={editingPost}
-          onEditingPostChange={setEditingPost}
-          onSubmit={handleEditPost}
-        />
+        {/* Posts Feed */}
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 mb-4">No posts yet</p>
+            <p className="text-sm text-gray-400">
+              Be the first to share something with the community!
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onLike={toggleLike}
+                onComment={handleComment}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreatePost={handleCreatePost}
+        showMealTypeSelection={false}
+      />
     </Layout>
   );
 };

@@ -3,142 +3,181 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-interface CommentType {
+export interface Comment {
   id: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-  parent_comment_id?: string;
-  user_name?: string;
-  user_avatar?: string;
-  replies?: CommentType[];
-}
-
-// Database response type that includes the optional fields
-interface CommentDbResponse {
-  id: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-  parent_comment_id?: string;
   post_id: string;
-  user_name?: string;
-  user_avatar?: string;
+  user_id: string;
+  comment_text: string;
+  created_at: string;
+  user_profiles?: {
+    name: string | null;
+    profile_photo_url: string | null;
+  } | null;
 }
 
 export const useComments = (postId: string) => {
-  const [comments, setComments] = useState<CommentType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  const fetchComments = async () => {
+  // Get current user with profile data
+  const fetchCurrentUser = async () => {
     try {
-      console.log('Fetching comments for post:', postId);
-      
-      const { data: commentsData, error } = await supabase
-        .from('community_post_comments')
+      console.log('🔍 Fetching current user for comments...');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        console.log('👤 Got auth user:', user.id);
+        
+        // Get user profile for display purposes
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('id, name, profile_photo_url')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        console.log('👤 User profile query result:', { profile, profileError });
+
+        if (profile) {
+          setCurrentUser({
+            auth_user_id: user.id, // This is what we use for comments (auth.uid())
+            profile_id: profile.id,
+            name: profile.name || user.email?.split('@')[0] || 'User',
+            profile_photo_url: profile.profile_photo_url
+          });
+          console.log('✅ Current user set with auth ID:', user.id);
+        } else {
+          console.log('⚠️ No user profile found, user needs to complete profile setup');
+          toast({ 
+            title: "Please complete your profile setup first", 
+            variant: "destructive" 
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error fetching current user:', error);
+    }
+  };
+
+  // Fetch comments for a post
+  const fetchComments = async () => {
+    if (!postId) return;
+
+    try {
+      setLoading(true);
+      console.log('💬 Fetching comments for post:', postId);
+
+      // First, get all comments for this post
+      const { data: rawComments, error: commentsError } = await supabase
+        .from('comments')
         .select('*')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching comments:', error);
-        throw error;
-      }
+      console.log('💬 Raw comments result:', { rawComments, commentsError });
 
-      console.log('Raw comments data:', commentsData);
+      if (commentsError) throw commentsError;
 
-      // Use stored user information or fetch as fallback
-      const commentsWithUserInfo = await Promise.all(
-        (commentsData || []).map(async (comment: CommentDbResponse) => {
-          let userName = comment.user_name;
-          let userAvatar = comment.user_avatar;
-
-          // If user info is not stored in comment, fetch from profile
-          if (!userName || !userAvatar) {
-            console.log('Fetching profile for comment user:', comment.user_id);
-            
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('name, profile_photo_url')
-              .eq('user_id', comment.user_id)
-              .maybeSingle();
-
-            userName = userName || profile?.name || 'Unknown User';
-            userAvatar = userAvatar || profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_id}`;
-            
-            console.log('Profile found for user:', comment.user_id, { name: userName, avatar: userAvatar });
-          }
+      // Then, fetch user profiles for each comment
+      const commentsWithProfiles = await Promise.all(
+        (rawComments || []).map(async (comment) => {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('name, profile_photo_url')
+            .eq('user_id', comment.user_id)
+            .maybeSingle();
 
           return {
             ...comment,
-            user_name: userName,
-            user_avatar: userAvatar
+            user_profiles: profile
           };
         })
       );
 
-      // Organize comments into threads (parent comments with replies)
-      const parentComments = commentsWithUserInfo.filter(comment => !comment.parent_comment_id);
-      const repliesMap = commentsWithUserInfo.reduce((acc, comment) => {
-        if (comment.parent_comment_id) {
-          if (!acc[comment.parent_comment_id]) {
-            acc[comment.parent_comment_id] = [];
-          }
-          acc[comment.parent_comment_id].push(comment);
-        }
-        return acc;
-      }, {} as Record<string, CommentType[]>);
-
-      const threaded = parentComments.map(comment => ({
-        ...comment,
-        replies: repliesMap[comment.id] || []
-      }));
-
-      console.log('Threaded comments:', threaded);
-      setComments(threaded);
-      
+      console.log('💬 Comments with profiles:', commentsWithProfiles);
+      setComments(commentsWithProfiles);
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      console.error('❌ Error fetching comments:', error);
       toast({ title: "Failed to load comments", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchComments();
-  }, [postId]);
+  // Add a new comment
+  const addComment = async (commentText: string) => {
+    if (!currentUser || !currentUser.auth_user_id) {
+      console.log('⚠️ No current user for comment creation');
+      toast({ title: "Please log in to comment", variant: "destructive" });
+      return false;
+    }
 
-  // Set up real-time subscription for comments
-  useEffect(() => {
-    const channel = supabase
-      .channel(`comments-${postId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'community_post_comments',
-          filter: `post_id=eq.${postId}`
-        },
-        (payload) => {
-          console.log('Real-time comment change detected, refetching...', payload);
-          // Refetch comments when any comment changes
-          fetchComments();
+    if (!commentText.trim()) {
+      toast({ title: "Comment cannot be empty", variant: "destructive" });
+      return false;
+    }
+
+    try {
+      console.log('💬 Adding comment:', { 
+        postId, 
+        commentText, 
+        authUserId: currentUser.auth_user_id,
+        userName: currentUser.name
+      });
+
+      const { data, error } = await supabase
+        .from('comments')
+        .insert({
+          post_id: postId,
+          user_id: currentUser.auth_user_id, // Use auth.uid() directly
+          comment_text: commentText.trim()
+        })
+        .select()
+        .single();
+
+      console.log('💬 Comment creation result:', { data, error });
+
+      if (error) {
+        console.error('💬 Comment creation error details:', error);
+        throw error;
+      }
+
+      // Manually add user profile data to the new comment
+      const commentWithProfile = {
+        ...data,
+        user_profiles: {
+          name: currentUser.name,
+          profile_photo_url: currentUser.profile_photo_url
         }
-      )
-      .subscribe();
+      };
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      // Add the new comment to the list
+      setComments(prevComments => [...prevComments, commentWithProfile]);
+      
+      console.log('✅ Comment added successfully');
+      toast({ title: "Comment added successfully!" });
+      return true;
+    } catch (error) {
+      console.error('❌ Error adding comment:', error);
+      toast({ title: "Failed to add comment", variant: "destructive" });
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, []);
+
+  useEffect(() => {
+    if (postId) {
+      fetchComments();
+    }
   }, [postId]);
 
   return {
     comments,
     loading,
+    currentUser,
+    addComment,
     fetchComments
   };
 };

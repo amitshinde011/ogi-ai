@@ -11,6 +11,7 @@ import StepTracker from '@/components/StepTracker';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
+import ProfileMenu from '@/components/ProfileMenu';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -154,9 +155,11 @@ const Home = () => {
       <Header 
         title={getGreeting()}
         rightElement={
-          <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-sage/30">
-            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
-          </div>
+          <ProfileMenu>
+            <button className="w-8 h-8 rounded-full overflow-hidden border-2 border-sage/30 hover:border-sage transition-colors cursor-pointer">
+              <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+            </button>
+          </ProfileMenu>
         }
       />
       

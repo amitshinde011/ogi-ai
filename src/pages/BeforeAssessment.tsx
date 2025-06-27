@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -7,6 +7,7 @@ import Header from '@/components/Header';
 import PhotoUpload from '@/components/PhotoUpload';
 import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
 import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
+import EncouragingMessage from '@/components/EncouragingMessage';
 import { useBeforeAssessment } from '@/hooks/useBeforeAssessment';
 
 const BeforeAssessment = () => {
@@ -20,6 +21,50 @@ const BeforeAssessment = () => {
     handleImageRemove,
     onSubmit
   } = useBeforeAssessment();
+
+  const [encouragingMessage, setEncouragingMessage] = useState<string>('');
+  const [showMessage, setShowMessage] = useState(false);
+  const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
+
+  const handleImageUpload = (file: File) => {
+    handleImageSelect(file);
+    if (!completedSections.has('photo')) {
+      setCompletedSections(prev => new Set(prev).add('photo'));
+      setEncouragingMessage("Perfect! Your starting photo will help you see your incredible transformation.");
+      setShowMessage(true);
+    }
+  };
+
+  const handleSliderChange = (field: string, value: number) => {
+    form.setValue(field as any, value);
+    
+    // Show encouraging message when they complete comfort level questions
+    const formValues = form.getValues();
+    const comfortFields = ['walk_10km_comfort', 'run_10km_comfort', 'climb_mountain_comfort'];
+    const allComfortFieldsSet = comfortFields.every(field => formValues[field as keyof typeof formValues] !== undefined);
+    
+    if (allComfortFieldsSet && !completedSections.has('comfort')) {
+      setCompletedSections(prev => new Set(prev).add('comfort'));
+      setEncouragingMessage("Thank you for being honest about your comfort levels. This helps us create the perfect starting point for you.");
+      setShowMessage(true);
+    }
+  };
+
+  const handleMessageComplete = () => {
+    setShowMessage(false);
+  };
+
+  const handleFormSubmit = async (data: any) => {
+    // Show final encouraging message before submission
+    setEncouragingMessage("Your journey begins now. Thank you for sharing your starting point. The first step is often the hardest, and you've just taken it!");
+    setShowMessage(true);
+    
+    // Wait for message to show, then submit
+    setTimeout(() => {
+      setShowMessage(false);
+      onSubmit(data);
+    }, 3000); // Longer duration for this important message
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -36,11 +81,11 @@ const BeforeAssessment = () => {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
                   {/* Photo Upload */}
                   <PhotoUpload
                     selectedImage={imagePreview}
-                    onImageSelect={handleImageSelect}
+                    onImageSelect={handleImageUpload}
                     onImageRemove={handleImageRemove}
                     uploading={uploading}
                     title="Starting Photo"
@@ -48,7 +93,10 @@ const BeforeAssessment = () => {
                   />
 
                   {/* Comfort Level Questions with Sliders */}
-                  <ComfortQuestionsSection control={form.control} />
+                  <ComfortQuestionsSection 
+                    control={form.control} 
+                    onSliderChange={handleSliderChange}
+                  />
 
                   {/* Health Conditions and Comments */}
                   <HealthConditionsSection control={form.control} />
@@ -67,6 +115,12 @@ const BeforeAssessment = () => {
           </Card>
         </div>
       </div>
+
+      <EncouragingMessage
+        message={encouragingMessage}
+        show={showMessage}
+        onComplete={handleMessageComplete}
+      />
     </div>
   );
 };
