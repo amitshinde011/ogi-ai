@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import Layout from '@/components/Layout';
@@ -5,8 +6,10 @@ import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { PostCard } from '@/components/community/PostCard';
 import { CreatePostModal } from '@/components/community/CreatePostModal';
+import { RefreshSpinner } from '@/components/community/RefreshSpinner';
 import { useCommunityFeed, CommunityPost } from '@/hooks/useCommunityFeed';
 import { useAuth } from '@/hooks/useAuth';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 const Community = () => {
   const { 
@@ -25,6 +28,18 @@ const Community = () => {
   React.useEffect(() => {
     setLocalPosts(posts);
   }, [posts]);
+
+  // Pull-to-refresh functionality
+  const {
+    containerRef,
+    isRefreshing,
+    pullDistance,
+    isVisible,
+    threshold
+  } = usePullToRefresh({
+    onRefresh: refreshPosts,
+    enabled: isAuthenticated
+  });
 
   const handleCreatePost = async (imageUrl: string, caption: string, category?: string) => {
     const success = await createPost(imageUrl, caption, category);
@@ -62,7 +77,18 @@ const Community = () => {
     <Layout>
       <Header title="Community" />
       
-      <div className="p-4 max-w-md mx-auto">
+      <div 
+        ref={containerRef}
+        className="relative p-4 max-w-md mx-auto"
+      >
+        {/* Pull-to-Refresh Spinner */}
+        <RefreshSpinner
+          isVisible={isVisible}
+          pullDistance={pullDistance}
+          isRefreshing={isRefreshing}
+          threshold={threshold}
+        />
+
         {/* Create Post Button */}
         <Button
           onClick={() => setShowCreateModal(true)}
@@ -73,7 +99,7 @@ const Community = () => {
         </Button>
 
         {/* Posts Feed */}
-        {loading ? (
+        {loading && !isRefreshing ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
           </div>
