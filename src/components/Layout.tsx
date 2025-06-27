@@ -67,17 +67,18 @@ const Layout = ({ children }: LayoutProps) => {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
-                    active
-                      ? 'text-sage bg-sage/10'
-                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                  }`}
+                  className="flex flex-col items-center justify-center p-2"
                 >
                   <div className="relative">
                     <Icon 
                       size={20} 
-                      fill={active ? 'currentColor' : 'none'}
-                      className={active ? 'stroke-sage' : ''}
+                      className={active ? 'text-blue-600' : 'text-gray-400'}
+                      style={active ? {
+                        backgroundImage: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      } : {}}
                     />
                     {item.path === '/messages' && unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -87,7 +88,11 @@ const Layout = ({ children }: LayoutProps) => {
                       </div>
                     )}
                   </div>
-                  <span className="text-xs mt-1 font-medium">{item.label}</span>
+                  <span className={`text-xs mt-1 font-medium ${
+                    active ? 'text-blue-600' : 'text-gray-400'
+                  }`}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
@@ -95,23 +100,28 @@ const Layout = ({ children }: LayoutProps) => {
             {/* Notifications */}
             <button
               onClick={() => navigate('/notifications')}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
-                isActive('/notifications')
-                  ? 'text-sage bg-sage/10'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-              }`}
+              className="flex flex-col items-center justify-center p-2"
             >
               <div className="relative">
                 <Bell 
                   size={20} 
-                  fill={isActive('/notifications') ? 'currentColor' : 'none'}
-                  className={isActive('/notifications') ? 'stroke-sage' : ''}
+                  className={isActive('/notifications') ? 'text-blue-600' : 'text-gray-400'}
+                  style={isActive('/notifications') ? {
+                    backgroundImage: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  } : {}}
                 />
                 {unreadCount > 0 && (
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 )}
               </div>
-              <span className="text-xs mt-1 font-medium">Alerts</span>
+              <span className={`text-xs mt-1 font-medium ${
+                isActive('/notifications') ? 'text-blue-600' : 'text-gray-400'
+              }`}>
+                Alerts
+              </span>
             </button>
           </div>
         </div>
