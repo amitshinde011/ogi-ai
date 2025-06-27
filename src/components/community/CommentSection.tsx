@@ -76,7 +76,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, currentU
       <div className="flex items-center space-x-2">
         <Avatar className="w-6 h-6">
           <AvatarImage 
-            src={currentUserId ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUserId}` : undefined}
+            src={currentUserId ? getAvatarUrl(currentUserId) : undefined}
             alt="You"
           />
           <AvatarFallback>Y</AvatarFallback>
