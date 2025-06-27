@@ -76,76 +76,112 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   const currencySymbol = getCurrencySymbol();
 
   return (
-    <Card className={`relative transition-all hover:shadow-lg bg-white text-black ${
-      isPopular ? 'ring-2 ring-primary scale-105' : ''
+    <Card className={`relative h-full flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 bg-white ${
+      isPopular ? 'ring-2 ring-primary shadow-lg' : 'shadow-md'
     }`}>
       {isPopular && (
-        <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-          Most Popular
-        </Badge>
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+          <Badge className="bg-gradient-to-r from-primary to-primary/80 text-white px-4 py-1 text-sm font-semibold rounded-full shadow-lg">
+            ⭐ Most Popular ⭐
+          </Badge>
+        </div>
       )}
-      <CardHeader>
-        <CardTitle className="text-xl text-center text-black">{program.name}</CardTitle>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-primary">
-            {currencySymbol}{displayPrice}
+
+      <CardHeader className="text-center pb-4 pt-8">
+        <CardTitle className="text-2xl font-bold text-gray-800 mb-2">
+          {program.name}
+        </CardTitle>
+        
+        <div className="space-y-2">
+          <div className="flex items-center justify-center space-x-2">
+            <span className="text-4xl font-bold text-primary">
+              {currencySymbol}{displayPrice}
+            </span>
+            <div className="text-sm text-gray-500">
+              <div>/{program.duration_days} days</div>
+            </div>
           </div>
-          <span className="text-black">/{program.duration_days} days</span>
-          <div className="text-xs text-gray-500 mt-1">
+          
+          <p className="text-gray-600 text-sm leading-relaxed px-2">
+            {program.description}
+          </p>
+          
+          <div className="text-xs text-gray-500 bg-gray-50 px-3 py-1 rounded-full inline-block">
             Payment via {isIndiaUser ? 'Razorpay' : 'Braintree'}
           </div>
         </div>
-        <p className="text-sm text-black text-center">{program.description}</p>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Coupon Code Input */}
-        <CouponCodeInput
-          onApplyCoupon={validateCoupon}
-          appliedCoupon={appliedCoupon}
-          onRemoveCoupon={removeCoupon}
-          isValidating={isValidating}
-        />
+
+      <CardContent className="flex-1 flex flex-col space-y-6 px-6 pb-6">
+        {/* Coupon Code Section */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <CouponCodeInput
+            onApplyCoupon={validateCoupon}
+            appliedCoupon={appliedCoupon}
+            onRemoveCoupon={removeCoupon}
+            isValidating={isValidating}
+          />
+        </div>
 
         {/* Pricing Breakdown */}
-        <PricingBreakdown
-          originalPrice={displayPrice}
-          currency={currency}
-          discountPercentage={pricingConfig.discountPercentage}
-          taxPercentage={pricingConfig.taxPercentage}
-          isSpecialOccasion={pricingConfig.isSpecialOccasion}
-          occasionName={pricingConfig.occasionName}
-          couponDiscountPercentage={getDiscountPercentage()}
-        />
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <PricingBreakdown
+            originalPrice={displayPrice}
+            currency={currency}
+            discountPercentage={pricingConfig.discountPercentage}
+            taxPercentage={pricingConfig.taxPercentage}
+            isSpecialOccasion={pricingConfig.isSpecialOccasion}
+            occasionName={pricingConfig.occasionName}
+            couponDiscountPercentage={getDiscountPercentage()}
+          />
+        </div>
 
-        <div>
-          <h4 className="font-semibold mb-2 text-black">Features:</h4>
-          <ul className="space-y-1">
-            {program.features.map((feature, index) => (
-              <li key={index} className="flex items-center text-sm text-black">
-                <Check className="w-4 h-4 text-green-500 mr-2" />
-                {feature}
-              </li>
-            ))}
-          </ul>
+        {/* Features Section */}
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+              What's Included
+            </h4>
+            <div className="grid grid-cols-1 gap-2">
+              {program.features.map((feature, index) => (
+                <div key={index} className="flex items-center text-sm text-gray-700">
+                  <Check className="w-4 h-4 text-green-500 mr-3 flex-shrink-0" />
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+              Benefits You'll Get
+            </h4>
+            <div className="grid grid-cols-1 gap-2">
+              {program.benefits.map((benefit, index) => (
+                <div key={index} className="flex items-center text-sm text-gray-700">
+                  <Check className="w-4 h-4 text-blue-500 mr-3 flex-shrink-0" />
+                  <span>{benefit}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <div>
-          <h4 className="font-semibold mb-2 text-black">Benefits:</h4>
-          <ul className="space-y-1">
-            {program.benefits.map((benefit, index) => (
-              <li key={index} className="flex items-center text-sm text-black">
-                <Check className="w-4 h-4 text-green-500 mr-2" />
-                {benefit}
-              </li>
-            ))}
-          </ul>
+
+        {/* CTA Button */}
+        <div className="mt-auto pt-6">
+          <Button 
+            className={`w-full h-12 text-lg font-semibold transition-all duration-200 ${
+              isPopular 
+                ? 'bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg hover:shadow-xl' 
+                : 'bg-gray-800 hover:bg-gray-900 text-white'
+            }`}
+            onClick={handleSubscribe}
+          >
+            {isFree ? '🎉 Get Free Access' : `Start Your Journey - ${currencySymbol}${displayPrice}`}
+          </Button>
         </div>
-        <Button 
-          className="w-full" 
-          onClick={handleSubscribe}
-          variant={isPopular ? "default" : "secondary"}
-        >
-          {isFree ? 'Get Free Access' : `Subscribe & Pay ${currencySymbol}${displayPrice}`}
-        </Button>
       </CardContent>
     </Card>
   );
