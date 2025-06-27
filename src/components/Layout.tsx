@@ -69,7 +69,7 @@ const Layout = ({ children }: LayoutProps) => {
                   onClick={() => navigate(item.path)}
                   className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
                     active
-                      ? 'text-sage bg-sage/10'
+                      ? 'text-slate-900'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                   }`}
                 >
@@ -77,7 +77,6 @@ const Layout = ({ children }: LayoutProps) => {
                     <Icon 
                       size={20} 
                       fill={active ? 'currentColor' : 'none'}
-                      className={active ? 'stroke-sage' : ''}
                     />
                     {item.path === '/messages' && unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
@@ -97,7 +96,7 @@ const Layout = ({ children }: LayoutProps) => {
               onClick={() => navigate('/notifications')}
               className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
                 isActive('/notifications')
-                  ? 'text-sage bg-sage/10'
+                  ? 'text-slate-900'
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
               }`}
             >
@@ -105,7 +104,6 @@ const Layout = ({ children }: LayoutProps) => {
                 <Bell 
                   size={20} 
                   fill={isActive('/notifications') ? 'currentColor' : 'none'}
-                  className={isActive('/notifications') ? 'stroke-sage' : ''}
                 />
                 {unreadCount > 0 && (
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
