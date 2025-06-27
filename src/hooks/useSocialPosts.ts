@@ -16,7 +16,7 @@ export interface SocialPost {
   user_profiles: {
     name: string | null;
     profile_photo_url: string | null;
-  };
+  } | null;
   is_liked?: boolean;
 }
 
@@ -29,13 +29,18 @@ export const useSocialPosts = () => {
   // Fetch current user
   const fetchCurrentUser = async () => {
     try {
+      console.log('🔍 Fetching current user...');
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 Auth user:', user);
+      
       if (user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('*')
           .eq('user_id', user.id)
           .single();
+
+        console.log('👤 User profile query result:', { profile, profileError });
 
         setCurrentUser({
           id: profile?.id,
@@ -43,18 +48,29 @@ export const useSocialPosts = () => {
           name: profile?.name || user.email?.split('@')[0] || 'User',
           profile_photo_url: profile?.profile_photo_url
         });
+        
+        console.log('✅ Current user set:', {
+          id: profile?.id,
+          user_id: user.id,
+          name: profile?.name || user.email?.split('@')[0] || 'User',
+          profile_photo_url: profile?.profile_photo_url
+        });
       }
     } catch (error) {
-      console.error('Error fetching current user:', error);
+      console.error('❌ Error fetching current user:', error);
     }
   };
 
   // Fetch posts from following users (home feed)
   const fetchHomeFeed = async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.log('⚠️ No current user, skipping home feed fetch');
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log('🏠 Fetching home feed for user:', currentUser.id);
       
       // First, get the IDs of users the current user follows
       const { data: followingData, error: followingError } = await supabase
@@ -62,13 +78,17 @@ export const useSocialPosts = () => {
         .select('following_id')
         .eq('follower_id', currentUser.id);
 
+      console.log('👥 Following data:', { followingData, followingError });
+
       if (followingError) throw followingError;
 
       // Extract the following IDs into an array
       const followingIds = followingData?.map(f => f.following_id) || [];
+      console.log('📝 Following IDs:', followingIds);
       
       // If no following users, show empty feed
       if (followingIds.length === 0) {
+        console.log('📭 No following users, empty feed');
         setPosts([]);
         setLoading(false);
         return;
@@ -88,6 +108,8 @@ export const useSocialPosts = () => {
         .order('created_at', { ascending: false })
         .limit(20);
 
+      console.log('📋 Posts query result:', { posts, error });
+
       if (error) throw error;
 
       // Check which posts current user has liked
@@ -95,8 +117,10 @@ export const useSocialPosts = () => {
       const { data: userLikes } = await supabase
         .from('likes')
         .select('post_id')
-        .eq('user_id', currentUser.id)
+        .eq('user_id', currentUser.user_id)
         .in('post_id', postIds);
+
+      console.log('❤️ User likes:', userLikes);
 
       const likedPostIds = new Set(userLikes?.map(l => l.post_id));
 
@@ -105,9 +129,10 @@ export const useSocialPosts = () => {
         is_liked: likedPostIds.has(post.id)
       })) || [];
 
+      console.log('✅ Final posts with likes:', postsWithLikes);
       setPosts(postsWithLikes);
     } catch (error) {
-      console.error('Error fetching home feed:', error);
+      console.error('❌ Error fetching home feed:', error);
       toast({ title: "Failed to load posts", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -118,6 +143,7 @@ export const useSocialPosts = () => {
   const fetchDiscoverFeed = async () => {
     try {
       setLoading(true);
+      console.log('🌐 Fetching discover feed (all posts)...');
       
       const { data: posts, error } = await supabase
         .from('posts')
@@ -131,16 +157,33 @@ export const useSocialPosts = () => {
         .order('created_at', { ascending: false })
         .limit(50);
 
+      console.log('📋 Discover posts query result:', { posts, error, count: posts?.length });
+      
+      if (posts) {
+        posts.forEach((post, index) => {
+          console.log(`📝 Post ${index + 1}:`, {
+            id: post.id,
+            user_id: post.user_id,
+            caption: post.caption?.substring(0, 50) + '...',
+            user_profiles: post.user_profiles,
+            created_at: post.created_at
+          });
+        });
+      }
+
       if (error) throw error;
 
       // Check which posts current user has liked
       if (currentUser) {
+        console.log('❤️ Checking likes for current user:', currentUser.user_id);
         const postIds = posts?.map(p => p.id) || [];
-        const { data: userLikes } = await supabase
+        const { data: userLikes, error: likesError } = await supabase
           .from('likes')
           .select('post_id')
-          .eq('user_id', currentUser.id)
+          .eq('user_id', currentUser.user_id)
           .in('post_id', postIds);
+
+        console.log('❤️ User likes query result:', { userLikes, likesError });
 
         const likedPostIds = new Set(userLikes?.map(l => l.post_id));
 
@@ -149,12 +192,14 @@ export const useSocialPosts = () => {
           is_liked: likedPostIds.has(post.id)
         })) || [];
 
+        console.log('✅ Final posts with likes set:', postsWithLikes.length);
         setPosts(postsWithLikes);
       } else {
+        console.log('⚠️ No current user, setting posts without like status');
         setPosts(posts || []);
       }
     } catch (error) {
-      console.error('Error fetching discover feed:', error);
+      console.error('❌ Error fetching discover feed:', error);
       toast({ title: "Failed to load posts", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -164,11 +209,14 @@ export const useSocialPosts = () => {
   // Create a new post
   const createPost = async (imageUrl: string, caption: string, mealType?: string) => {
     if (!currentUser) {
+      console.log('⚠️ No current user for post creation');
       toast({ title: "Please log in to create posts", variant: "destructive" });
       return false;
     }
 
     try {
+      console.log('📝 Creating post:', { imageUrl, caption, mealType, userId: currentUser.user_id });
+      
       const { error } = await supabase
         .from('posts')
         .insert({
@@ -178,12 +226,16 @@ export const useSocialPosts = () => {
           meal_type: mealType || null
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Post creation error:', error);
+        throw error;
+      }
 
+      console.log('✅ Post created successfully');
       toast({ title: "Post created successfully!" });
       return true;
     } catch (error) {
-      console.error('Error creating post:', error);
+      console.error('❌ Error creating post:', error);
       toast({ title: "Failed to create post", variant: "destructive" });
       return false;
     }
@@ -192,15 +244,22 @@ export const useSocialPosts = () => {
   // Toggle like on a post
   const toggleLike = async (postId: string) => {
     if (!currentUser) {
+      console.log('⚠️ No current user for like toggle');
       toast({ title: "Please log in to like posts", variant: "destructive" });
       return;
     }
 
     try {
+      console.log('❤️ Toggling like for post:', postId, 'user:', currentUser.user_id);
+      
       const post = posts.find(p => p.id === postId);
-      if (!post) return;
+      if (!post) {
+        console.log('⚠️ Post not found:', postId);
+        return;
+      }
 
       if (post.is_liked) {
+        console.log('💔 Unliking post...');
         // Unlike
         await supabase
           .from('likes')
@@ -208,6 +267,7 @@ export const useSocialPosts = () => {
           .eq('user_id', currentUser.user_id)
           .eq('post_id', postId);
       } else {
+        console.log('❤️ Liking post...');
         // Like
         await supabase
           .from('likes')
@@ -232,8 +292,10 @@ export const useSocialPosts = () => {
             : p
         )
       );
+      
+      console.log('✅ Like toggled successfully');
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error('❌ Error toggling like:', error);
       toast({ title: "Failed to update like", variant: "destructive" });
     }
   };

@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,6 @@ import CreatePostModal from '@/components/social/CreatePostModal';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 
 const Community = () => {
-  const navigate = useNavigate();
   const { 
     posts, 
     loading, 
@@ -23,24 +21,40 @@ const Community = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
+    console.log('🏘️ Community component mounted, fetching discover feed...');
     // Fetch all posts for the community page
     fetchDiscoverFeed();
   }, []);
 
+  useEffect(() => {
+    console.log('📊 Community state update:', {
+      postsCount: posts.length,
+      loading,
+      currentUser: currentUser ? {
+        id: currentUser.id,
+        user_id: currentUser.user_id,
+        name: currentUser.name
+      } : null
+    });
+  }, [posts, loading, currentUser]);
+
   const handleCreatePost = async (imageUrl: string, caption: string) => {
+    console.log('📝 Creating new post in community...');
     const success = await createPost(imageUrl, caption);
     if (success) {
+      console.log('✅ Post created, refreshing feed...');
       fetchDiscoverFeed(); // Refresh all posts
     }
     return success;
   };
 
   const handleComment = (postId: string) => {
-    // Navigate to post detail page
-    navigate(`/post/${postId}`);
+    console.log('💬 Comment action for post:', postId);
+    // Comments are now handled inline in PostCard
   };
 
   if (!currentUser) {
+    console.log('⚠️ No current user, showing login message');
     return (
       <Layout>
         <Header title="Community" />
