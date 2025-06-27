@@ -56,7 +56,7 @@ const Layout = ({ children }: LayoutProps) => {
       </main>
       
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 backdrop-blur-xl bg-white/95 z-50">
         <div className="max-w-md mx-auto px-4 py-2">
           <div className="flex justify-around items-center">
             {navigationItems.map((item) => {
@@ -67,30 +67,18 @@ const Layout = ({ children }: LayoutProps) => {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className="flex flex-col items-center justify-center p-2"
+                  className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
+                    active
+                      ? 'text-sage bg-sage/10'
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                  }`}
                 >
                   <div className="relative">
                     <Icon 
                       size={20} 
-                      className={active ? 'text-transparent bg-gradient-sage bg-clip-text stroke-current' : 'text-gray-400'}
-                      fill="none"
-                      style={active ? {
-                        background: 'linear-gradient(135deg, rgb(34, 197, 94) 0%, rgb(16, 185, 129) 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        stroke: 'url(#gradient)'
-                      } : {}}
+                      fill={active ? 'currentColor' : 'none'}
+                      className={active ? 'stroke-sage' : ''}
                     />
-                    {active && (
-                      <svg width="0" height="0" style={{ position: 'absolute' }}>
-                        <defs>
-                          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="rgb(34, 197, 94)" />
-                            <stop offset="100%" stopColor="rgb(16, 185, 129)" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                    )}
                     {item.path === '/messages' && unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
                         <span className="text-xs text-white font-medium">
@@ -99,9 +87,7 @@ const Layout = ({ children }: LayoutProps) => {
                       </div>
                     )}
                   </div>
-                  <span className={`text-xs mt-1 font-medium ${active ? 'text-transparent bg-gradient-sage bg-clip-text' : 'text-gray-400'}`}>
-                    {item.label}
-                  </span>
+                  <span className="text-xs mt-1 font-medium">{item.label}</span>
                 </button>
               );
             })}
@@ -109,27 +95,23 @@ const Layout = ({ children }: LayoutProps) => {
             {/* Notifications */}
             <button
               onClick={() => navigate('/notifications')}
-              className="flex flex-col items-center justify-center p-2"
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
+                isActive('/notifications')
+                  ? 'text-sage bg-sage/10'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+              }`}
             >
               <div className="relative">
                 <Bell 
                   size={20} 
-                  className={isActive('/notifications') ? 'text-transparent bg-gradient-sage bg-clip-text stroke-current' : 'text-gray-400'}
-                  fill="none"
-                  style={isActive('/notifications') ? {
-                    background: 'linear-gradient(135deg, rgb(34, 197, 94) 0%, rgb(16, 185, 129) 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    stroke: 'url(#gradient)'
-                  } : {}}
+                  fill={isActive('/notifications') ? 'currentColor' : 'none'}
+                  className={isActive('/notifications') ? 'stroke-sage' : ''}
                 />
                 {unreadCount > 0 && (
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 )}
               </div>
-              <span className={`text-xs mt-1 font-medium ${isActive('/notifications') ? 'text-transparent bg-gradient-sage bg-clip-text' : 'text-gray-400'}`}>
-                Alerts
-              </span>
+              <span className="text-xs mt-1 font-medium">Alerts</span>
             </button>
           </div>
         </div>
