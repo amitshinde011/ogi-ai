@@ -39,12 +39,12 @@ export const useComments = (postId: string) => {
 
         if (profile) {
           setCurrentUser({
-            auth_user_id: user.id,
-            profile_id: profile.id, // This is what we need for the foreign key
+            auth_user_id: user.id, // This is what we use for comments (auth.uid())
+            profile_id: profile.id,
             name: profile.name || user.email?.split('@')[0] || 'User',
             profile_photo_url: profile.profile_photo_url
           });
-          console.log('✅ Current user set with profile ID:', profile.id);
+          console.log('✅ Current user set with auth ID:', user.id);
         } else {
           console.log('⚠️ No user profile found, user needs to complete profile setup');
           toast({ 
@@ -93,9 +93,9 @@ export const useComments = (postId: string) => {
 
   // Add a new comment
   const addComment = async (commentText: string) => {
-    if (!currentUser || !currentUser.profile_id) {
-      console.log('⚠️ No current user or profile ID for comment creation');
-      toast({ title: "Please log in and complete your profile to comment", variant: "destructive" });
+    if (!currentUser || !currentUser.auth_user_id) {
+      console.log('⚠️ No current user for comment creation');
+      toast({ title: "Please log in to comment", variant: "destructive" });
       return false;
     }
 
@@ -108,7 +108,7 @@ export const useComments = (postId: string) => {
       console.log('💬 Adding comment:', { 
         postId, 
         commentText, 
-        profileId: currentUser.profile_id,
+        authUserId: currentUser.auth_user_id,
         userName: currentUser.name
       });
 
@@ -116,7 +116,7 @@ export const useComments = (postId: string) => {
         .from('comments')
         .insert({
           post_id: postId,
-          user_id: currentUser.profile_id, // Use profile_id, not auth user_id
+          user_id: currentUser.auth_user_id, // Use auth.uid() directly
           comment_text: commentText.trim()
         })
         .select(`
