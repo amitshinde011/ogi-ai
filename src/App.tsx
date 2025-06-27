@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import Upload from "./pages/Upload";
 import Community from "./pages/Community";
+import Discover from "./pages/Discover";
 import PostDetail from "./pages/PostDetail";
 import Progress from "./pages/Progress";
 import Settings from "./pages/Settings";
@@ -42,6 +43,7 @@ const AppWithAnalytics = () => {
       <Route path="/home" element={<Home />} />
       <Route path="/upload" element={<Upload />} />
       <Route path="/community" element={<Community />} />
+      <Route path="/discover" element={<Discover />} />
       <Route path="/community/post/:id" element={<PostDetail />} />
       <Route path="/progress" element={<Progress />} />
       <Route path="/settings" element={<Settings />} />
