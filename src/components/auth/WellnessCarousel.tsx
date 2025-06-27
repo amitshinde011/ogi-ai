@@ -56,7 +56,7 @@ const WellnessCarousel = () => {
         <CarouselContent>
           {images.map((image, index) => (
             <CarouselItem key={imageIds[index]} className="basis-full">
-              <div className="relative w-full aspect-square sm:aspect-[4/3] md:aspect-[3/2] overflow-hidden rounded-xl sm:rounded-2xl bg-gray-100">
+              <div className="relative w-full aspect-square overflow-hidden rounded-xl sm:rounded-2xl bg-gray-100">
                 {!imageErrors.has(image) ? (
                   <img
                     src={image}
