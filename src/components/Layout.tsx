@@ -67,9 +67,9 @@ const Layout = ({ children }: LayoutProps) => {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className={`flex flex-col items-center justify-center py-2 px-3 rounded-full transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center py-2 px-3 transition-all duration-200 ${
                     active 
-                      ? 'bg-blue-600' 
+                      ? 'bg-blue-600 rounded-full' 
                       : ''
                   }`}
                 >
@@ -98,9 +98,9 @@ const Layout = ({ children }: LayoutProps) => {
             {/* Notifications */}
             <button
               onClick={() => navigate('/notifications')}
-              className={`flex flex-col items-center justify-center py-2 px-3 rounded-full transition-all duration-200 ${
+              className={`flex flex-col items-center justify-center py-2 px-3 transition-all duration-200 ${
                 isActive('/notifications') 
-                  ? 'bg-blue-600' 
+                  ? 'bg-blue-600 rounded-full' 
                   : ''
               }`}
             >
