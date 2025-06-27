@@ -51,8 +51,9 @@ export const useSocialPosts = () => {
         console.log('👤 User profile query result:', { profile, profileError });
 
         const userData = {
-          id: profile?.id,
+          id: profile?.id, // This is the user_profiles.id
           user_id: user.id, // This is the auth.users.id
+          profile_id: profile?.id, // Add this for clarity
           name: profile?.name || user.email?.split('@')[0] || 'User',
           profile_photo_url: profile?.profile_photo_url
         };
@@ -78,13 +79,13 @@ export const useSocialPosts = () => {
 
     try {
       setLoading(true);
-      console.log('🏠 Fetching home feed for user:', currentUser.user_id);
+      console.log('🏠 Fetching home feed for user:', currentUser.profile_id);
       
       // First, get the IDs of users the current user follows
       const { data: followingData, error: followingError } = await supabase
         .from('followers')
         .select('following_id')
-        .eq('follower_id', currentUser.id);
+        .eq('follower_id', currentUser.profile_id);
 
       console.log('👥 Following data:', { followingData, followingError });
 
@@ -125,7 +126,7 @@ export const useSocialPosts = () => {
       const { data: userLikes } = await supabase
         .from('likes')
         .select('post_id')
-        .eq('user_id', currentUser.user_id)
+        .eq('user_id', currentUser.profile_id)
         .in('post_id', postIds);
 
       console.log('❤️ User likes:', userLikes);
@@ -183,12 +184,12 @@ export const useSocialPosts = () => {
 
       // Check which posts current user has liked
       if (currentUser) {
-        console.log('❤️ Checking likes for current user:', currentUser.user_id);
+        console.log('❤️ Checking likes for current user profile_id:', currentUser.profile_id);
         const postIds = posts?.map(p => p.id) || [];
         const { data: userLikes, error: likesError } = await supabase
           .from('likes')
           .select('post_id')
-          .eq('user_id', currentUser.user_id)
+          .eq('user_id', currentUser.profile_id)
           .in('post_id', postIds);
 
         console.log('❤️ User likes query result:', { userLikes, likesError });
@@ -216,8 +217,8 @@ export const useSocialPosts = () => {
 
   // Create a new post
   const createPost = async (imageUrl: string, caption: string, mealType?: string) => {
-    if (!currentUser) {
-      console.log('⚠️ No current user for post creation');
+    if (!currentUser || !currentUser.profile_id) {
+      console.log('⚠️ No current user or profile_id for post creation');
       toast({ title: "Please log in to create posts", variant: "destructive" });
       return false;
     }
@@ -227,13 +228,13 @@ export const useSocialPosts = () => {
         imageUrl, 
         caption, 
         mealType, 
-        userId: currentUser.user_id 
+        profileId: currentUser.profile_id 
       });
       
       const { data, error } = await supabase
         .from('posts')
         .insert({
-          user_id: currentUser.user_id, // Use auth.users.id directly
+          user_id: currentUser.profile_id, // Use user_profiles.id for RLS
           image_url: imageUrl,
           caption: caption.trim() || null,
           meal_type: mealType || null
@@ -260,14 +261,14 @@ export const useSocialPosts = () => {
 
   // Toggle like on a post
   const toggleLike = async (postId: string) => {
-    if (!currentUser) {
+    if (!currentUser || !currentUser.profile_id) {
       console.log('⚠️ No current user for like toggle');
       toast({ title: "Please log in to like posts", variant: "destructive" });
       return;
     }
 
     try {
-      console.log('❤️ Toggling like for post:', postId, 'user:', currentUser.user_id);
+      console.log('❤️ Toggling like for post:', postId, 'user profile_id:', currentUser.profile_id);
       
       const post = posts.find(p => p.id === postId);
       if (!post) {
@@ -281,7 +282,7 @@ export const useSocialPosts = () => {
         const { error } = await supabase
           .from('likes')
           .delete()
-          .eq('user_id', currentUser.user_id)
+          .eq('user_id', currentUser.profile_id)
           .eq('post_id', postId);
 
         if (error) throw error;
@@ -291,7 +292,7 @@ export const useSocialPosts = () => {
         const { error } = await supabase
           .from('likes')
           .insert({
-            user_id: currentUser.user_id,
+            user_id: currentUser.profile_id,
             post_id: postId
           });
 
