@@ -7,6 +7,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
 
 const WellnessCarousel = () => {
   const imageIds = [
@@ -20,10 +21,8 @@ const WellnessCarousel = () => {
     'dc5473c1-f6a0-4e4e-1a86-bc5253d57300'
   ];
 
-  // Convert Cloudflare image IDs to URLs using the correct format
-  const images = imageIds.map(id => 
-    `https://imagedelivery.net/A_Wtx2a2fSW25WEMOQdcw/${id}/w=800,h=800,fit=cover,quality=80`
-  );
+  // Use the utility function to generate proper Cloudflare URLs
+  const images = imageIds.map(id => getCloudflareImageUrl(id));
 
   const [api, setApi] = useState<any>(null);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
