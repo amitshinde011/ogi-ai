@@ -66,58 +66,35 @@ export const useComments = (postId: string) => {
       setLoading(true);
       console.log('💬 Fetching comments for post:', postId);
 
-      // Since comments.user_id now references auth.users.id directly,
-      // we need to join with user_profiles through user_profiles.user_id = comments.user_id
-      const { data: comments, error } = await supabase
+      // First, get all comments for this post
+      const { data: rawComments, error: commentsError } = await supabase
         .from('comments')
-        .select(`
-          *,
-          user_profiles!inner(
-            name,
-            profile_photo_url
-          )
-        `)
+        .select('*')
         .eq('post_id', postId)
-        .eq('user_profiles.user_id', supabase.rpc('auth.uid'))
         .order('created_at', { ascending: true });
 
-      console.log('💬 Comments with inner join result:', { comments, error });
+      console.log('💬 Raw comments result:', { rawComments, commentsError });
 
-      // If inner join fails, try a different approach with manual joining
-      if (error || !comments) {
-        console.log('💬 Trying alternative query approach...');
-        
-        const { data: rawComments, error: rawError } = await supabase
-          .from('comments')
-          .select('*')
-          .eq('post_id', postId)
-          .order('created_at', { ascending: true });
+      if (commentsError) throw commentsError;
 
-        console.log('💬 Raw comments result:', { rawComments, rawError });
+      // Then, fetch user profiles for each comment
+      const commentsWithProfiles = await Promise.all(
+        (rawComments || []).map(async (comment) => {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('name, profile_photo_url')
+            .eq('user_id', comment.user_id)
+            .maybeSingle();
 
-        if (rawError) throw rawError;
+          return {
+            ...comment,
+            user_profiles: profile
+          };
+        })
+      );
 
-        // Manually fetch user profiles for each comment
-        const commentsWithProfiles = await Promise.all(
-          (rawComments || []).map(async (comment) => {
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('name, profile_photo_url')
-              .eq('user_id', comment.user_id)
-              .maybeSingle();
-
-            return {
-              ...comment,
-              user_profiles: profile
-            };
-          })
-        );
-
-        console.log('💬 Comments with manually fetched profiles:', commentsWithProfiles);
-        setComments(commentsWithProfiles);
-      } else {
-        setComments(comments);
-      }
+      console.log('💬 Comments with profiles:', commentsWithProfiles);
+      setComments(commentsWithProfiles);
     } catch (error) {
       console.error('❌ Error fetching comments:', error);
       toast({ title: "Failed to load comments", variant: "destructive" });
