@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, LucideIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface SettingsItem {
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  icon: LucideIcon;
   label: string;
   action?: () => void;
   hasArrow?: boolean;
