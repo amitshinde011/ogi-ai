@@ -30,34 +30,42 @@ export const useSocialPosts = () => {
   const fetchCurrentUser = async () => {
     try {
       console.log('🔍 Fetching current user...');
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('👤 Auth user:', user);
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('👤 Auth user:', { user, authError });
       
+      if (authError) {
+        console.error('❌ Auth error:', authError);
+        return;
+      }
+
       if (user) {
+        console.log('👤 Got authenticated user:', user.id);
+        
+        // Get user profile
         const { data: profile, error: profileError } = await supabase
           .from('user_profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         console.log('👤 User profile query result:', { profile, profileError });
 
-        setCurrentUser({
+        const userData = {
           id: profile?.id,
-          user_id: user.id,
+          user_id: user.id, // This is the auth.users.id
           name: profile?.name || user.email?.split('@')[0] || 'User',
           profile_photo_url: profile?.profile_photo_url
-        });
-        
-        console.log('✅ Current user set:', {
-          id: profile?.id,
-          user_id: user.id,
-          name: profile?.name || user.email?.split('@')[0] || 'User',
-          profile_photo_url: profile?.profile_photo_url
-        });
+        };
+
+        setCurrentUser(userData);
+        console.log('✅ Current user set:', userData);
+      } else {
+        console.log('⚠️ No authenticated user found');
+        setCurrentUser(null);
       }
     } catch (error) {
       console.error('❌ Error fetching current user:', error);
+      setCurrentUser(null);
     }
   };
 
@@ -70,7 +78,7 @@ export const useSocialPosts = () => {
 
     try {
       setLoading(true);
-      console.log('🏠 Fetching home feed for user:', currentUser.id);
+      console.log('🏠 Fetching home feed for user:', currentUser.user_id);
       
       // First, get the IDs of users the current user follows
       const { data: followingData, error: followingError } = await supabase
@@ -215,23 +223,32 @@ export const useSocialPosts = () => {
     }
 
     try {
-      console.log('📝 Creating post:', { imageUrl, caption, mealType, userId: currentUser.user_id });
+      console.log('📝 Creating post with data:', { 
+        imageUrl, 
+        caption, 
+        mealType, 
+        userId: currentUser.user_id 
+      });
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('posts')
         .insert({
-          user_id: currentUser.user_id, // Use user_id from auth.users
+          user_id: currentUser.user_id, // Use auth.users.id directly
           image_url: imageUrl,
           caption: caption.trim() || null,
           meal_type: mealType || null
-        });
+        })
+        .select()
+        .single();
+
+      console.log('📝 Post creation result:', { data, error });
 
       if (error) {
         console.error('❌ Post creation error:', error);
         throw error;
       }
 
-      console.log('✅ Post created successfully');
+      console.log('✅ Post created successfully:', data);
       toast({ title: "Post created successfully!" });
       return true;
     } catch (error) {
@@ -261,20 +278,24 @@ export const useSocialPosts = () => {
       if (post.is_liked) {
         console.log('💔 Unliking post...');
         // Unlike
-        await supabase
+        const { error } = await supabase
           .from('likes')
           .delete()
           .eq('user_id', currentUser.user_id)
           .eq('post_id', postId);
+
+        if (error) throw error;
       } else {
         console.log('❤️ Liking post...');
         // Like
-        await supabase
+        const { error } = await supabase
           .from('likes')
           .insert({
             user_id: currentUser.user_id,
             post_id: postId
           });
+
+        if (error) throw error;
 
         // Create notification for post owner
         await createNotification(post.user_id, 'like', postId);

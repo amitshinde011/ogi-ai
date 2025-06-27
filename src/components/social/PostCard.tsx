@@ -5,6 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SocialPost } from '@/hooks/useSocialPosts';
+import { useComments } from '@/hooks/useComments';
 import { formatDistanceToNow } from 'date-fns';
 
 interface PostCardProps {
@@ -16,6 +17,7 @@ interface PostCardProps {
 const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const { comments, loading: commentsLoading, addComment } = useComments(showComments ? post.id : '');
   
   console.log('🎨 Rendering PostCard for post:', {
     id: post.id,
@@ -43,11 +45,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
     onComment(post.id);
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (!newComment.trim()) return;
+    
     console.log('📝 Adding comment:', newComment, 'to post:', post.id);
-    // TODO: Implement actual comment submission
-    setNewComment('');
+    const success = await addComment(newComment);
+    if (success) {
+      setNewComment('');
+    }
   };
 
   // Generate fallback data
@@ -147,21 +152,33 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
         {/* Comments Section */}
         {showComments && (
           <div className="mt-4 border-t pt-4">
-            <div className="space-y-3 mb-4">
-              {/* Mock comments for now */}
-              <div className="flex items-start space-x-2">
-                <Avatar className="w-6 h-6">
-                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=commenter1`} />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="text-sm">
-                    <span className="font-semibold">user123</span> Great post! 👍
-                  </p>
-                  <p className="text-xs text-gray-500">2h ago</p>
-                </div>
+            {commentsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sage"></div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-3 mb-4">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex items-start space-x-2">
+                    <Avatar className="w-6 h-6">
+                      <AvatarImage src={comment.user_profiles?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_id}`} />
+                      <AvatarFallback>
+                        {(comment.user_profiles?.name || 'U').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="text-sm">
+                        <span className="font-semibold">
+                          {comment.user_profiles?.name || 'Anonymous User'}
+                        </span>{' '}
+                        {comment.comment_text}
+                      </p>
+                      <p className="text-xs text-gray-500">{formatTime(comment.created_at)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             
             {/* Add comment input */}
             <div className="flex items-center space-x-2">
