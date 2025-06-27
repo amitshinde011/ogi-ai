@@ -1,12 +1,33 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { CommunityPost } from '@/hooks/useCommunityFeed';
 import { CommentSection } from './CommentSection';
-import { PostActionSheet } from './PostActionSheet';
-import { EditPostModal } from './EditPostModal';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -19,6 +40,16 @@ interface PostCardProps {
   onUpdatePost: (updatedPost: CommunityPost) => void;
 }
 
+const categories = [
+  'general',
+  'nutrition',
+  'exercise',
+  'meditation',
+  'progress',
+  'recipe',
+  'motivation'
+];
+
 export const PostCard: React.FC<PostCardProps> = ({ 
   post, 
   onLike, 
@@ -27,8 +58,12 @@ export const PostCard: React.FC<PostCardProps> = ({
   onUpdatePost
 }) => {
   const [showComments, setShowComments] = useState(false);
-  const [showActionSheet, setShowActionSheet] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPopover, setShowPopover] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editCaption, setEditCaption] = useState(post.caption || '');
+  const [editCategory, setEditCategory] = useState(post.category || 'general');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isOwner = currentUserId === post.author_id;
 
@@ -38,6 +73,56 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   const getAvatarUrl = (authorId: string, profileUrl?: string | null) => {
     return profileUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authorId}`;
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditCaption(post.caption || '');
+    setEditCategory(post.category || 'general');
+    setShowPopover(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+
+      const { error } = await supabase
+        .from('posts')
+        .update({
+          caption: editCaption.trim() || null,
+          category: editCategory || null
+        })
+        .eq('id', post.id);
+
+      if (error) throw error;
+
+      const updatedPost = {
+        ...post,
+        caption: editCaption.trim() || null,
+        category: editCategory || null
+      };
+
+      onUpdatePost(updatedPost);
+      setIsEditing(false);
+      toast({ title: "Post updated successfully!" });
+    } catch (error) {
+      console.error('Error updating post:', error);
+      toast({ 
+        title: "Failed to update post", 
+        description: "Please try again.",
+        variant: "destructive" 
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditCaption(post.caption || '');
+    setEditCategory(post.category || 'general');
   };
 
   const handleDeletePost = async () => {
@@ -50,6 +135,7 @@ export const PostCard: React.FC<PostCardProps> = ({
       if (error) throw error;
 
       onDeletePost(post.id);
+      setShowDeleteConfirm(false);
       toast({ title: "Post deleted successfully!" });
     } catch (error) {
       console.error('Error deleting post:', error);
@@ -84,14 +170,40 @@ export const PostCard: React.FC<PostCardProps> = ({
           </div>
           
           {isOwner && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="p-2"
-              onClick={() => setShowActionSheet(true)}
-            >
-              <MoreHorizontal size={16} />
-            </Button>
+            <Popover open={showPopover} onOpenChange={setShowPopover}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-2"
+                >
+                  <MoreHorizontal size={16} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-2">
+                <div className="flex flex-col space-y-1">
+                  <Button
+                    variant="ghost"
+                    onClick={handleEdit}
+                    className="flex items-center justify-start space-x-3 h-10 px-3"
+                  >
+                    <Pencil size={16} />
+                    <span>Edit</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setShowDeleteConfirm(true);
+                      setShowPopover(false);
+                    }}
+                    className="flex items-center justify-start space-x-3 h-10 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 size={16} />
+                    <span>Delete</span>
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
         </div>
 
@@ -139,12 +251,55 @@ export const PostCard: React.FC<PostCardProps> = ({
             </p>
           )}
 
-          {/* Caption */}
-          {post.caption && (
-            <p className="text-sm mb-2">
-              <span className="font-semibold">{post.author?.name || 'Anonymous User'}</span>{' '}
-              {post.caption}
-            </p>
+          {/* Caption - Inline Edit or Display */}
+          {isEditing ? (
+            <div className="space-y-3 mb-3">
+              <Textarea
+                value={editCaption}
+                onChange={(e) => setEditCaption(e.target.value)}
+                placeholder="What's on your mind?"
+                rows={3}
+                className="resize-none"
+                disabled={isSubmitting}
+              />
+              <div className="flex items-center space-x-2">
+                <Select value={editCategory} onValueChange={setEditCategory} disabled={isSubmitting}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  onClick={handleSaveEdit}
+                  disabled={isSubmitting}
+                  className="bg-sage hover:bg-sage/90"
+                >
+                  {isSubmitting ? 'Saving...' : 'Save'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            post.caption && (
+              <p className="text-sm mb-2">
+                <span className="font-semibold">{post.author?.name || 'Anonymous User'}</span>{' '}
+                {post.caption}
+              </p>
+            )
           )}
 
           {/* Comment Count */}
@@ -164,21 +319,26 @@ export const PostCard: React.FC<PostCardProps> = ({
         </div>
       </div>
 
-      {/* Action Sheet */}
-      <PostActionSheet
-        isOpen={showActionSheet}
-        onClose={() => setShowActionSheet(false)}
-        onEdit={() => setShowEditModal(true)}
-        onDelete={handleDeletePost}
-      />
-
-      {/* Edit Modal */}
-      <EditPostModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        post={post}
-        onUpdatePost={onUpdatePost}
-      />
+      {/* Delete Confirmation Modal */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Post</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this post? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePost}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
