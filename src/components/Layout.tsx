@@ -69,7 +69,7 @@ const Layout = ({ children }: LayoutProps) => {
                   onClick={() => navigate(item.path)}
                   className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
                     active
-                      ? 'text-blue-600'
+                      ? 'text-slate-900'
                       : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
@@ -87,7 +87,7 @@ const Layout = ({ children }: LayoutProps) => {
                       </div>
                     )}
                   </div>
-                  <span className={`text-xs mt-1 font-medium ${active ? 'text-blue-600' : 'text-slate-400'}`}>
+                  <span className={`text-xs mt-1 font-medium ${active ? 'text-slate-900' : 'text-slate-400'}`}>
                     {item.label}
                   </span>
                 </button>
@@ -99,7 +99,7 @@ const Layout = ({ children }: LayoutProps) => {
               onClick={() => navigate('/notifications')}
               className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
                 isActive('/notifications')
-                  ? 'text-blue-600'
+                  ? 'text-slate-900'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -113,7 +113,7 @@ const Layout = ({ children }: LayoutProps) => {
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 )}
               </div>
-              <span className={`text-xs mt-1 font-medium ${isActive('/notifications') ? 'text-blue-600' : 'text-slate-400'}`}>
+              <span className={`text-xs mt-1 font-medium ${isActive('/notifications') ? 'text-slate-900' : 'text-slate-400'}`}>
                 Alerts
               </span>
             </button>
