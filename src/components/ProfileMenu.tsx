@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, TrendingUp } from 'lucide-react';
+import { Settings, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Popover,
@@ -16,7 +16,7 @@ const ProfileMenu = ({ children }: ProfileMenuProps) => {
   const navigate = useNavigate();
 
   const menuItems = [
-    { icon: TrendingUp, label: 'Progress', path: '/progress' },
+    { icon: Search, label: 'Progress', path: '/progress' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
@@ -35,7 +35,7 @@ const ProfileMenu = ({ children }: ProfileMenuProps) => {
                 onClick={() => navigate(item.path)}
                 className="flex items-center w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
               >
-                <Icon className="w-4 h-4 mr-3 text-slate-500" />
+                <Icon size={18} strokeWidth={1.5} className="mr-3 text-slate-500" />
                 {item.label}
               </button>
             );

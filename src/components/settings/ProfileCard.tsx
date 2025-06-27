@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Edit } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -39,7 +39,7 @@ const ProfileCard = ({ userProfile }: ProfileCardProps) => {
               onClick={() => navigate('/profile-edit')}
               className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg"
             >
-              <Edit size={14} />
+              <Pencil size={16} strokeWidth={1.5} />
             </Button>
           </div>
           <div className="flex-1 min-w-0">

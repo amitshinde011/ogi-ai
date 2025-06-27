@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Camera, Users, Search, MessageCircle, Bell, User, ChefHat } from 'lucide-react';
+import { Home, Search, Users, MessageSquare, Bell, UserCircle2, CookingPot } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -16,9 +16,9 @@ const Layout = ({ children }: LayoutProps) => {
   const navigationItems = [
     { icon: Home, path: '/home', label: 'Home' },
     { icon: Search, path: '/discover', label: 'Discover' },
-    { icon: ChefHat, path: '/recipes', label: 'Recipes' },
+    { icon: CookingPot, path: '/recipes', label: 'Recipes' },
     { icon: Users, path: '/community', label: 'Community' },
-    { icon: MessageCircle, path: '/messages', label: 'Messages' },
+    { icon: MessageSquare, path: '/messages', label: 'Messages' },
   ];
 
   const isActive = (path: string) => {
@@ -53,7 +53,7 @@ const Layout = ({ children }: LayoutProps) => {
                   }`}
                 >
                   <div className="relative">
-                    <Icon size={20} />
+                    <Icon size={24} strokeWidth={1.5} />
                     {item.path === '/messages' && unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
                         <span className="text-xs text-white font-medium">
@@ -77,7 +77,7 @@ const Layout = ({ children }: LayoutProps) => {
               }`}
             >
               <div className="relative">
-                <Bell size={20} />
+                <Bell size={24} strokeWidth={1.5} />
                 {unreadCount > 0 && (
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 )}

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Loader2 } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 
 interface PaymentButtonProps {
   onClick: () => void;
@@ -25,12 +25,12 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     >
       {loading ? (
         <>
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          <div className="w-4 h-4 mr-2 animate-spin rounded-full border-b-2 border-white" />
           Processing...
         </>
       ) : (
         <>
-          <CreditCard className="w-4 h-4 mr-2" />
+          <CreditCard size={18} strokeWidth={1.5} className="mr-2" />
           Pay {currencySymbol}{displayPrice}
         </>
       )}

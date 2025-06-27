@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share, Send } from 'lucide-react';
+import { Heart, MessageSquare, Plus } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -101,7 +101,9 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
             }`}
           >
             <Heart 
-              className={`w-6 h-6 ${post.is_liked ? 'fill-current' : ''}`} 
+              size={24}
+              strokeWidth={1.5}
+              className={post.is_liked ? 'fill-current' : ''} 
             />
           </Button>
           <Button
@@ -110,14 +112,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
             onClick={handleCommentClick}
             className="p-0 h-auto hover:bg-transparent text-gray-700"
           >
-            <MessageCircle className="w-6 h-6" />
+            <MessageSquare size={24} strokeWidth={1.5} />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             className="p-0 h-auto hover:bg-transparent text-gray-700"
           >
-            <Share className="w-6 h-6" />
+            <Plus size={24} strokeWidth={1.5} />
           </Button>
         </div>
 
@@ -200,7 +202,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
                   disabled={!newComment.trim()}
                   className="px-3 py-1"
                 >
-                  <Send size={14} />
+                  <Plus size={16} strokeWidth={1.5} />
                 </Button>
               </div>
             </div>
