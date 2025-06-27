@@ -69,27 +69,37 @@ export type Database = {
       }
       comments: {
         Row: {
-          comment_text: string
+          author_id: string | null
           created_at: string | null
-          id: string
-          post_id: string
-          user_id: string
+          id: number
+          parent_comment_id: number | null
+          post_id: number | null
+          text: string
         }
         Insert: {
-          comment_text: string
+          author_id?: string | null
           created_at?: string | null
-          id?: string
-          post_id: string
-          user_id: string
+          id?: never
+          parent_comment_id?: number | null
+          post_id?: number | null
+          text: string
         }
         Update: {
-          comment_text?: string
+          author_id?: string | null
           created_at?: string | null
-          id?: string
-          post_id?: string
-          user_id?: string
+          id?: never
+          parent_comment_id?: number | null
+          post_id?: number | null
+          text?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]
@@ -98,160 +108,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      community_comments: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          post_id: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          post_id: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          post_id?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "community_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      community_post_comments: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          parent_comment_id: string | null
-          post_id: string
-          updated_at: string
-          user_avatar: string | null
-          user_id: string
-          user_name: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          parent_comment_id?: string | null
-          post_id: string
-          updated_at?: string
-          user_avatar?: string | null
-          user_id: string
-          user_name?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          parent_comment_id?: string | null
-          post_id?: string
-          updated_at?: string
-          user_avatar?: string | null
-          user_id?: string
-          user_name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_post_comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "community_post_comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "community_post_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "community_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      community_post_likes: {
-        Row: {
-          created_at: string
-          id: string
-          post_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          post_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          post_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_post_likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "community_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      community_posts: {
-        Row: {
-          comments_count: number | null
-          content: string
-          created_at: string
-          id: string
-          image_url: string | null
-          likes_count: number | null
-          updated_at: string
-          user_id: string
-          user_name: string | null
-          user_profile_picture_url: string | null
-        }
-        Insert: {
-          comments_count?: number | null
-          content: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          likes_count?: number | null
-          updated_at?: string
-          user_id: string
-          user_name?: string | null
-          user_profile_picture_url?: string | null
-        }
-        Update: {
-          comments_count?: number | null
-          content?: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          likes_count?: number | null
-          updated_at?: string
-          user_id?: string
-          user_name?: string | null
-          user_profile_picture_url?: string | null
-        }
-        Relationships: []
       }
       conversation_participants: {
         Row: {
@@ -512,17 +368,17 @@ export type Database = {
       likes: {
         Row: {
           created_at: string | null
-          post_id: string
+          post_id: number
           user_id: string
         }
         Insert: {
           created_at?: string | null
-          post_id: string
+          post_id: number
           user_id: string
         }
         Update: {
           created_at?: string | null
-          post_id?: string
+          post_id?: number
           user_id?: string
         }
         Relationships: [
@@ -637,13 +493,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "notifications_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "notifications_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
@@ -711,34 +560,34 @@ export type Database = {
       }
       posts: {
         Row: {
+          author_id: string | null
           caption: string | null
-          comment_count: number | null
+          category: string | null
+          comment_count: number
           created_at: string | null
-          id: string
+          id: number
           image_url: string
-          like_count: number | null
-          meal_type: string | null
-          user_id: string
+          like_count: number
         }
         Insert: {
+          author_id?: string | null
           caption?: string | null
-          comment_count?: number | null
+          category?: string | null
+          comment_count?: number
           created_at?: string | null
-          id?: string
+          id?: never
           image_url: string
-          like_count?: number | null
-          meal_type?: string | null
-          user_id: string
+          like_count?: number
         }
         Update: {
+          author_id?: string | null
           caption?: string | null
-          comment_count?: number | null
+          category?: string | null
+          comment_count?: number
           created_at?: string | null
-          id?: string
+          id?: never
           image_url?: string
-          like_count?: number | null
-          meal_type?: string | null
-          user_id?: string
+          like_count?: number
         }
         Relationships: []
       }

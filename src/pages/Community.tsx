@@ -1,12 +1,12 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
-import PostCard from '@/components/social/PostCard';
-import CreatePostModal from '@/components/social/CreatePostModal';
-import { useSocialPosts } from '@/hooks/useSocialPosts';
+import { PostCard } from '@/components/community/PostCard';
+import { CreatePostModal } from '@/components/community/CreatePostModal';
+import { useCommunityFeed } from '@/hooks/useCommunityFeed';
 
 const Community = () => {
   const { 
@@ -14,47 +14,17 @@ const Community = () => {
     loading, 
     currentUser, 
     createPost, 
-    toggleLike, 
-    fetchDiscoverFeed 
-  } = useSocialPosts();
+    toggleLike 
+  } = useCommunityFeed();
   
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  useEffect(() => {
-    console.log('🏘️ Community component mounted, fetching discover feed...');
-    // Fetch all posts for the community page
-    fetchDiscoverFeed();
-  }, []);
-
-  useEffect(() => {
-    console.log('📊 Community state update:', {
-      postsCount: posts.length,
-      loading,
-      currentUser: currentUser ? {
-        id: currentUser.id,
-        user_id: currentUser.user_id,
-        name: currentUser.name
-      } : null
-    });
-  }, [posts, loading, currentUser]);
-
-  const handleCreatePost = async (imageUrl: string, caption: string) => {
-    console.log('📝 Creating new post in community...');
-    const success = await createPost(imageUrl, caption);
-    if (success) {
-      console.log('✅ Post created, refreshing feed...');
-      fetchDiscoverFeed(); // Refresh all posts
-    }
+  const handleCreatePost = async (imageUrl: string, caption: string, category?: string) => {
+    const success = await createPost(imageUrl, caption, category);
     return success;
   };
 
-  const handleComment = (postId: string) => {
-    console.log('💬 Comment action for post:', postId);
-    // Comments are now handled inline in PostCard
-  };
-
   if (!currentUser) {
-    console.log('⚠️ No current user, showing login message');
     return (
       <Layout>
         <Header title="Community" />
@@ -92,13 +62,13 @@ const Community = () => {
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-0">
             {posts.map((post) => (
               <PostCard
                 key={post.id}
                 post={post}
                 onLike={toggleLike}
-                onComment={handleComment}
+                currentUserId={currentUser.id}
               />
             ))}
           </div>
@@ -110,7 +80,6 @@ const Community = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreatePost={handleCreatePost}
-        showMealTypeSelection={false}
       />
     </Layout>
   );

@@ -1,27 +1,11 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
-import PostCard from '@/components/social/PostCard';
-import { useSocialPosts } from '@/hooks/useSocialPosts';
+import { useCommunityFeed } from '@/hooks/useCommunityFeed';
 
 const Discover = () => {
-  const { 
-    posts, 
-    loading, 
-    currentUser, 
-    toggleLike, 
-    fetchDiscoverFeed 
-  } = useSocialPosts();
-
-  useEffect(() => {
-    fetchDiscoverFeed();
-  }, []);
-
-  const handleComment = (postId: string) => {
-    // TODO: Navigate to post detail page or open comments modal
-    console.log('Comment on post:', postId);
-  };
+  const { posts, loading } = useCommunityFeed();
 
   return (
     <Layout>
@@ -47,7 +31,6 @@ const Discover = () => {
                   src={post.image_url} 
                   alt="Post" 
                   className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => handleComment(post.id)}
                 />
               </div>
             ))}
