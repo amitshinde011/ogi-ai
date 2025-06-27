@@ -91,13 +91,19 @@ export const useMessages = () => {
             .single();
 
           // Get last message
-          const { data: lastMessage } = await supabase
+          const { data: lastMessageData } = await supabase
             .from('messages')
             .select('*')
             .eq('conversation_id', participant.conversation_id)
             .order('created_at', { ascending: false })
             .limit(1)
             .single();
+
+          // Create proper lastMessage object with isFromCurrentUser property
+          const lastMessage = lastMessageData ? {
+            ...lastMessageData,
+            isFromCurrentUser: lastMessageData.sender_id === currentUser.id
+          } : undefined;
 
           return {
             id: participant.conversations.id,
@@ -171,7 +177,7 @@ export const useMessages = () => {
             const newMessage = {
               ...payload.new,
               isFromCurrentUser: payload.new.sender_id === currentUser.id
-            };
+            } as Message;
             setMessages(prev => [...prev, newMessage]);
           }
         )
