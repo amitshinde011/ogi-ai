@@ -5,8 +5,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useComments } from '@/hooks/useComments';
-import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
+import { CommentItem } from './CommentItem';
 
 interface CommentSectionProps {
   postId: number;
@@ -14,7 +14,7 @@ interface CommentSectionProps {
 }
 
 export const CommentSection: React.FC<CommentSectionProps> = ({ postId, currentUserId }) => {
-  const { comments, loading, addComment } = useComments(postId);
+  const { comments, loading, addComment, refreshComments } = useComments(postId);
   const { userProfile, user } = useAuth();
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,8 +34,14 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, currentU
     return profileUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authorId}`;
   };
 
-  const formatTime = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+  const handleDeleteComment = (commentId: number) => {
+    // Comment will be removed via real-time updates
+    refreshComments();
+  };
+
+  const handleUpdateComment = (commentId: number, newText: string) => {
+    // Comment will be updated via real-time updates
+    refreshComments();
   };
 
   return (
@@ -48,28 +54,13 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, currentU
       ) : (
         <div className="space-y-3 mb-3">
           {comments.map((comment) => (
-            <div key={comment.id} className="flex items-start space-x-2">
-              <Avatar className="w-6 h-6">
-                <AvatarImage 
-                  src={getAvatarUrl(comment.author_id, comment.author?.profile_photo_url)}
-                  alt={comment.author?.name || 'User'}
-                />
-                <AvatarFallback>
-                  {(comment.author?.name || 'U').charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="text-sm">
-                  <span className="font-semibold">
-                    {comment.author?.name || 'Anonymous User'}
-                  </span>{' '}
-                  {comment.text}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {formatTime(comment.created_at)}
-                </p>
-              </div>
-            </div>
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              currentUserId={currentUserId}
+              onDelete={handleDeleteComment}
+              onUpdate={handleUpdateComment}
+            />
           ))}
         </div>
       )}

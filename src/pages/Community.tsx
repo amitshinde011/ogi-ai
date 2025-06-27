@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import Layout from '@/components/Layout';
@@ -6,7 +5,7 @@ import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { PostCard } from '@/components/community/PostCard';
 import { CreatePostModal } from '@/components/community/CreatePostModal';
-import { useCommunityFeed } from '@/hooks/useCommunityFeed';
+import { useCommunityFeed, CommunityPost } from '@/hooks/useCommunityFeed';
 import { useAuth } from '@/hooks/useAuth';
 
 const Community = () => {
@@ -14,18 +13,38 @@ const Community = () => {
     posts, 
     loading, 
     createPost, 
-    toggleLike 
+    toggleLike,
+    refreshPosts
   } = useCommunityFeed();
   
   const { user, isAuthenticated } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [localPosts, setLocalPosts] = useState<CommunityPost[]>([]);
+
+  // Keep local posts in sync with the hook's posts
+  React.useEffect(() => {
+    setLocalPosts(posts);
+  }, [posts]);
 
   const handleCreatePost = async (imageUrl: string, caption: string, category?: string) => {
     const success = await createPost(imageUrl, caption, category);
     if (success) {
       setShowCreateModal(false);
+      refreshPosts();
     }
     return success;
+  };
+
+  const handleDeletePost = (postId: number) => {
+    setLocalPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+  };
+
+  const handleUpdatePost = (updatedPost: CommunityPost) => {
+    setLocalPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === updatedPost.id ? updatedPost : post
+      )
+    );
   };
 
   if (!isAuthenticated || !user) {
@@ -58,7 +77,7 @@ const Community = () => {
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
           </div>
-        ) : posts.length === 0 ? (
+        ) : localPosts.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 mb-4">No posts yet</p>
             <p className="text-sm text-gray-400">
@@ -67,12 +86,14 @@ const Community = () => {
           </div>
         ) : (
           <div className="space-y-0">
-            {posts.map((post) => (
+            {localPosts.map((post) => (
               <PostCard
                 key={post.id}
                 post={post}
                 onLike={toggleLike}
                 currentUserId={user.id}
+                onDeletePost={handleDeletePost}
+                onUpdatePost={handleUpdatePost}
               />
             ))}
           </div>
