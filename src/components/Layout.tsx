@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Search, MessageCircle, Bell, ChefHat, Users } from 'lucide-react';
+import { Home, Camera, Users, Search, MessageCircle, Bell, User, ChefHat } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -14,32 +14,11 @@ const Layout = ({ children }: LayoutProps) => {
   const { unreadCount } = useNotifications();
 
   const navigationItems = [
-    { 
-      icon: Home, 
-      path: '/home', 
-      label: 'Home',
-      activeIcon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
-    },
-    { 
-      icon: Search, 
-      path: '/discover', 
-      label: 'Discover'
-    },
-    { 
-      icon: ChefHat, 
-      path: '/recipes', 
-      label: 'Recipes'
-    },
-    { 
-      icon: Users, 
-      path: '/community', 
-      label: 'Community'
-    },
-    { 
-      icon: MessageCircle, 
-      path: '/messages', 
-      label: 'Messages'
-    },
+    { icon: Home, path: '/home', label: 'Home' },
+    { icon: Search, path: '/discover', label: 'Discover' },
+    { icon: ChefHat, path: '/recipes', label: 'Recipes' },
+    { icon: Users, path: '/community', label: 'Community' },
+    { icon: MessageCircle, path: '/messages', label: 'Messages' },
   ];
 
   const isActive = (path: string) => {
@@ -74,11 +53,7 @@ const Layout = ({ children }: LayoutProps) => {
                   }`}
                 >
                   <div className="relative">
-                    <Icon 
-                      size={20} 
-                      fill={active ? 'currentColor' : 'none'}
-                      className={active ? 'stroke-sage' : ''}
-                    />
+                    <Icon size={20} />
                     {item.path === '/messages' && unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
                         <span className="text-xs text-white font-medium">
@@ -102,11 +77,7 @@ const Layout = ({ children }: LayoutProps) => {
               }`}
             >
               <div className="relative">
-                <Bell 
-                  size={20} 
-                  fill={isActive('/notifications') ? 'currentColor' : 'none'}
-                  className={isActive('/notifications') ? 'stroke-sage' : ''}
-                />
+                <Bell size={20} />
                 {unreadCount > 0 && (
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 )}
