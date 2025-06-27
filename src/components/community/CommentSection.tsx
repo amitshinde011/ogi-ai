@@ -37,14 +37,14 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, currentU
   };
 
   return (
-    <div className="mt-4 border-t pt-4">
+    <div className="mt-3 border-t pt-3">
       {/* Comments List */}
       {loading ? (
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sage"></div>
         </div>
       ) : (
-        <div className="space-y-3 mb-4">
+        <div className="space-y-3 mb-3">
           {comments.map((comment) => (
             <div key={comment.id} className="flex items-start space-x-2">
               <Avatar className="w-6 h-6">
