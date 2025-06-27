@@ -54,7 +54,25 @@ export const useSocialPosts = () => {
     try {
       setLoading(true);
       
-      // Get posts from users the current user follows
+      // First, get the IDs of users the current user follows
+      const { data: followingData, error: followingError } = await supabase
+        .from('followers')
+        .select('following_id')
+        .eq('follower_id', currentUser.id);
+
+      if (followingError) throw followingError;
+
+      // Extract the following IDs into an array
+      const followingIds = followingData?.map(f => f.following_id) || [];
+      
+      // If no following users, show empty feed
+      if (followingIds.length === 0) {
+        setPosts([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get posts from followed users
       const { data: posts, error } = await supabase
         .from('posts')
         .select(`
@@ -64,13 +82,7 @@ export const useSocialPosts = () => {
             profile_photo_url
           )
         `)
-        .in('user_id', 
-          // Subquery to get followed user IDs
-          supabase
-            .from('followers')
-            .select('following_id')
-            .eq('follower_id', currentUser.id)
-        )
+        .in('user_id', followingIds)
         .order('created_at', { ascending: false })
         .limit(20);
 
