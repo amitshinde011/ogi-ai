@@ -5,11 +5,11 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 
 export interface SocialPost {
-  id: string;
-  user_id: string;
+  id: number; // Changed from string to number (bigint)
+  author_id: string; // Changed from user_id to author_id
   image_url: string;
   caption: string | null;
-  meal_type: string | null;
+  category: string | null; // Changed from meal_type to category
   like_count: number;
   comment_count: number;
   created_at: string;
@@ -102,17 +102,15 @@ export const useSocialPosts = () => {
         return;
       }
 
-      // Get posts from followed users
+      // Get posts from followed users - note: posts.author_id references auth.users(id)
+      // but we need to join with user_profiles for display data
       const { data: posts, error } = await supabase
         .from('posts')
         .select(`
           *,
-          user_profiles!posts_user_id_fkey (
-            name,
-            profile_photo_url
-          )
+          user_profiles!inner(name, profile_photo_url, user_id)
         `)
-        .in('user_id', followingIds)
+        .in('author_id', followingIds)
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -157,27 +155,12 @@ export const useSocialPosts = () => {
         .from('posts')
         .select(`
           *,
-          user_profiles!posts_user_id_fkey (
-            name,
-            profile_photo_url
-          )
+          user_profiles!inner(name, profile_photo_url, user_id)
         `)
         .order('created_at', { ascending: false })
         .limit(50);
 
       console.log('📋 Discover posts query result:', { posts, error, count: posts?.length });
-      
-      if (posts) {
-        posts.forEach((post, index) => {
-          console.log(`📝 Post ${index + 1}:`, {
-            id: post.id,
-            user_id: post.user_id,
-            caption: post.caption?.substring(0, 50) + '...',
-            user_profiles: post.user_profiles,
-            created_at: post.created_at
-          });
-        });
-      }
 
       if (error) throw error;
 
@@ -215,7 +198,7 @@ export const useSocialPosts = () => {
   };
 
   // Create a new post
-  const createPost = async (imageUrl: string, caption: string, mealType?: string) => {
+  const createPost = async (imageUrl: string, caption: string, category?: string) => {
     if (!currentUser || !currentUser.auth_id) {
       console.log('⚠️ No current user or auth_id for post creation');
       toast({ title: "Please log in to create posts", variant: "destructive" });
@@ -226,17 +209,17 @@ export const useSocialPosts = () => {
       console.log('📝 Creating post with data:', { 
         imageUrl, 
         caption, 
-        mealType, 
+        category, 
         authId: currentUser.auth_id 
       });
       
       const { data, error } = await supabase
         .from('posts')
         .insert({
-          user_id: currentUser.auth_id, // Use auth.users.id for RLS
+          author_id: currentUser.auth_id, // Use auth.users.id for RLS
           image_url: imageUrl,
           caption: caption.trim() || null,
-          meal_type: mealType || null
+          category: category || null
         })
         .select()
         .single();
@@ -259,7 +242,7 @@ export const useSocialPosts = () => {
   };
 
   // Toggle like on a post
-  const toggleLike = async (postId: string) => {
+  const toggleLike = async (postId: number) => {
     if (!currentUser || !currentUser.auth_id) {
       console.log('⚠️ No current user for like toggle');
       toast({ title: "Please log in to like posts", variant: "destructive" });
@@ -299,7 +282,7 @@ export const useSocialPosts = () => {
 
         // Create notification for post owner if we have their profile_id
         if (currentUser.profile_id) {
-          await createNotification(post.user_id, 'like', postId);
+          await createNotification(post.author_id, 'like', postId.toString());
         }
       }
 
