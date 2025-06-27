@@ -102,15 +102,21 @@ export const useSocialPosts = () => {
         return;
       }
 
-      // Get posts from followed users - note: posts.author_id references auth.users(id)
-      // but we need to join with user_profiles for display data
+      // Get user_ids from user_profiles for the following_ids
+      const { data: userProfiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, name, profile_photo_url')
+        .in('id', followingIds);
+
+      if (profilesError) throw profilesError;
+
+      const followingUserIds = userProfiles?.map(p => p.user_id) || [];
+
+      // Get posts from followed users using their auth user_ids
       const { data: posts, error } = await supabase
         .from('posts')
-        .select(`
-          *,
-          user_profiles!inner(name, profile_photo_url, user_id)
-        `)
-        .in('author_id', followingIds)
+        .select('*')
+        .in('author_id', followingUserIds)
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -118,12 +124,20 @@ export const useSocialPosts = () => {
 
       if (error) throw error;
 
+      // Create a map of user_id to profile data
+      const profileMap = new Map(
+        userProfiles?.map(profile => [
+          profile.user_id, 
+          { name: profile.name, profile_photo_url: profile.profile_photo_url }
+        ]) || []
+      );
+
       // Check which posts current user has liked
       const postIds = posts?.map(p => p.id) || [];
       const { data: userLikes } = await supabase
         .from('likes')
         .select('post_id')
-        .eq('user_id', currentUser.auth_id) // Use auth_id for likes
+        .eq('user_id', currentUser.auth_id)
         .in('post_id', postIds);
 
       console.log('❤️ User likes:', userLikes);
@@ -132,6 +146,7 @@ export const useSocialPosts = () => {
 
       const postsWithLikes = posts?.map(post => ({
         ...post,
+        user_profiles: profileMap.get(post.author_id) || { name: null, profile_photo_url: null },
         is_liked: likedPostIds.has(post.id)
       })) || [];
 
@@ -151,18 +166,37 @@ export const useSocialPosts = () => {
       setLoading(true);
       console.log('🌐 Fetching discover feed (all posts)...');
       
+      // Get all posts
       const { data: posts, error } = await supabase
         .from('posts')
-        .select(`
-          *,
-          user_profiles!inner(name, profile_photo_url, user_id)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
       console.log('📋 Discover posts query result:', { posts, error, count: posts?.length });
 
       if (error) throw error;
+
+      // Get all unique author_ids
+      const authorIds = [...new Set(posts?.map(p => p.author_id) || [])];
+
+      // Get user profiles for all authors
+      const { data: userProfiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, name, profile_photo_url')
+        .in('user_id', authorIds);
+
+      if (profilesError) {
+        console.error('Error fetching user profiles:', profilesError);
+      }
+
+      // Create a map of user_id to profile data
+      const profileMap = new Map(
+        userProfiles?.map(profile => [
+          profile.user_id,
+          { name: profile.name, profile_photo_url: profile.profile_photo_url }
+        ]) || []
+      );
 
       // Check which posts current user has liked
       if (currentUser) {
@@ -171,7 +205,7 @@ export const useSocialPosts = () => {
         const { data: userLikes, error: likesError } = await supabase
           .from('likes')
           .select('post_id')
-          .eq('user_id', currentUser.auth_id) // Use auth_id for likes
+          .eq('user_id', currentUser.auth_id)
           .in('post_id', postIds);
 
         console.log('❤️ User likes query result:', { userLikes, likesError });
@@ -180,6 +214,7 @@ export const useSocialPosts = () => {
 
         const postsWithLikes = posts?.map(post => ({
           ...post,
+          user_profiles: profileMap.get(post.author_id) || { name: null, profile_photo_url: null },
           is_liked: likedPostIds.has(post.id)
         })) || [];
 
@@ -187,7 +222,11 @@ export const useSocialPosts = () => {
         setPosts(postsWithLikes);
       } else {
         console.log('⚠️ No current user, setting posts without like status');
-        setPosts(posts || []);
+        const postsWithProfiles = posts?.map(post => ({
+          ...post,
+          user_profiles: profileMap.get(post.author_id) || { name: null, profile_photo_url: null }
+        })) || [];
+        setPosts(postsWithProfiles);
       }
     } catch (error) {
       console.error('❌ Error fetching discover feed:', error);
