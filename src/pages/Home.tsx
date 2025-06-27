@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -14,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/hooks/useAuth';
+import { useWellnessTracking } from '@/hooks/useWellnessTracking';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -28,6 +28,9 @@ const Home = () => {
   });
   const [weeklyStreak, setWeeklyStreak] = useState<boolean[]>([]);
   const { isCompleted, completedSubscription } = useProgramCompletion();
+  
+  // Use wellness tracking hook
+  const { wellnessData, loading: wellnessLoading, updateWellnessData } = useWellnessTracking();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -127,6 +130,21 @@ const Home = () => {
     }
   };
 
+  // Wellness tracker handlers
+  const handleWaterChange = async (delta: number) => {
+    const newValue = Math.max(0, wellnessData.water_litres + delta);
+    await updateWellnessData({ water_litres: newValue });
+  };
+
+  const handleSuryaNamaskarChange = async (delta: number) => {
+    const newValue = Math.max(0, wellnessData.surya_namaskar_count + delta);
+    await updateWellnessData({ surya_namaskar_count: newValue });
+  };
+
+  const handleMeditationToggle = async () => {
+    await updateWellnessData({ meditation_completed: !wellnessData.meditation_completed });
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
@@ -165,7 +183,15 @@ const Home = () => {
 
         <StepTracker />
 
-        <WellnessTracker />
+        <WellnessTracker 
+          waterLitres={wellnessData.water_litres}
+          suryaNamaskarCount={wellnessData.surya_namaskar_count}
+          meditationCompleted={wellnessData.meditation_completed}
+          onWaterChange={handleWaterChange}
+          onSuryaNamaskarChange={handleSuryaNamaskarChange}
+          onMeditationToggle={handleMeditationToggle}
+          loading={wellnessLoading}
+        />
 
         <QuickActions />
 
