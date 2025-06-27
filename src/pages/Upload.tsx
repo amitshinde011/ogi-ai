@@ -89,19 +89,18 @@ const Upload = () => {
 
       console.log('✅ Image uploaded successfully:', uploadResult.imageUrl);
 
-      const mealName = selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1);
       const postCaption = description || `Just had my ${selectedMeal}! 🍽️`;
 
       console.log('📝 Creating post with auth user_id:', currentUser.auth_id);
 
-      // Create the post in posts table using auth user ID for RLS
+      // Create the post in posts table using the new schema
       const { error: postError } = await supabase
         .from('posts')
         .insert({
-          user_id: currentUser.auth_id, // Use auth.users.id for RLS compatibility
+          author_id: currentUser.auth_id, // Use author_id instead of user_id
           image_url: uploadResult.imageUrl,
           caption: postCaption,
-          meal_type: selectedMeal
+          category: selectedMeal // Use category instead of meal_type
         });
 
       if (postError) {
