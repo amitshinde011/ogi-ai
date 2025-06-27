@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { Home, Search, Users, MessageSquare, Bell, UserCircle2, CookingPot, TrendingUp, Settings } from 'lucide-react';
+import { Home, CookingPot, Users, TrendingUp, Settings } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
-import ProfileMenu from '@/components/ProfileMenu';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -58,16 +57,6 @@ const Layout = ({ children }: LayoutProps) => {
                 </button>
               );
             })}
-            
-            {/* Profile Menu */}
-            <ProfileMenu>
-              <button
-                className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 text-slate-500 hover:text-slate-700 hover:bg-slate-100`}
-              >
-                <UserCircle2 size={24} strokeWidth={1.5} />
-                <span className="text-xs mt-1 font-medium">Profile</span>
-              </button>
-            </ProfileMenu>
           </div>
         </div>
       </nav>
