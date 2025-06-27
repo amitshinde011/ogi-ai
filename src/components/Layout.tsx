@@ -69,7 +69,10 @@ const Layout = ({ children }: LayoutProps) => {
                   className="flex flex-col items-center justify-center p-2"
                 >
                   <div className="relative">
-                    <Icon size={20} />
+                    <Icon 
+                      size={20} 
+                      className={active ? 'text-primary' : 'text-gray-400'}
+                    />
                     {item.path === '/messages' && unreadCount > 0 && (
                       <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
                         <span className="text-xs text-white font-medium">
@@ -78,7 +81,7 @@ const Layout = ({ children }: LayoutProps) => {
                       </div>
                     )}
                   </div>
-                  <span className="text-xs mt-1">
+                  <span className={`text-xs mt-1 ${active ? 'text-primary' : 'text-gray-400'}`}>
                     {item.label}
                   </span>
                 </button>
@@ -91,12 +94,15 @@ const Layout = ({ children }: LayoutProps) => {
               className="flex flex-col items-center justify-center p-2"
             >
               <div className="relative">
-                <Bell size={20} />
+                <Bell 
+                  size={20} 
+                  className={isActive('/notifications') ? 'text-primary' : 'text-gray-400'}
+                />
                 {unreadCount > 0 && (
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 )}
               </div>
-              <span className="text-xs mt-1">
+              <span className={`text-xs mt-1 ${isActive('/notifications') ? 'text-primary' : 'text-gray-400'}`}>
                 Alerts
               </span>
             </button>
