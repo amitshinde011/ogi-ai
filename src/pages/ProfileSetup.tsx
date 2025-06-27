@@ -7,7 +7,6 @@ import ProfileSetupHeader from '@/components/profile-setup/ProfileSetupHeader';
 import BasicInfoFields from '@/components/profile-setup/BasicInfoFields';
 import PhysicalActivitySection from '@/components/profile-setup/PhysicalActivitySection';
 import HealthIssuesField from '@/components/profile-setup/HealthIssuesField';
-import EncouragingMessage from '@/components/EncouragingMessage';
 import { useProfileSetup } from '@/hooks/useProfileSetup';
 
 const ProfileSetup = () => {
@@ -23,9 +22,20 @@ const ProfileSetup = () => {
     handleSubmit
   } = useProfileSetup();
 
-  const [encouragingMessage, setEncouragingMessage] = useState<string>('');
-  const [showMessage, setShowMessage] = useState(false);
+  const [fieldMessages, setFieldMessages] = useState<Record<string, string>>({});
   const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
+
+  const showFieldMessage = (fieldKey: string, message: string) => {
+    setFieldMessages(prev => ({ ...prev, [fieldKey]: message }));
+    // Clear message after 3 seconds
+    setTimeout(() => {
+      setFieldMessages(prev => {
+        const updated = { ...prev };
+        delete updated[fieldKey];
+        return updated;
+      });
+    }, 3000);
+  };
 
   const handleFormDataChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -33,16 +43,13 @@ const ProfileSetup = () => {
     // Show encouraging messages for key milestones
     if (field === 'name' && value && !completedSections.has('name')) {
       setCompletedSections(prev => new Set(prev).add('name'));
-      setEncouragingMessage("Great to meet you! Let's continue building your personalized wellness plan.");
-      setShowMessage(true);
+      showFieldMessage('name', "Great to meet you! Let's continue building your personalized wellness plan.");
     } else if ((field === 'weight' || field === 'height') && value && formData.weight && formData.height && !completedSections.has('physical')) {
       setCompletedSections(prev => new Set(prev).add('physical'));
-      setEncouragingMessage("Thank you! Every detail helps us create the perfect plan for you.");
-      setShowMessage(true);
+      showFieldMessage('physical', "Thank you! Every detail helps us create the perfect plan for you.");
     } else if (field === 'gender' && value && !completedSections.has('gender')) {
       setCompletedSections(prev => new Set(prev).add('gender'));
-      setEncouragingMessage("Perfect! We're getting to know you better with each step.");
-      setShowMessage(true);
+      showFieldMessage('gender', "Perfect! We're getting to know you better with each step.");
     }
   };
 
@@ -53,8 +60,7 @@ const ProfileSetup = () => {
     const isLastActivity = field === 'physical_activity_intense';
     if (isLastActivity && !completedSections.has('activity')) {
       setCompletedSections(prev => new Set(prev).add('activity'));
-      setEncouragingMessage("Excellent! Understanding your activity levels helps us tailor your journey perfectly.");
-      setShowMessage(true);
+      showFieldMessage('activity', "Excellent! Understanding your activity levels helps us tailor your journey perfectly.");
     }
   };
 
@@ -62,25 +68,8 @@ const ProfileSetup = () => {
     handleImageSelect(file);
     if (!completedSections.has('photo')) {
       setCompletedSections(prev => new Set(prev).add('photo'));
-      setEncouragingMessage("Beautiful! Having a photo helps track your amazing transformation journey.");
-      setShowMessage(true);
+      showFieldMessage('photo', "Beautiful! Having a photo helps track your amazing transformation journey.");
     }
-  };
-
-  const handleMessageComplete = () => {
-    setShowMessage(false);
-  };
-
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    // Show final encouraging message before submission
-    setEncouragingMessage("Your wellness journey begins now! We're excited to support you every step of the way.");
-    setShowMessage(true);
-    
-    // Wait for message to show, then submit
-    setTimeout(() => {
-      setShowMessage(false);
-      handleSubmit(e);
-    }, 2500);
   };
 
   return (
@@ -89,24 +78,55 @@ const ProfileSetup = () => {
         <Card className="bg-white border border-gray-200 shadow-xl">
           <ProfileSetupHeader />
           <CardContent className="space-y-8">
-            <ProfileImageUpload
-              selectedImage={imagePreview}
-              onImageSelect={handleImageUpload}
-              onImageRemove={handleImageRemove}
-              uploading={uploading}
-            />
-
-            <form onSubmit={handleFormSubmit} className="space-y-6">
-              <BasicInfoFields
-                formData={formData}
-                onFormDataChange={handleFormDataChange}
+            <div>
+              <ProfileImageUpload
+                selectedImage={imagePreview}
+                onImageSelect={handleImageUpload}
+                onImageRemove={handleImageRemove}
+                uploading={uploading}
               />
+              {fieldMessages.photo && (
+                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-sm text-green-700 font-medium">{fieldMessages.photo}</p>
+                </div>
+              )}
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <BasicInfoFields
+                  formData={formData}
+                  onFormDataChange={handleFormDataChange}
+                />
+                {fieldMessages.name && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-sm text-green-700 font-medium">{fieldMessages.name}</p>
+                  </div>
+                )}
+                {fieldMessages.physical && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-sm text-green-700 font-medium">{fieldMessages.physical}</p>
+                  </div>
+                )}
+                {fieldMessages.gender && (
+                  <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <p className="text-sm text-green-700 font-medium">{fieldMessages.gender}</p>
+                  </div>
+                )}
+              </div>
 
               <div className="space-y-8">
-                <PhysicalActivitySection
-                  formData={formData}
-                  onFormDataChange={handlePhysicalActivityChange}
-                />
+                <div>
+                  <PhysicalActivitySection
+                    formData={formData}
+                    onFormDataChange={handlePhysicalActivityChange}
+                  />
+                  {fieldMessages.activity && (
+                    <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                      <p className="text-sm text-green-700 font-medium">{fieldMessages.activity}</p>
+                    </div>
+                  )}
+                </div>
 
                 <HealthIssuesField
                   value={formData.health_issues}
@@ -125,12 +145,6 @@ const ProfileSetup = () => {
           </CardContent>
         </Card>
       </div>
-
-      <EncouragingMessage
-        message={encouragingMessage}
-        show={showMessage}
-        onComplete={handleMessageComplete}
-      />
     </div>
   );
 };

@@ -191,6 +191,7 @@ export const useProfileSetup = () => {
         description: "Your profile has been successfully saved.",
       });
 
+      // Navigate immediately without showing final message
       navigate('/subscriptions');
     } catch (error: any) {
       console.error('Error saving profile:', error);
