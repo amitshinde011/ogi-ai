@@ -89,9 +89,9 @@ const TestimonialsCarousel = () => {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4">
+    <div className="w-full max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-5xl mx-auto px-4">
       <div className="text-center mb-6 sm:mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 mb-2">
           Trusted by thousands worldwide
         </h2>
         <p className="text-sm sm:text-base text-gray-600">
@@ -113,31 +113,31 @@ const TestimonialsCarousel = () => {
               <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-100">
                 <div className="flex flex-col items-center text-center space-y-4">
                   {/* Profile Picture */}
-                  <Avatar className="w-16 h-16 sm:w-20 sm:h-20 ring-2 ring-gray-100">
+                  <Avatar className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 ring-2 ring-gray-100">
                     <AvatarImage 
                       src={testimonial.image} 
                       alt={testimonial.name}
                       className="object-cover"
                     />
-                    <AvatarFallback className="bg-sage text-white font-semibold text-lg">
+                    <AvatarFallback className="bg-sage text-white font-semibold text-sm sm:text-lg">
                       {getInitials(testimonial.name)}
                     </AvatarFallback>
                   </Avatar>
                   
                   {/* Content */}
-                  <div className="space-y-3">
+                  <div className="space-y-3 max-w-2xl">
                     {/* Rating */}
                     <div className="flex items-center justify-center">
                       {renderStars(testimonial.rating)}
                     </div>
                     
                     {/* Headline */}
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-800 leading-tight">
+                    <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-800 leading-tight">
                       "{testimonial.headline}"
                     </h3>
                     
                     {/* Testimonial */}
-                    <p className="text-gray-600 leading-relaxed text-xs sm:text-sm lg:text-base max-w-2xl">
+                    <p className="text-gray-600 leading-relaxed text-xs sm:text-sm md:text-base">
                       "{testimonial.testimonial}"
                     </p>
                     

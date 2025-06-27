@@ -22,7 +22,7 @@ const WellnessCarousel = () => {
 
   // Convert Cloudflare image IDs to URLs using the correct format
   const images = imageIds.map(id => 
-    `https://imagedelivery.net/A_9Wtx2a2fSW25WEMOQdcw/${id}/public`
+    `https://imagedelivery.net/A_Wtx2a2fSW25WEMOQdcw/${id}/public`
   );
 
   const [api, setApi] = useState<any>(null);
@@ -39,7 +39,7 @@ const WellnessCarousel = () => {
   }, [api]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl mx-auto px-4">
       <Carousel
         setApi={setApi}
         opts={{
@@ -51,7 +51,7 @@ const WellnessCarousel = () => {
         <CarouselContent>
           {images.map((image, index) => (
             <CarouselItem key={imageIds[index]} className="basis-full">
-              <div className="relative w-full aspect-[3/3] sm:aspect-[3/3] md:aspect-[3/3] overflow-hidden rounded-2xl">
+              <div className="relative w-full aspect-square sm:aspect-[4/3] md:aspect-[3/2] overflow-hidden rounded-xl sm:rounded-2xl">
                 <img
                   src={image}
                   alt={`Wellness inspiration ${index + 1}`}
@@ -65,8 +65,8 @@ const WellnessCarousel = () => {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-4 bg-transparent hover:bg-black/20 border-transparent text-white hover:text-white" />
-        <CarouselNext className="right-4 bg-transparent hover:bg-black/20 border-transparent text-white hover:text-white" />
+        <CarouselPrevious className="left-2 sm:left-4 bg-white/80 hover:bg-white/90 border-white/20 text-gray-800 hover:text-gray-900 h-8 w-8 sm:h-10 sm:w-10" />
+        <CarouselNext className="right-2 sm:right-4 bg-white/80 hover:bg-white/90 border-white/20 text-gray-800 hover:text-gray-900 h-8 w-8 sm:h-10 sm:w-10" />
       </Carousel>
     </div>
   );

@@ -79,7 +79,7 @@ const Community = () => {
       
       <div 
         ref={containerRef}
-        className="relative p-4 max-w-md mx-auto"
+        className="relative p-4 sm:p-6 max-w-2xl mx-auto"
       >
         {/* Pull-to-Refresh Spinner */}
         <RefreshSpinner
@@ -92,7 +92,7 @@ const Community = () => {
         {/* Create Post Button */}
         <Button
           onClick={() => setShowCreateModal(true)}
-          className="w-full mb-6 bg-sage hover:bg-sage/90 flex items-center justify-center gap-2"
+          className="w-full mb-6 bg-sage hover:bg-sage/90 flex items-center justify-center gap-2 py-3 text-base sm:text-lg"
         >
           <Plus className="w-5 h-5" />
           Create Post
@@ -105,13 +105,13 @@ const Community = () => {
           </div>
         ) : localPosts.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">No posts yet</p>
-            <p className="text-sm text-gray-400">
+            <p className="text-gray-500 mb-4 text-base sm:text-lg">No posts yet</p>
+            <p className="text-sm sm:text-base text-gray-400">
               Be the first to share something with the community!
             </p>
           </div>
         ) : (
-          <div className="space-y-0">
+          <div className="space-y-6">
             {localPosts.map((post) => (
               <PostCard
                 key={post.id}
