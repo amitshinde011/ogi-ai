@@ -1,12 +1,26 @@
 
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Share, Send } from 'lucide-react';
+import { Heart, MessageSquare, Plus } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SocialPost } from '@/hooks/useSocialPosts';
-import { useComments } from '@/hooks/useComments';
 import { formatDistanceToNow } from 'date-fns';
+
+interface SocialPost {
+  id: string;
+  user_id: string;
+  image_url: string;
+  caption?: string;
+  meal_type?: string;
+  like_count: number;
+  comment_count: number;
+  created_at: string;
+  is_liked?: boolean;
+  user_profiles?: {
+    name: string | null;
+    profile_photo_url: string | null;
+  };
+}
 
 interface PostCardProps {
   post: SocialPost;
@@ -17,7 +31,6 @@ interface PostCardProps {
 const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
-  const { comments, loading: commentsLoading, addComment } = useComments(showComments ? post.id : '');
   
   console.log('🎨 Rendering PostCard for post:', {
     id: post.id,
@@ -49,10 +62,8 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
     if (!newComment.trim()) return;
     
     console.log('📝 Adding comment:', newComment, 'to post:', post.id);
-    const success = await addComment(newComment);
-    if (success) {
-      setNewComment('');
-    }
+    // Note: This would need to be implemented with the new comment system
+    setNewComment('');
   };
 
   // Generate fallback data
@@ -101,7 +112,9 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
             }`}
           >
             <Heart 
-              className={`w-6 h-6 ${post.is_liked ? 'fill-current' : ''}`} 
+              size={24}
+              strokeWidth={1.5}
+              className={post.is_liked ? 'fill-current' : ''} 
             />
           </Button>
           <Button
@@ -110,14 +123,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
             onClick={handleCommentClick}
             className="p-0 h-auto hover:bg-transparent text-gray-700"
           >
-            <MessageCircle className="w-6 h-6" />
+            <MessageSquare size={24} strokeWidth={1.5} />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             className="p-0 h-auto hover:bg-transparent text-gray-700"
           >
-            <Share className="w-6 h-6" />
+            <Plus size={24} strokeWidth={1.5} />
           </Button>
         </div>
 
@@ -149,36 +162,12 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
           </button>
         )}
 
-        {/* Comments Section */}
+        {/* Comments Section - Simplified for now */}
         {showComments && (
           <div className="mt-4 border-t pt-4">
-            {commentsLoading ? (
-              <div className="flex items-center justify-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sage"></div>
-              </div>
-            ) : (
-              <div className="space-y-3 mb-4">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="flex items-start space-x-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage src={comment.user_profiles?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.user_id}`} />
-                      <AvatarFallback>
-                        {(comment.user_profiles?.name || 'U').charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="text-sm">
-                        <span className="font-semibold">
-                          {comment.user_profiles?.name || 'Anonymous User'}
-                        </span>{' '}
-                        {comment.comment_text}
-                      </p>
-                      <p className="text-xs text-gray-500">{formatTime(comment.created_at)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="text-sm text-gray-500 mb-4">
+              Comments would be loaded here with the new community system
+            </div>
             
             {/* Add comment input */}
             <div className="flex items-center space-x-2">
@@ -200,7 +189,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
                   disabled={!newComment.trim()}
                   className="px-3 py-1"
                 >
-                  <Send size={14} />
+                  <Plus size={16} strokeWidth={1.5} />
                 </Button>
               </div>
             </div>

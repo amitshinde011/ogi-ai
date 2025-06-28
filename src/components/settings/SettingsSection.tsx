@@ -32,14 +32,14 @@ const SettingsSection = ({ title, items }: SettingsSectionProps) => {
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
-                    <item.icon className="text-indigo-600" size={20} />
+                    <item.icon size={24} strokeWidth={1.5} className="text-indigo-600" />
                   </div>
                   <span className="font-semibold text-slate-900">{item.label}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   {item.component}
                   {item.hasArrow && (
-                    <ChevronRight className="text-slate-400" size={20} />
+                    <ChevronRight size={24} strokeWidth={1.5} className="text-slate-400" />
                   )}
                 </div>
               </div>

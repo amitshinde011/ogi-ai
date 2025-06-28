@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Camera, Users, Search, MessageCircle, Bell, User, ChefHat } from 'lucide-react';
+import { Home, CookingPot, Users, TrendingUp, Settings } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -15,10 +15,10 @@ const Layout = ({ children }: LayoutProps) => {
 
   const navigationItems = [
     { icon: Home, path: '/home', label: 'Home' },
-    { icon: Search, path: '/discover', label: 'Discover' },
-    { icon: ChefHat, path: '/recipes', label: 'Recipes' },
+    { icon: CookingPot, path: '/recipes', label: 'Recipes' },
     { icon: Users, path: '/community', label: 'Community' },
-    { icon: MessageCircle, path: '/messages', label: 'Messages' },
+    { icon: TrendingUp, path: '/progress', label: 'Progress' },
+    { icon: Settings, path: '/settings', label: 'Settings' },
   ];
 
   const isActive = (path: string) => {
@@ -30,13 +30,13 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-peaceful">
-      <main className="pb-20">
+      <main className="pb-16 sm:pb-20 md:pb-0 md:pl-64">
         {children}
       </main>
       
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 backdrop-blur-xl bg-white/95 z-50">
-        <div className="max-w-md mx-auto px-4 py-2">
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 md:hidden">
+        <div className="max-w-md mx-auto px-2 sm:px-4 py-2">
           <div className="flex justify-around items-center">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -46,44 +46,52 @@ const Layout = ({ children }: LayoutProps) => {
                 <button
                   key={item.path}
                   onClick={() => navigate(item.path)}
-                  className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
+                  className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] ${
                     active
                       ? 'text-sage bg-sage/10'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <div className="relative">
-                    <Icon size={20} />
-                    {item.path === '/messages' && unreadCount > 0 && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                        <span className="text-xs text-white font-medium">
-                          {unreadCount > 9 ? '9+' : unreadCount}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <Icon size={20} strokeWidth={1.5} />
                   <span className="text-xs mt-1 font-medium">{item.label}</span>
                 </button>
               );
             })}
-            
-            {/* Notifications */}
-            <button
-              onClick={() => navigate('/notifications')}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 ${
-                isActive('/notifications')
-                  ? 'text-sage bg-sage/10'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="relative">
-                <Bell size={20} />
-                {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
-                )}
-              </div>
-              <span className="text-xs mt-1 font-medium">Alerts</span>
-            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Desktop Sidebar Navigation */}
+      <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 flex-col">
+        <div className="p-6 flex justify-center">
+          <img 
+            src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
+            alt="Yogi Logo" 
+            className="h-12 w-auto"
+          />
+        </div>
+        
+        <div className="flex-1 px-4">
+          <div className="space-y-2">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => navigate(item.path)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
+                    active
+                      ? 'text-sage bg-sage/10 font-medium'
+                      : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
+                  }`}
+                >
+                  <Icon size={20} strokeWidth={1.5} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </nav>

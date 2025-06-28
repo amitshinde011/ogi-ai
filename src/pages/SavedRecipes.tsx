@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Heart, Clock, Users, Star } from 'lucide-react';
+import { Heart, Clock, Users, Star, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
@@ -50,7 +50,7 @@ const SavedRecipes = () => {
       <Layout>
         <Header title="Saved Recipes" showBack />
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <Loader2 size={32} strokeWidth={1.5} className="text-indigo-600 animate-spin" />
         </div>
       </Layout>
     );
@@ -63,7 +63,7 @@ const SavedRecipes = () => {
         <Header title="Saved Recipes" showBack />
         <div className="max-w-md mx-auto p-4">
           <div className="text-center py-12">
-            <Heart size={48} className="mx-auto text-gray-300 mb-4" />
+            <Heart size={48} strokeWidth={1.5} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">Please log in</h3>
             <p className="text-gray-500 mb-6">You need to be logged in to view your saved recipes.</p>
             <Link 
@@ -85,7 +85,7 @@ const SavedRecipes = () => {
       <div className="max-w-md mx-auto p-4">
         {savedRecipes.length === 0 ? (
           <div className="text-center py-12">
-            <Heart size={48} className="mx-auto text-gray-300 mb-4" />
+            <Heart size={48} strokeWidth={1.5} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">No saved recipes yet</h3>
             <p className="text-gray-500 mb-6">Start saving your favorite recipes to access them easily here!</p>
             <Link 
@@ -118,21 +118,21 @@ const SavedRecipes = () => {
                         )}
                         <div className="flex items-center space-x-3 text-xs text-gray-500">
                           <div className="flex items-center">
-                            <Clock size={12} className="mr-1" />
+                            <Clock size={12} strokeWidth={1.5} className="mr-1" />
                             <span>{recipe.cook_time || '30 min'}</span>
                           </div>
                           <div className="flex items-center">
-                            <Users size={12} className="mr-1" />
+                            <Users size={12} strokeWidth={1.5} className="mr-1" />
                             <span>{recipe.servings || 2}</span>
                           </div>
                           <div className="flex items-center">
-                            <Star size={12} className="mr-1 text-yellow-500" fill="currentColor" />
+                            <Star size={12} strokeWidth={1.5} className="mr-1 text-yellow-500" fill="currentColor" />
                             <span>{recipe.rating || 4.5}</span>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center">
-                        <Heart size={16} className="text-red-500" fill="currentColor" />
+                        <Heart size={16} strokeWidth={1.5} className="text-red-500" fill="currentColor" />
                       </div>
                     </div>
                   </CardContent>

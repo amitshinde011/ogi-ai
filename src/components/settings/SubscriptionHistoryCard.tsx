@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calendar, CreditCard, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Calendar, CreditCard, CheckCircle, Clock, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -27,13 +27,13 @@ const SubscriptionHistoryCard = ({ subscriptionHistory, loadingHistory }: Subscr
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle size={18} strokeWidth={1.5} className="text-green-600" />;
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-blue-600" />;
+        return <CheckCircle size={18} strokeWidth={1.5} className="text-blue-600" />;
       case 'cancelled':
-        return <XCircle className="w-4 h-4 text-red-600" />;
+        return <X size={18} strokeWidth={1.5} className="text-red-600" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-600" />;
+        return <Clock size={18} strokeWidth={1.5} className="text-gray-600" />;
     }
   };
 
@@ -62,13 +62,13 @@ const SubscriptionHistoryCard = ({ subscriptionHistory, loadingHistory }: Subscr
   return (
     <div className="space-y-3">
       <h4 className="font-bold text-lg text-slate-900 px-1 flex items-center">
-        <Calendar className="w-5 h-5 mr-2" />
+        <Calendar size={24} strokeWidth={1.5} className="mr-2" />
         Subscription History
       </h4>
       <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg flex items-center text-slate-900">
-            <CreditCard className="w-5 h-5 mr-2" />
+            <CreditCard size={24} strokeWidth={1.5} className="mr-2" />
             Program Subscriptions
           </CardTitle>
         </CardHeader>
@@ -79,7 +79,7 @@ const SubscriptionHistoryCard = ({ subscriptionHistory, loadingHistory }: Subscr
             </div>
           ) : subscriptionHistory.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
-              <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+              <Calendar size={48} strokeWidth={1.5} className="mx-auto mb-3 text-slate-300" />
               <p>No subscription history found</p>
               <Button 
                 variant="outline" 

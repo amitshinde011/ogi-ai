@@ -7,6 +7,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
 
 const WellnessCarousel = () => {
   const imageIds = [
@@ -20,12 +21,11 @@ const WellnessCarousel = () => {
     'dc5473c1-f6a0-4e4e-1a86-bc5253d57300'
   ];
 
-  // Convert Cloudflare image IDs to URLs using the correct format
-  const images = imageIds.map(id => 
-    `https://imagedelivery.net/A_9Wtx2a2fSW25WEMOQdcw/${id}/public`
-  );
+  // Use the utility function to generate proper Cloudflare URLs
+  const images = imageIds.map(id => getCloudflareImageUrl(id));
 
   const [api, setApi] = useState<any>(null);
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
   // Auto-slide functionality
   useEffect(() => {
@@ -38,8 +38,13 @@ const WellnessCarousel = () => {
     return () => clearInterval(interval);
   }, [api]);
 
+  const handleImageError = (imageUrl: string) => {
+    console.error(`Failed to load image: ${imageUrl}`);
+    setImageErrors(prev => new Set(prev).add(imageUrl));
+  };
+
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-md mx-auto px-4">
       <Carousel
         setApi={setApi}
         opts={{
@@ -51,22 +56,34 @@ const WellnessCarousel = () => {
         <CarouselContent>
           {images.map((image, index) => (
             <CarouselItem key={imageIds[index]} className="basis-full">
-              <div className="relative w-full aspect-[3/3] sm:aspect-[3/3] md:aspect-[3/3] overflow-hidden rounded-2xl">
-                <img
-                  src={image}
-                  alt={`Wellness inspiration ${index + 1}`}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                  onError={(e) => {
-                    console.error(`Failed to load image: ${image}`);
-                    // Fallback to a placeholder or handle error
-                  }}
-                />
+              <div className="relative w-full aspect-square overflow-hidden rounded-xl sm:rounded-2xl bg-gray-100">
+                {!imageErrors.has(image) ? (
+                  <img
+                    src={image}
+                    alt={`Wellness inspiration ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                    onError={() => handleImageError(image)}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sage/20 to-sage/10">
+                    <div className="text-center p-6">
+                      <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-sage/20 rounded-full">
+                        <svg className="w-8 h-8 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-sage font-medium">Wellness Image</p>
+                      <p className="text-gray-500 text-sm mt-1">Inspiring your journey</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-4 bg-transparent hover:bg-black/20 border-transparent text-white hover:text-white" />
-        <CarouselNext className="right-4 bg-transparent hover:bg-black/20 border-transparent text-white hover:text-white" />
+        <CarouselPrevious className="left-2 bg-white/80 hover:bg-white/90 border-white/20 text-gray-800 hover:text-gray-900 h-8 w-8 sm:h-10 sm:w-10" />
+        <CarouselNext className="right-2 bg-white/80 hover:bg-white/90 border-white/20 text-gray-800 hover:text-gray-900 h-8 w-8 sm:h-10 sm:w-10" />
       </Carousel>
     </div>
   );

@@ -25,15 +25,18 @@ export const SubscriptionGrid: React.FC<SubscriptionGridProps> = ({
   onSubscribe
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {programs.map((program) => (
-        <SubscriptionCard
-          key={program.id}
-          program={program}
-          isIndiaUser={isIndiaUser}
-          onSubscribe={onSubscribe}
-        />
-      ))}
+    <div className="max-w-7xl mx-auto px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
+        {programs.map((program) => (
+          <div key={program.id} className="flex">
+            <SubscriptionCard
+              program={program}
+              isIndiaUser={isIndiaUser}
+              onSubscribe={onSubscribe}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trophy, Heart, Target, Star, Zap, Users } from 'lucide-react';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
 const JourneyStart = () => {
@@ -49,7 +48,7 @@ const JourneyStart = () => {
         <Card className="bg-white border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
           <CardHeader className="text-center pb-6 md:pb-8 px-4 md:px-8">
             <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-orange-400 via-amber-400 to-orange-500 rounded-full mx-auto flex items-center justify-center mb-6 md:mb-8 shadow-2xl animate-pulse">
-              <Trophy className="text-white w-12 h-12 md:w-16 md:h-16" />
+              <span className="text-4xl md:text-6xl">🏆</span>
             </div>
             <CardTitle className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight">
               Your Journey Begins Now!
@@ -64,7 +63,7 @@ const JourneyStart = () => {
               <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200 hover:shadow-lg transition-all duration-200 hover:scale-105">
                 <CardContent className="p-4 md:p-6 text-center space-y-3 md:space-y-4">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
-                    <Heart className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                    <span className="text-2xl md:text-3xl">❤️</span>
                   </div>
                   <h3 className="font-bold text-lg md:text-xl text-slate-900">Daily Tracking</h3>
                   <p className="text-sm md:text-base text-slate-600 leading-relaxed">Monitor your wellness progress with intuitive daily tracking tools</p>
@@ -74,7 +73,7 @@ const JourneyStart = () => {
               <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:shadow-lg transition-all duration-200 hover:scale-105">
                 <CardContent className="p-4 md:p-6 text-center space-y-3 md:space-y-4">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
-                    <Target className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                    <span className="text-2xl md:text-3xl">🎯</span>
                   </div>
                   <h3 className="font-bold text-lg md:text-xl text-slate-900">Guided Activities</h3>
                   <p className="text-sm md:text-base text-slate-600 leading-relaxed">Follow personalized routines designed for your specific goals</p>
@@ -84,7 +83,7 @@ const JourneyStart = () => {
               <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:shadow-lg transition-all duration-200 hover:scale-105">
                 <CardContent className="p-4 md:p-6 text-center space-y-3 md:space-y-4">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
-                    <Users className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                    <span className="text-2xl md:text-3xl">👥</span>
                   </div>
                   <h3 className="font-bold text-lg md:text-xl text-slate-900">Community Support</h3>
                   <p className="text-sm md:text-base text-slate-600 leading-relaxed">Connect with like-minded people on similar journeys</p>
@@ -97,36 +96,36 @@ const JourneyStart = () => {
               <CardContent className="p-4 md:p-8">
                 <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg mx-auto sm:mx-0">
-                    <Star className="w-6 h-6 text-white" />
+                    <span className="text-2xl">⭐</span>
                   </div>
                   <div className="space-y-4 w-full">
                     <h3 className="text-xl md:text-2xl font-bold text-indigo-900 text-center sm:text-left">Keys to Success</h3>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       <div className="space-y-3">
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">🏠</span>
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Stay consistent with daily activities</span>
                         </div>
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">🎯</span>
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Track your progress honestly</span>
                         </div>
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">👥</span>
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Engage with the community</span>
                         </div>
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">⭐</span>
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Follow guided routines</span>
                         </div>
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">❤️</span>
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Stay committed to your program</span>
                         </div>
                         <div className="flex items-start space-x-3">
-                          <Zap className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">🏆</span>
                           <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Celebrate small victories</span>
                         </div>
                       </div>
@@ -144,7 +143,7 @@ const JourneyStart = () => {
                 variant="secondary"
                 className="h-16 md:h-20 px-8 md:px-16 rounded-3xl font-bold text-lg md:text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
               >
-                <Trophy className="w-6 h-6 md:w-8 md:h-8 mr-3 md:mr-4" />
+                <span className="text-2xl mr-3 md:mr-4">🏆</span>
                 <span className="text-base md:text-xl">Enter My Wellness Dashboard</span>
               </Button>
             </div>

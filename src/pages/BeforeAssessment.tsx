@@ -7,7 +7,6 @@ import Header from '@/components/Header';
 import PhotoUpload from '@/components/PhotoUpload';
 import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
 import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
-import EncouragingMessage from '@/components/EncouragingMessage';
 import { useBeforeAssessment } from '@/hooks/useBeforeAssessment';
 
 const BeforeAssessment = () => {
@@ -22,48 +21,51 @@ const BeforeAssessment = () => {
     onSubmit
   } = useBeforeAssessment();
 
-  const [encouragingMessage, setEncouragingMessage] = useState<string>('');
-  const [showMessage, setShowMessage] = useState(false);
-  const [completedSections, setCompletedSections] = useState<Set<string>>(new Set());
+  const [fieldMessages, setFieldMessages] = useState<{[key: string]: string}>({});
 
   const handleImageUpload = (file: File) => {
     handleImageSelect(file);
-    if (!completedSections.has('photo')) {
-      setCompletedSections(prev => new Set(prev).add('photo'));
-      setEncouragingMessage("Perfect! Your starting photo will help you see your incredible transformation.");
-      setShowMessage(true);
+    if (!fieldMessages.photo) {
+      setFieldMessages(prev => ({
+        ...prev,
+        photo: "Perfect! Your starting photo will help you see your incredible transformation."
+      }));
     }
   };
 
   const handleSliderChange = (field: string, value: number) => {
     form.setValue(field as any, value);
     
-    // Show encouraging message when they complete comfort level questions
-    const formValues = form.getValues();
-    const comfortFields = ['walk_10km_comfort', 'run_10km_comfort', 'climb_mountain_comfort'];
-    const allComfortFieldsSet = comfortFields.every(field => formValues[field as keyof typeof formValues] !== undefined);
-    
-    if (allComfortFieldsSet && !completedSections.has('comfort')) {
-      setCompletedSections(prev => new Set(prev).add('comfort'));
-      setEncouragingMessage("Thank you for being honest about your comfort levels. This helps us create the perfect starting point for you.");
-      setShowMessage(true);
+    if (!fieldMessages[field]) {
+      const messages = {
+        walk_10km_comfort: "Great! Being honest about your current comfort level helps us personalize your journey.",
+        run_10km_comfort: "Excellent! Your honesty helps us create the perfect program for you.",
+        climb_mountain_comfort: "Wonderful! This baseline will help us track your amazing progress."
+      };
+      
+      if (messages[field as keyof typeof messages]) {
+        setFieldMessages(prev => ({
+          ...prev,
+          [field]: messages[field as keyof typeof messages]
+        }));
+      }
     }
   };
 
-  const handleMessageComplete = () => {
-    setShowMessage(false);
-  };
-
-  const handleFormSubmit = async (data: any) => {
-    // Show final encouraging message before submission
-    setEncouragingMessage("Your journey begins now. Thank you for sharing your starting point. The first step is often the hardest, and you've just taken it!");
-    setShowMessage(true);
-    
-    // Wait for message to show, then submit
-    setTimeout(() => {
-      setShowMessage(false);
-      onSubmit(data);
-    }, 3000); // Longer duration for this important message
+  const handleHealthConditionsChange = (field: string, value: string) => {
+    if (value.trim() && !fieldMessages[field]) {
+      const messages = {
+        current_health_conditions: "Thank you for sharing this important information. It helps us ensure your safety.",
+        comments: "Your thoughts and concerns are valuable to us. We'll consider them in your program."
+      };
+      
+      if (messages[field as keyof typeof messages]) {
+        setFieldMessages(prev => ({
+          ...prev,
+          [field]: messages[field as keyof typeof messages]
+        }));
+      }
+    }
   };
 
   return (
@@ -81,25 +83,40 @@ const BeforeAssessment = () => {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                   {/* Photo Upload */}
-                  <PhotoUpload
-                    selectedImage={imagePreview}
-                    onImageSelect={handleImageUpload}
-                    onImageRemove={handleImageRemove}
-                    uploading={uploading}
-                    title="Starting Photo"
-                    description="Capture your fitness journey beginning"
-                  />
+                  <div>
+                    <PhotoUpload
+                      selectedImage={imagePreview}
+                      onImageSelect={handleImageUpload}
+                      onImageRemove={handleImageRemove}
+                      uploading={uploading}
+                      title="Starting Photo"
+                      description="Capture your fitness journey beginning"
+                    />
+                    {fieldMessages.photo && (
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-700 flex items-center">
+                          <span className="mr-2">✓</span>
+                          {fieldMessages.photo}
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Comfort Level Questions with Sliders */}
                   <ComfortQuestionsSection 
                     control={form.control} 
                     onSliderChange={handleSliderChange}
+                    fieldMessages={fieldMessages}
                   />
 
                   {/* Health Conditions and Comments */}
-                  <HealthConditionsSection control={form.control} />
+                  <HealthConditionsSection 
+                    control={form.control} 
+                    onFieldChange={handleHealthConditionsChange}
+                    fieldMessages={fieldMessages}
+                  />
 
                   <Button
                     type="submit"
@@ -115,12 +132,6 @@ const BeforeAssessment = () => {
           </Card>
         </div>
       </div>
-
-      <EncouragingMessage
-        message={encouragingMessage}
-        show={showMessage}
-        onComplete={handleMessageComplete}
-      />
     </div>
   );
 };

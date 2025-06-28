@@ -7,6 +7,7 @@ import { SubscriptionHeader } from '@/components/subscription/SubscriptionHeader
 import { SubscriptionGrid } from '@/components/subscription/SubscriptionGrid';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
 import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
+import { Loader2 } from 'lucide-react';
 
 const Subscriptions = () => {
   const location = useLocation();
@@ -26,21 +27,26 @@ const Subscriptions = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 size={64} strokeWidth={1.5} className="text-blue-500 animate-spin mx-auto" />
+          <p className="text-gray-600 font-medium">Loading your wellness programs...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+      <div className="container mx-auto py-12">
         {/* Achievement Banner */}
         {showAchievementBanner && completedSubscription && (
-          <AchievementBanner
-            completedSubscription={completedSubscription}
-            onClose={() => setShowAchievementBanner(false)}
-          />
+          <div className="mb-12">
+            <AchievementBanner
+              completedSubscription={completedSubscription}
+              onClose={() => setShowAchievementBanner(false)}
+            />
+          </div>
         )}
 
         <SubscriptionHeader

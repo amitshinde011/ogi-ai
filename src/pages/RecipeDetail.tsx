@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Clock, Users, Star, Heart, Share, ChefHat, Utensils, Lightbulb } from 'lucide-react';
+import { Clock, Users, Star, Heart, Share, ChefHat, Utensils, Lightbulb, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
@@ -52,7 +53,7 @@ const RecipeDetail = () => {
       <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10">
         <Header title="Recipe" showBack />
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <Loader2 size={32} strokeWidth={1.5} className="text-indigo-600 animate-spin" />
         </div>
       </div>
     );
@@ -125,7 +126,7 @@ const RecipeDetail = () => {
               className="rounded-full bg-white/90"
               onClick={handleLikeRecipe}
             >
-              <Heart size={16} />
+              <Heart size={16} strokeWidth={1.5} />
             </Button>
             <Button 
               size="sm" 
@@ -133,7 +134,7 @@ const RecipeDetail = () => {
               className="rounded-full bg-white/90"
               onClick={handleShareRecipe}
             >
-              <Share size={16} />
+              <Share size={16} strokeWidth={1.5} />
             </Button>
           </div>
         </div>
@@ -151,16 +152,16 @@ const RecipeDetail = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4 text-sm">
                   <div className="flex items-center">
-                    <Clock size={16} className="mr-1 text-muted-foreground" />
+                    <Clock size={16} strokeWidth={1.5} className="mr-1 text-muted-foreground" />
                     <span>{recipe.cook_time || '30 min'}</span>
                   </div>
                   <div className="flex items-center">
-                    <Users size={16} className="mr-1 text-muted-foreground" />
+                    <Users size={16} strokeWidth={1.5} className="mr-1 text-muted-foreground" />
                     <span>{recipe.servings || 2} servings</span>
                   </div>
                 </div>
                 <div className="flex items-center">
-                  <Star className="text-amber-500 mr-1" size={16} fill="currentColor" />
+                  <Star size={16} strokeWidth={1.5} className="text-amber-500 mr-1" fill="currentColor" />
                   <span className="font-medium">{recipe.rating || 4.5}</span>
                 </div>
               </div>
@@ -190,7 +191,7 @@ const RecipeDetail = () => {
               <CardContent className="p-6">
                 <div className="flex items-center mb-5">
                   <div className="p-2 bg-green-100 rounded-lg mr-3">
-                    <ChefHat className="text-green-600" size={20} />
+                    <ChefHat size={20} strokeWidth={1.5} className="text-green-600" />
                   </div>
                   <h3 className="font-bold text-xl text-primary">Ingredients</h3>
                 </div>
@@ -214,7 +215,7 @@ const RecipeDetail = () => {
               <CardContent className="p-6">
                 <div className="flex items-center mb-5">
                   <div className="p-2 bg-blue-100 rounded-lg mr-3">
-                    <Utensils className="text-blue-600" size={20} />
+                    <Utensils size={20} strokeWidth={1.5} className="text-blue-600" />
                   </div>
                   <h3 className="font-bold text-xl text-primary">Instructions</h3>
                 </div>
@@ -240,7 +241,7 @@ const RecipeDetail = () => {
               <CardContent className="p-6">
                 <div className="flex items-center mb-5">
                   <div className="p-2 bg-orange-100 rounded-lg mr-3">
-                    <Lightbulb className="text-orange-600" size={20} />
+                    <Lightbulb size={20} strokeWidth={1.5} className="text-orange-600" />
                   </div>
                   <h3 className="font-bold text-xl text-primary">Tips & Variations</h3>
                 </div>
@@ -248,7 +249,7 @@ const RecipeDetail = () => {
                   {tipsList.map((tip, index) => (
                     <div key={index} className="flex items-start bg-gradient-to-r from-orange-50 to-amber-50 p-4 rounded-xl border border-orange-200">
                       <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-amber-400 rounded-full flex items-center justify-center mr-4 flex-shrink-0 mt-0.5">
-                        <Lightbulb size={12} className="text-white" />
+                        <Lightbulb size={12} strokeWidth={1.5} className="text-white" />
                       </div>
                       <span className="text-gray-700 leading-relaxed font-medium">{tip}</span>
                     </div>

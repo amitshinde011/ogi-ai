@@ -5,11 +5,11 @@ import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
 
 export interface SocialPost {
-  id: string;
-  user_id: string;
+  id: number; // Changed from string to number (bigint)
+  author_id: string; // Changed from user_id to author_id
   image_url: string;
   caption: string | null;
-  meal_type: string | null;
+  category: string | null; // Changed from meal_type to category
   like_count: number;
   comment_count: number;
   created_at: string;
@@ -51,8 +51,8 @@ export const useSocialPosts = () => {
         console.log('👤 User profile query result:', { profile, profileError });
 
         const userData = {
-          id: profile?.id,
-          user_id: user.id, // This is the auth.users.id
+          auth_id: user.id, // This is auth.users.id - use for RLS operations
+          profile_id: profile?.id, // This is user_profiles.id - use for profile references
           name: profile?.name || user.email?.split('@')[0] || 'User',
           profile_photo_url: profile?.profile_photo_url
         };
@@ -78,13 +78,13 @@ export const useSocialPosts = () => {
 
     try {
       setLoading(true);
-      console.log('🏠 Fetching home feed for user:', currentUser.user_id);
+      console.log('🏠 Fetching home feed for user:', currentUser.profile_id);
       
       // First, get the IDs of users the current user follows
       const { data: followingData, error: followingError } = await supabase
         .from('followers')
         .select('following_id')
-        .eq('follower_id', currentUser.id);
+        .eq('follower_id', currentUser.profile_id);
 
       console.log('👥 Following data:', { followingData, followingError });
 
@@ -102,17 +102,21 @@ export const useSocialPosts = () => {
         return;
       }
 
-      // Get posts from followed users
+      // Get user_ids from user_profiles for the following_ids
+      const { data: userProfiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, name, profile_photo_url')
+        .in('id', followingIds);
+
+      if (profilesError) throw profilesError;
+
+      const followingUserIds = userProfiles?.map(p => p.user_id) || [];
+
+      // Get posts from followed users using their auth user_ids
       const { data: posts, error } = await supabase
         .from('posts')
-        .select(`
-          *,
-          user_profiles!posts_user_id_fkey (
-            name,
-            profile_photo_url
-          )
-        `)
-        .in('user_id', followingIds)
+        .select('*')
+        .in('author_id', followingUserIds)
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -120,12 +124,20 @@ export const useSocialPosts = () => {
 
       if (error) throw error;
 
+      // Create a map of user_id to profile data
+      const profileMap = new Map(
+        userProfiles?.map(profile => [
+          profile.user_id, 
+          { name: profile.name, profile_photo_url: profile.profile_photo_url }
+        ]) || []
+      );
+
       // Check which posts current user has liked
       const postIds = posts?.map(p => p.id) || [];
       const { data: userLikes } = await supabase
         .from('likes')
         .select('post_id')
-        .eq('user_id', currentUser.user_id)
+        .eq('user_id', currentUser.auth_id)
         .in('post_id', postIds);
 
       console.log('❤️ User likes:', userLikes);
@@ -134,6 +146,7 @@ export const useSocialPosts = () => {
 
       const postsWithLikes = posts?.map(post => ({
         ...post,
+        user_profiles: profileMap.get(post.author_id) || { name: null, profile_photo_url: null },
         is_liked: likedPostIds.has(post.id)
       })) || [];
 
@@ -153,42 +166,46 @@ export const useSocialPosts = () => {
       setLoading(true);
       console.log('🌐 Fetching discover feed (all posts)...');
       
+      // Get all posts
       const { data: posts, error } = await supabase
         .from('posts')
-        .select(`
-          *,
-          user_profiles!posts_user_id_fkey (
-            name,
-            profile_photo_url
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
 
       console.log('📋 Discover posts query result:', { posts, error, count: posts?.length });
-      
-      if (posts) {
-        posts.forEach((post, index) => {
-          console.log(`📝 Post ${index + 1}:`, {
-            id: post.id,
-            user_id: post.user_id,
-            caption: post.caption?.substring(0, 50) + '...',
-            user_profiles: post.user_profiles,
-            created_at: post.created_at
-          });
-        });
-      }
 
       if (error) throw error;
 
+      // Get all unique author_ids
+      const authorIds = [...new Set(posts?.map(p => p.author_id) || [])];
+
+      // Get user profiles for all authors
+      const { data: userProfiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select('user_id, name, profile_photo_url')
+        .in('user_id', authorIds);
+
+      if (profilesError) {
+        console.error('Error fetching user profiles:', profilesError);
+      }
+
+      // Create a map of user_id to profile data
+      const profileMap = new Map(
+        userProfiles?.map(profile => [
+          profile.user_id,
+          { name: profile.name, profile_photo_url: profile.profile_photo_url }
+        ]) || []
+      );
+
       // Check which posts current user has liked
       if (currentUser) {
-        console.log('❤️ Checking likes for current user:', currentUser.user_id);
+        console.log('❤️ Checking likes for current user auth_id:', currentUser.auth_id);
         const postIds = posts?.map(p => p.id) || [];
         const { data: userLikes, error: likesError } = await supabase
           .from('likes')
           .select('post_id')
-          .eq('user_id', currentUser.user_id)
+          .eq('user_id', currentUser.auth_id)
           .in('post_id', postIds);
 
         console.log('❤️ User likes query result:', { userLikes, likesError });
@@ -197,6 +214,7 @@ export const useSocialPosts = () => {
 
         const postsWithLikes = posts?.map(post => ({
           ...post,
+          user_profiles: profileMap.get(post.author_id) || { name: null, profile_photo_url: null },
           is_liked: likedPostIds.has(post.id)
         })) || [];
 
@@ -204,7 +222,11 @@ export const useSocialPosts = () => {
         setPosts(postsWithLikes);
       } else {
         console.log('⚠️ No current user, setting posts without like status');
-        setPosts(posts || []);
+        const postsWithProfiles = posts?.map(post => ({
+          ...post,
+          user_profiles: profileMap.get(post.author_id) || { name: null, profile_photo_url: null }
+        })) || [];
+        setPosts(postsWithProfiles);
       }
     } catch (error) {
       console.error('❌ Error fetching discover feed:', error);
@@ -215,9 +237,9 @@ export const useSocialPosts = () => {
   };
 
   // Create a new post
-  const createPost = async (imageUrl: string, caption: string, mealType?: string) => {
-    if (!currentUser) {
-      console.log('⚠️ No current user for post creation');
+  const createPost = async (imageUrl: string, caption: string, category?: string) => {
+    if (!currentUser || !currentUser.auth_id) {
+      console.log('⚠️ No current user or auth_id for post creation');
       toast({ title: "Please log in to create posts", variant: "destructive" });
       return false;
     }
@@ -226,17 +248,17 @@ export const useSocialPosts = () => {
       console.log('📝 Creating post with data:', { 
         imageUrl, 
         caption, 
-        mealType, 
-        userId: currentUser.user_id 
+        category, 
+        authId: currentUser.auth_id 
       });
       
       const { data, error } = await supabase
         .from('posts')
         .insert({
-          user_id: currentUser.user_id, // Use auth.users.id directly
+          author_id: currentUser.auth_id, // Use auth.users.id for RLS
           image_url: imageUrl,
           caption: caption.trim() || null,
-          meal_type: mealType || null
+          category: category || null
         })
         .select()
         .single();
@@ -259,15 +281,15 @@ export const useSocialPosts = () => {
   };
 
   // Toggle like on a post
-  const toggleLike = async (postId: string) => {
-    if (!currentUser) {
+  const toggleLike = async (postId: number) => {
+    if (!currentUser || !currentUser.auth_id) {
       console.log('⚠️ No current user for like toggle');
       toast({ title: "Please log in to like posts", variant: "destructive" });
       return;
     }
 
     try {
-      console.log('❤️ Toggling like for post:', postId, 'user:', currentUser.user_id);
+      console.log('❤️ Toggling like for post:', postId, 'user auth_id:', currentUser.auth_id);
       
       const post = posts.find(p => p.id === postId);
       if (!post) {
@@ -281,7 +303,7 @@ export const useSocialPosts = () => {
         const { error } = await supabase
           .from('likes')
           .delete()
-          .eq('user_id', currentUser.user_id)
+          .eq('user_id', currentUser.auth_id) // Use auth_id for likes
           .eq('post_id', postId);
 
         if (error) throw error;
@@ -291,14 +313,16 @@ export const useSocialPosts = () => {
         const { error } = await supabase
           .from('likes')
           .insert({
-            user_id: currentUser.user_id,
+            user_id: currentUser.auth_id, // Use auth_id for likes
             post_id: postId
           });
 
         if (error) throw error;
 
-        // Create notification for post owner
-        await createNotification(post.user_id, 'like', postId);
+        // Create notification for post owner if we have their profile_id
+        if (currentUser.profile_id) {
+          await createNotification(post.author_id, 'like', postId.toString());
+        }
       }
 
       // Update local state immediately

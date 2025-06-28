@@ -7,6 +7,7 @@ import NoProgramCard from '@/components/progress/NoProgramCard';
 import ProgramHistorySection from '@/components/progress/ProgramHistorySection';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
 interface ProgramData {
   id: string;
@@ -96,7 +97,7 @@ const ProgressPage = () => {
       <Layout>
         <Header title="Progress" />
         <div className="min-h-screen bg-light-gray flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+          <Loader2 size={32} strokeWidth={1.5} className="text-sage animate-spin" />
         </div>
       </Layout>
     );

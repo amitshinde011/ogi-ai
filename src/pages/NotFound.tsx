@@ -1,6 +1,7 @@
 
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { AlertCircle } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
@@ -16,7 +17,7 @@ const NotFound = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-peaceful">
       <div className="text-center">
         <div className="w-24 h-24 bg-gradient-sage rounded-full mx-auto flex items-center justify-center mb-6 shadow-lg">
-          <span className="text-4xl text-white">🧘</span>
+          <AlertCircle size={48} strokeWidth={1.5} className="text-white" />
         </div>
         <h1 className="text-4xl font-bold mb-4 text-stone">404</h1>
         <p className="text-xl text-stone/70 mb-4">Oops! Page not found</p>

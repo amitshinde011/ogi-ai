@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -21,6 +21,53 @@ const FinalAssessment = () => {
     onSubmit
   } = useFinalAssessment();
 
+  const [fieldMessages, setFieldMessages] = useState<{[key: string]: string}>({});
+
+  const handleImageUpload = (file: File) => {
+    handleImageSelect(file);
+    if (!fieldMessages.photo) {
+      setFieldMessages(prev => ({
+        ...prev,
+        photo: "Amazing! This final photo will showcase your incredible transformation journey."
+      }));
+    }
+  };
+
+  const handleSliderChange = (field: string, value: number) => {
+    form.setValue(field as any, value);
+    
+    if (!fieldMessages[field]) {
+      const messages = {
+        walk_10km_comfort: "Fantastic! Look how your confidence has grown since you started.",
+        run_10km_comfort: "Incredible! Your progress in endurance is truly remarkable.",
+        climb_mountain_comfort: "Outstanding! You've come so far from where you began."
+      };
+      
+      if (messages[field as keyof typeof messages]) {
+        setFieldMessages(prev => ({
+          ...prev,
+          [field]: messages[field as keyof typeof messages]
+        }));
+      }
+    }
+  };
+
+  const handleHealthConditionsChange = (field: string, value: string) => {
+    if (value.trim() && !fieldMessages[field]) {
+      const messages = {
+        current_health_conditions: "Thank you for the update. Your health journey progress is inspiring!",
+        comments: "Your reflection on this journey is valuable. You should be proud of your achievements!"
+      };
+      
+      if (messages[field as keyof typeof messages]) {
+        setFieldMessages(prev => ({
+          ...prev,
+          [field]: messages[field as keyof typeof messages]
+        }));
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Header title="Final Assessment" />
@@ -38,20 +85,38 @@ const FinalAssessment = () => {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                   {/* Photo Upload */}
-                  <PhotoUpload
-                    selectedImage={imagePreview}
-                    onImageSelect={handleImageSelect}
-                    onImageRemove={handleImageRemove}
-                    uploading={uploading}
-                    title="Final Photo"
-                    description="Show off your amazing progress!"
-                  />
+                  <div>
+                    <PhotoUpload
+                      selectedImage={imagePreview}
+                      onImageSelect={handleImageUpload}
+                      onImageRemove={handleImageRemove}
+                      uploading={uploading}
+                      title="Final Photo"
+                      description="Show off your amazing progress!"
+                    />
+                    {fieldMessages.photo && (
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-700 flex items-center">
+                          <span className="mr-2">✓</span>
+                          {fieldMessages.photo}
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Comfort Level Questions with Sliders */}
-                  <ComfortQuestionsSection control={form.control} />
+                  <ComfortQuestionsSection 
+                    control={form.control} 
+                    onSliderChange={handleSliderChange}
+                    fieldMessages={fieldMessages}
+                  />
 
                   {/* Health Conditions and Comments */}
-                  <HealthConditionsSection control={form.control} />
+                  <HealthConditionsSection 
+                    control={form.control}
+                    onFieldChange={handleHealthConditionsChange}
+                    fieldMessages={fieldMessages}
+                  />
 
                   <Button
                     type="submit"

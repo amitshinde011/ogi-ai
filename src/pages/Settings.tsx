@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, Shield, HelpCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';

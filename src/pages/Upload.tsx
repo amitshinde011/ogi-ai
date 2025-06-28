@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Camera, Upload as UploadIcon, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { Camera, Upload as UploadIcon, Check, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,15 +10,16 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useR2Upload } from '@/hooks/useR2Upload';
+import { useAuth } from '@/hooks/useAuth';
 
 const Upload = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [selectedMeal, setSelectedMeal] = useState(location.state?.mealType || '');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [description, setDescription] = useState('');
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const { uploadToR2, uploading } = useR2Upload();
 
   const mealTypes = [
@@ -27,32 +28,6 @@ const Upload = () => {
     { id: 'dinner', name: 'Dinner', icon: '🌙', time: '3:00 PM - 10:00 PM' },
     { id: 'snack', name: 'Snack', icon: '🍎', time: 'Anytime' }
   ];
-
-  useEffect(() => {
-    fetchCurrentUser();
-  }, []);
-
-  const fetchCurrentUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        setCurrentUser({
-          id: profile?.id,
-          user_id: user.id,
-          name: profile?.name || user.email?.split('@')[0] || 'User',
-          profile_photo_url: profile?.profile_photo_url
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching current user:', error);
-    }
-  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -67,37 +42,55 @@ const Upload = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedMeal || !imageFile || !currentUser) return;
+    if (!selectedMeal || !imageFile || !isAuthenticated || !user) {
+      console.log('⚠️ Missing data for upload:', { selectedMeal, imageFile: !!imageFile, user: !!user });
+      if (!isAuthenticated || !user) {
+        toast({ title: "Authentication required. Please try logging in again.", variant: "destructive" });
+      }
+      return;
+    }
 
     try {
+      console.log('📤 Starting upload process...');
+      
       // Upload image to R2
       const uploadResult = await uploadToR2(imageFile, 'meal');
       if (!uploadResult) return;
 
-      const mealName = selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1);
+      console.log('✅ Image uploaded successfully:', uploadResult.imageUrl);
+
       const postCaption = description || `Just had my ${selectedMeal}! 🍽️`;
 
-      // Create the post in posts table
+      console.log('📝 Creating post with auth user_id:', user.id);
+
+      // Create the post in posts table using the new schema
       const { error: postError } = await supabase
         .from('posts')
         .insert({
-          user_id: currentUser.id,
+          author_id: user.id, // Use user.id from cached auth
           image_url: uploadResult.imageUrl,
           caption: postCaption,
-          meal_type: selectedMeal
+          category: selectedMeal // Use category instead of meal_type
         });
 
-      if (postError) throw postError;
+      if (postError) {
+        console.error('❌ Post creation error:', postError);
+        throw postError;
+      }
+
+      console.log('✅ Post created successfully');
 
       // Also save to meal_tracking for progress tracking
       await supabase
         .from('meal_tracking')
         .insert({
-          user_id: currentUser.user_id,
+          user_id: user.id, // Use cached user.id
           meal_type: selectedMeal,
           food_item: description || 'Meal logged',
           date: new Date().toISOString().split('T')[0]
         });
+
+      console.log('✅ Meal tracking saved');
 
       toast({ title: "Meal posted successfully!" });
       navigate('/community');
@@ -136,7 +129,7 @@ const Upload = () => {
                       </div>
                     </div>
                     {selectedMeal === meal.id && (
-                      <Check className="text-sage w-5 h-5" />
+                      <Check size={20} strokeWidth={1.5} className="text-sage" />
                     )}
                   </div>
                 </div>
@@ -151,7 +144,7 @@ const Upload = () => {
             <h3 className="font-semibold text-stone mb-4">Upload Photo</h3>
             {!imagePreview ? (
               <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-sage rounded-xl cursor-pointer hover:bg-sage/5 transition-colors">
-                <Camera className="text-sage mb-2 w-8 h-8" />
+                <Camera size={32} strokeWidth={1.5} className="text-sage mb-2" />
                 <span className="text-sage font-medium">Tap to take photo</span>
                 <span className="text-sm text-stone/60 mt-1">or select from gallery</span>
                 <input
@@ -201,17 +194,17 @@ const Upload = () => {
         {/* Submit Button */}
         <Button
           onClick={handleSubmit}
-          disabled={!selectedMeal || !imageFile || uploading || !currentUser}
+          disabled={!selectedMeal || !imageFile || uploading || !isAuthenticated || !user}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white py-6 font-medium shadow-lg"
         >
           {uploading ? (
             <div className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              <Loader2 size={16} strokeWidth={1.5} className="animate-spin mr-2" />
               Uploading...
             </div>
           ) : (
             <div className="flex items-center">
-              <UploadIcon className="w-5 h-5 mr-2" />
+              <UploadIcon size={20} strokeWidth={1.5} className="mr-2" />
               Share with Community
             </div>
           )}

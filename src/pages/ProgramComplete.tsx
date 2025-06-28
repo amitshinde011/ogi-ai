@@ -71,8 +71,8 @@ const ProgramComplete = () => {
             <CardContent className="p-8">
               <div className="flex justify-center mb-6">
                 <div className="relative">
-                  <Trophy className="w-24 h-24 text-yellow-300 animate-pastel-float" />
-                  <Sparkles className="w-8 h-8 text-yellow-200 absolute -top-2 -right-2 animate-pulse" />
+                  <Trophy size={96} strokeWidth={1.5} className="text-yellow-300 animate-pastel-float" />
+                  <Sparkles size={32} strokeWidth={1.5} className="text-yellow-200 absolute -top-2 -right-2 animate-pulse" />
                 </div>
               </div>
               
@@ -84,7 +84,7 @@ const ProgramComplete = () => {
               
               <div className="flex items-center justify-center space-x-1 mb-8">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-6 h-6 text-yellow-300 fill-current" />
+                  <Star key={i} size={24} strokeWidth={1.5} className="text-yellow-300 fill-current" />
                 ))}
               </div>
             </CardContent>
@@ -105,7 +105,7 @@ const ProgramComplete = () => {
                 onClick={() => navigate('/final-assessment')}
               >
                 Start Final Assessment
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight size={16} strokeWidth={1.5} className="ml-2" />
               </Button>
             </CardContent>
           </Card>
