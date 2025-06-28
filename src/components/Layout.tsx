@@ -67,7 +67,7 @@ const Layout = ({ children }: LayoutProps) => {
           <img 
             src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
             alt="Yogi Logo" 
-            className="h-54 w-auto"
+            className="h-44 w-auto"
           />
         </div>
         
