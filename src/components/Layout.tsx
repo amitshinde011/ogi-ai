@@ -64,7 +64,11 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Desktop Sidebar Navigation */}
       <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 flex-col">
         <div className="p-6">
-          <h1 className="text-2xl font-bold text-sage">Yogi</h1>
+          <img 
+            src="/lovable-uploads/2a77a30f-ecc9-4765-b400-ed3ff2e546a9.png" 
+            alt="Yogi Logo" 
+            className="h-8 w-auto"
+          />
         </div>
         
         <div className="flex-1 px-4">
