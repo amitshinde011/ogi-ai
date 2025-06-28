@@ -65,7 +65,7 @@ const Layout = ({ children }: LayoutProps) => {
       <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 flex-col">
         <div className="p-6">
           <img 
-            src="/lovable-uploads/2a77a30f-ecc9-4765-b400-ed3ff2e546a9.png" 
+            src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
             alt="Yogi Logo" 
             className="h-54 w-auto"
           />
