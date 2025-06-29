@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,9 +13,9 @@ interface ProfileFormData {
   weight: string;
   height: string;
   health_issues: string;
-  physical_activity_basic: string;
-  physical_activity_medium: string;
-  physical_activity_intense: string;
+  physical_activity_basic: number;
+  physical_activity_medium: number;
+  physical_activity_intense: number;
 }
 
 export const useProfileSetup = () => {
@@ -33,9 +34,9 @@ export const useProfileSetup = () => {
     weight: '',
     height: '',
     health_issues: '',
-    physical_activity_basic: 'never',
-    physical_activity_medium: 'never',
-    physical_activity_intense: 'never'
+    physical_activity_basic: 3,
+    physical_activity_medium: 3,
+    physical_activity_intense: 3
   });
 
   useEffect(() => {
