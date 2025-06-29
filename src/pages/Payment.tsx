@@ -1,89 +1,87 @@
-
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Shield, CreditCard, CheckCircle } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { usePayment } from '@/hooks/usePayment';
-import { ProgramDetailsCard } from '@/components/payment/ProgramDetailsCard';
-import { LocationGatewayInfo } from '@/components/payment/LocationGatewayInfo';
-import { PaymentButton } from '@/components/payment/PaymentButton';
-import { PricingBreakdown } from '@/components/subscription/PricingBreakdown';
-import { createPaymentSession, handleBraintreePayment, handleRazorpayPayment } from '@/utils/paymentGateway';
+import { usePricingConfig } from '@/hooks/usePricingConfig';
+import { useLocationDetection } from '@/hooks/useLocationDetection';
+import { useCouponCode } from '@/hooks/useCouponCode';
+import ProgramDetailsCard from '@/components/payment/ProgramDetailsCard';
+import LocationGatewayInfo from '@/components/payment/LocationGatewayInfo';
+import PaymentButton from '@/components/payment/PaymentButton';
+import CouponCodeInput from '@/components/CouponCodeInput';
+import PricingDisplay from '@/components/PricingDisplay';
+import { Link } from 'react-router-dom';
 
 const Payment = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+  
+  const programId = searchParams.get('program');
+  const { processPayment, isLoading } = usePayment();
+  const { config, isLoading: configLoading } = usePricingConfig();
+  const { country, isIndia } = useLocationDetection();
   const {
-    loading,
-    setLoading,
-    program,
-    pricing,
-    gateway,
-    userLocation,
-    isIndiaUser,
-    trackButtonClick,
-    trackEvent,
-    toast,
-    verifyPayment
-  } = usePayment();
+    couponCode,
+    setCouponCode,
+    discount,
+    isValidating,
+    error: couponError,
+    applyCoupon,
+    removeCoupon
+  } = useCouponCode();
 
-  const createPaymentSessionHandler = async () => {
-    if (!program || !pricing) return;
+  const [program, setProgram] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
 
-    trackButtonClick('Pay Now', 'Payment Page');
-    setLoading(true);
-    
-    try {
-      // Check if this is a free subscription (100% discount)
-      if (pricing.finalPrice <= 0.01) {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch user data
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (!authUser) {
+          navigate('/login');
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', authUser.id)
+          .single();
+
+        setUser({ ...authUser, profile });
+
+        // Fetch program data
+        if (programId) {
+          const { data: programData, error } = await supabase
+            .from('programs')
+            .select('*')
+            .eq('id', programId)
+            .single();
+
+          if (error) throw error;
+          setProgram(programData);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
         toast({
-          title: "Free Access",
-          description: "This appears to be a free subscription. Redirecting you back to complete the process.",
+          title: "Error",
+          description: "Failed to load payment information",
+          variant: "destructive"
         });
         navigate('/subscriptions');
-        return;
       }
+    };
 
-      // Use final price including tax and discount
-      const sessionData = await createPaymentSession({
-        ...program,
-        displayPrice: pricing.finalPrice
-      }, gateway);
+    fetchData();
+  }, [programId, navigate, toast]);
 
-      if (gateway === 'braintree') {
-        trackEvent('payment_initiated', 'Payment', 'Braintree');
-        await handleBraintreePayment(sessionData, verifyPayment);
-      } else {
-        trackEvent('payment_initiated', 'Payment', 'Razorpay');
-        await handleRazorpayPayment(sessionData, {
-          ...program,
-          finalPrice: pricing.finalPrice
-        }, verifyPayment);
-      }
-    } catch (error) {
-      console.error('Payment session creation error:', error);
-      
-      if (error.message === 'FREE_SUBSCRIPTION') {
-        toast({
-          title: "Free Subscription Detected",
-          description: "This subscription is free. Please go back and complete the free subscription process.",
-        });
-        navigate('/subscriptions');
-        return;
-      }
-      
-      trackEvent('payment_error', 'Payment', 'Session Creation Failed');
-      toast({
-        title: "Payment Error",
-        description: "Failed to initialize payment. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!program || !pricing) {
+  if (configLoading || !program || !user || !config) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
@@ -91,85 +89,121 @@ const Payment = () => {
     );
   }
 
-  const currencySymbol = program.currency === 'INR' ? '₹' : '$';
+  const basePrice = isIndia ? config.price_inr : config.price_usd;
+  const currency = isIndia ? 'INR' : 'USD';
+  const currencySymbol = isIndia ? '₹' : '$';
+  const discountAmount = discount ? Math.round(basePrice * discount.discount_percentage / 100) : 0;
+  const finalPrice = basePrice - discountAmount;
 
-  // If final price is 0 or very close to 0, show a message and redirect
-  if (pricing.finalPrice <= 0.01) {
-    return (
-      <div className="min-h-screen bg-gradient-peaceful p-4">
-        <div className="max-w-2xl mx-auto">
-          <Card className="bg-white">
-            <CardContent className="p-6 text-center">
-              <h2 className="text-2xl font-bold mb-4">Free Subscription Detected</h2>
-              <p className="mb-6">This subscription is completely free with your coupon. No payment is required.</p>
-              <Button onClick={() => navigate('/subscriptions')}>
-                Go Back to Complete Free Subscription
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  const handlePayment = async () => {
+    if (!program) return;
+
+    try {
+      await processPayment({
+        programId: program.id,
+        amount: finalPrice,
+        currency,
+        couponCode: discount?.code
+      });
+    } catch (error) {
+      console.error('Payment error:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-peaceful p-4">
       <div className="max-w-2xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => {
-            trackButtonClick('Back to Subscriptions', 'Payment Page');
-            navigate('/subscriptions');
-          }}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Subscriptions
-        </Button>
+        {/* Header */}
+        <div className="flex items-center mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="mr-4 p-2 hover:bg-white/20"
+          >
+            <ArrowLeft size={20} />
+          </Button>
+          <h1 className="text-2xl font-bold text-slate-900">Complete Payment</h1>
+        </div>
 
-        <Card className="bg-white">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">Complete Your Payment</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <ProgramDetailsCard 
-              program={program} 
-              currencySymbol={currencySymbol} 
-            />
+        <div className="space-y-6">
+          {/* Program Details */}
+          <ProgramDetailsCard program={program} />
 
-            {/* Pricing Breakdown */}
-            <Card className="bg-gray-50">
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-lg mb-3">Pricing Details</h3>
-                <PricingBreakdown
-                  originalPrice={pricing.originalPrice}
-                  currency={program.currency}
-                  discountPercentage={pricing.discountPercentage}
-                  taxPercentage={pricing.taxPercentage}
-                  isSpecialOccasion={pricing.isSpecialOccasion}
-                  occasionName={pricing.occasionName}
-                  couponDiscountPercentage={pricing.couponDiscountPercentage || 0}
-                />
-              </CardContent>
-            </Card>
+          {/* Location and Gateway Info */}
+          <LocationGatewayInfo country={country} isIndia={isIndia} />
 
-            <LocationGatewayInfo 
-              userLocation={userLocation} 
-              gateway={gateway} 
-            />
+          {/* Coupon Code */}
+          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg">Coupon Code</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CouponCodeInput
+                couponCode={couponCode}
+                setCouponCode={setCouponCode}
+                discount={discount}
+                isValidating={isValidating}
+                error={couponError}
+                onApply={applyCoupon}
+                onRemove={removeCoupon}
+              />
+            </CardContent>
+          </Card>
 
-            <PaymentButton
-              onClick={createPaymentSessionHandler}
-              loading={loading}
-              currencySymbol={currencySymbol}
-              displayPrice={pricing.finalPrice}
-            />
+          {/* Pricing Summary */}
+          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg">Payment Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PricingDisplay
+                basePrice={basePrice}
+                discount={discount}
+                finalPrice={finalPrice}
+                currencySymbol={currencySymbol}
+              />
+            </CardContent>
+          </Card>
 
-            <p className="text-sm text-gray-500 text-center">
-              Your payment is secured and encrypted. You will be redirected after successful payment.
-            </p>
-          </CardContent>
-        </Card>
+          {/* Payment Button */}
+          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-6">
+              <PaymentButton
+                onPayment={handlePayment}
+                isLoading={isLoading}
+                amount={finalPrice}
+                currencySymbol={currencySymbol}
+                disabled={!program}
+              />
+              
+              {/* Legal Notice */}
+              <div className="mt-4 text-center text-xs text-slate-600 space-y-2">
+                <p>
+                  By completing your payment, you agree to our{' '}
+                  <Link to="/terms-and-conditions" className="text-sage hover:underline">
+                    Terms & Conditions
+                  </Link>
+                  {' '}and{' '}
+                  <Link to="/privacy-policy" className="text-sage hover:underline">
+                    Privacy Policy
+                  </Link>
+                </p>
+                <p>
+                  Your data is protected and payment information is secure. View our{' '}
+                  <Link to="/cancellations-refunds" className="text-sage hover:underline">
+                    Cancellation & Refund Policy
+                  </Link>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Security Notice */}
+          <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
+            <Shield size={16} />
+            <span>Payments are processed securely</span>
+          </div>
+        </div>
       </div>
     </div>
   );
