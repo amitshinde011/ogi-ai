@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { convertToWebP, needsWebPConversion } from '@/utils/imageConversion';
 
 interface FinalAssessmentForm {
   walk_10km_comfort: number;
@@ -102,12 +103,26 @@ export const useFinalAssessment = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
-      const fileExt = file.name.split('.').pop();
+      let fileToUpload = file;
+      
+      // Convert to WebP if needed
+      if (needsWebPConversion(file)) {
+        console.log('Converting assessment image to WebP format...');
+        try {
+          fileToUpload = await convertToWebP(file, 0.9); // Higher quality for assessment photos
+          console.log('Assessment image converted to WebP successfully');
+        } catch (conversionError) {
+          console.warn('WebP conversion failed, uploading original:', conversionError);
+          // Continue with original file if conversion fails
+        }
+      }
+
+      const fileExt = fileToUpload.name.split('.').pop();
       const fileName = `${user.id}/final-${Date.now()}.${fileExt}`;
 
       const { data, error } = await supabase.storage
         .from('assessments')
-        .upload(fileName, file);
+        .upload(fileName, fileToUpload);
 
       if (error) throw error;
 
