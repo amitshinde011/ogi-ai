@@ -147,7 +147,6 @@ const PrivacyPolicy = () => {
                 <div className="bg-slate-50 p-4 rounded-lg">
                   <p className="font-medium">Yogi Wellness App</p>
                   <p>Email: privacy@yogi-app.com</p>
-                  <p>Address: [Your Company Address]</p>
                 </div>
               </div>
             </section>

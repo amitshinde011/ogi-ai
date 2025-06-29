@@ -78,6 +78,11 @@ const Login = () => {
                       <Link to="/privacy-policy" className="text-sage hover:underline">
                         Privacy Policy
                       </Link>
+                      {' '}and{' '}
+                      <Link to="/terms-and-conditions" className="text-sage hover:underline">
+                        Terms and Conditions
+                      </Link>
+                      
                     </p>
                     <p>
                       Need help? Contact us at{' '}

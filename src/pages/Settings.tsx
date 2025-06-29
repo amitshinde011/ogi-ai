@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { User, Shield, HelpCircle, LogOut } from 'lucide-react';
+import { User, Shield, HelpCircle, LogOut, FileText, Scale } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -172,24 +173,35 @@ const Settings = () => {
       items: notificationItems
     },
     {
+      title: 'Legal',
+      items: [
+        {
+          icon: FileText,
+          label: 'Privacy Policy',
+          action: () => navigate('/privacy-policy'),
+          hasArrow: true
+        },
+        {
+          icon: Scale,
+          label: 'Terms & Conditions',
+          action: () => navigate('/terms-and-conditions'),
+          hasArrow: true
+        },
+        {
+          icon: FileText,
+          label: 'Cancellations & Refunds',
+          action: () => navigate('/cancellations-refunds'),
+          hasArrow: true
+        }
+      ]
+    },
+    {
       title: 'Support',
       items: [
         {
           icon: HelpCircle,
           label: 'Help & FAQ',
           action: () => navigate('/help'),
-          hasArrow: true
-        },
-        {
-          icon: Shield,
-          label: 'Privacy Policy',
-          action: () => navigate('/privacy-policy'),
-          hasArrow: true
-        },
-        {
-          icon: Shield,
-          label: 'Terms of Use',
-          action: () => navigate('/terms'),
           hasArrow: true
         }
       ]

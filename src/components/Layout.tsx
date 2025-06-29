@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import PostCompletionBanner from './PostCompletionBanner';
+import Footer from './Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -41,15 +42,20 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful">
+    <div className="min-h-screen bg-gradient-peaceful flex flex-col">
       {/* Post-completion banner */}
       {isCompleted && completedSubscription && (
         <PostCompletionBanner completedProgramName={completedSubscription.programs?.name} />
       )}
       
-      <main className={`pb-16 sm:pb-20 md:pb-0 md:pl-64 ${isCompleted ? 'pt-20 sm:pt-24 md:pt-32' : ''}`}>
+      <main className={`flex-1 pb-16 sm:pb-20 md:pb-0 md:pl-64 ${isCompleted ? 'pt-20 sm:pt-24 md:pt-32' : ''}`}>
         {children}
       </main>
+
+      {/* Footer */}
+      <div className="md:pl-64">
+        <Footer />
+      </div>
       
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 md:hidden">
