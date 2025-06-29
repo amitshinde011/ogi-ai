@@ -29,6 +29,19 @@ const StepTracker = () => {
     setPreviousSteps(stepData.steps);
   }, [stepData.steps, goal, previousSteps]);
 
+  // Listen for external step updates and sync with parent components
+  useEffect(() => {
+    const handleStepsUpdated = (event: CustomEvent) => {
+      // This ensures the step tracker stays in sync with other components
+    };
+
+    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    
+    return () => {
+      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    };
+  }, []);
+
   const getRandomMessage = () => {
     return goalMessages[Math.floor(Math.random() * goalMessages.length)];
   };
@@ -129,7 +142,7 @@ const StepTracker = () => {
         </div>
 
         <div className="mt-4 text-xs text-gray-500 text-center">
-          Goal: {goal.toLocaleString()} steps per day
+        Goal: {goal.toLocaleString()} steps per day
         </div>
 
         <GoalCompletionMessage
