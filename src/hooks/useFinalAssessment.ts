@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -48,6 +47,18 @@ export const useFinalAssessment = () => {
           console.log('No completed program found, redirecting to home');
           navigate('/home');
           return;
+        }
+
+        // Mark subscription as completed since the end date has passed
+        const { error: updateError } = await supabase
+          .from('user_subscriptions')
+          .update({ status: 'completed' })
+          .eq('id', subscription.id);
+
+        if (updateError) {
+          console.error('Error marking subscription as completed:', updateError);
+        } else {
+          console.log('Subscription marked as completed successfully');
         }
 
         // Check if final assessment already exists
@@ -161,13 +172,13 @@ export const useFinalAssessment = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
-      // Get current active subscription that has ended (completed program)
+      // Get current subscription (should be completed by now)
       const today = new Date().toISOString().split('T')[0];
       const { data: subscription } = await supabase
         .from('user_subscriptions')
         .select('id')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'completed'])
         .lte('end_date', today)
         .maybeSingle();
 
