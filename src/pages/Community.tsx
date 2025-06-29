@@ -10,6 +10,7 @@ import { RefreshSpinner } from '@/components/community/RefreshSpinner';
 import { useCommunityFeed, CommunityPost } from '@/hooks/useCommunityFeed';
 import { useAuth } from '@/hooks/useAuth';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
 const Community = () => {
   const { 
@@ -21,6 +22,7 @@ const Community = () => {
   } = useCommunityFeed();
   
   const { user, isAuthenticated } = useAuth();
+  const { isCompleted } = useProgramCompletion();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [localPosts, setLocalPosts] = useState<CommunityPost[]>([]);
 
@@ -89,14 +91,22 @@ const Community = () => {
           threshold={threshold}
         />
 
-        {/* Create Post Button */}
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          className="w-full mb-6 bg-sage hover:bg-sage/90 flex items-center justify-center gap-2 py-3 text-base sm:text-lg"
-        >
-          <Plus className="w-5 h-5" />
-          Create Post
-        </Button>
+        {/* Create Post Button - disabled if program completed */}
+        {!isCompleted ? (
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="w-full mb-6 bg-sage hover:bg-sage/90 flex items-center justify-center gap-2 py-3 text-base sm:text-lg"
+          >
+            <Plus className="w-5 h-5" />
+            Create Post
+          </Button>
+        ) : (
+          <div className="w-full mb-6 p-4 bg-gray-100 rounded-lg text-center">
+            <p className="text-gray-600 text-sm">
+              🎉 Program completed! Start a new journey to create posts again.
+            </p>
+          </div>
+        )}
 
         {/* Posts Feed */}
         {loading && !isRefreshing ? (
@@ -126,12 +136,14 @@ const Community = () => {
         )}
       </div>
 
-      {/* Create Post Modal */}
-      <CreatePostModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onCreatePost={handleCreatePost}
-      />
+      {/* Create Post Modal - only show if program not completed */}
+      {!isCompleted && (
+        <CreatePostModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onCreatePost={handleCreatePost}
+        />
+      )}
     </Layout>
   );
 };

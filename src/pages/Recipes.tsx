@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
@@ -12,14 +12,17 @@ import RecipeGrid from '@/components/recipes/RecipeGrid';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { useUserProgram } from '@/hooks/useUserProgram';
 import { useProgramRecipes } from '@/hooks/useProgramRecipes';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { Link } from 'react-router-dom';
 
 const Recipes = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const { savedRecipeIds } = useSavedRecipes();
   const { data: userProgram, isLoading: programLoading } = useUserProgram();
   const { programRecipes, categories, isLoading: recipesLoading } = useProgramRecipes(userProgram);
+  const { isCompleted } = useProgramCompletion();
 
   // Filter recipes based on search and category
   const filteredRecipes = React.useMemo(() => {
@@ -49,6 +52,14 @@ const Recipes = () => {
       </Layout>
     );
   }
+
+  // Redirect to subscriptions if program is completed
+  useEffect(() => {
+    if (isCompleted) {
+      navigate('/subscriptions');
+      return;
+    }
+  }, [isCompleted, navigate]);
 
   // Show message if user has no active program
   if (!userProgram) {
@@ -85,7 +96,7 @@ const Recipes = () => {
         }
       />
       
-      <div className="max-w-md mx-auto p-4 space-y-6">
+      <div className="p-4 space-y-6 max-w-md mx-auto">
         <ProgramInfoCard programName={userProgram.programs?.name} />
         <SavedRecipesCard savedRecipesCount={savedRecipeIds.length} />
         

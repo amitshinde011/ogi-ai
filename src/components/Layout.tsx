@@ -3,6 +3,8 @@ import React from 'react';
 import { Home, CookingPot, Users, TrendingUp, Settings } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
+import PostCompletionBanner from './PostCompletionBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +14,7 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
+  const { isCompleted, completedSubscription } = useProgramCompletion();
 
   const navigationItems = [
     { icon: Home, path: '/home', label: 'Home' },
@@ -28,8 +31,22 @@ const Layout = ({ children }: LayoutProps) => {
     return location.pathname.startsWith(path);
   };
 
+  const handleNavigation = (path: string) => {
+    // Restrict access to Home and Recipes if program is completed
+    if (isCompleted && (path === '/home' || path === '/recipes')) {
+      navigate('/subscriptions');
+      return;
+    }
+    navigate(path);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-peaceful">
+      {/* Post-completion banner */}
+      {isCompleted && completedSubscription && (
+        <PostCompletionBanner completedProgramName={completedSubscription.programs?.name} />
+      )}
+      
       <main className="pb-16 sm:pb-20 md:pb-0 md:pl-64">
         {children}
       </main>
@@ -41,16 +58,20 @@ const Layout = ({ children }: LayoutProps) => {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
+              const isRestricted = isCompleted && (item.path === '/home' || item.path === '/recipes');
               
               return (
                 <button
                   key={item.path}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => handleNavigation(item.path)}
                   className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] ${
                     active
                       ? 'text-sage bg-sage/10'
+                      : isRestricted
+                      ? 'text-slate-300 cursor-not-allowed'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                   }`}
+                  disabled={isRestricted}
                 >
                   <Icon size={20} strokeWidth={1.5} />
                   <span className="text-xs mt-1 font-medium">{item.label}</span>
@@ -76,16 +97,20 @@ const Layout = ({ children }: LayoutProps) => {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
+              const isRestricted = isCompleted && (item.path === '/home' || item.path === '/recipes');
               
               return (
                 <button
                   key={item.path}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => handleNavigation(item.path)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
                     active
                       ? 'text-sage bg-sage/10 font-medium'
+                      : isRestricted
+                      ? 'text-slate-300 cursor-not-allowed'
                       : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
                   }`}
+                  disabled={isRestricted}
                 >
                   <Icon size={20} strokeWidth={1.5} />
                   <span>{item.label}</span>
