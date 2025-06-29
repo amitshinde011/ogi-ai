@@ -193,7 +193,7 @@ Just finished the ${programName} and look at this incredible journey!${progressT
 
 Before vs After Progress - Your dedication and consistency can create amazing results! 
 
-#TransformationTuesday #WellnessJourney #ProgressNotPerfection #BeforeAndAfter #${programName.replace(/\s+/g, '')}`;
+#WellnessJourney #ProgressAndPersistence #BeforeAndAfter #WellnessTransformed #${programName.replace(/\s+/g, '')}`;
 
       const { error } = await supabase
         .from('posts')
