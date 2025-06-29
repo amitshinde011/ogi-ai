@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,8 @@ import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
+import { useR2Upload } from '@/hooks/useR2Upload';
+import html2canvas from 'html2canvas';
 
 interface AssessmentData {
   id?: string;
@@ -26,6 +27,8 @@ const Comparison = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
+  const { uploadToR2 } = useR2Upload();
+  const comparisonRef = useRef<HTMLDivElement>(null);
   const [beforeAssessment, setBeforeAssessment] = useState<AssessmentData | null>(null);
   const [finalAssessment, setFinalAssessment] = useState<AssessmentData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,6 +125,70 @@ const Comparison = () => {
     }
   };
 
+  const captureComparisonImage = async (): Promise<File | null> => {
+    if (!comparisonRef.current) return null;
+
+    try {
+      const canvas = await html2canvas(comparisonRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        height: comparisonRef.current.scrollHeight,
+        width: comparisonRef.current.scrollWidth
+      });
+
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], `transformation-${Date.now()}.png`, {
+              type: 'image/png'
+            });
+            resolve(file);
+          } else {
+            resolve(null);
+          }
+        }, 'image/png', 0.9);
+      });
+    } catch (error) {
+      console.error('Error capturing comparison image:', error);
+      return null;
+    }
+  };
+
+  const createCommunityPost = async (imageUrl: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No authenticated user');
+
+      const caption = `🎉 Amazing transformation completed! 💪
+
+Before vs After Progress:
+• Walking 10km: ${beforeAssessment?.walk_10km_comfort || 'N/A'} → ${finalAssessment?.walk_10km_comfort || 'N/A'}
+• Running 10km: ${beforeAssessment?.run_10km_comfort || 'N/A'} → ${finalAssessment?.run_10km_comfort || 'N/A'}
+• Mountain Climbing: ${beforeAssessment?.climb_mountain_comfort || 'N/A'} → ${finalAssessment?.climb_mountain_comfort || 'N/A'}
+
+#TransformationTuesday #WellnessJourney #ProgressNotPerfection`;
+
+      const { error } = await supabase
+        .from('posts')
+        .insert({
+          author_id: user.id,
+          image_url: imageUrl,
+          caption: caption,
+          category: 'transformation'
+        });
+
+      if (error) throw error;
+
+      console.log('Community post created successfully');
+      return true;
+    } catch (error) {
+      console.error('Error creating community post:', error);
+      throw error;
+    }
+  };
+
   const handleShare = async (platform: 'community' | 'social') => {
     if (!finalAssessment?.id) return;
 
@@ -130,6 +197,33 @@ const Comparison = () => {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      if (platform === 'community') {
+        // Capture the comparison as an image
+        const comparisonImage = await captureComparisonImage();
+        if (!comparisonImage) {
+          toast({
+            title: "Error",
+            description: "Failed to capture comparison image.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Upload the image to R2
+        const uploadResult = await uploadToR2(comparisonImage, 'community');
+        if (!uploadResult) {
+          toast({
+            title: "Error",
+            description: "Failed to upload comparison image.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Create community post
+        await createCommunityPost(uploadResult.imageUrl);
+      }
 
       const updateData = platform === 'community' 
         ? { shared_to_community: true }
@@ -242,107 +336,112 @@ const Comparison = () => {
           </CardContent>
         </Card>
 
-        {/* Before & After Photos */}
-        {beforeAssessment?.full_body_photo_url && finalAssessment?.full_body_photo_url && (
+        {/* Comparison Content - This will be captured for sharing */}
+        <div ref={comparisonRef} className="space-y-6">
+          {/* Before & After Photos */}
+          {beforeAssessment?.full_body_photo_url && finalAssessment?.full_body_photo_url && (
+            <Card className="bg-white">
+              <CardHeader>
+                <CardTitle className="text-center text-primary">Before & After Photos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <Badge variant="outline" className="mb-2">Before</Badge>
+                    <img 
+                      src={beforeAssessment.full_body_photo_url} 
+                      alt="Before" 
+                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                      crossOrigin="anonymous"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Start of journey</p>
+                  </div>
+                  <div className="text-center">
+                    <Badge className="mb-2 bg-primary">After</Badge>
+                    <img 
+                      src={finalAssessment.full_body_photo_url} 
+                      alt="After" 
+                      className="w-full h-48 object-cover rounded-lg border-2 border-green-300"
+                      crossOrigin="anonymous"
+                    />
+                    <p className="text-xs text-green-600 mt-1">Journey complete!</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Comfort Level Comparisons */}
           <Card className="bg-white">
             <CardHeader>
-              <CardTitle className="text-center text-primary">Before & After Photos</CardTitle>
+              <CardTitle className="text-primary flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2" />
+                Your Progress Comparison
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <Badge variant="outline" className="mb-2">Before</Badge>
-                  <img 
-                    src={beforeAssessment.full_body_photo_url} 
-                    alt="Before" 
-                    className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Start of journey</p>
+            <CardContent className="space-y-6">
+              {/* Walking 10km Comfort */}
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-800">Walking 10km Comfort Level</h4>
+                <div className="flex items-center justify-between">
+                  <div className="text-center flex-1">
+                    <p className="text-xs text-gray-500 mb-1">Before</p>
+                    {renderComfortLevel(beforeAssessment?.walk_10km_comfort)}
+                  </div>
+                  <div className="mx-2 text-gray-400">→</div>
+                  <div className="text-center flex-1">
+                    <p className="text-xs text-gray-500 mb-1">After</p>
+                    <div className="flex items-center justify-center">
+                      {renderComfortLevel(finalAssessment?.walk_10km_comfort, true)}
+                      {beforeAssessment?.walk_10km_comfort && finalAssessment?.walk_10km_comfort && 
+                       getImprovementIcon(beforeAssessment.walk_10km_comfort, finalAssessment.walk_10km_comfort)}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <Badge className="mb-2 bg-primary">After</Badge>
-                  <img 
-                    src={finalAssessment.full_body_photo_url} 
-                    alt="After" 
-                    className="w-full h-48 object-cover rounded-lg border-2 border-green-300"
-                  />
-                  <p className="text-xs text-green-600 mt-1">Journey complete!</p>
+              </div>
+
+              {/* Running 10km Comfort */}
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-800">Running 10km Comfort Level</h4>
+                <div className="flex items-center justify-between">
+                  <div className="text-center flex-1">
+                    <p className="text-xs text-gray-500 mb-1">Before</p>
+                    {renderComfortLevel(beforeAssessment?.run_10km_comfort)}
+                  </div>
+                  <div className="mx-2 text-gray-400">→</div>
+                  <div className="text-center flex-1">
+                    <p className="text-xs text-gray-500 mb-1">After</p>
+                    <div className="flex items-center justify-center">
+                      {renderComfortLevel(finalAssessment?.run_10km_comfort, true)}
+                      {beforeAssessment?.run_10km_comfort && finalAssessment?.run_10km_comfort && 
+                       getImprovementIcon(beforeAssessment.run_10km_comfort, finalAssessment.run_10km_comfort)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mountain Climbing Comfort */}
+              <div className="space-y-2">
+                <h4 className="font-medium text-gray-800">Mountain Climbing Comfort Level</h4>
+                <div className="flex items-center justify-between">
+                  <div className="text-center flex-1">
+                    <p className="text-xs text-gray-500 mb-1">Before</p>
+                    {renderComfortLevel(beforeAssessment?.climb_mountain_comfort)}
+                  </div>
+                  <div className="mx-2 text-gray-400">→</div>
+                  <div className="text-center flex-1">
+                    <p className="text-xs text-gray-500 mb-1">After</p>
+                    <div className="flex items-center justify-center">
+                      {renderComfortLevel(finalAssessment?.climb_mountain_comfort, true)}
+                      {beforeAssessment?.climb_mountain_comfort && finalAssessment?.climb_mountain_comfort && 
+                       getImprovementIcon(beforeAssessment.climb_mountain_comfort, finalAssessment.climb_mountain_comfort)}
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* Comfort Level Comparisons */}
-        <Card className="bg-white">
-          <CardHeader>
-            <CardTitle className="text-primary flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2" />
-              Your Progress Comparison
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Walking 10km Comfort */}
-            <div className="space-y-2">
-              <h4 className="font-medium text-gray-800">Walking 10km Comfort Level</h4>
-              <div className="flex items-center justify-between">
-                <div className="text-center flex-1">
-                  <p className="text-xs text-gray-500 mb-1">Before</p>
-                  {renderComfortLevel(beforeAssessment?.walk_10km_comfort)}
-                </div>
-                <div className="mx-2 text-gray-400">→</div>
-                <div className="text-center flex-1">
-                  <p className="text-xs text-gray-500 mb-1">After</p>
-                  <div className="flex items-center justify-center">
-                    {renderComfortLevel(finalAssessment?.walk_10km_comfort, true)}
-                    {beforeAssessment?.walk_10km_comfort && finalAssessment?.walk_10km_comfort && 
-                     getImprovementIcon(beforeAssessment.walk_10km_comfort, finalAssessment.walk_10km_comfort)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Running 10km Comfort */}
-            <div className="space-y-2">
-              <h4 className="font-medium text-gray-800">Running 10km Comfort Level</h4>
-              <div className="flex items-center justify-between">
-                <div className="text-center flex-1">
-                  <p className="text-xs text-gray-500 mb-1">Before</p>
-                  {renderComfortLevel(beforeAssessment?.run_10km_comfort)}
-                </div>
-                <div className="mx-2 text-gray-400">→</div>
-                <div className="text-center flex-1">
-                  <p className="text-xs text-gray-500 mb-1">After</p>
-                  <div className="flex items-center justify-center">
-                    {renderComfortLevel(finalAssessment?.run_10km_comfort, true)}
-                    {beforeAssessment?.run_10km_comfort && finalAssessment?.run_10km_comfort && 
-                     getImprovementIcon(beforeAssessment.run_10km_comfort, finalAssessment.run_10km_comfort)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Mountain Climbing Comfort */}
-            <div className="space-y-2">
-              <h4 className="font-medium text-gray-800">Mountain Climbing Comfort Level</h4>
-              <div className="flex items-center justify-between">
-                <div className="text-center flex-1">
-                  <p className="text-xs text-gray-500 mb-1">Before</p>
-                  {renderComfortLevel(beforeAssessment?.climb_mountain_comfort)}
-                </div>
-                <div className="mx-2 text-gray-400">→</div>
-                <div className="text-center flex-1">
-                  <p className="text-xs text-gray-500 mb-1">After</p>
-                  <div className="flex items-center justify-center">
-                    {renderComfortLevel(finalAssessment?.climb_mountain_comfort, true)}
-                    {beforeAssessment?.climb_mountain_comfort && finalAssessment?.climb_mountain_comfort && 
-                     getImprovementIcon(beforeAssessment.climb_mountain_comfort, finalAssessment.climb_mountain_comfort)}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Health Conditions Comparison */}
         {(beforeAssessment?.current_health_conditions || finalAssessment?.current_health_conditions) && (
@@ -414,7 +513,7 @@ const Comparison = () => {
                 className="w-full bg-primary hover:bg-primary/90"
               >
                 <Users className="w-4 h-4 mr-2" />
-                Share to Community
+                {sharing ? 'Sharing...' : 'Share to Community'}
               </Button>
               
               <Button 
