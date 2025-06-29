@@ -108,10 +108,6 @@ export const useWellnessTracking = () => {
       }
 
       setWellnessData(updatedData);
-      toast({
-        title: "Progress updated!",
-        description: "Your wellness data has been saved.",
-      });
     } catch (error) {
       console.error('Error updating wellness data:', error);
       toast({
