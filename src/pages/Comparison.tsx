@@ -28,7 +28,7 @@ const Comparison = () => {
   const { toast } = useToast();
   const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
   const { uploadToR2 } = useR2Upload();
-  const comparisonRef = useRef<HTMLDivElement>(null);
+  const photoComparisonRef = useRef<HTMLDivElement>(null);
   const [beforeAssessment, setBeforeAssessment] = useState<AssessmentData | null>(null);
   const [finalAssessment, setFinalAssessment] = useState<AssessmentData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -125,17 +125,17 @@ const Comparison = () => {
     }
   };
 
-  const captureComparisonImage = async (): Promise<File | null> => {
-    if (!comparisonRef.current) return null;
+  const capturePhotoComparison = async (): Promise<File | null> => {
+    if (!photoComparisonRef.current) return null;
 
     try {
-      const canvas = await html2canvas(comparisonRef.current, {
+      const canvas = await html2canvas(photoComparisonRef.current, {
         backgroundColor: '#ffffff',
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        height: comparisonRef.current.scrollHeight,
-        width: comparisonRef.current.scrollWidth
+        height: photoComparisonRef.current.scrollHeight,
+        width: photoComparisonRef.current.scrollWidth
       });
 
       return new Promise((resolve) => {
@@ -151,7 +151,7 @@ const Comparison = () => {
         }, 'image/png', 0.9);
       });
     } catch (error) {
-      console.error('Error capturing comparison image:', error);
+      console.error('Error capturing photo comparison:', error);
       return null;
     }
   };
@@ -163,12 +163,9 @@ const Comparison = () => {
 
       const caption = `🎉 Amazing transformation completed! 💪
 
-Before vs After Progress:
-• Walking 10km: ${beforeAssessment?.walk_10km_comfort || 'N/A'} → ${finalAssessment?.walk_10km_comfort || 'N/A'}
-• Running 10km: ${beforeAssessment?.run_10km_comfort || 'N/A'} → ${finalAssessment?.run_10km_comfort || 'N/A'}
-• Mountain Climbing: ${beforeAssessment?.climb_mountain_comfort || 'N/A'} → ${finalAssessment?.climb_mountain_comfort || 'N/A'}
+Before vs After Progress - Look at this incredible journey!
 
-#TransformationTuesday #WellnessJourney #ProgressNotPerfection`;
+#TransformationTuesday #WellnessJourney #ProgressNotPerfection #BeforeAndAfter`;
 
       const { error } = await supabase
         .from('posts')
@@ -198,31 +195,35 @@ Before vs After Progress:
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Capture the before/after photos comparison
+      const comparisonImage = await capturePhotoComparison();
+      if (!comparisonImage) {
+        toast({
+          title: "Error",
+          description: "Failed to capture comparison image.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Upload the image to R2
+      const uploadResult = await uploadToR2(comparisonImage, 'community');
+      if (!uploadResult) {
+        toast({
+          title: "Error",
+          description: "Failed to upload comparison image.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (platform === 'community') {
-        // Capture the comparison as an image
-        const comparisonImage = await captureComparisonImage();
-        if (!comparisonImage) {
-          toast({
-            title: "Error",
-            description: "Failed to capture comparison image.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Upload the image to R2
-        const uploadResult = await uploadToR2(comparisonImage, 'community');
-        if (!uploadResult) {
-          toast({
-            title: "Error",
-            description: "Failed to upload comparison image.",
-            variant: "destructive",
-          });
-          return;
-        }
-
         // Create community post
         await createCommunityPost(uploadResult.imageUrl);
+      } else {
+        // For social media, we could open a share dialog or copy the image URL
+        // For now, we'll just show a success message
+        console.log('Social media share with image URL:', uploadResult.imageUrl);
       }
 
       const updateData = platform === 'community' 
@@ -336,13 +337,12 @@ Before vs After Progress:
           </CardContent>
         </Card>
 
-        {/* Comparison Content - This will be captured for sharing */}
-        <div ref={comparisonRef} className="space-y-6">
-          {/* Before & After Photos */}
-          {beforeAssessment?.full_body_photo_url && finalAssessment?.full_body_photo_url && (
+        {/* Before & After Photos - This will be captured for sharing */}
+        {beforeAssessment?.full_body_photo_url && finalAssessment?.full_body_photo_url && (
+          <div ref={photoComparisonRef}>
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-center text-primary">Before & After Photos</CardTitle>
+                <CardTitle className="text-center text-primary">Before & After Transformation</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -367,81 +367,85 @@ Before vs After Progress:
                     <p className="text-xs text-green-600 mt-1">Journey complete!</p>
                   </div>
                 </div>
+                <div className="text-center mt-4">
+                  <p className="text-sm font-medium text-primary">Amazing Progress! 🎉</p>
+                  <p className="text-xs text-gray-600">Your dedication has paid off!</p>
+                </div>
               </CardContent>
             </Card>
-          )}
+          </div>
+        )}
 
-          {/* Comfort Level Comparisons */}
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle className="text-primary flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2" />
-                Your Progress Comparison
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Walking 10km Comfort */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-gray-800">Walking 10km Comfort Level</h4>
-                <div className="flex items-center justify-between">
-                  <div className="text-center flex-1">
-                    <p className="text-xs text-gray-500 mb-1">Before</p>
-                    {renderComfortLevel(beforeAssessment?.walk_10km_comfort)}
-                  </div>
-                  <div className="mx-2 text-gray-400">→</div>
-                  <div className="text-center flex-1">
-                    <p className="text-xs text-gray-500 mb-1">After</p>
-                    <div className="flex items-center justify-center">
-                      {renderComfortLevel(finalAssessment?.walk_10km_comfort, true)}
-                      {beforeAssessment?.walk_10km_comfort && finalAssessment?.walk_10km_comfort && 
-                       getImprovementIcon(beforeAssessment.walk_10km_comfort, finalAssessment.walk_10km_comfort)}
-                    </div>
+        {/* Comfort Level Comparisons */}
+        <Card className="bg-white">
+          <CardHeader>
+            <CardTitle className="text-primary flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2" />
+              Your Progress Comparison
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Walking 10km Comfort */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-800">Walking 10km Comfort Level</h4>
+              <div className="flex items-center justify-between">
+                <div className="text-center flex-1">
+                  <p className="text-xs text-gray-500 mb-1">Before</p>
+                  {renderComfortLevel(beforeAssessment?.walk_10km_comfort)}
+                </div>
+                <div className="mx-2 text-gray-400">→</div>
+                <div className="text-center flex-1">
+                  <p className="text-xs text-gray-500 mb-1">After</p>
+                  <div className="flex items-center justify-center">
+                    {renderComfortLevel(finalAssessment?.walk_10km_comfort, true)}
+                    {beforeAssessment?.walk_10km_comfort && finalAssessment?.walk_10km_comfort && 
+                     getImprovementIcon(beforeAssessment.walk_10km_comfort, finalAssessment.walk_10km_comfort)}
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Running 10km Comfort */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-gray-800">Running 10km Comfort Level</h4>
-                <div className="flex items-center justify-between">
-                  <div className="text-center flex-1">
-                    <p className="text-xs text-gray-500 mb-1">Before</p>
-                    {renderComfortLevel(beforeAssessment?.run_10km_comfort)}
-                  </div>
-                  <div className="mx-2 text-gray-400">→</div>
-                  <div className="text-center flex-1">
-                    <p className="text-xs text-gray-500 mb-1">After</p>
-                    <div className="flex items-center justify-center">
-                      {renderComfortLevel(finalAssessment?.run_10km_comfort, true)}
-                      {beforeAssessment?.run_10km_comfort && finalAssessment?.run_10km_comfort && 
-                       getImprovementIcon(beforeAssessment.run_10km_comfort, finalAssessment.run_10km_comfort)}
-                    </div>
+            {/* Running 10km Comfort */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-800">Running 10km Comfort Level</h4>
+              <div className="flex items-center justify-between">
+                <div className="text-center flex-1">
+                  <p className="text-xs text-gray-500 mb-1">Before</p>
+                  {renderComfortLevel(beforeAssessment?.run_10km_comfort)}
+                </div>
+                <div className="mx-2 text-gray-400">→</div>
+                <div className="text-center flex-1">
+                  <p className="text-xs text-gray-500 mb-1">After</p>
+                  <div className="flex items-center justify-center">
+                    {renderComfortLevel(finalAssessment?.run_10km_comfort, true)}
+                    {beforeAssessment?.run_10km_comfort && finalAssessment?.run_10km_comfort && 
+                     getImprovementIcon(beforeAssessment.run_10km_comfort, finalAssessment.run_10km_comfort)}
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Mountain Climbing Comfort */}
-              <div className="space-y-2">
-                <h4 className="font-medium text-gray-800">Mountain Climbing Comfort Level</h4>
-                <div className="flex items-center justify-between">
-                  <div className="text-center flex-1">
-                    <p className="text-xs text-gray-500 mb-1">Before</p>
-                    {renderComfortLevel(beforeAssessment?.climb_mountain_comfort)}
-                  </div>
-                  <div className="mx-2 text-gray-400">→</div>
-                  <div className="text-center flex-1">
-                    <p className="text-xs text-gray-500 mb-1">After</p>
-                    <div className="flex items-center justify-center">
-                      {renderComfortLevel(finalAssessment?.climb_mountain_comfort, true)}
-                      {beforeAssessment?.climb_mountain_comfort && finalAssessment?.climb_mountain_comfort && 
-                       getImprovementIcon(beforeAssessment.climb_mountain_comfort, finalAssessment.climb_mountain_comfort)}
-                    </div>
+            {/* Mountain Climbing Comfort */}
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-800">Mountain Climbing Comfort Level</h4>
+              <div className="flex items-center justify-between">
+                <div className="text-center flex-1">
+                  <p className="text-xs text-gray-500 mb-1">Before</p>
+                  {renderComfortLevel(beforeAssessment?.climb_mountain_comfort)}
+                </div>
+                <div className="mx-2 text-gray-400">→</div>
+                <div className="text-center flex-1">
+                  <p className="text-xs text-gray-500 mb-1">After</p>
+                  <div className="flex items-center justify-center">
+                    {renderComfortLevel(finalAssessment?.climb_mountain_comfort, true)}
+                    {beforeAssessment?.climb_mountain_comfort && finalAssessment?.climb_mountain_comfort && 
+                     getImprovementIcon(beforeAssessment.climb_mountain_comfort, finalAssessment.climb_mountain_comfort)}
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Health Conditions Comparison */}
         {(beforeAssessment?.current_health_conditions || finalAssessment?.current_health_conditions) && (
@@ -503,7 +507,7 @@ Before vs After Progress:
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-gray-600 text-sm">
-              Inspire others by sharing your amazing transformation!
+              Inspire others by sharing your amazing before & after transformation!
             </p>
             
             <div className="space-y-3">
