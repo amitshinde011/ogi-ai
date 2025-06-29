@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Shield, CreditCard, CheckCircle } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -9,11 +10,11 @@ import { usePayment } from '@/hooks/usePayment';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
 import { useCouponCode } from '@/hooks/useCouponCode';
-import ProgramDetailsCard from '@/components/payment/ProgramDetailsCard';
-import LocationGatewayInfo from '@/components/payment/LocationGatewayInfo';
-import PaymentButton from '@/components/payment/PaymentButton';
-import CouponCodeInput from '@/components/CouponCodeInput';
-import PricingDisplay from '@/components/PricingDisplay';
+import { ProgramDetailsCard } from '@/components/payment/ProgramDetailsCard';
+import { LocationGatewayInfo } from '@/components/payment/LocationGatewayInfo';
+import { PaymentButton } from '@/components/payment/PaymentButton';
+import { CouponCodeInput } from '@/components/CouponCodeInput';
+import { PricingDisplay } from '@/components/PricingDisplay';
 import { Link } from 'react-router-dom';
 
 const Payment = () => {
@@ -22,21 +23,20 @@ const Payment = () => {
   const { toast } = useToast();
   
   const programId = searchParams.get('program');
-  const { processPayment, isLoading } = usePayment();
-  const { config, isLoading: configLoading } = usePricingConfig();
-  const { country, isIndia } = useLocationDetection();
+  const { loading, verifyPayment } = usePayment();
+  const config = usePricingConfig();
+  const { isIndiaUser, userLocation } = useLocationDetection();
   const {
-    couponCode,
-    setCouponCode,
-    discount,
+    appliedCoupon,
     isValidating,
-    error: couponError,
-    applyCoupon,
-    removeCoupon
+    validateCoupon,
+    removeCoupon,
+    getDiscountPercentage
   } = useCouponCode();
 
   const [program, setProgram] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
+  const [couponCode, setCouponCode] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,7 +81,7 @@ const Payment = () => {
     fetchData();
   }, [programId, navigate, toast]);
 
-  if (configLoading || !program || !user || !config) {
+  if (loading || !program || !user || !config) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
@@ -89,24 +89,26 @@ const Payment = () => {
     );
   }
 
-  const basePrice = isIndia ? config.price_inr : config.price_usd;
-  const currency = isIndia ? 'INR' : 'USD';
-  const currencySymbol = isIndia ? '₹' : '$';
-  const discountAmount = discount ? Math.round(basePrice * discount.discount_percentage / 100) : 0;
+  const basePrice = isIndiaUser && program.price_inr ? program.price_inr : program.price;
+  const currency = isIndiaUser ? 'INR' : 'USD';
+  const currencySymbol = isIndiaUser ? '₹' : '$';
+  const discountPercentage = getDiscountPercentage();
+  const discountAmount = discountPercentage ? Math.round(basePrice * discountPercentage / 100) : 0;
   const finalPrice = basePrice - discountAmount;
 
   const handlePayment = async () => {
     if (!program) return;
 
     try {
-      await processPayment({
-        programId: program.id,
-        amount: finalPrice,
-        currency,
-        couponCode: discount?.code
-      });
+      await verifyPayment('order_' + Date.now(), 'payment_' + Date.now());
     } catch (error) {
       console.error('Payment error:', error);
+    }
+  };
+
+  const handleApplyCoupon = async () => {
+    if (couponCode.trim()) {
+      await validateCoupon(couponCode);
     }
   };
 
@@ -127,10 +129,27 @@ const Payment = () => {
 
         <div className="space-y-6">
           {/* Program Details */}
-          <ProgramDetailsCard program={program} />
+          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg">Program Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProgramDetailsCard program={program} currencySymbol={currencySymbol} />
+            </CardContent>
+          </Card>
 
           {/* Location and Gateway Info */}
-          <LocationGatewayInfo country={country} isIndia={isIndia} />
+          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-lg">Payment Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LocationGatewayInfo 
+                userLocation={userLocation} 
+                gateway={isIndiaUser ? 'razorpay' : 'braintree'} 
+              />
+            </CardContent>
+          </Card>
 
           {/* Coupon Code */}
           <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
@@ -139,13 +158,10 @@ const Payment = () => {
             </CardHeader>
             <CardContent>
               <CouponCodeInput
-                couponCode={couponCode}
-                setCouponCode={setCouponCode}
-                discount={discount}
+                onApplyCoupon={validateCoupon}
+                appliedCoupon={appliedCoupon}
+                onRemoveCoupon={removeCoupon}
                 isValidating={isValidating}
-                error={couponError}
-                onApply={applyCoupon}
-                onRemove={removeCoupon}
               />
             </CardContent>
           </Card>
@@ -156,12 +172,22 @@ const Payment = () => {
               <CardTitle className="text-lg">Payment Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <PricingDisplay
-                basePrice={basePrice}
-                discount={discount}
-                finalPrice={finalPrice}
-                currencySymbol={currencySymbol}
-              />
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span>Base Price</span>
+                  <span>{currencySymbol}{basePrice}</span>
+                </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount ({discountPercentage}%)</span>
+                    <span>-{currencySymbol}{discountAmount}</span>
+                  </div>
+                )}
+                <div className="border-t pt-3 flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span>{currencySymbol}{finalPrice}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -169,11 +195,10 @@ const Payment = () => {
           <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
             <CardContent className="p-6">
               <PaymentButton
-                onPayment={handlePayment}
-                isLoading={isLoading}
-                amount={finalPrice}
+                onClick={handlePayment}
+                loading={loading}
                 currencySymbol={currencySymbol}
-                disabled={!program}
+                displayPrice={finalPrice}
               />
               
               {/* Legal Notice */}
