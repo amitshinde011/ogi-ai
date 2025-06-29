@@ -164,9 +164,32 @@ const Comparison = () => {
 
       const programName = completedSubscription?.programs?.name || 'Wellness Program';
       
+      // Create before/after data comparison text
+      const getComfortText = (level: string) => {
+        const comfortMap: { [key: string]: string } = {
+          'very_uncomfortable': 'Very Uncomfortable',
+          'uncomfortable': 'Uncomfortable', 
+          'neutral': 'Neutral',
+          'somewhat_comfortable': 'Somewhat Comfortable',
+          'comfortable': 'Comfortable',
+          'very_comfortable': 'Very Comfortable'
+        };
+        return comfortMap[level] || level;
+      };
+
+      let progressText = '';
+      if (beforeAssessment && finalAssessment) {
+        progressText = `
+
+📈 My Progress Results:
+• Walking 10km: ${getComfortText(beforeAssessment.walk_10km_comfort || '')} → ${getComfortText(finalAssessment.walk_10km_comfort || '')}
+• Running 10km: ${getComfortText(beforeAssessment.run_10km_comfort || '')} → ${getComfortText(finalAssessment.run_10km_comfort || '')}
+• Mountain Climbing: ${getComfortText(beforeAssessment.climb_mountain_comfort || '')} → ${getComfortText(finalAssessment.climb_mountain_comfort || '')}`;
+      }
+      
       const caption = `🎉 Amazing transformation completed! 💪
 
-Just finished the ${programName} and look at this incredible journey!
+Just finished the ${programName} and look at this incredible journey!${progressText}
 
 Before vs After Progress - Your dedication and consistency can create amazing results! 
 
