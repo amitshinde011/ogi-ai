@@ -47,7 +47,7 @@ const Layout = ({ children }: LayoutProps) => {
         <PostCompletionBanner completedProgramName={completedSubscription.programs?.name} />
       )}
       
-      <main className="pb-16 sm:pb-20 md:pb-0 md:pl-64">
+      <main className={`pb-16 sm:pb-20 md:pb-0 md:pl-64 ${isCompleted ? 'pt-20 sm:pt-24 md:pt-32' : ''}`}>
         {children}
       </main>
       
@@ -83,7 +83,7 @@ const Layout = ({ children }: LayoutProps) => {
       </nav>
 
       {/* Desktop Sidebar Navigation */}
-      <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 flex-col">
+      <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-40 flex-col">
         <div className="p-6 flex justify-center">
           <img 
             src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
