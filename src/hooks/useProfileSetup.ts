@@ -147,6 +147,18 @@ export const useProfileSetup = () => {
         }
       }
 
+      // Convert numeric activity levels to strings for database compatibility
+      const getActivityString = (value: number) => {
+        const mapping = {
+          1: 'never',
+          2: 'rarely',
+          3: 'sometimes',
+          4: 'often',
+          5: 'always'
+        };
+        return mapping[value as keyof typeof mapping] || 'sometimes';
+      };
+
       const { error } = await supabase
         .from('user_profiles')
         .insert({
@@ -158,9 +170,9 @@ export const useProfileSetup = () => {
           height: parseFloat(formData.height),
           health_issues: formData.health_issues,
           profile_photo_url: profilePhotoUrl,
-          physical_activity_basic: formData.physical_activity_basic,
-          physical_activity_medium: formData.physical_activity_medium,
-          physical_activity_intense: formData.physical_activity_intense
+          physical_activity_basic: getActivityString(formData.physical_activity_basic),
+          physical_activity_medium: getActivityString(formData.physical_activity_medium),
+          physical_activity_intense: getActivityString(formData.physical_activity_intense)
         });
 
       if (error) throw error;
