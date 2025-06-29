@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -161,11 +162,15 @@ const Comparison = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
+      const programName = completedSubscription?.programs?.name || 'Wellness Program';
+      
       const caption = `🎉 Amazing transformation completed! 💪
 
-Before vs After Progress - Look at this incredible journey!
+Just finished the ${programName} and look at this incredible journey!
 
-#TransformationTuesday #WellnessJourney #ProgressNotPerfection #BeforeAndAfter`;
+Before vs After Progress - Your dedication and consistency can create amazing results! 
+
+#TransformationTuesday #WellnessJourney #ProgressNotPerfection #BeforeAndAfter #${programName.replace(/\s+/g, '')}`;
 
       const { error } = await supabase
         .from('posts')
@@ -341,35 +346,46 @@ Before vs After Progress - Look at this incredible journey!
         {beforeAssessment?.full_body_photo_url && finalAssessment?.full_body_photo_url && (
           <div ref={photoComparisonRef}>
             <Card className="bg-white">
-              <CardHeader>
-                <CardTitle className="text-center text-primary">Before & After Transformation</CardTitle>
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-xl font-bold text-gray-800 mb-2">Before & After Transformation</CardTitle>
+                {completedSubscription?.programs?.name && (
+                  <p className="text-sm text-gray-600">{completedSubscription.programs.name} - Completed!</p>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <Badge variant="outline" className="mb-2">Before</Badge>
+                    <div className="relative mb-3">
+                      <span className="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 border-2 border-gray-300">
+                        Before
+                      </span>
+                    </div>
                     <img 
                       src={beforeAssessment.full_body_photo_url} 
                       alt="Before" 
                       className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
                       crossOrigin="anonymous"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Start of journey</p>
+                    <p className="text-xs text-gray-500 mt-2">Start of journey</p>
                   </div>
                   <div className="text-center">
-                    <Badge className="mb-2 bg-primary">After</Badge>
+                    <div className="relative mb-3">
+                      <span className="inline-flex items-center justify-center px-4 py-2 rounded-full text-sm font-medium bg-green-500 text-white border-2 border-green-400">
+                        After
+                      </span>
+                    </div>
                     <img 
                       src={finalAssessment.full_body_photo_url} 
                       alt="After" 
                       className="w-full h-48 object-cover rounded-lg border-2 border-green-300"
                       crossOrigin="anonymous"
                     />
-                    <p className="text-xs text-green-600 mt-1">Journey complete!</p>
+                    <p className="text-xs text-green-600 mt-2">Journey complete!</p>
                   </div>
                 </div>
-                <div className="text-center mt-4">
-                  <p className="text-sm font-medium text-primary">Amazing Progress! 🎉</p>
-                  <p className="text-xs text-gray-600">Your dedication has paid off!</p>
+                <div className="text-center mt-6 space-y-2">
+                  <p className="text-lg font-bold text-gray-800">Amazing Progress! 🎉</p>
+                  <p className="text-sm text-gray-600">Your dedication has paid off!</p>
                 </div>
               </CardContent>
             </Card>
