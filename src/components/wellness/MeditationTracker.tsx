@@ -61,6 +61,7 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
         show={showGoalMessage}
         message={getRandomMessage()}
         onComplete={() => setShowGoalMessage(false)}
+        duration={8000}
       />
     </div>
   );

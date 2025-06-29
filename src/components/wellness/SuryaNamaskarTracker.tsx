@@ -83,6 +83,7 @@ export const SuryaNamaskarTracker: React.FC<SuryaNamaskarTrackerProps> = ({
         show={showGoalMessage}
         message={getRandomMessage()}
         onComplete={() => setShowGoalMessage(false)}
+        duration={8000}
       />
     </div>
   );

@@ -1,12 +1,37 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Footprints, Plus, Play, Pause } from 'lucide-react';
 import { useStepTracking } from '@/hooks/useStepTracking';
+import { GoalCompletionMessage } from './wellness/GoalCompletionMessage';
 
 const StepTracker = () => {
   const { stepData, isTracking, permission, manuallyAddSteps, requestPermission } = useStepTracking();
+  const [showGoalMessage, setShowGoalMessage] = useState(false);
+  const [previousSteps, setPreviousSteps] = useState(stepData.steps);
+
+  const goal = 10000; // 10,000 steps goal
+
+  const goalMessages = [
+    "🚶‍♀️ Amazing! You've walked 10,000 steps today!",
+    "👟 Fantastic! Your fitness goal is achieved!",
+    "🎯 Outstanding! You've hit your daily step target!",
+    "💪 Incredible! Your dedication to walking is inspiring!",
+    "⭐ Perfect! You've mastered your daily movement goal!"
+  ];
+
+  useEffect(() => {
+    // Check if goal was just completed
+    if (stepData.steps >= goal && previousSteps < goal && previousSteps > 0) {
+      setShowGoalMessage(true);
+    }
+    setPreviousSteps(stepData.steps);
+  }, [stepData.steps, goal, previousSteps]);
+
+  const getRandomMessage = () => {
+    return goalMessages[Math.floor(Math.random() * goalMessages.length)];
+  };
 
   const handleAdd100Steps = () => {
     manuallyAddSteps(100);
@@ -21,7 +46,7 @@ const StepTracker = () => {
   };
 
   return (
-    <Card className="bg-white border border-gray-200">
+    <Card className="bg-white border border-gray-200 relative">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
@@ -104,8 +129,15 @@ const StepTracker = () => {
         </div>
 
         <div className="mt-4 text-xs text-gray-500 text-center">
-          Goal: 10,000 steps per day
+          Goal: {goal.toLocaleString()} steps per day
         </div>
+
+        <GoalCompletionMessage
+          show={showGoalMessage}
+          message={getRandomMessage()}
+          onComplete={() => setShowGoalMessage(false)}
+          duration={8000}
+        />
       </CardContent>
     </Card>
   );
