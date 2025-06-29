@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -152,11 +153,6 @@ export const useStepTracking = () => {
     const newStepCount = stepData.steps + additionalSteps;
     setStepData({ steps: newStepCount, lastUpdated: new Date() });
     await saveStepsToDatabase(newStepCount);
-    
-    toast({
-      title: "Steps updated!",
-      description: `Added ${additionalSteps} steps to your daily count.`,
-    });
   };
 
   const requestPermission = async () => {
