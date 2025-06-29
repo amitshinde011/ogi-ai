@@ -1,3 +1,4 @@
+
 @tailwind base;
 
 @layer base {
@@ -42,13 +43,13 @@
     --text-secondary: 215 25% 27%;            /* Medium dark (HSL) */
     --text-tertiary: 215 16% 47%;             /* Medium gray (HSL) */
 
-    /* Add missing color variables that are referenced in tailwind.config.ts */
+    /* Updated color variables - converted from RGB to HSL */
     --sage: 160 12% 39%;                      /* Sage green (HSL) */
     --light-gray: 220 13% 98%;                /* Light gray (HSL) */
     --card-gray: 220 13% 95%;                 /* Card gray (HSL) */
     --dark-text: 220 39% 11%;                 /* Dark text (HSL) */
     
-    /* Pastel color palette */
+    /* Pastel color palette - converted to HSL */
     --pastel-purple: 270 39% 71%;             /* Pastel purple (HSL) */
     --pastel-pink: 351 100% 86%;              /* Pastel pink (HSL) */
     --pastel-blue: 195 53% 79%;               /* Pastel blue (HSL) */

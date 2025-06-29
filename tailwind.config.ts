@@ -53,19 +53,20 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sage: 'rgb(var(--sage))',
-				'light-gray': 'rgb(var(--light-gray))',
-				'card-gray': 'rgb(var(--card-gray))',
-				'dark-text': 'rgb(var(--dark-text))',
-				// Pastel color palette
-				'pastel-purple': 'rgb(var(--pastel-purple))',
-				'pastel-pink': 'rgb(var(--pastel-pink))',
-				'pastel-blue': 'rgb(var(--pastel-blue))',
-				'pastel-green': 'rgb(var(--pastel-green))',
-				'pastel-yellow': 'rgb(var(--pastel-yellow))',
-				'pastel-peach': 'rgb(var(--pastel-peach))',
-				'pastel-lavender': 'rgb(var(--pastel-lavender))',
-				'pastel-mint': 'rgb(var(--pastel-mint))',
+				// Updated to use HSL format consistently
+				sage: 'hsl(var(--sage))',
+				'light-gray': 'hsl(var(--light-gray))',
+				'card-gray': 'hsl(var(--card-gray))',
+				'dark-text': 'hsl(var(--dark-text))',
+				// Pastel color palette - using HSL
+				'pastel-purple': 'hsl(var(--pastel-purple))',
+				'pastel-pink': 'hsl(var(--pastel-pink))',
+				'pastel-blue': 'hsl(var(--pastel-blue))',
+				'pastel-green': 'hsl(var(--pastel-green))',
+				'pastel-yellow': 'hsl(var(--pastel-yellow))',
+				'pastel-peach': 'hsl(var(--pastel-peach))',
+				'pastel-lavender': 'hsl(var(--pastel-lavender))',
+				'pastel-mint': 'hsl(var(--pastel-mint))',
 			},
 			backgroundImage: {
 				'gradient-sage': 'linear-gradient(135deg, rgb(34, 197, 94) 0%, rgb(16, 185, 129) 100%)',
