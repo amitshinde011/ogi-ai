@@ -39,6 +39,12 @@ function sanitizeError(error: any): string {
   return 'Payment processing failed';
 }
 
+// Enhanced logging function
+function logWithDetails(message: string, details?: any) {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${message}`, details ? JSON.stringify(details, null, 2) : '');
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -46,40 +52,70 @@ serve(async (req) => {
   }
 
   try {
+    logWithDetails('=== PAYMENT PROCESSING STARTED ===');
+    
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      logWithDetails('ERROR: No authorization header provided');
       return new Response(
         JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    logWithDetails('Authorization header found, initializing Supabase client');
+
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      logWithDetails('ERROR: Missing Supabase environment variables', {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey
+      });
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Verify user authentication
+    logWithDetails('Verifying user authentication');
     const { data: { user }, error: authError } = await supabase.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
 
     if (authError || !user) {
-      console.error('Authentication failed:', sanitizeError(authError));
+      logWithDetails('ERROR: Authentication failed', { 
+        error: authError?.message,
+        hasUser: !!user 
+      });
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    logWithDetails('User authenticated successfully', { userId: user.id });
+
     // Parse and validate request body
     const requestData = await req.json();
-    console.log('Request data:', requestData);
+    logWithDetails('Request data received', {
+      action: requestData.action,
+      gateway: requestData.gateway,
+      amount: requestData.amount,
+      currency: requestData.currency,
+      programId: requestData.programId ? 'present' : 'missing'
+    });
 
     // Handle create_payment_session action
     if (requestData.action === 'create_payment_session') {
       if (!validatePaymentRequest(requestData)) {
+        logWithDetails('ERROR: Invalid request data for payment session creation');
         return new Response(
           JSON.stringify({ error: 'Invalid request data for payment session creation' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -90,6 +126,7 @@ serve(async (req) => {
 
       // For amounts close to 0 (100% discount), don't create payment session
       if (amount <= 0.01) {
+        logWithDetails('INFO: Free subscription detected, amount too low', { amount });
         return new Response(
           JSON.stringify({ error: 'Free subscription - no payment required' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -102,13 +139,27 @@ serve(async (req) => {
         const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID');
         const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
         
-        console.log('Razorpay Key ID exists:', !!razorpayKeyId);
-        console.log('Razorpay Key Secret exists:', !!razorpayKeySecret);
+        logWithDetails('Checking Razorpay credentials', {
+          hasKeyId: !!razorpayKeyId,
+          hasKeySecret: !!razorpayKeySecret,
+          keyIdLength: razorpayKeyId ? razorpayKeyId.length : 0,
+          keySecretLength: razorpayKeySecret ? razorpayKeySecret.length : 0,
+          keyIdPrefix: razorpayKeyId ? razorpayKeyId.substring(0, 8) + '...' : 'missing'
+        });
         
         if (!razorpayKeyId || !razorpayKeySecret) {
-          console.error('Missing Razorpay credentials');
+          logWithDetails('ERROR: Missing Razorpay credentials');
           return new Response(
             JSON.stringify({ error: 'Payment gateway not configured properly' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // Validate Razorpay key format
+        if (!razorpayKeyId.startsWith('rzp_')) {
+          logWithDetails('ERROR: Invalid Razorpay Key ID format', { keyIdPrefix: razorpayKeyId.substring(0, 8) });
+          return new Response(
+            JSON.stringify({ error: 'Invalid Razorpay Key ID format' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -120,8 +171,15 @@ serve(async (req) => {
         const braintreePublicKey = Deno.env.get('BRAINTREE_PUBLIC_KEY');
         const braintreePrivateKey = Deno.env.get('BRAINTREE_PRIVATE_KEY');
         
+        logWithDetails('Checking Braintree credentials', {
+          hasEnv: !!braintreeEnv,
+          hasMerchantId: !!braintreeMerchantId,
+          hasPublicKey: !!braintreePublicKey,
+          hasPrivateKey: !!braintreePrivateKey
+        });
+        
         if (!braintreeEnv || !braintreeMerchantId || !braintreePublicKey || !braintreePrivateKey) {
-          console.error('Missing Braintree credentials');
+          logWithDetails('ERROR: Missing Braintree credentials');
           return new Response(
             JSON.stringify({ error: 'Payment gateway not configured properly' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -137,6 +195,14 @@ serve(async (req) => {
       }
 
       // Create order record for tracking
+      logWithDetails('Creating order record', {
+        userId: user.id,
+        programId,
+        gateway,
+        amount,
+        currency
+      });
+
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -151,17 +217,18 @@ serve(async (req) => {
         .single();
 
       if (orderError || !order) {
-        console.error('Order creation failed:', sanitizeError(orderError));
+        logWithDetails('ERROR: Order creation failed', { error: orderError });
         return new Response(
           JSON.stringify({ error: 'Failed to create order' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
+      logWithDetails('Order created successfully', { orderId: order.id });
+
       // Return session data based on gateway
       let sessionData;
       if (gateway === 'braintree') {
-        // For Braintree, return minimal session data for demo
         sessionData = {
           orderId: order.id,
           sessionData: {
@@ -171,21 +238,71 @@ serve(async (req) => {
           },
           gateway: 'braintree'
         };
+        logWithDetails('Braintree session data created', { orderId: order.id });
       } else {
-        // For Razorpay, return session data with actual key ID
-        sessionData = {
-          orderId: order.id,
-          sessionData: {
-            keyId: gatewayKeys.keyId, // Use actual Razorpay key ID
-            amount: Math.round(amount * 100), // Razorpay expects amount in paise
-            currency: currency,
-            orderId: `order_${order.id}`
-          },
-          gateway: 'razorpay'
+        // For Razorpay, create actual order via API
+        const razorpayOrderData = {
+          amount: Math.round(amount * 100), // Convert to paise
+          currency: currency,
+          receipt: `order_${order.id}`,
+          notes: {
+            program_id: programId,
+            user_id: user.id
+          }
         };
+
+        logWithDetails('Attempting to create Razorpay order', razorpayOrderData);
+
+        try {
+          // Create Razorpay order using REST API
+          const razorpayResponse = await fetch('https://api.razorpay.com/v1/orders', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${btoa(`${gatewayKeys.keyId}:${gatewayKeys.keySecret}`)}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(razorpayOrderData)
+          });
+
+          if (!razorpayResponse.ok) {
+            const errorText = await razorpayResponse.text();
+            logWithDetails('ERROR: Razorpay API call failed', {
+              status: razorpayResponse.status,
+              statusText: razorpayResponse.statusText,
+              error: errorText
+            });
+            throw new Error(`Razorpay API error: ${razorpayResponse.status} ${errorText}`);
+          }
+
+          const razorpayOrder = await razorpayResponse.json();
+          logWithDetails('Razorpay order created successfully', { 
+            razorpayOrderId: razorpayOrder.id,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency
+          });
+
+          sessionData = {
+            orderId: order.id,
+            sessionData: {
+              keyId: gatewayKeys.keyId,
+              amount: razorpayOrder.amount,
+              currency: razorpayOrder.currency,
+              orderId: razorpayOrder.id,
+              name: 'Yogi-ai',
+              description: `Payment for program ${programId}`
+            },
+            gateway: 'razorpay'
+          };
+        } catch (razorpayError) {
+          logWithDetails('ERROR: Failed to create Razorpay order', { error: razorpayError.message });
+          return new Response(
+            JSON.stringify({ error: `Razorpay order creation failed: ${razorpayError.message}` }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       }
 
-      console.log('Session created successfully for gateway:', gateway);
+      logWithDetails('Session created successfully', { gateway, orderId: order.id });
       return new Response(
         JSON.stringify(sessionData),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -196,7 +313,10 @@ serve(async (req) => {
     if (requestData.action === 'verify_payment') {
       const { orderId, transactionId, gateway } = requestData;
 
+      logWithDetails('Verifying payment', { orderId, transactionId, gateway });
+
       if (!orderId || !transactionId) {
+        logWithDetails('ERROR: Missing orderId or transactionId');
         return new Response(
           JSON.stringify({ error: 'Missing orderId or transactionId' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -217,12 +337,14 @@ serve(async (req) => {
         .single();
 
       if (updateError || !order) {
-        console.error('Order update failed:', sanitizeError(updateError));
+        logWithDetails('ERROR: Order update failed', { error: updateError });
         return new Response(
           JSON.stringify({ error: 'Failed to verify payment' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
+      logWithDetails('Payment verified successfully', { orderId, transactionId });
 
       // Get program details to create subscription
       const { data: program, error: programError } = await supabase
@@ -249,7 +371,9 @@ serve(async (req) => {
           });
 
         if (subscriptionError) {
-          console.error('Subscription creation failed:', sanitizeError(subscriptionError));
+          logWithDetails('ERROR: Subscription creation failed', { error: subscriptionError });
+        } else {
+          logWithDetails('Subscription created successfully');
         }
       }
 
@@ -260,13 +384,14 @@ serve(async (req) => {
     }
 
     // Default response for unsupported actions
+    logWithDetails('ERROR: Unsupported action', { action: requestData.action });
     return new Response(
       JSON.stringify({ error: 'Unsupported action' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Request processing error:', sanitizeError(error));
+    logWithDetails('ERROR: Request processing error', { error: error.message, stack: error.stack });
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
