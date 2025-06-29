@@ -72,6 +72,21 @@ const Login = () => {
 
                   <GoogleLoginButton isLoading={isLoading} />
 
+                  <div className="text-center text-xs text-gray-600 space-y-2">
+                    <p>
+                      By logging in, you agree to our{' '}
+                      <Link to="/privacy-policy" className="text-sage hover:underline">
+                        Privacy Policy
+                      </Link>
+                    </p>
+                    <p>
+                      Need help? Contact us at{' '}
+                      <a href="mailto:support@yogiai.in" className="text-sage hover:underline">
+                        support@yogiai.in
+                      </a>
+                    </p>
+                  </div>
+
                   <div className="text-center">
                     <span className="text-sm text-black/60">
                       Don't have an account?{' '}

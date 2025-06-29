@@ -8,17 +8,17 @@
     <meta name="description" content="A beautiful wellness app for tracking daily meals and connecting with a health-conscious community" />
     <meta name="author" content="Yogi" />
 
-    <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com;
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      font-src 'self' https://fonts.gstatic.com;
-      img-src 'self' data: blob: https: http:;
-      media-src 'self' blob: https://customer-cnlj15s4to2idzsi.cloudflarestream.com https://*.cloudflarestream.com;
-      connect-src 'self' https://customer-cnlj15s4to2idzsi.cloudflarestream.com https://*.cloudflarestream.com https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com wss: ws:;
-      frame-src 'self' https://customer-cnlj15s4to2idzsi.cloudflarestream.com https://*.cloudflarestream.com;
-      worker-src 'self' blob:;
+      default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
+      script-src * 'unsafe-inline' 'unsafe-eval';
+      style-src * 'unsafe-inline';
+      img-src * data: blob:;
+      font-src * data:;
+      connect-src * wss: ws:;
+      media-src * blob: data:;
+      frame-src *;
+      worker-src * blob:;
+      manifest-src *;
     ">
 
     <meta property="og:title" content="Yogi - Become the best version of yourself." />
@@ -30,21 +30,17 @@
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
     
-    <!-- Mobile optimization -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#8BC38D">
     
-    <!-- Favicon -->
     <link rel="icon" href="/lovable-uploads/6cf2c839-5326-4219-9033-549deb1fb03c.png" type="image/png">
     
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
     <script>
       window.dataLayer = window.dataLayer || [];

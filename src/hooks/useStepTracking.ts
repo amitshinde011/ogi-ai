@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,6 +20,17 @@ export const useStepTracking = () => {
   const [isTracking, setIsTracking] = useState(false);
   const [permission, setPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
   const { toast } = useToast();
+
+  // Callback to update step data and sync with parent components
+  const updateStepData = useCallback((newSteps: number) => {
+    const newData = { steps: newSteps, lastUpdated: new Date() };
+    setStepData(newData);
+    
+    // Trigger a custom event to notify other components
+    window.dispatchEvent(new CustomEvent('stepsUpdated', { 
+      detail: { steps: newSteps, lastUpdated: new Date() } 
+    }));
+  }, []);
 
   useEffect(() => {
     checkPermissionAndStartTracking();
@@ -41,7 +53,7 @@ export const useStepTracking = () => {
         startStepTracking();
       }
     } else {
-      // For browsers that don't require permission
+      // For browsers that don't require permission (Android)
       setPermission('granted');
       startStepTracking();
     }
@@ -52,8 +64,8 @@ export const useStepTracking = () => {
       let lastAcceleration = { x: 0, y: 0, z: 0 };
       let stepCount = stepData.steps;
       let lastStepTime = 0;
-      const stepThreshold = 12; // Adjust based on testing
-      const timeThreshold = 300; // Minimum time between steps (ms)
+      const stepThreshold = 15; // Increased threshold for better accuracy
+      const timeThreshold = 400; // Minimum time between steps (ms)
 
       const handleDeviceMotion = (event: DeviceMotionEvent) => {
         if (!event.accelerationIncludingGravity) return;
@@ -73,10 +85,10 @@ export const useStepTracking = () => {
         if (magnitude > stepThreshold && currentTime - lastStepTime > timeThreshold) {
           stepCount++;
           lastStepTime = currentTime;
-          setStepData({ steps: stepCount, lastUpdated: new Date() });
+          updateStepData(stepCount);
           
-          // Save to database every 10 steps to avoid too many requests
-          if (stepCount % 10 === 0) {
+          // Save to database every 5 steps to reduce API calls but maintain sync
+          if (stepCount % 5 === 0) {
             saveStepsToDatabase(stepCount);
           }
         }
@@ -87,9 +99,17 @@ export const useStepTracking = () => {
       window.addEventListener('devicemotion', handleDeviceMotion);
       setIsTracking(true);
 
+      // Auto-save every 30 seconds to ensure data persistence
+      const autoSaveInterval = setInterval(() => {
+        if (stepCount > 0) {
+          saveStepsToDatabase(stepCount);
+        }
+      }, 30000);
+
       // Cleanup function
       return () => {
         window.removeEventListener('devicemotion', handleDeviceMotion);
+        clearInterval(autoSaveInterval);
         setIsTracking(false);
       };
     } else {
@@ -118,7 +138,7 @@ export const useStepTracking = () => {
       if (error) throw error;
 
       if (data) {
-        setStepData({ steps: data.steps_count, lastUpdated: new Date() });
+        updateStepData(data.steps_count);
       }
     } catch (error) {
       console.error('Error fetching today steps:', error);
@@ -150,13 +170,8 @@ export const useStepTracking = () => {
 
   const manuallyAddSteps = async (additionalSteps: number) => {
     const newStepCount = stepData.steps + additionalSteps;
-    setStepData({ steps: newStepCount, lastUpdated: new Date() });
+    updateStepData(newStepCount);
     await saveStepsToDatabase(newStepCount);
-    
-    toast({
-      title: "Steps updated!",
-      description: `Added ${additionalSteps} steps to your daily count.`,
-    });
   };
 
   const requestPermission = async () => {

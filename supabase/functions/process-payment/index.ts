@@ -33,7 +33,8 @@ function sanitizeError(error: any): string {
   if (typeof error === 'string') {
     return error.replace(/[a-zA-Z0-9_-]{20,}/g, '[REDACTED]')
                 .replace(/sk_[a-zA-Z0-9_-]+/g, '[REDACTED]')
-                .replace(/pk_[a-zA-Z0-9_-]+/g, '[REDACTED]');
+                .replace(/pk_[a-zA-Z0-9_-]+/g, '[REDACTED]')
+                .replace(/rzp_[a-zA-Z0-9_-]+/g, '[REDACTED]');
   }
   return 'Payment processing failed';
 }
@@ -65,6 +66,7 @@ serve(async (req) => {
     );
 
     if (authError || !user) {
+      console.error('Authentication failed:', sanitizeError(authError));
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -92,6 +94,46 @@ serve(async (req) => {
           JSON.stringify({ error: 'Free subscription - no payment required' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      }
+
+      // Get payment gateway keys
+      let gatewayKeys: any = {};
+      if (gateway === 'razorpay') {
+        const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID');
+        const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+        
+        console.log('Razorpay Key ID exists:', !!razorpayKeyId);
+        console.log('Razorpay Key Secret exists:', !!razorpayKeySecret);
+        
+        if (!razorpayKeyId || !razorpayKeySecret) {
+          console.error('Missing Razorpay credentials');
+          return new Response(
+            JSON.stringify({ error: 'Payment gateway not configured properly' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        gatewayKeys = { keyId: razorpayKeyId, keySecret: razorpayKeySecret };
+      } else if (gateway === 'braintree') {
+        const braintreeEnv = Deno.env.get('BRAINTREE_ENVIRONMENT');
+        const braintreeMerchantId = Deno.env.get('BRAINTREE_MERCHANT_ID');
+        const braintreePublicKey = Deno.env.get('BRAINTREE_PUBLIC_KEY');
+        const braintreePrivateKey = Deno.env.get('BRAINTREE_PRIVATE_KEY');
+        
+        if (!braintreeEnv || !braintreeMerchantId || !braintreePublicKey || !braintreePrivateKey) {
+          console.error('Missing Braintree credentials');
+          return new Response(
+            JSON.stringify({ error: 'Payment gateway not configured properly' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        gatewayKeys = {
+          environment: braintreeEnv,
+          merchantId: braintreeMerchantId,
+          publicKey: braintreePublicKey,
+          privateKey: braintreePrivateKey
+        };
       }
 
       // Create order record for tracking
@@ -130,11 +172,11 @@ serve(async (req) => {
           gateway: 'braintree'
         };
       } else {
-        // For Razorpay, return demo session data
+        // For Razorpay, return session data with actual key ID
         sessionData = {
           orderId: order.id,
           sessionData: {
-            keyId: 'demo_razorpay_key',
+            keyId: gatewayKeys.keyId, // Use actual Razorpay key ID
             amount: Math.round(amount * 100), // Razorpay expects amount in paise
             currency: currency,
             orderId: `order_${order.id}`
@@ -143,6 +185,7 @@ serve(async (req) => {
         };
       }
 
+      console.log('Session created successfully for gateway:', gateway);
       return new Response(
         JSON.stringify(sessionData),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

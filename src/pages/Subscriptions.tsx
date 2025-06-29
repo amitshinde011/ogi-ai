@@ -27,7 +27,7 @@ const Subscriptions = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center px-4">
         <div className="text-center space-y-4">
           <Loader2 size={64} strokeWidth={1.5} className="text-blue-500 animate-spin mx-auto" />
           <p className="text-gray-600 font-medium">Loading your wellness programs...</p>
@@ -38,10 +38,10 @@ const Subscriptions = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
-      <div className="container mx-auto py-12">
+      <div className="container mx-auto py-6 sm:py-8 md:py-12 px-4 sm:px-6 lg:px-8">
         {/* Achievement Banner */}
         {showAchievementBanner && completedSubscription && (
-          <div className="mb-12">
+          <div className="mb-8 sm:mb-12">
             <AchievementBanner
               completedSubscription={completedSubscription}
               onClose={() => setShowAchievementBanner(false)}

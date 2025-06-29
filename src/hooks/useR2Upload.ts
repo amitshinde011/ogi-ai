@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { convertToWebP, needsWebPConversion } from '@/utils/imageConversion';
 
 interface UploadResult {
   imageUrl: string;
@@ -15,8 +16,22 @@ export const useR2Upload = () => {
     setUploading(true);
     
     try {
+      let fileToUpload = file;
+      
+      // Convert to WebP if needed
+      if (needsWebPConversion(file)) {
+        console.log('Converting image to WebP format...');
+        try {
+          fileToUpload = await convertToWebP(file, 0.85); // 85% quality for good balance
+          console.log('Image converted to WebP successfully');
+        } catch (conversionError) {
+          console.warn('WebP conversion failed, uploading original:', conversionError);
+          // Continue with original file if conversion fails
+        }
+      }
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', fileToUpload);
       formData.append('uploadType', uploadType);
 
       const { data, error } = await supabase.functions.invoke('upload-to-r2', {

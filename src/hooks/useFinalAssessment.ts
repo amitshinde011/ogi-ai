@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { convertToWebP, needsWebPConversion } from '@/utils/imageConversion';
 
 interface FinalAssessmentForm {
   walk_10km_comfort: number;
@@ -47,6 +47,18 @@ export const useFinalAssessment = () => {
           console.log('No completed program found, redirecting to home');
           navigate('/home');
           return;
+        }
+
+        // Mark subscription as completed since the end date has passed
+        const { error: updateError } = await supabase
+          .from('user_subscriptions')
+          .update({ status: 'completed' })
+          .eq('id', subscription.id);
+
+        if (updateError) {
+          console.error('Error marking subscription as completed:', updateError);
+        } else {
+          console.log('Subscription marked as completed successfully');
         }
 
         // Check if final assessment already exists
@@ -102,12 +114,26 @@ export const useFinalAssessment = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
-      const fileExt = file.name.split('.').pop();
+      let fileToUpload = file;
+      
+      // Convert to WebP if needed
+      if (needsWebPConversion(file)) {
+        console.log('Converting assessment image to WebP format...');
+        try {
+          fileToUpload = await convertToWebP(file, 0.9); // Higher quality for assessment photos
+          console.log('Assessment image converted to WebP successfully');
+        } catch (conversionError) {
+          console.warn('WebP conversion failed, uploading original:', conversionError);
+          // Continue with original file if conversion fails
+        }
+      }
+
+      const fileExt = fileToUpload.name.split('.').pop();
       const fileName = `${user.id}/final-${Date.now()}.${fileExt}`;
 
       const { data, error } = await supabase.storage
         .from('assessments')
-        .upload(fileName, file);
+        .upload(fileName, fileToUpload);
 
       if (error) throw error;
 
@@ -146,13 +172,13 @@ export const useFinalAssessment = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
-      // Get current active subscription that has ended (completed program)
+      // Get current subscription (should be completed by now)
       const today = new Date().toISOString().split('T')[0];
       const { data: subscription } = await supabase
         .from('user_subscriptions')
         .select('id')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'completed'])
         .lte('end_date', today)
         .maybeSingle();
 

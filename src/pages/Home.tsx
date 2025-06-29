@@ -32,6 +32,32 @@ const Home = () => {
   // Use wellness tracking hook
   const { wellnessData, loading: wellnessLoading, updateWellnessData } = useWellnessTracking();
 
+  // Redirect to subscriptions if program is completed
+  useEffect(() => {
+    if (isCompleted) {
+      navigate('/subscriptions');
+      return;
+    }
+  }, [isCompleted, navigate]);
+
+  // Listen for step updates from step tracker
+  useEffect(() => {
+    const handleStepsUpdated = (event: CustomEvent) => {
+      const { steps } = event.detail;
+      setTodayProgress(prev => ({
+        ...prev,
+        steps: steps,
+        walkScore: Math.min(Math.floor(steps / 2000), 5)
+      }));
+    };
+
+    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    
+    return () => {
+      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    };
+  }, []);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning!';
@@ -91,6 +117,11 @@ const Home = () => {
         steps: todaySteps,
         walkScore: Math.min(Math.floor(todaySteps / 2000), 5)
       });
+
+      // Dispatch initial step count to synchronize components
+      window.dispatchEvent(new CustomEvent('stepsUpdated', { 
+        detail: { steps: todaySteps, lastUpdated: new Date() } 
+      }));
     } catch (error) {
       console.error('Error fetching today progress:', error);
     }

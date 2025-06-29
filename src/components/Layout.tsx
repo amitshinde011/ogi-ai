@@ -3,6 +3,8 @@ import React from 'react';
 import { Home, CookingPot, Users, TrendingUp, Settings } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
+import PostCompletionBanner from './PostCompletionBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,6 +14,7 @@ const Layout = ({ children }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
+  const { isCompleted, completedSubscription } = useProgramCompletion();
 
   const navigationItems = [
     { icon: Home, path: '/home', label: 'Home' },
@@ -28,9 +31,23 @@ const Layout = ({ children }: LayoutProps) => {
     return location.pathname.startsWith(path);
   };
 
+  const handleNavigation = (path: string) => {
+    // Restrict access to Home and Recipes if program is completed
+    if (isCompleted && (path === '/home' || path === '/recipes')) {
+      navigate('/subscriptions');
+      return;
+    }
+    navigate(path);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-peaceful">
-      <main className="pb-16 sm:pb-20 md:pb-0 md:pl-64">
+      {/* Post-completion banner */}
+      {isCompleted && completedSubscription && (
+        <PostCompletionBanner completedProgramName={completedSubscription.programs?.name} />
+      )}
+      
+      <main className={`pb-16 sm:pb-20 md:pb-0 md:pl-64 ${isCompleted ? 'pt-20 sm:pt-24 md:pt-32' : ''}`}>
         {children}
       </main>
       
@@ -41,16 +58,20 @@ const Layout = ({ children }: LayoutProps) => {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
+              const isRestricted = isCompleted && (item.path === '/home' || item.path === '/recipes');
               
               return (
                 <button
                   key={item.path}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => handleNavigation(item.path)}
                   className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] ${
                     active
                       ? 'text-sage bg-sage/10'
+                      : isRestricted
+                      ? 'text-slate-300 cursor-not-allowed'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                   }`}
+                  disabled={isRestricted}
                 >
                   <Icon size={20} strokeWidth={1.5} />
                   <span className="text-xs mt-1 font-medium">{item.label}</span>
@@ -62,7 +83,7 @@ const Layout = ({ children }: LayoutProps) => {
       </nav>
 
       {/* Desktop Sidebar Navigation */}
-      <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 flex-col">
+      <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-40 flex-col">
         <div className="p-6 flex justify-center">
           <img 
             src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
@@ -76,16 +97,20 @@ const Layout = ({ children }: LayoutProps) => {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
+              const isRestricted = isCompleted && (item.path === '/home' || item.path === '/recipes');
               
               return (
                 <button
                   key={item.path}
-                  onClick={() => navigate(item.path)}
+                  onClick={() => handleNavigation(item.path)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
                     active
                       ? 'text-sage bg-sage/10 font-medium'
+                      : isRestricted
+                      ? 'text-slate-300 cursor-not-allowed'
                       : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
                   }`}
+                  disabled={isRestricted}
                 >
                   <Icon size={20} strokeWidth={1.5} />
                   <span>{item.label}</span>
