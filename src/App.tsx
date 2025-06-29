@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -31,6 +32,7 @@ import JourneyStart from "./pages/JourneyStart";
 import ProgramComplete from "./pages/ProgramComplete";
 import FinalAssessment from "./pages/FinalAssessment";
 import Comparison from "./pages/Comparison";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +69,7 @@ const AppWithAnalytics = () => {
       <Route path="/program-complete" element={<ProgramComplete />} />
       <Route path="/final-assessment" element={<FinalAssessment />} />
       <Route path="/comparison" element={<Comparison />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/404" element={<NotFound />} />
       <Route path="*" element={<Navigate to="/404" replace />} />
     </Routes>
