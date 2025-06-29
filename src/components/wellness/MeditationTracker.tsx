@@ -27,7 +27,7 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
           checked={meditationCompleted}
           onCheckedChange={onMeditationToggle}
           disabled={loading}
-          className="data-[state=checked]:bg-gray-600 data-[state=checked]:border-gray-600 border-gray-400 h-5 w-5 sm:h-6 sm:w-6"
+          className="data-[state=checked]:border-gray-600 border-gray-400 h-5 w-5 sm:h-6 sm:w-6"
         />
       </div>
       
