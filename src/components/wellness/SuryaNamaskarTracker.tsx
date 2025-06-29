@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Plus, Minus, Sun } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import SuryaNamaskarVideoPlayer from '../SuryaNamaskarVideoPlayer';
+import { GoalCompletionMessage } from './GoalCompletionMessage';
 
 interface SuryaNamaskarTrackerProps {
   suryaNamaskarCount: number;
@@ -19,9 +20,31 @@ export const SuryaNamaskarTracker: React.FC<SuryaNamaskarTrackerProps> = ({
 }) => {
   const goal = 12; // 12 rounds goal
   const progressPercentage = Math.min((suryaNamaskarCount / goal) * 100, 100);
+  const [showGoalMessage, setShowGoalMessage] = useState(false);
+  const [previousCount, setPreviousCount] = useState(suryaNamaskarCount);
+
+  const goalMessages = [
+    "🌅 Brilliant! You've completed your Surya Namaskar practice!",
+    "☀️ Wonderful! Your body and mind are in perfect harmony!",
+    "🧘‍♀️ Excellent! You've honored the sun with dedication!",
+    "✨ Amazing! Your yoga practice is truly inspiring!",
+    "🕉️ Perfect! You've achieved your daily yoga goal!"
+  ];
+
+  useEffect(() => {
+    // Check if goal was just completed
+    if (suryaNamaskarCount >= goal && previousCount < goal && previousCount >= 0) {
+      setShowGoalMessage(true);
+    }
+    setPreviousCount(suryaNamaskarCount);
+  }, [suryaNamaskarCount, goal, previousCount]);
+
+  const getRandomMessage = () => {
+    return goalMessages[Math.floor(Math.random() * goalMessages.length)];
+  };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 relative">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Sun className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 flex-shrink-0" />
@@ -55,6 +78,12 @@ export const SuryaNamaskarTracker: React.FC<SuryaNamaskarTrackerProps> = ({
         </div>
       </div>
       <Progress value={progressPercentage} className="h-2" />
+      
+      <GoalCompletionMessage
+        show={showGoalMessage}
+        message={getRandomMessage()}
+        onComplete={() => setShowGoalMessage(false)}
+      />
     </div>
   );
 };
