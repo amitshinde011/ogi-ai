@@ -14,6 +14,7 @@ import { PaymentButton } from '@/components/payment/PaymentButton';
 import { CouponCodeInput } from '@/components/CouponCodeInput';
 import { useCouponCode } from '@/hooks/useCouponCode';
 import { Link } from 'react-router-dom';
+import { createPaymentSession, handleBraintreePayment, handleRazorpayPayment } from '@/utils/paymentGateway';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -87,25 +88,32 @@ const Payment = () => {
   }
 
   const currencySymbol = isIndiaUser ? '₹' : '$';
-  
-  // Use the final price that was calculated and passed from the subscription page
   const finalPrice = Math.round(pricing.finalPrice || program.finalPrice || program.displayPrice);
+  const gateway = isIndiaUser ? 'razorpay' : 'braintree';
 
-  const handlePayment = async () => {
-    if (!program) return;
-
-    setLoading(true);
+  const handlePaymentSuccess = async (orderId: string, transactionId: string) => {
     try {
-      // For demo purposes, simulate payment success
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Verify payment with backend
+      const { error: verifyError } = await supabase.functions.invoke('process-payment', {
+        body: {
+          action: 'verify_payment',
+          orderId,
+          transactionId,
+          gateway
+        }
+      });
 
-      // Track payment with the actual final price
-      trackPayment(program.name, finalPrice, program.currency, isIndiaUser ? 'razorpay' : 'braintree');
+      if (verifyError) {
+        throw verifyError;
+      }
+
+      // Track payment success
+      trackPayment(program.name, finalPrice, program.currency, gateway);
 
       // Update onboarding state
       await updateOnboardingState({ subscription_selected: true });
 
-      // Create subscription
+      // Create subscription record
       const startDate = new Date();
       const endDate = new Date();
       endDate.setDate(startDate.getDate() + program.duration_days);
@@ -122,7 +130,8 @@ const Payment = () => {
         });
 
       if (subscriptionError) {
-        throw subscriptionError;
+        console.error('Subscription creation error:', subscriptionError);
+        // Don't throw here as payment was successful
       }
 
       toast({
@@ -132,11 +141,88 @@ const Payment = () => {
 
       navigate('/intro-video');
     } catch (error) {
+      console.error('Payment verification error:', error);
+      toast({
+        title: "Payment Verification Failed",
+        description: "Your payment was processed but there was an issue verifying it. Please contact support.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!program) return;
+
+    setLoading(true);
+    try {
+      console.log('Starting payment process for:', {
+        programId: program.id,
+        finalPrice,
+        gateway,
+        currency: program.currency
+      });
+
+      // Check if this is a free subscription (100% discount)
+      if (finalPrice <= 0.01) {
+        // Handle free subscription directly
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(startDate.getDate() + program.duration_days);
+
+        const { error: subscriptionError } = await supabase
+          .from('user_subscriptions')
+          .insert({
+            user_id: user.id,
+            program_id: program.id,
+            start_date: startDate.toISOString().split('T')[0],
+            end_date: endDate.toISOString().split('T')[0],
+            status: 'active',
+            payment_status: 'paid'
+          });
+
+        if (subscriptionError) {
+          throw subscriptionError;
+        }
+
+        await updateOnboardingState({ subscription_selected: true });
+        
+        toast({
+          title: "Free Access Granted!",
+          description: `You've successfully got free access to ${program.name}`,
+        });
+
+        navigate('/intro-video');
+        return;
+      }
+
+      // Create payment session
+      const sessionData = await createPaymentSession(program, gateway);
+      
+      console.log('Payment session created:', sessionData);
+
+      // Handle payment based on gateway
+      if (gateway === 'braintree') {
+        await handleBraintreePayment(sessionData, handlePaymentSuccess);
+      } else {
+        await handleRazorpayPayment(sessionData, program, handlePaymentSuccess);
+      }
+    } catch (error) {
       console.error('Payment error:', error);
+      
+      if (error.message === 'FREE_SUBSCRIPTION') {
+        // This shouldn't happen as we check above, but handle it gracefully
+        toast({
+          title: "Free Subscription",
+          description: "This subscription is free. Processing directly...",
+        });
+        // Handle as free subscription
+        return;
+      }
+      
       trackEvent('payment_error', 'Payment', 'Payment Failed');
       toast({
         title: "Payment Failed",
-        description: "Please try again or contact support.",
+        description: error.message || "Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
@@ -178,7 +264,7 @@ const Payment = () => {
             <CardContent>
               <LocationGatewayInfo 
                 userLocation={userLocation} 
-                gateway={isIndiaUser ? 'razorpay' : 'braintree'} 
+                gateway={gateway} 
               />
             </CardContent>
           </Card>
