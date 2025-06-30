@@ -21,7 +21,7 @@ const CancellationsRefunds = () => {
               <li>Go to Settings → Subscription in the app</li>
               <li>Click "Cancel Subscription"</li>
               <li>Follow the confirmation steps</li>
-              <li>Or email us at support@yogiai.in</li>
+              <li>Or email us at support@yogi.care</li>
             </ul>
             <p>
               <strong>Important:</strong> Cancellation will take effect at the end of your current billing period. You will continue to have access to premium features until then.
@@ -76,7 +76,7 @@ const CancellationsRefunds = () => {
               If you believe you have been charged in error:
             </p>
             <ol className="list-decimal pl-6 space-y-2">
-              <li>Contact our support team immediately at support@yogiai.in</li>
+              <li>Contact our support team immediately at support@yogi.care</li>
               <li>Include your account details and transaction information</li>
               <li>Provide clear documentation of the claimed error</li>
               <li>Allow up to 5 business days for investigation</li>
@@ -134,7 +134,7 @@ const CancellationsRefunds = () => {
             </p>
             <ContactInfo
               appName="Yogi Wellness App"
-              email="support@yogiai.in"
+              email="support@yogi.care"
               note="Support can help with cancellations and technical issues, but cannot provide refunds per our non-refund policy."
             />
           </LegalSection>

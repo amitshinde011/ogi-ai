@@ -31,7 +31,7 @@ const Footer = () => {
               Cancellations & Refunds
             </Link>
             <span className="text-slate-300">|</span>
-            <a href="mailto:support@yogiai.in" className="hover:text-slate-600 transition-colors">
+            <a href="mailto:support@yogi.care" className="hover:text-slate-600 transition-colors">
               Contact Us
             </a>
           </div>

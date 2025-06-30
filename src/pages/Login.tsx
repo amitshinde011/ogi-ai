@@ -86,8 +86,8 @@ const Login = () => {
                     </p>
                     <p>
                       Need help? Contact us at{' '}
-                      <a href="mailto:support@yogiai.in" className="text-sage hover:underline">
-                        support@yogiai.in
+                      <a href="mailto:support@yogi.care" className="text-sage hover:underline">
+                        support@yogi.care
                       </a>
                     </p>
                   </div>
