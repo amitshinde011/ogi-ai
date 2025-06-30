@@ -16,7 +16,7 @@ interface Program {
 interface SubscriptionGridProps {
   programs: Program[];
   isIndiaUser: boolean;
-  onSubscribe: (programId: string, couponDiscountPercentage?: number) => void;
+  onSubscribe: (programId: string, couponDiscountPercentage?: number, finalPrice?: number) => void;
 }
 
 export const SubscriptionGrid: React.FC<SubscriptionGridProps> = ({

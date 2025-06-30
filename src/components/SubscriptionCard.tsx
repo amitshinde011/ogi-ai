@@ -8,6 +8,7 @@ import { PricingBreakdown } from '@/components/subscription/PricingBreakdown';
 import { CouponCodeInput } from '@/components/CouponCodeInput';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
 import { useCouponCode } from '@/hooks/useCouponCode';
+import { calculatePricing } from '@/utils/pricingUtils';
 
 interface Program {
   id: string;
@@ -23,7 +24,7 @@ interface Program {
 interface SubscriptionCardProps {
   program: Program;
   isIndiaUser: boolean;
-  onSubscribe: (programId: string, couponDiscountPercentage?: number) => void;
+  onSubscribe: (programId: string, couponDiscountPercentage?: number, finalPrice?: number) => void;
 }
 
 export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
@@ -56,13 +57,22 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   };
 
   const isPopular = program.duration_days === 49;
-  const isFree = getDiscountPercentage() === 100;
+  const couponDiscountPercentage = getDiscountPercentage();
+  const isFree = couponDiscountPercentage === 100;
+
+  // Calculate the final price including all discounts and taxes
+  const originalPrice = getDisplayPrice();
+  const pricing = calculatePricing(
+    originalPrice,
+    pricingConfig.discountPercentage,
+    pricingConfig.taxPercentage,
+    couponDiscountPercentage
+  );
 
   const handleSubscribe = () => {
-    onSubscribe(program.id, getDiscountPercentage());
+    onSubscribe(program.id, couponDiscountPercentage, pricing.finalPrice);
   };
 
-  const displayPrice = getDisplayPrice();
   const currency = getCurrency();
   const currencySymbol = getCurrencySymbol();
 
@@ -88,7 +98,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <div className="space-y-2">
           <div className="flex items-baseline justify-center gap-1">
             <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-              {currencySymbol}{displayPrice}
+              {currencySymbol}{originalPrice}
             </span>
             <span className="text-xs sm:text-sm text-gray-500">
               /{program.duration_days} days
@@ -119,13 +129,13 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         {/* Pricing Breakdown */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4">
           <PricingBreakdown
-            originalPrice={displayPrice}
+            originalPrice={originalPrice}
             currency={currency}
             discountPercentage={pricingConfig.discountPercentage}
             taxPercentage={pricingConfig.taxPercentage}
             isSpecialOccasion={pricingConfig.isSpecialOccasion}
             occasionName={pricingConfig.occasionName}
-            couponDiscountPercentage={getDiscountPercentage()}
+            couponDiscountPercentage={couponDiscountPercentage}
           />
         </div>
 
@@ -165,16 +175,16 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         {/* CTA Button */}
         <div className="mt-auto pt-4 sm:pt-6">
           <Button 
-            className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 ${
+            className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 text-white ${
               isPopular 
-                ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white shadow-lg hover:shadow-xl' 
-                : 'bg-gray-900 hover:bg-gray-800 text-white'
+                ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl' 
+                : 'bg-gray-900 hover:bg-gray-800'
             }`}
             style={{ color: 'white !important' }}
             onClick={handleSubscribe}
           >
             <span className="truncate text-white">
-              {isFree ? '🎉 Get Free Access' : `Start Your Journey - ${currencySymbol}${displayPrice}`}
+              {isFree ? '🎉 Get Free Access' : `Pay ${currencySymbol}${Math.round(pricing.finalPrice)}`}
             </span>
           </Button>
         </div>

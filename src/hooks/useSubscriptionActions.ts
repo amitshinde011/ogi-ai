@@ -91,7 +91,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
     }
   };
 
-  const handleSubscribe = async (programId: string, couponDiscountPercentage: number = 0) => {
+  const handleSubscribe = async (programId: string, couponDiscountPercentage: number = 0, finalPrice?: number) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -148,23 +148,19 @@ export const useSubscriptionActions = (programs: Program[]) => {
       const originalPrice = getDisplayPrice(program);
       const currency = getCurrency();
       
-      console.log('Pricing calculation inputs:', {
-        originalPrice,
-        currency,
-        isIndiaUser,
-        discountPercentage: pricingConfig.discountPercentage,
-        taxPercentage: pricingConfig.taxPercentage,
-        couponDiscountPercentage
-      });
-
-      const pricing = calculatePricing(
-        originalPrice,
-        pricingConfig.discountPercentage,
-        pricingConfig.taxPercentage,
-        couponDiscountPercentage
-      );
+      // Use the final price passed from the component, or calculate it if not provided
+      let calculatedFinalPrice = finalPrice;
+      if (!calculatedFinalPrice) {
+        const pricing = calculatePricing(
+          originalPrice,
+          pricingConfig.discountPercentage,
+          pricingConfig.taxPercentage,
+          couponDiscountPercentage
+        );
+        calculatedFinalPrice = pricing.finalPrice;
+      }
       
-      console.log('Calculated pricing:', pricing);
+      console.log('Final price for payment:', calculatedFinalPrice);
       
       // Navigate to payment page with program data, pricing info, and location info
       navigate('/payment', { 
@@ -172,11 +168,12 @@ export const useSubscriptionActions = (programs: Program[]) => {
           program: {
             ...program,
             displayPrice: originalPrice,
-            finalPrice: pricing.finalPrice,
+            finalPrice: calculatedFinalPrice,
             currency: currency
           },
           pricing: {
-            ...pricing,
+            originalPrice,
+            finalPrice: calculatedFinalPrice,
             discountPercentage: pricingConfig.discountPercentage,
             taxPercentage: pricingConfig.taxPercentage,
             isSpecialOccasion: pricingConfig.isSpecialOccasion,

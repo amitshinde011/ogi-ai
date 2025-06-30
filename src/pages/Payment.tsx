@@ -87,9 +87,9 @@ const Payment = () => {
   }
 
   const currencySymbol = isIndiaUser ? '₹' : '$';
-  const discountPercentage = getDiscountPercentage();
-  const discountAmount = discountPercentage ? Math.round(program.displayPrice * discountPercentage / 100) : 0;
-  const finalPrice = program.displayPrice - discountAmount;
+  
+  // Use the final price that was calculated and passed from the subscription page
+  const finalPrice = Math.round(pricing.finalPrice || program.finalPrice || program.displayPrice);
 
   const handlePayment = async () => {
     if (!program) return;
@@ -99,7 +99,7 @@ const Payment = () => {
       // For demo purposes, simulate payment success
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Track payment
+      // Track payment with the actual final price
       trackPayment(program.name, finalPrice, program.currency, isIndiaUser ? 'razorpay' : 'braintree');
 
       // Update onboarding state
@@ -209,10 +209,22 @@ const Payment = () => {
                   <span>Base Price</span>
                   <span>{currencySymbol}{program.displayPrice}</span>
                 </div>
-                {discountAmount > 0 && (
+                {pricing.discountPercentage > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Discount ({discountPercentage}%)</span>
-                    <span>-{currencySymbol}{discountAmount}</span>
+                    <span>Discount ({pricing.discountPercentage}%)</span>
+                    <span>-{currencySymbol}{Math.round((program.displayPrice * pricing.discountPercentage) / 100)}</span>
+                  </div>
+                )}
+                {pricing.couponDiscountPercentage > 0 && (
+                  <div className="flex justify-between text-blue-600">
+                    <span>Coupon Discount ({pricing.couponDiscountPercentage}%)</span>
+                    <span>-{currencySymbol}{Math.round((program.displayPrice * pricing.couponDiscountPercentage) / 100)}</span>
+                  </div>
+                )}
+                {pricing.taxPercentage > 0 && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>Tax ({pricing.taxPercentage}%)</span>
+                    <span>+{currencySymbol}{Math.round((program.displayPrice * pricing.taxPercentage) / 100)}</span>
                   </div>
                 )}
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
