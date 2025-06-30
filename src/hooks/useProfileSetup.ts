@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -85,25 +86,25 @@ export const useProfileSetup = () => {
       if (needsWebPConversion(file)) {
         console.log('Converting profile image to WebP format...');
         try {
-          fileToUpload = await convertToWebP(file, 0.85); // Good balance for profile photos
+          fileToUpload = await convertToWebP(file, 0.85);
           console.log('Profile image converted to WebP successfully');
         } catch (conversionError) {
           console.warn('WebP conversion failed, uploading original:', conversionError);
-          // Continue with original file if conversion fails
         }
       }
 
       const fileExt = fileToUpload.name.split('.').pop();
       const fileName = `${user.id}/profile-${Date.now()}.${fileExt}`;
 
+      // Upload to assessments bucket since profiles bucket doesn't exist
       const { data, error } = await supabase.storage
-        .from('profiles')
+        .from('assessments')
         .upload(fileName, fileToUpload);
 
       if (error) throw error;
 
       const { data: urlData } = supabase.storage
-        .from('profiles')
+        .from('assessments')
         .getPublicUrl(fileName);
 
       return urlData.publicUrl;
