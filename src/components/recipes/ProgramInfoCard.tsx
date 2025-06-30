@@ -3,10 +3,14 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface ProgramInfoCardProps {
-  programName: string;
+  programName?: string;
 }
 
 const ProgramInfoCard = ({ programName }: ProgramInfoCardProps) => {
+  if (!programName) {
+    return null;
+  }
+
   return (
     <Card className="bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200">
       <CardContent className="p-4">

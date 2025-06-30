@@ -10,6 +10,14 @@ interface RecipeGridProps {
 }
 
 const RecipeGrid = ({ recipes, savedRecipeIds, totalProgramRecipes }: RecipeGridProps) => {
+  if (!recipes || !Array.isArray(recipes)) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Loading recipes...</p>
+      </div>
+    );
+  }
+
   if (recipes.length === 0 && totalProgramRecipes > 0) {
     return (
       <div className="text-center py-12">

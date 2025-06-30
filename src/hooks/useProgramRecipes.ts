@@ -9,7 +9,7 @@ export const useProgramRecipes = (userProgram: any) => {
 
   // Filter recipes based on user's current program
   const programRecipes = React.useMemo(() => {
-    if (!allRecipes) return [];
+    if (!allRecipes || !Array.isArray(allRecipes)) return [];
     
     // If user has no active program, show no recipes
     if (!userProgram) return [];

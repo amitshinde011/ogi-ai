@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Loader2 } from 'lucide-react';
@@ -42,6 +43,13 @@ const Recipes = () => {
 
   const isLoading = programLoading || recipesLoading;
 
+  // Handle program completion redirect
+  useEffect(() => {
+    if (isCompleted && !isLoading) {
+      navigate('/subscriptions');
+    }
+  }, [isCompleted, navigate, isLoading]);
+
   if (isLoading) {
     return (
       <Layout>
@@ -52,14 +60,6 @@ const Recipes = () => {
       </Layout>
     );
   }
-
-  // Redirect to subscriptions if program is completed
-  useEffect(() => {
-    if (isCompleted) {
-      navigate('/subscriptions');
-      return;
-    }
-  }, [isCompleted, navigate]);
 
   // Show message if user has no active program
   if (!userProgram) {
@@ -114,7 +114,7 @@ const Recipes = () => {
         <RecipeGrid 
           recipes={filteredRecipes}
           savedRecipeIds={savedRecipeIds}
-          totalProgramRecipes={programRecipes.length}
+          totalProgramRecipes={programRecipes?.length || 0}
         />
       </div>
     </Layout>
