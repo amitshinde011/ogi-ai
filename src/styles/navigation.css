@@ -1,0 +1,37 @@
+
+@layer utilities {
+  /* Navigation specific with better contrast */
+  .nav-item {
+    color: rgb(71, 85, 105) !important;
+    transition: all 0.2s ease;
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+  }
+  
+  .nav-item.active {
+    color: rgb(99, 102, 241) !important;
+    background: rgba(99, 102, 241, 0.1);
+    transform: scale(1.05);
+  }
+  
+  .nav-item:hover {
+    color: rgb(99, 102, 241) !important;
+    background: rgba(99, 102, 241, 0.05);
+    transform: translateY(-2px);
+  }
+
+  /* Interactive elements */
+  .interactive {
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .interactive:active {
+    transform: translateY(0);
+  }
+}
