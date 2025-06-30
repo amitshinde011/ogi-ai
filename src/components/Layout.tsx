@@ -81,11 +81,6 @@ const Layout = ({ children }: LayoutProps) => {
             })}
           </div>
         </div>
-        
-        {/* Footer in Mobile Navigation */}
-        <div className="border-t border-slate-200/80">
-          <Footer />
-        </div>
       </nav>
 
       {/* Desktop Sidebar Navigation */}
