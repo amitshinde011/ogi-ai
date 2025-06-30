@@ -1,0 +1,10 @@
+
+@tailwind components;
+@tailwind utilities;
+
+/* Import modular CSS files */
+@import './animations.css';
+@import './gradients.css';
+@import './navigation.css';
+@import './yellow-removal.css';
+@import './text-colors.css';

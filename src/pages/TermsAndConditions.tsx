@@ -172,7 +172,7 @@ const TermsAndConditions = () => {
                 </p>
                 <div className="bg-slate-50 p-4 rounded-lg">
                   <p className="font-medium">Yogi Wellness App</p>
-                  <p>Email: support@yogiai.in</p>
+                  <p>Email: support@yogi.care</p>
                 </div>
               </div>
             </section>

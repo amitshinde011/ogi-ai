@@ -9,14 +9,14 @@ const NoProgramCard = () => {
   const navigate = useNavigate();
 
   return (
-    <Card className="bg-white">
-      <CardContent className="p-6 text-center">
-        <Search size={48} strokeWidth={1.5} className="text-gray-400 mx-auto mb-4" />
-        <h3 className="font-semibold text-primary mb-2">No Active Program</h3>
-        <p className="text-gray-600 mb-4">Start your wellness journey today!</p>
+    <Card className="bg-white w-full">
+      <CardContent className="p-4 sm:p-6 text-center">
+        <Search size={40} strokeWidth={1.5} className="text-gray-400 mx-auto mb-3 sm:mb-4 sm:w-12 sm:h-12" />
+        <h3 className="font-semibold text-primary mb-2 text-sm sm:text-base">No Active Program</h3>
+        <p className="text-gray-600 mb-3 sm:mb-4 text-xs sm:text-sm">Start your wellness journey today!</p>
         <Button 
           onClick={() => navigate('/subscriptions')}
-          className="bg-gradient-sage text-white"
+          className="bg-gradient-sage text-white w-full sm:w-auto text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
         >
           Browse Programs
         </Button>
