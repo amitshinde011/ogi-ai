@@ -3,86 +3,71 @@
 
 @layer base {
   :root {
-    --background: 220 13% 98%;                /* Clean light background (HSL) */
-    --foreground: 220 39% 11%;                /* Rich dark text (HSL) */
-
-    --card: 0 0% 100%;                        /* White (HSL) */
-    --card-foreground: 220 39% 11%;           /* Dark text (HSL) */
-
-    --popover: 0 0% 100%;                     /* White (HSL) */
-    --popover-foreground: 220 39% 11%;        /* Dark text (HSL) */
-
-    --primary: 239 68% 68%;                   /* Modern indigo (HSL) */
-    --primary-foreground: 0 0% 100%;          /* White (HSL) */
-
-    --secondary: 214 100% 97%;                /* Light blue (HSL) */
-    --secondary-foreground: 220 39% 11%;      /* Dark text (HSL) */
-
-    --accent: 142 76% 36%;                    /* Fresh green (HSL) */
-    --accent-foreground: 0 0% 100%;           /* White (HSL) */
-
-    --muted: 220 13% 95%;                     /* Light gray (HSL) */
-    --muted-foreground: 220 9% 46%;           /* Medium gray (HSL) */
-
-    --destructive: 0 84% 60%;                 /* Clean red (HSL) */
-    --destructive-foreground: 0 0% 100%;      /* White (HSL) */
-
-    --border: 220 13% 91%;                    /* Light border (HSL) */
-    --input: 0 0% 100%;                       /* White (HSL) */
-    --ring: 239 68% 68%;                      /* Modern indigo (HSL) */
-
+    --background: 220 13% 98%;
+    --foreground: 220 39% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 39% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 39% 11%;
+    --primary: 239 68% 68%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 100% 97%;
+    --secondary-foreground: 220 39% 11%;
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 9% 46%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 0 0% 100%;
+    --ring: 239 68% 68%;
     --radius: 0.75rem;
-
-    /* Enhanced color palette */
-    --success: 142 76% 36%;                   /* Green (HSL) */
-    --warning: 38 92% 50%;                    /* Orange (HSL) */
-    --info: 217 91% 60%;                      /* Blue (HSL) */
-    --surface: 0 0% 100%;                     /* White (HSL) */
-    --surface-secondary: 220 13% 98%;         /* Light gray (HSL) */
-    --text-primary: 220 39% 11%;              /* Dark text (HSL) */
-    --text-secondary: 215 25% 27%;            /* Medium dark (HSL) */
-    --text-tertiary: 215 16% 47%;             /* Medium gray (HSL) */
-
-    /* Updated color variables - converted from RGB to HSL */
-    --sage: 160 12% 39%;                      /* Sage green (HSL) */
-    --light-gray: 220 13% 98%;                /* Light gray (HSL) */
-    --card-gray: 220 13% 95%;                 /* Card gray (HSL) */
-    --dark-text: 220 39% 11%;                 /* Dark text (HSL) */
-    
-    /* Pastel color palette - converted to HSL */
-    --pastel-purple: 270 39% 71%;             /* Pastel purple (HSL) */
-    --pastel-pink: 351 100% 86%;              /* Pastel pink (HSL) */
-    --pastel-blue: 195 53% 79%;               /* Pastel blue (HSL) */
-    --pastel-green: 120 93% 79%;              /* Pastel green (HSL) */
-    --pastel-yellow: 60 100% 94%;             /* Pastel yellow (HSL) */
-    --pastel-peach: 28 100% 86%;              /* Pastel peach (HSL) */
-    --pastel-lavender: 240 67% 94%;           /* Pastel lavender (HSL) */
-    --pastel-mint: 150 100% 98%;              /* Pastel mint (HSL) */
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --info: 217 91% 60%;
+    --surface: 0 0% 100%;
+    --surface-secondary: 220 13% 98%;
+    --text-primary: 220 39% 11%;
+    --text-secondary: 215 25% 27%;
+    --text-tertiary: 215 16% 47%;
+    --sage: 160 12% 39%;
+    --light-gray: 220 13% 98%;
+    --card-gray: 220 13% 95%;
+    --dark-text: 220 39% 11%;
+    --pastel-purple: 270 39% 71%;
+    --pastel-pink: 351 100% 86%;
+    --pastel-blue: 195 53% 79%;
+    --pastel-green: 120 93% 79%;
+    --pastel-yellow: 60 100% 94%;
+    --pastel-peach: 28 100% 86%;
+    --pastel-lavender: 240 67% 94%;
+    --pastel-mint: 150 100% 98%;
   }
 
   .dark {
-    --background: 220 39% 11%;                /* Dark background (HSL) */
-    --foreground: 220 13% 98%;                /* Light text (HSL) */
-    --card: 220 33% 18%;                      /* Dark card (HSL) */
-    --card-foreground: 220 13% 98%;           /* Light text (HSL) */
-    --popover: 220 39% 11%;                   /* Dark popover (HSL) */
-    --popover-foreground: 220 13% 98%;        /* Light text (HSL) */
-    --primary: 239 68% 68%;                   /* Modern indigo (HSL) */
-    --primary-foreground: 0 0% 100%;          /* White (HSL) */
-    --secondary: 220 33% 18%;                 /* Dark secondary (HSL) */
-    --secondary-foreground: 220 13% 98%;      /* Light text (HSL) */
-    --accent: 142 76% 36%;                    /* Fresh green (HSL) */
-    --accent-foreground: 220 39% 11%;         /* Dark text (HSL) */
-    --muted: 220 33% 18%;                     /* Dark muted (HSL) */
-    --muted-foreground: 215 16% 47%;          /* Medium gray (HSL) */
-    --destructive: 0 84% 60%;                 /* Clean red (HSL) */
-    --destructive-foreground: 220 39% 11%;    /* Dark text (HSL) */
-    --border: 215 28% 25%;                    /* Dark border (HSL) */
-    --input: 220 33% 18%;                     /* Dark input (HSL) */
-    --ring: 239 68% 68%;                      /* Modern indigo (HSL) */
-    --text-primary: 220 13% 98%;              /* Light text (HSL) */
-    --text-secondary: 220 14% 83%;            /* Light secondary (HSL) */
-    --text-tertiary: 215 16% 47%;             /* Medium gray (HSL) */
+    --background: 220 39% 11%;
+    --foreground: 220 13% 98%;
+    --card: 220 33% 18%;
+    --card-foreground: 220 13% 98%;
+    --popover: 220 39% 11%;
+    --popover-foreground: 220 13% 98%;
+    --primary: 239 68% 68%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 33% 18%;
+    --secondary-foreground: 220 13% 98%;
+    --accent: 142 76% 36%;
+    --accent-foreground: 220 39% 11%;
+    --muted: 220 33% 18%;
+    --muted-foreground: 215 16% 47%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 220 39% 11%;
+    --border: 215 28% 25%;
+    --input: 220 33% 18%;
+    --ring: 239 68% 68%;
+    --text-primary: 220 13% 98%;
+    --text-secondary: 220 14% 83%;
+    --text-tertiary: 215 16% 47%;
   }
 }
 
@@ -103,7 +88,6 @@
     background: linear-gradient(135deg, rgb(248, 250, 252) 0%, rgb(241, 245, 249) 100%) !important;
   }
 
-  /* Typography improvements with proper contrast */
   h1, h2, h3, h4, h5, h6 {
     color: rgb(15, 23, 42) !important;
     font-weight: 700;
