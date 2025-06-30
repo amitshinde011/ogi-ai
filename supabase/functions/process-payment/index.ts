@@ -45,6 +45,26 @@ function logWithDetails(message: string, details?: any) {
   console.log(`[${timestamp}] ${message}`, details ? JSON.stringify(details, null, 2) : '');
 }
 
+// Generate Braintree client token
+async function generateBraintreeClientToken(gatewayKeys: any): Promise<string> {
+  try {
+    // For demo purposes, we'll generate a basic client token
+    // In production, you would use Braintree's server SDK to generate this
+    const clientToken = btoa(JSON.stringify({
+      environment: gatewayKeys.environment,
+      merchantId: gatewayKeys.merchantId,
+      publicKey: gatewayKeys.publicKey,
+      timestamp: Date.now()
+    }));
+    
+    logWithDetails('Generated Braintree client token');
+    return clientToken;
+  } catch (error) {
+    logWithDetails('ERROR: Failed to generate Braintree client token', { error: error.message });
+    throw new Error('Failed to generate Braintree client token');
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -229,10 +249,13 @@ serve(async (req) => {
       // Return session data based on gateway
       let sessionData;
       if (gateway === 'braintree') {
+        // Generate Braintree client token
+        const clientToken = await generateBraintreeClientToken(gatewayKeys);
+        
         sessionData = {
           orderId: order.id,
           sessionData: {
-            token: 'demo_braintree_token',
+            token: clientToken,
             amount: amount,
             currency: currency
           },

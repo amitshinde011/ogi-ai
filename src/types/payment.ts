@@ -1,7 +1,11 @@
 
 declare global {
   interface Window {
-    braintree: any;
+    braintree: {
+      dropin: {
+        create: (options: any, callback: (error: any, instance: any) => void) => void;
+      };
+    };
     Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
   }
 }
