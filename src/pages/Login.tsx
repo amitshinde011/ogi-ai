@@ -78,19 +78,16 @@ const Login = () => {
                       <Link to="/privacy-policy" className="text-sage hover:underline">
                         Privacy Policy
                       </Link>
-                      ,{' '}
+                      {' '}and{' '}
                       <Link to="/terms-and-conditions" className="text-sage hover:underline">
                         Terms and Conditions
                       </Link>
-                      {' '}and{' '}
-                      <Link to="/cancellations-refunds" className="text-sage hover:underline">
-                        Cancellations and Refunds
-                      </Link>
+                      
                     </p>
                     <p>
                       Need help? Contact us at{' '}
-                      <a href="mailto:support@yogiai.in" className="text-sage hover:underline">
-                        support@yogiai.in
+                      <a href="mailto:support@yogi.care" className="text-sage hover:underline">
+                        support@yogi.care
                       </a>
                     </p>
                   </div>

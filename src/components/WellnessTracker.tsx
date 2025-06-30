@@ -25,12 +25,12 @@ const WellnessTracker: React.FC<WellnessTrackerProps> = ({
   loading
 }) => {
   return (
-    <Card className="bg-white shadow-sm border-0">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg sm:text-xl font-semibold text-dark-text">Today's Wellness</CardTitle>
+    <Card className="bg-white shadow-sm border-0 w-full">
+      <CardHeader className="pb-3 sm:pb-4">
+        <CardTitle className="text-base sm:text-lg md:text-xl font-semibold text-dark-text">Today's Wellness</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6">
-        <div className="grid gap-4 sm:gap-6">
+      <CardContent className="space-y-3 sm:space-y-4 md:space-y-6">
+        <div className="grid gap-3 sm:gap-4 md:gap-6">
           <WaterTracker 
             waterLitres={waterLitres}
             onWaterChange={onWaterChange}
