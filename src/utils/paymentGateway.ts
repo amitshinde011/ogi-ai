@@ -113,6 +113,7 @@ export const handleBraintreePayment = async (
       closeButton.style.cursor = 'pointer';
       closeButton.onclick = () => {
         document.body.removeChild(dropinContainer);
+        document.body.removeChild(backdrop);
         throw new Error('Payment was cancelled by user');
       };
       dropinContainer.appendChild(closeButton);
@@ -141,10 +142,10 @@ export const handleBraintreePayment = async (
 
     console.log('Creating Braintree Drop-in with token:', sessionData.sessionData.token);
 
-    // Create Braintree Drop-in
+    // Create Braintree Drop-in with improved configuration
     window.braintree.dropin.create({
       authorization: sessionData.sessionData.token,
-      container: '#braintree-dropin-container',
+      container: dropinContainer,
       paypal: {
         flow: 'checkout',
         amount: sessionData.sessionData.amount,
@@ -152,13 +153,20 @@ export const handleBraintreePayment = async (
       },
       card: {
         cardholderName: {
-          required: true
+          required: false
         }
       }
     }, (createErr: any, instance: any) => {
       if (createErr) {
         console.error('Braintree Drop-in creation error:', createErr);
-        throw new Error('Failed to initialize Braintree payment form');
+        
+        // Clean up UI on error
+        const container = document.getElementById('braintree-dropin-container');
+        const backdrop = document.querySelector('[style*="rgba(0,0,0,0.5)"]') as HTMLElement;
+        if (container && container.parentNode) container.parentNode.removeChild(container);
+        if (backdrop && backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+        
+        throw new Error('Failed to initialize Braintree payment form: ' + createErr.message);
       }
 
       console.log('Braintree Drop-in created successfully');
@@ -193,8 +201,8 @@ export const handleBraintreePayment = async (
           // Clean up UI
           const container = document.getElementById('braintree-dropin-container');
           const backdrop = document.querySelector('[style*="rgba(0,0,0,0.5)"]') as HTMLElement;
-          if (container) document.body.removeChild(container);
-          if (backdrop) document.body.removeChild(backdrop);
+          if (container && container.parentNode) container.parentNode.removeChild(container);
+          if (backdrop && backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
           
           // Call success callback with payment nonce as transaction ID
           onSuccess(sessionData.orderId, payload.nonce);
@@ -209,8 +217,8 @@ export const handleBraintreePayment = async (
     // Clean up UI on error
     const container = document.getElementById('braintree-dropin-container');
     const backdrop = document.querySelector('[style*="rgba(0,0,0,0.5)"]') as HTMLElement;
-    if (container) document.body.removeChild(container);
-    if (backdrop) document.body.removeChild(backdrop);
+    if (container && container.parentNode) container.parentNode.removeChild(container);
+    if (backdrop && backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
     throw new Error('Braintree payment failed: ' + error.message);
   }
 };
