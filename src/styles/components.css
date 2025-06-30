@@ -35,9 +35,15 @@
     font-weight: 600;
     transition: all 0.2s ease;
     border-radius: 0.75rem;
-    color: rgb(15, 23, 42) !important;
   }
 
+  /* Fix for white text buttons - higher specificity */
+  button.text-white,
+  button[class*="text-white"] {
+    color: rgb(255, 255, 255) !important;
+  }
+
+  /* Specific button variants with proper text colors */
   button[class*="bg-primary"], 
   button[class*="bg-indigo"] {
     background-color: rgb(99, 102, 241) !important;
@@ -69,6 +75,13 @@
     background-color: rgb(22, 163, 74) !important;
   }
 
+  /* Yellow/gradient buttons with white text */
+  button[class*="bg-gradient"],
+  button[class*="from-yellow"],
+  button[class*="to-yellow"] {
+    color: rgb(255, 255, 255) !important;
+  }
+
   button[class*="variant-outline"] {
     background-color: rgb(255, 255, 255) !important;
     color: rgb(15, 23, 42) !important;
@@ -80,7 +93,8 @@
     border-color: rgb(99, 102, 241) !important;
   }
 
-  button:not([class*="bg-"]):not([class*="variant-"]) {
+  /* Default button styling - only apply if no specific background class */
+  button:not([class*="bg-"]):not([class*="variant-"]):not([class*="gradient"]) {
     background-color: rgb(255, 255, 255) !important;
     color: rgb(15, 23, 42) !important;
     border: 2px solid rgb(203, 213, 225) !important;
