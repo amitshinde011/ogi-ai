@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
-import { convertToWebP, needsWebPConversion } from '@/utils/imageConversion';
+import { useR2Upload } from '@/hooks/useR2Upload';
 
 interface ProfileFormData {
   name: string;
@@ -22,9 +23,9 @@ export const useProfileSetup = () => {
   const { toast } = useToast();
   const { updateOnboardingState } = useOnboarding();
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const { uploadToR2, uploading } = useR2Upload();
 
   const [formData, setFormData] = useState<ProfileFormData>({
     name: '',
@@ -73,53 +74,6 @@ export const useProfileSetup = () => {
     setImagePreview('');
   };
 
-  const uploadProfileImage = async (file: File): Promise<string | null> => {
-    try {
-      setUploading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
-      let fileToUpload = file;
-      
-      // Convert to WebP if needed
-      if (needsWebPConversion(file)) {
-        console.log('Converting profile image to WebP format...');
-        try {
-          fileToUpload = await convertToWebP(file, 0.85); // Good balance for profile photos
-          console.log('Profile image converted to WebP successfully');
-        } catch (conversionError) {
-          console.warn('WebP conversion failed, uploading original:', conversionError);
-          // Continue with original file if conversion fails
-        }
-      }
-
-      const fileExt = fileToUpload.name.split('.').pop();
-      const fileName = `${user.id}/profile-${Date.now()}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from('profiles')
-        .upload(fileName, fileToUpload);
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from('profiles')
-        .getPublicUrl(fileName);
-
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error('Error uploading profile image:', error);
-      toast({
-        title: "Upload Error",
-        description: "Failed to upload profile image. Please try again.",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -140,10 +94,12 @@ export const useProfileSetup = () => {
 
       let profilePhotoUrl = null;
       if (selectedImage) {
-        profilePhotoUrl = await uploadProfileImage(selectedImage);
-        if (!profilePhotoUrl) {
+        const uploadResult = await uploadToR2(selectedImage, 'community');
+        if (!uploadResult) {
+          setLoading(false);
           return; // Upload failed, error already shown
         }
+        profilePhotoUrl = uploadResult.imageUrl;
       }
 
       // Convert numeric activity levels to strings for database compatibility

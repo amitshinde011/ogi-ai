@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
-import { convertToWebP, needsWebPConversion } from '@/utils/imageConversion';
+import { useR2Upload } from '@/hooks/useR2Upload';
 
 interface BeforeAssessmentForm {
   walk_10km_comfort: number;
@@ -22,7 +22,7 @@ export const useBeforeAssessment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [uploading, setUploading] = useState(false);
+  const { uploadToR2, uploading } = useR2Upload();
 
   useEffect(() => {
     // Check if before assessment was already completed for current subscription
@@ -95,53 +95,6 @@ export const useBeforeAssessment = () => {
     setImagePreview('');
   };
 
-  const uploadImage = async (file: File): Promise<string | null> => {
-    try {
-      setUploading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user found');
-
-      let fileToUpload = file;
-      
-      // Convert to WebP if needed
-      if (needsWebPConversion(file)) {
-        console.log('Converting assessment image to WebP format...');
-        try {
-          fileToUpload = await convertToWebP(file, 0.9); // Higher quality for assessment photos
-          console.log('Assessment image converted to WebP successfully');
-        } catch (conversionError) {
-          console.warn('WebP conversion failed, uploading original:', conversionError);
-          // Continue with original file if conversion fails
-        }
-      }
-
-      const fileExt = fileToUpload.name.split('.').pop();
-      const fileName = `${user.id}/before-${Date.now()}.${fileExt}`;
-
-      const { data, error } = await supabase.storage
-        .from('assessments')
-        .upload(fileName, fileToUpload);
-
-      if (error) throw error;
-
-      const { data: urlData } = supabase.storage
-        .from('assessments')
-        .getPublicUrl(fileName);
-
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast({
-        title: "Upload Error",
-        description: "Failed to upload image. Please try again.",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const getComfortString = (value: number) => {
     const mapping = {
       1: 'very_uncomfortable',
@@ -173,10 +126,11 @@ export const useBeforeAssessment = () => {
 
       let imageUrl = null;
       if (selectedImage) {
-        imageUrl = await uploadImage(selectedImage);
-        if (!imageUrl) {
+        const uploadResult = await uploadToR2(selectedImage, 'community');
+        if (!uploadResult) {
           return; // Upload failed, error already shown
         }
+        imageUrl = uploadResult.imageUrl;
       }
 
       // Convert numeric values to string format for database compatibility

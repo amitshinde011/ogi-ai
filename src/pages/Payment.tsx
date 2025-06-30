@@ -1,31 +1,31 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Shield, CreditCard, CheckCircle } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Shield } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { usePayment } from '@/hooks/usePayment';
-import { usePricingConfig } from '@/hooks/usePricingConfig';
-import { useLocationDetection } from '@/hooks/useLocationDetection';
-import { useCouponCode } from '@/hooks/useCouponCode';
+import { useOnboarding } from '@/hooks/useOnboarding';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { ProgramDetailsCard } from '@/components/payment/ProgramDetailsCard';
 import { LocationGatewayInfo } from '@/components/payment/LocationGatewayInfo';
 import { PaymentButton } from '@/components/payment/PaymentButton';
 import { CouponCodeInput } from '@/components/CouponCodeInput';
-import { PricingDisplay } from '@/components/PricingDisplay';
+import { useCouponCode } from '@/hooks/useCouponCode';
 import { Link } from 'react-router-dom';
+import { createPaymentSession, handleBraintreePayment, handleRazorpayPayment } from '@/utils/paymentGateway';
 
 const Payment = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { toast } = useToast();
+  const { updateOnboardingState } = useOnboarding();
+  const { trackPayment, trackEvent } = useAnalytics();
   
-  const programId = searchParams.get('program');
-  const { loading, verifyPayment } = usePayment();
-  const config = usePricingConfig();
-  const { isIndiaUser, userLocation } = useLocationDetection();
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
   const {
     appliedCoupon,
     isValidating,
@@ -34,14 +34,15 @@ const Payment = () => {
     getDiscountPercentage
   } = useCouponCode();
 
-  const [program, setProgram] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
-  const [couponCode, setCouponCode] = useState('');
+  // Get data from location state
+  const program = location.state?.program;
+  const pricing = location.state?.pricing;
+  const isIndiaUser = location.state?.isIndiaUser || false;
+  const userLocation = location.state?.userLocation || '';
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUser = async () => {
       try {
-        // Fetch user data
         const { data: { user: authUser } } = await supabase.auth.getUser();
         if (!authUser) {
           navigate('/login');
@@ -55,33 +56,30 @@ const Payment = () => {
           .single();
 
         setUser({ ...authUser, profile });
-
-        // Fetch program data
-        if (programId) {
-          const { data: programData, error } = await supabase
-            .from('programs')
-            .select('*')
-            .eq('id', programId)
-            .single();
-
-          if (error) throw error;
-          setProgram(programData);
-        }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching user:', error);
         toast({
           title: "Error",
-          description: "Failed to load payment information",
+          description: "Failed to load user information",
           variant: "destructive"
         });
-        navigate('/subscriptions');
+        navigate('/login');
       }
     };
 
-    fetchData();
-  }, [programId, navigate, toast]);
+    fetchUser();
+  }, [navigate, toast]);
 
-  if (loading || !program || !user || !config) {
+  // Redirect if no program data
+  useEffect(() => {
+    if (!program || !pricing) {
+      console.error('No program or pricing data found in location state');
+      navigate('/subscriptions');
+      return;
+    }
+  }, [program, pricing, navigate]);
+
+  if (loading || !program || !pricing || !user) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
@@ -89,26 +87,146 @@ const Payment = () => {
     );
   }
 
-  const basePrice = isIndiaUser && program.price_inr ? program.price_inr : program.price;
-  const currency = isIndiaUser ? 'INR' : 'USD';
   const currencySymbol = isIndiaUser ? '₹' : '$';
-  const discountPercentage = getDiscountPercentage();
-  const discountAmount = discountPercentage ? Math.round(basePrice * discountPercentage / 100) : 0;
-  const finalPrice = basePrice - discountAmount;
+  const finalPrice = Math.round(pricing.finalPrice || program.finalPrice || program.displayPrice);
+  const gateway = isIndiaUser ? 'razorpay' : 'braintree';
+
+  const handlePaymentSuccess = async (orderId: string, transactionId: string) => {
+    try {
+      // Verify payment with backend
+      const { error: verifyError } = await supabase.functions.invoke('process-payment', {
+        body: {
+          action: 'verify_payment',
+          orderId,
+          transactionId,
+          gateway
+        }
+      });
+
+      if (verifyError) {
+        throw verifyError;
+      }
+
+      // Track payment success
+      trackPayment(program.name, finalPrice, program.currency, gateway);
+
+      // Update onboarding state
+      await updateOnboardingState({ subscription_selected: true });
+
+      // Create subscription record
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(startDate.getDate() + program.duration_days);
+
+      const { error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .insert({
+          user_id: user.id,
+          program_id: program.id,
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0],
+          status: 'active',
+          payment_status: 'paid'
+        });
+
+      if (subscriptionError) {
+        console.error('Subscription creation error:', subscriptionError);
+        // Don't throw here as payment was successful
+      }
+
+      toast({
+        title: "Payment Successful!",
+        description: `You've successfully subscribed to ${program.name}`,
+      });
+
+      navigate('/intro-video');
+    } catch (error) {
+      console.error('Payment verification error:', error);
+      toast({
+        title: "Payment Verification Failed",
+        description: "Your payment was processed but there was an issue verifying it. Please contact support.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handlePayment = async () => {
     if (!program) return;
 
+    setLoading(true);
     try {
-      await verifyPayment('order_' + Date.now(), 'payment_' + Date.now());
+      console.log('Starting payment process for:', {
+        programId: program.id,
+        finalPrice,
+        gateway,
+        currency: program.currency
+      });
+
+      // Check if this is a free subscription (100% discount)
+      if (finalPrice <= 0.01) {
+        // Handle free subscription directly
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(startDate.getDate() + program.duration_days);
+
+        const { error: subscriptionError } = await supabase
+          .from('user_subscriptions')
+          .insert({
+            user_id: user.id,
+            program_id: program.id,
+            start_date: startDate.toISOString().split('T')[0],
+            end_date: endDate.toISOString().split('T')[0],
+            status: 'active',
+            payment_status: 'paid'
+          });
+
+        if (subscriptionError) {
+          throw subscriptionError;
+        }
+
+        await updateOnboardingState({ subscription_selected: true });
+        
+        toast({
+          title: "Free Access Granted!",
+          description: `You've successfully got free access to ${program.name}`,
+        });
+
+        navigate('/intro-video');
+        return;
+      }
+
+      // Create payment session
+      const sessionData = await createPaymentSession(program, gateway);
+      
+      console.log('Payment session created:', sessionData);
+
+      // Handle payment based on gateway
+      if (gateway === 'braintree') {
+        await handleBraintreePayment(sessionData, handlePaymentSuccess);
+      } else {
+        await handleRazorpayPayment(sessionData, program, handlePaymentSuccess);
+      }
     } catch (error) {
       console.error('Payment error:', error);
-    }
-  };
-
-  const handleApplyCoupon = async () => {
-    if (couponCode.trim()) {
-      await validateCoupon(couponCode);
+      
+      if (error.message === 'FREE_SUBSCRIPTION') {
+        // This shouldn't happen as we check above, but handle it gracefully
+        toast({
+          title: "Free Subscription",
+          description: "This subscription is free. Processing directly...",
+        });
+        // Handle as free subscription
+        return;
+      }
+      
+      trackEvent('payment_error', 'Payment', 'Payment Failed');
+      toast({
+        title: "Payment Failed",
+        description: error.message || "Please try again or contact support.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -146,7 +264,7 @@ const Payment = () => {
             <CardContent>
               <LocationGatewayInfo 
                 userLocation={userLocation} 
-                gateway={isIndiaUser ? 'razorpay' : 'braintree'} 
+                gateway={gateway} 
               />
             </CardContent>
           </Card>
@@ -175,12 +293,24 @@ const Payment = () => {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span>Base Price</span>
-                  <span>{currencySymbol}{basePrice}</span>
+                  <span>{currencySymbol}{program.displayPrice}</span>
                 </div>
-                {discountAmount > 0 && (
+                {pricing.discountPercentage > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Discount ({discountPercentage}%)</span>
-                    <span>-{currencySymbol}{discountAmount}</span>
+                    <span>Discount ({pricing.discountPercentage}%)</span>
+                    <span>-{currencySymbol}{Math.round((program.displayPrice * pricing.discountPercentage) / 100)}</span>
+                  </div>
+                )}
+                {pricing.couponDiscountPercentage > 0 && (
+                  <div className="flex justify-between text-blue-600">
+                    <span>Coupon Discount ({pricing.couponDiscountPercentage}%)</span>
+                    <span>-{currencySymbol}{Math.round((program.displayPrice * pricing.couponDiscountPercentage) / 100)}</span>
+                  </div>
+                )}
+                {pricing.taxPercentage > 0 && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>Tax ({pricing.taxPercentage}%)</span>
+                    <span>+{currencySymbol}{Math.round((program.displayPrice * pricing.taxPercentage) / 100)}</span>
                   </div>
                 )}
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
