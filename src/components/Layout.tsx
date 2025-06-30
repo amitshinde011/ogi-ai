@@ -51,11 +51,6 @@ const Layout = ({ children }: LayoutProps) => {
       <main className={`flex-1 pb-16 sm:pb-20 md:pb-0 md:pl-64 ${isCompleted ? 'pt-20 sm:pt-24 md:pt-32' : ''}`}>
         {children}
       </main>
-
-      {/* Footer */}
-      <div className="md:pl-64">
-        <Footer />
-      </div>
       
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 md:hidden">
@@ -124,6 +119,11 @@ const Layout = ({ children }: LayoutProps) => {
               );
             })}
           </div>
+        </div>
+
+        {/* Footer in Sidebar */}
+        <div className="mt-auto">
+          <Footer />
         </div>
       </nav>
     </div>
