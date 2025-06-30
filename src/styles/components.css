@@ -37,9 +37,29 @@
     border-radius: 0.75rem;
   }
 
-  /* Fix for white text buttons - higher specificity */
-  button.text-white,
-  button[class*="text-white"] {
+  /* Highest priority white text rules */
+  button[class*="text-white"],
+  button[class*="text-white"] *,
+  button[class*="text-white"] span {
+    color: rgb(255, 255, 255) !important;
+  }
+
+  /* Force white text on gradient and dark buttons */
+  button[class*="bg-gradient"],
+  button[class*="bg-gradient"] *,
+  button[class*="bg-gradient"] span,
+  button[class*="from-yellow"],
+  button[class*="from-yellow"] *,
+  button[class*="from-yellow"] span,
+  button[class*="to-yellow"],
+  button[class*="to-yellow"] *,
+  button[class*="to-yellow"] span,
+  button[class*="bg-gray-900"],
+  button[class*="bg-gray-900"] *,
+  button[class*="bg-gray-900"] span,
+  button[class*="bg-gray-800"],
+  button[class*="bg-gray-800"] *,
+  button[class*="bg-gray-800"] span {
     color: rgb(255, 255, 255) !important;
   }
 
@@ -73,13 +93,6 @@
   button[class*="bg-green"]:hover, 
   button[class*="bg-sage"]:hover {
     background-color: rgb(22, 163, 74) !important;
-  }
-
-  /* Yellow/gradient buttons with white text */
-  button[class*="bg-gradient"],
-  button[class*="from-yellow"],
-  button[class*="to-yellow"] {
-    color: rgb(255, 255, 255) !important;
   }
 
   button[class*="variant-outline"] {

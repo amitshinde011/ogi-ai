@@ -167,12 +167,13 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           <Button 
             className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 ${
               isPopular 
-                ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-yellow-900 shadow-lg hover:shadow-xl' 
+                ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white shadow-lg hover:shadow-xl' 
                 : 'bg-gray-900 hover:bg-gray-800 text-white'
             }`}
+            style={{ color: 'white !important' }}
             onClick={handleSubscribe}
           >
-            <span className="truncate">
+            <span className="truncate text-white">
               {isFree ? '🎉 Get Free Access' : `Start Your Journey - ${currencySymbol}${displayPrice}`}
             </span>
           </Button>
