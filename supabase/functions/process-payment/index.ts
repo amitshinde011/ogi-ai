@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -27,68 +28,78 @@ function validatePaymentRequest(data: any): data is PaymentRequest {
   );
 }
 
-// Sanitize error messages to prevent credential leakage
-function sanitizeError(error: any): string {
-  if (typeof error === 'string') {
-    return error.replace(/[a-zA-Z0-9_-]{20,}/g, '[REDACTED]')
-                .replace(/sk_[a-zA-Z0-9_-]+/g, '[REDACTED]')
-                .replace(/pk_[a-zA-Z0-9_-]+/g, '[REDACTED]')
-                .replace(/rzp_[a-zA-Z0-9_-]+/g, '[REDACTED]');
-  }
-  return 'Payment processing failed';
-}
-
 // Enhanced logging function
 function logWithDetails(message: string, details?: any) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${message}`, details ? JSON.stringify(details, null, 2) : '');
 }
 
-// Generate Braintree client token - simplified version
+// Generate Braintree client token using proper credentials
 async function generateBraintreeClientToken(): Promise<string> {
   try {
-    // For development/testing, create a simple base64 encoded token
-    // In production, you would use Braintree's server SDK
-    const tokenData = {
-      version: 1,
-      authorizationFingerprint: 'sandbox_' + Date.now(),
-      configUrl: 'https://api.sandbox.braintreegateway.com/merchants/sandbox_merchant/client_api/v1/configuration',
-      challenges: [],
-      environment: 'sandbox',
-      clientApiUrl: 'https://api.sandbox.braintreegateway.com/merchants/sandbox_merchant/client_api',
-      assetsUrl: 'https://assets.braintreegateway.com',
-      authUrl: 'https://auth.venmo.sandbox.braintreegateway.com',
-      analytics: {
-        url: 'https://client-analytics.sandbox.braintreegateway.com/sandbox_merchant'
+    // Get Braintree credentials from environment
+    const merchantId = Deno.env.get('BRAINTREE_MERCHANT_ID');
+    const publicKey = Deno.env.get('BRAINTREE_PUBLIC_KEY');
+    const privateKey = Deno.env.get('BRAINTREE_PRIVATE_KEY');
+    const environment = Deno.env.get('BRAINTREE_ENVIRONMENT') || 'sandbox';
+
+    logWithDetails('Checking Braintree credentials', {
+      hasMerchantId: !!merchantId,
+      hasPublicKey: !!publicKey,
+      hasPrivateKey: !!privateKey,
+      environment,
+      merchantIdLength: merchantId ? merchantId.length : 0
+    });
+
+    if (!merchantId || !publicKey || !privateKey) {
+      throw new Error('Missing Braintree credentials');
+    }
+
+    // Create basic auth header for Braintree API
+    const auth = btoa(`${publicKey}:${privateKey}`);
+    const baseUrl = environment === 'production' 
+      ? 'https://api.braintreegateway.com' 
+      : 'https://api.sandbox.braintreegateway.com';
+
+    // Make API call to generate client token
+    const response = await fetch(`${baseUrl}/merchants/${merchantId}/client_token`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/xml',
+        'Accept': 'application/xml'
       },
-      threeDSecureEnabled: false,
-      paypalEnabled: true,
-      paypal: {
-        displayName: 'Yogi-ai',
-        clientId: null,
-        privacyUrl: 'http://example.com/pp',
-        userAgreementUrl: 'http://example.com/tos',
-        baseUrl: 'https://assets.braintreegateway.com',
-        assetsUrl: 'https://checkout.paypal.com',
-        directBaseUrl: null,
-        allowHttp: true,
-        environmentNoNetwork: true,
-        environment: 'offline',
-        unvettedMerchant: false,
-        braintreeClientId: 'masterclient3',
-        billingAgreementsEnabled: true,
-        merchantAccountId: 'sandbox_merchant',
-        payeeEmail: null,
-        currencyIsoCode: 'USD'
-      }
-    };
-    
-    const clientToken = btoa(JSON.stringify(tokenData));
-    logWithDetails('Generated Braintree client token');
+      body: `<?xml version="1.0" encoding="UTF-8"?>
+<client-token>
+</client-token>`
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      logWithDetails('Braintree API error', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
+      throw new Error(`Braintree API error: ${response.status} - ${errorText}`);
+    }
+
+    const xmlResponse = await response.text();
+    logWithDetails('Braintree API response received', { responseLength: xmlResponse.length });
+
+    // Extract client token from XML response
+    const tokenMatch = xmlResponse.match(/<value>([^<]+)<\/value>/);
+    if (!tokenMatch) {
+      logWithDetails('Failed to extract client token from XML', { xml: xmlResponse });
+      throw new Error('Invalid response format from Braintree');
+    }
+
+    const clientToken = tokenMatch[1];
+    logWithDetails('Braintree client token generated successfully');
     return clientToken;
   } catch (error) {
     logWithDetails('ERROR: Failed to generate Braintree client token', { error: error.message });
-    throw new Error('Failed to generate Braintree client token');
+    throw new Error(`Failed to generate Braintree client token: ${error.message}`);
   }
 }
 
@@ -215,7 +226,7 @@ serve(async (req) => {
       // Return session data based on gateway
       let sessionData;
       if (gateway === 'braintree') {
-        // Generate Braintree client token
+        // Generate Braintree client token using proper API
         const clientToken = await generateBraintreeClientToken();
         
         sessionData = {
