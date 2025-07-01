@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import { Calendar, ArrowRight, Clock, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -11,6 +13,14 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
 import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
 import PhotoUploadSection from '@/components/assessment/PhotoUploadSection';
+
+interface AssessmentFormData {
+  walk_10km_comfort: number;
+  run_10km_comfort: number;
+  climb_mountain_comfort: number;
+  current_health_conditions: string;
+  comments: string;
+}
 
 const BeforeAssessment = () => {
   const navigate = useNavigate();
@@ -21,15 +31,16 @@ const BeforeAssessment = () => {
   const [selectedStartDate, setSelectedStartDate] = useState('');
   const [showDateSelection, setShowDateSelection] = useState(false);
   const [assessmentCompleted, setAssessmentCompleted] = useState(false);
-  
-  // Assessment form data
-  const [formData, setFormData] = useState({
-    walk_10km_comfort: '',
-    run_10km_comfort: '',
-    climb_mountain_comfort: '',
-    current_health_conditions: '',
-    comments: '',
-    full_body_photo_url: ''
+  const [photoData, setPhotoData] = useState({ full_body_photo_url: '' });
+
+  const form = useForm<AssessmentFormData>({
+    defaultValues: {
+      walk_10km_comfort: 3,
+      run_10km_comfort: 3,
+      climb_mountain_comfort: 3,
+      current_health_conditions: '',
+      comments: ''
+    }
   });
 
   useEffect(() => {
@@ -73,7 +84,14 @@ const BeforeAssessment = () => {
 
       if (existingAssessment) {
         setAssessmentCompleted(true);
-        setFormData(existingAssessment);
+        form.reset({
+          walk_10km_comfort: parseInt(existingAssessment.walk_10km_comfort),
+          run_10km_comfort: parseInt(existingAssessment.run_10km_comfort),
+          climb_mountain_comfort: parseInt(existingAssessment.climb_mountain_comfort),
+          current_health_conditions: existingAssessment.current_health_conditions,
+          comments: existingAssessment.comments
+        });
+        setPhotoData({ full_body_photo_url: existingAssessment.full_body_photo_url || '' });
         
         // If start_date is not set, show date selection
         if (!subscription.start_date) {
@@ -101,18 +119,7 @@ const BeforeAssessment = () => {
     }
   };
 
-  const handleSubmitAssessment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.walk_10km_comfort || !formData.run_10km_comfort || !formData.climb_mountain_comfort) {
-      toast({
-        title: "Missing Information",
-        description: "Please complete all comfort level questions.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSubmitAssessment = async (data: AssessmentFormData) => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -124,7 +131,12 @@ const BeforeAssessment = () => {
           user_id: user.id,
           subscription_id: currentSubscription.id,
           assessment_type: 'before',
-          ...formData
+          walk_10km_comfort: data.walk_10km_comfort.toString(),
+          run_10km_comfort: data.run_10km_comfort.toString(),
+          climb_mountain_comfort: data.climb_mountain_comfort.toString(),
+          current_health_conditions: data.current_health_conditions,
+          comments: data.comments,
+          full_body_photo_url: photoData.full_body_photo_url
         });
 
       if (error) throw error;
@@ -360,49 +372,36 @@ const BeforeAssessment = () => {
               This helps us track your amazing progress!
             </p>
 
-            <form onSubmit={handleSubmitAssessment} className="space-y-6">
-              <ComfortQuestionsSection 
-                formData={formData} 
-                setFormData={setFormData} 
-              />
-              
-              <HealthConditionsSection 
-                formData={formData} 
-                setFormData={setFormData} 
-              />
-
-              <PhotoUploadSection 
-                formData={formData} 
-                setFormData={setFormData} 
-              />
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Additional Comments (Optional)
-                </label>
-                <textarea
-                  value={formData.comments}
-                  onChange={(e) => setFormData(prev => ({ ...prev, comments: e.target.value }))}
-                  placeholder="Share any thoughts, goals, or concerns about your wellness journey..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
-                  rows={4}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmitAssessment)} className="space-y-6">
+                <ComfortQuestionsSection 
+                  control={form.control}
                 />
-              </div>
+                
+                <HealthConditionsSection 
+                  control={form.control}
+                />
 
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 mr-2 animate-spin rounded-full border-b-2 border-white" />
-                    Saving Assessment...
-                  </>
-                ) : (
-                  <>
-                    Complete Assessment
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            </form>
+                <PhotoUploadSection 
+                  formData={photoData} 
+                  setFormData={setPhotoData} 
+                />
+
+                <Button type="submit" disabled={loading} className="w-full">
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 animate-spin rounded-full border-b-2 border-white" />
+                      Saving Assessment...
+                    </>
+                  ) : (
+                    <>
+                      Complete Assessment
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
       </div>
