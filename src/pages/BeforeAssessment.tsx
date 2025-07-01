@@ -8,11 +8,12 @@ import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
+import PhotoUpload from '@/components/PhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
 import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
-import PhotoUploadSection from '@/components/assessment/PhotoUploadSection';
+import { useR2Upload } from '@/hooks/useR2Upload';
 
 interface AssessmentFormData {
   walk_10km_comfort: number;
@@ -31,7 +32,10 @@ const BeforeAssessment = () => {
   const [selectedStartDate, setSelectedStartDate] = useState('');
   const [showDateSelection, setShowDateSelection] = useState(false);
   const [assessmentCompleted, setAssessmentCompleted] = useState(false);
-  const [photoData, setPhotoData] = useState({ full_body_photo_url: '' });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [fieldMessages, setFieldMessages] = useState<{[key: string]: string}>({});
+  const { uploadToR2, uploading } = useR2Upload();
 
   const form = useForm<AssessmentFormData>({
     defaultValues: {
@@ -91,7 +95,7 @@ const BeforeAssessment = () => {
           current_health_conditions: existingAssessment.current_health_conditions,
           comments: existingAssessment.comments
         });
-        setPhotoData({ full_body_photo_url: existingAssessment.full_body_photo_url || '' });
+        setImagePreview(existingAssessment.full_body_photo_url || '');
         
         // If start_date is not set, show date selection
         if (!subscription.start_date) {
@@ -119,11 +123,83 @@ const BeforeAssessment = () => {
     }
   };
 
+  const handleImageSelect = (file: File) => {
+    setSelectedImage(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+    
+    if (!fieldMessages.photo) {
+      setFieldMessages(prev => ({
+        ...prev,
+        photo: "Great! This photo will help track your amazing transformation journey."
+      }));
+    }
+  };
+
+  const handleImageRemove = () => {
+    setSelectedImage(null);
+    setImagePreview('');
+    setFieldMessages(prev => {
+      const { photo, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  const handleSliderChange = (field: string, value: number) => {
+    form.setValue(field as any, value);
+    
+    if (!fieldMessages[field]) {
+      const messages = {
+        walk_10km_comfort: "Perfect! This baseline will help us see your amazing progress.",
+        run_10km_comfort: "Excellent! We'll track how your confidence grows throughout the journey.",
+        climb_mountain_comfort: "Wonderful! This will be a great reference point for your improvement."
+      };
+      
+      if (messages[field as keyof typeof messages]) {
+        setFieldMessages(prev => ({
+          ...prev,
+          [field]: messages[field as keyof typeof messages]
+        }));
+      }
+    }
+  };
+
+  const handleHealthConditionsChange = (field: string, value: string) => {
+    if (value.trim() && !fieldMessages[field]) {
+      const messages = {
+        current_health_conditions: "Thank you for sharing. This information helps us personalize your journey.",
+        comments: "Your thoughts are valuable and will help us support you better throughout this journey!"
+      };
+      
+      if (messages[field as keyof typeof messages]) {
+        setFieldMessages(prev => ({
+          ...prev,
+          [field]: messages[field as keyof typeof messages]
+        }));
+      }
+    }
+  };
+
   const handleSubmitAssessment = async (data: AssessmentFormData) => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !currentSubscription) return;
+
+      let imageUrl = null;
+      if (selectedImage) {
+        const uploadResult = await uploadToR2(selectedImage, 'community');
+        if (!uploadResult) {
+          setLoading(false);
+          return;
+        }
+        imageUrl = uploadResult.imageUrl;
+      } else if (imagePreview) {
+        imageUrl = imagePreview;
+      }
 
       const { error } = await supabase
         .from('journey_assessments')
@@ -136,7 +212,7 @@ const BeforeAssessment = () => {
           climb_mountain_comfort: data.climb_mountain_comfort.toString(),
           current_health_conditions: data.current_health_conditions,
           comments: data.comments,
-          full_body_photo_url: photoData.full_body_photo_url
+          full_body_photo_url: imageUrl
         });
 
       if (error) throw error;
@@ -358,54 +434,69 @@ const BeforeAssessment = () => {
   }
 
   return (
-    <Layout>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Header title="Before Assessment" />
       
-      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pre-Journey Assessment</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-6">
-              Let's establish your baseline before starting your wellness journey. 
-              This helps us track your amazing progress!
-            </p>
+      <div className="min-h-screen bg-gradient-peaceful p-4">
+        <div className="max-w-md mx-auto">
+          <Card className="bg-white shadow-xl border-0">
+            <CardHeader className="text-center pb-6">
+              <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel right now?</CardTitle>
+              <p className="text-gray-600">
+                Let's establish your baseline to track your amazing progress!
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmitAssessment)} className="space-y-8">
+                  {/* Photo Upload */}
+                  <div>
+                    <PhotoUpload
+                      selectedImage={imagePreview}
+                      onImageSelect={handleImageSelect}
+                      onImageRemove={handleImageRemove}
+                      uploading={uploading}
+                      title="Starting Photo"
+                      description="Capture your beginning to see your transformation!"
+                    />
+                    {fieldMessages.photo && (
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-700 flex items-center">
+                          <span className="mr-2">✓</span>
+                          {fieldMessages.photo}
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmitAssessment)} className="space-y-6">
-                <ComfortQuestionsSection 
-                  control={form.control}
-                />
-                
-                <HealthConditionsSection 
-                  control={form.control}
-                />
+                  {/* Comfort Level Questions with Sliders */}
+                  <ComfortQuestionsSection 
+                    control={form.control} 
+                    onSliderChange={handleSliderChange}
+                    fieldMessages={fieldMessages}
+                  />
 
-                <PhotoUploadSection 
-                  formData={photoData} 
-                  setFormData={setPhotoData} 
-                />
+                  {/* Health Conditions and Comments */}
+                  <HealthConditionsSection 
+                    control={form.control}
+                    onFieldChange={handleHealthConditionsChange}
+                    fieldMessages={fieldMessages}
+                  />
 
-                <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? (
-                    <>
-                      <div className="w-4 h-4 mr-2 animate-spin rounded-full border-b-2 border-white" />
-                      Saving Assessment...
-                    </>
-                  ) : (
-                    <>
-                      Complete Assessment
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-primary to-sage text-white py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                    disabled={loading || uploading}
+                  >
+                    {loading ? 'Saving Assessment...' : uploading ? 'Uploading Photo...' : 'Complete Assessment'}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </Layout>
+    </div>
   );
 };
 
