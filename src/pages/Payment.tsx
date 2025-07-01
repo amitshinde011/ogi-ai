@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Shield } from 'lucide-react';
+import { ArrowLeft, Shield, CreditCard } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,9 +7,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { ProgramDetailsCard } from '@/components/payment/ProgramDetailsCard';
-import { LocationGatewayInfo } from '@/components/payment/LocationGatewayInfo';
-import { PaymentButton } from '@/components/payment/PaymentButton';
 import { CouponCodeInput } from '@/components/CouponCodeInput';
 import { useCouponCode } from '@/hooks/useCouponCode';
 import { Link } from 'react-router-dom';
@@ -90,6 +86,7 @@ const Payment = () => {
   const currencySymbol = isIndiaUser ? '₹' : '$';
   const finalPrice = Math.round(pricing.finalPrice || program.finalPrice || program.displayPrice);
   const gateway = isIndiaUser ? 'razorpay' : 'braintree';
+  const couponDiscountPercentage = getDiscountPercentage();
 
   const handlePaymentSuccess = async (orderId: string, transactionId: string) => {
     try {
@@ -245,52 +242,62 @@ const Payment = () => {
           <h1 className="text-2xl font-bold text-slate-900">Complete Payment</h1>
         </div>
 
-        <div className="space-y-6">
-          {/* Program Details */}
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Program Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProgramDetailsCard program={program} currencySymbol={currencySymbol} />
-            </CardContent>
-          </Card>
+        {/* Single Combined Card */}
+        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl">Payment Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Program Details Section */}
+            <div>
+              <h3 className="font-semibold text-lg mb-3">Program Details</h3>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h4 className="font-medium text-base">{program.name}</h4>
+                    <p className="text-sm text-gray-600">Duration: {program.duration_days} days</p>
+                  </div>
+                  <span className="text-xl font-bold text-primary">
+                    {currencySymbol}{program.displayPrice}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-          {/* Location and Gateway Info */}
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Payment Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LocationGatewayInfo 
-                userLocation={userLocation} 
-                gateway={gateway} 
-              />
-            </CardContent>
-          </Card>
+            {/* Payment Information Section */}
+            <div>
+              <h3 className="font-semibold text-lg mb-3">Payment Information</h3>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm text-gray-600">Detected Location:</p>
+                    <p className="font-medium">{userLocation || 'Detecting...'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Payment Method:</p>
+                    <p className="font-medium capitalize">{gateway}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          {/* Coupon Code */}
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Coupon Code</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CouponCodeInput
-                onApplyCoupon={validateCoupon}
-                appliedCoupon={appliedCoupon}
-                onRemoveCoupon={removeCoupon}
-                isValidating={isValidating}
-              />
-            </CardContent>
-          </Card>
+            {/* Coupon Code Section */}
+            <div>
+              <h3 className="font-semibold text-lg mb-3">Coupon Code</h3>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <CouponCodeInput
+                  onApplyCoupon={validateCoupon}
+                  appliedCoupon={appliedCoupon}
+                  onRemoveCoupon={removeCoupon}
+                  isValidating={isValidating}
+                />
+              </div>
+            </div>
 
-          {/* Pricing Summary */}
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Payment Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            {/* Payment Summary Section */}
+            <div>
+              <h3 className="font-semibold text-lg mb-3">Payment Summary</h3>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                 <div className="flex justify-between">
                   <span>Base Price</span>
                   <span>{currencySymbol}{program.displayPrice}</span>
@@ -301,10 +308,10 @@ const Payment = () => {
                     <span>-{currencySymbol}{Math.round((program.displayPrice * pricing.discountPercentage) / 100)}</span>
                   </div>
                 )}
-                {pricing.couponDiscountPercentage > 0 && (
+                {couponDiscountPercentage > 0 && (
                   <div className="flex justify-between text-blue-600">
-                    <span>Coupon Discount ({pricing.couponDiscountPercentage}%)</span>
-                    <span>-{currencySymbol}{Math.round((program.displayPrice * pricing.couponDiscountPercentage) / 100)}</span>
+                    <span>Coupon Discount ({couponDiscountPercentage}%)</span>
+                    <span>-{currencySymbol}{Math.round((program.displayPrice * couponDiscountPercentage) / 100)}</span>
                   </div>
                 )}
                 {pricing.taxPercentage > 0 && (
@@ -313,23 +320,33 @@ const Payment = () => {
                     <span>+{currencySymbol}{Math.round((program.displayPrice * pricing.taxPercentage) / 100)}</span>
                   </div>
                 )}
-                <div className="border-t pt-3 flex justify-between font-bold text-lg">
+                <div className="border-t pt-3 flex justify-between font-bold text-xl">
                   <span>Total</span>
                   <span>{currencySymbol}{finalPrice}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Payment Button */}
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6">
-              <PaymentButton
+            {/* Payment Button */}
+            <div className="pt-4">
+              <Button
                 onClick={handlePayment}
-                loading={loading}
-                currencySymbol={currencySymbol}
-                displayPrice={finalPrice}
-              />
+                disabled={loading}
+                className="w-full h-12 text-lg"
+                size="lg"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 animate-spin rounded-full border-b-2 border-white" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard size={18} strokeWidth={1.5} className="mr-2" />
+                    Pay {currencySymbol}{finalPrice}
+                  </>
+                )}
+              </Button>
               
               {/* Legal Notice */}
               <div className="mt-4 text-center text-xs text-slate-600 space-y-2">
@@ -350,15 +367,15 @@ const Payment = () => {
                   </Link>
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Security Notice */}
-          <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
-            <Shield size={16} />
-            <span>Payments are processed securely</span>
-          </div>
-        </div>
+            {/* Security Notice */}
+            <div className="flex items-center justify-center gap-2 text-sm text-slate-600 pt-2">
+              <Shield size={16} />
+              <span>Payments are processed securely</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
