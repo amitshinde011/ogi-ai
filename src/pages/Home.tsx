@@ -14,6 +14,7 @@ import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/hooks/useAuth';
 import { useWellnessTracking } from '@/hooks/useWellnessTracking';
+import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -176,6 +177,8 @@ const Home = () => {
     await updateWellnessData({ meditation_completed: !wellnessData.meditation_completed });
   };
 
+  const { showBanner } = useSubscriptionBanner();
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
@@ -190,16 +193,8 @@ const Home = () => {
 
   return (
     <Layout>
-      <Header 
-        title={getGreeting()}
-        rightElement={
-          <ProfileMenu>
-            <button className="w-8 h-8 rounded-full overflow-hidden border-2 border-sage/30 hover:border-sage transition-colors cursor-pointer">
-              <img src={userProfile.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} alt="Profile" className="w-full h-full object-cover" />
-            </button>
-          </ProfileMenu>
-        }
-      />
+      <Header title="Home" />
+      {showBanner && <SubscriptionBanner />}
       
       <div className="p-4 space-y-6 max-w-md mx-auto">
         {isCompleted && completedSubscription && (

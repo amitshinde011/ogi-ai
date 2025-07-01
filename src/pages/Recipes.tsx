@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Loader2 } from 'lucide-react';
@@ -15,6 +14,7 @@ import { useUserProgram } from '@/hooks/useUserProgram';
 import { useProgramRecipes } from '@/hooks/useProgramRecipes';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { Link } from 'react-router-dom';
+import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 
 const Recipes = () => {
   const navigate = useNavigate();
@@ -24,6 +24,7 @@ const Recipes = () => {
   const { data: userProgram, isLoading: programLoading } = useUserProgram();
   const { programRecipes, categories, isLoading: recipesLoading } = useProgramRecipes(userProgram);
   const { isCompleted } = useProgramCompletion();
+  const { showBanner } = useSubscriptionBanner();
 
   // Filter recipes based on search and category
   const filteredRecipes = React.useMemo(() => {

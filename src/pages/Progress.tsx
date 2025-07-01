@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import CurrentProgramCard from '@/components/progress/CurrentProgramCard';
 import NoProgramCard from '@/components/progress/NoProgramCard';
 import ProgramHistorySection from '@/components/progress/ProgramHistorySection';
+import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 
 interface ProgramData {
   id: string;
@@ -25,6 +27,7 @@ const ProgressPage = () => {
   const [currentProgram, setCurrentProgram] = useState<ProgramData | null>(null);
   const [historicalPrograms, setHistoricalPrograms] = useState<ProgramData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showBanner } = useSubscriptionBanner();
 
   useEffect(() => {
     fetchProgressData();
@@ -92,10 +95,16 @@ const ProgressPage = () => {
     }
   };
 
+  const handleHistoryItemClick = (programId: string) => {
+    // Navigate to comparison page for completed program
+    navigate('/comparison', { state: { subscriptionId: programId } });
+  };
+
   if (loading) {
     return (
       <Layout>
         <Header title="Progress" />
+        {showBanner && <SubscriptionBanner />}
         <div className="min-h-screen bg-light-gray flex items-center justify-center">
           <Loader2 size={32} strokeWidth={1.5} className="text-sage animate-spin" />
         </div>
@@ -106,6 +115,7 @@ const ProgressPage = () => {
   return (
     <Layout>
       <Header title="Your Progress" />
+      {showBanner && <SubscriptionBanner />}
       
       <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
         {/* Current Program or No Program */}
@@ -116,7 +126,10 @@ const ProgressPage = () => {
         )}
 
         {/* Program History */}
-        <ProgramHistorySection programs={historicalPrograms} />
+        <ProgramHistorySection 
+          programs={historicalPrograms} 
+          onItemClick={handleHistoryItemClick}
+        />
       </div>
     </Layout>
   );
