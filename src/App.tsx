@@ -1,10 +1,10 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -48,7 +48,45 @@ const AppWithAnalytics = () => {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/home" element={<Home />} />
+      
+      {/* Protected routes that require active subscription */}
+      <Route path="/home" element={
+        <ProtectedRoute requiresActiveSubscription>
+          <Home />
+        </ProtectedRoute>
+      } />
+      <Route path="/before-assessment" element={
+        <ProtectedRoute requiresActiveSubscription>
+          <BeforeAssessment />
+        </ProtectedRoute>
+      } />
+      <Route path="/final-assessment" element={
+        <ProtectedRoute requiresActiveSubscription>
+          <FinalAssessment />
+        </ProtectedRoute>
+      } />
+      <Route path="/recipes" element={
+        <ProtectedRoute requiresActiveSubscription>
+          <Recipes />
+        </ProtectedRoute>
+      } />
+      <Route path="/saved-recipes" element={
+        <ProtectedRoute requiresActiveSubscription>
+          <SavedRecipes />
+        </ProtectedRoute>
+      } />
+      <Route path="/intro-video" element={
+        <ProtectedRoute requiresActiveSubscription>
+          <IntroVideo />
+        </ProtectedRoute>
+      } />
+      <Route path="/journey-start" element={
+        <ProtectedRoute requiresActiveSubscription>
+          <JourneyStart />
+        </ProtectedRoute>
+      } />
+      
+      {/* Other routes that don't require active subscription */}
       <Route path="/upload" element={<Upload />} />
       <Route path="/community" element={<Community />} />
       <Route path="/discover" element={<Discover />} />
@@ -59,18 +97,12 @@ const AppWithAnalytics = () => {
       <Route path="/community/post/:id" element={<PostDetail />} />
       <Route path="/progress" element={<Progress />} />
       <Route path="/settings" element={<Settings />} />
-      <Route path="/recipes" element={<Recipes />} />
       <Route path="/recipes/:id" element={<RecipeDetail />} />
-      <Route path="/saved-recipes" element={<SavedRecipes />} />
       <Route path="/profile-setup" element={<ProfileSetup />} />
       <Route path="/profile-edit" element={<ProfileEdit />} />
       <Route path="/subscriptions" element={<Subscriptions />} />
       <Route path="/payment" element={<Payment />} />
-      <Route path="/intro-video" element={<IntroVideo />} />
-      <Route path="/before-assessment" element={<BeforeAssessment />} />
-      <Route path="/journey-start" element={<JourneyStart />} />
       <Route path="/program-complete" element={<ProgramComplete />} />
-      <Route path="/final-assessment" element={<FinalAssessment />} />
       <Route path="/comparison" element={<Comparison />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
