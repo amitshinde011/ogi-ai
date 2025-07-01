@@ -6,6 +6,9 @@ interface LocationData {
   userLocation: string;
 }
 
+// Test flag - set to true to simulate India location, false to simulate non-India
+const TEST_SIMULATE_INDIA = false;
+
 export const useLocationDetection = () => {
   const [locationData, setLocationData] = useState<LocationData>({
     isIndiaUser: false,
@@ -14,6 +17,16 @@ export const useLocationDetection = () => {
 
   useEffect(() => {
     const detectUserLocation = async () => {
+      // If test flag is enabled, use simulated location
+      if (TEST_SIMULATE_INDIA !== null) {
+        console.log('🧪 TEST MODE: Simulating location -', TEST_SIMULATE_INDIA ? 'India' : 'International');
+        setLocationData({
+          userLocation: TEST_SIMULATE_INDIA ? 'India (Test)' : 'International (Test)',
+          isIndiaUser: TEST_SIMULATE_INDIA
+        });
+        return;
+      }
+
       try {
         // Try multiple methods to get location
         

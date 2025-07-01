@@ -28,9 +28,9 @@ const Footer = () => {
             <Link to="/cancellations-refunds" className="hover:text-slate-600 transition-colors">
               Cancellations & Refunds
             </Link>
-            <a href="mailto:support@yogi.care" className="hover:text-slate-600 transition-colors">
+            <Link to="/contact" className="hover:text-slate-600 transition-colors">
               Contact Us
-            </a>
+            </Link>
           </div>
         </div>
       </div>
