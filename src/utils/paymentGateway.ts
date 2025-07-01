@@ -182,14 +182,18 @@ export const handleBraintreePayment = async (
       };
 
       loadBraintreeScripts().then(() => {
-        console.log('Braintree scripts loaded, creating Drop-in with token:', sessionData.sessionData.token.substring(0, 50) + '...');
+        // Extract the raw token string - this is the critical fix
+        const clientToken = sessionData.sessionData.token;
+        
+        console.log('Using Braintree client token (first 50 chars):', clientToken.substring(0, 50) + '...');
+        console.log('Token type:', typeof clientToken);
         
         // Clear loading message
         dropinContainer.innerHTML = '';
         
-        // Create Drop-in with better configuration
+        // Create Drop-in with the correct token format
         const dropinConfig = {
-          authorization: sessionData.sessionData.token,
+          authorization: clientToken, // Pass the raw string token directly
           container: dropinContainer,
           card: {
             cardholderName: {
@@ -203,10 +207,7 @@ export const handleBraintreePayment = async (
           }
         };
 
-        console.log('Creating Braintree Drop-in with config:', { 
-          hasAuthorization: !!dropinConfig.authorization,
-          authorizationPrefix: dropinConfig.authorization?.substring(0, 20) + '...'
-        });
+        console.log('Creating Braintree Drop-in with raw token string');
 
         window.braintree.dropin.create(dropinConfig, (createErr, instance) => {
           if (createErr) {
@@ -265,7 +266,6 @@ export const handleBraintreePayment = async (
             <p style="font-size: 0.9em; margin-top: 1rem;">${scriptError.message}</p>
           </div>
         `;
-        // Don't reject here, let user try to close modal
       });
       
     } catch (error) {
