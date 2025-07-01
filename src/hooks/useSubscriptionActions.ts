@@ -115,22 +115,23 @@ export const useSubscriptionActions = (programs: Program[]) => {
 
       console.log('Selected program:', program);
 
-      // Check if user already has an active subscription
-      const { data: existingSub, error: existingError } = await supabase
+      // FIXED: Check if user already has an active subscription - handle multiple results properly
+      const { data: existingSubscriptions, error: existingError } = await supabase
         .from('user_subscriptions')
-        .select('id')
+        .select('id, status, program_id')
         .eq('user_id', user.id)
-        .eq('status', 'active')
-        .maybeSingle();
+        .eq('status', 'active');
 
-      console.log('Existing subscription check:', existingSub, existingError);
+      console.log('Existing subscription check:', existingSubscriptions, existingError);
 
-      if (existingError && existingError.code !== 'PGRST116') {
+      if (existingError) {
         console.error('Error checking existing subscription:', existingError);
         throw existingError;
       }
 
-      if (existingSub) {
+      // Check if any active subscriptions exist
+      if (existingSubscriptions && existingSubscriptions.length > 0) {
+        console.log('User has active subscriptions:', existingSubscriptions.length);
         toast({
           title: "Already Subscribed",
           description: "You already have an active subscription.",
@@ -138,6 +139,8 @@ export const useSubscriptionActions = (programs: Program[]) => {
         });
         return;
       }
+
+      console.log('No existing active subscription found. Proceeding to payment...');
 
       // If 100% discount coupon is applied, create free subscription
       if (couponDiscountPercentage === 100) {

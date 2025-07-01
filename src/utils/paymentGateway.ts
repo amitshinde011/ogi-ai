@@ -185,8 +185,14 @@ export const handleBraintreePayment = async (
         // Extract the raw token string - this is the critical fix
         const clientToken = sessionData.sessionData.token;
         
-        console.log('Using Braintree client token (first 50 chars):', clientToken.substring(0, 50) + '...');
+        // ENHANCED: Add comprehensive token verification logging
+        console.log('=== BRAINTREE TOKEN VERIFICATION ===');
         console.log('Token type:', typeof clientToken);
+        console.log('Token length:', clientToken ? clientToken.length : 0);
+        console.log('Token first 50 chars:', clientToken ? clientToken.substring(0, 50) + '...' : 'null');
+        console.log('Is token a string?', typeof clientToken === 'string');
+        console.log('Token starts with expected format?', clientToken ? clientToken.startsWith('eyJ') : false);
+        console.log('=====================================');
         
         // Clear loading message
         dropinContainer.innerHTML = '';
@@ -212,6 +218,11 @@ export const handleBraintreePayment = async (
         window.braintree.dropin.create(dropinConfig, (createErr, instance) => {
           if (createErr) {
             console.error('Braintree Drop-in creation error:', createErr);
+            console.error('Error details:', {
+              message: createErr.message,
+              type: createErr.type,
+              code: createErr.code
+            });
             dropinContainer.innerHTML = `
               <div style="text-align: center; padding: 2rem; color: #d32f2f;">
                 <p>Failed to initialize payment form</p>
