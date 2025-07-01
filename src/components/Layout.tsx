@@ -51,7 +51,7 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-peaceful flex flex-col">
       {/* Post-completion banner */}
       {isCompleted && completedSubscription && (
         <PostCompletionBanner completedProgramName={completedSubscription.programs?.name} />
@@ -63,8 +63,8 @@ const Layout = ({ children }: LayoutProps) => {
       
       {/* Mobile Bottom Navigation - Only show on specified pages */}
       {shouldShowNavigation && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-200 shadow-lg z-50 md:hidden">
-          <div className="max-w-md mx-auto px-2 sm:px-4 py-3">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 md:hidden">
+          <div className="max-w-md mx-auto px-2 sm:px-4 py-2">
             <div className="flex justify-around items-center">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
@@ -75,17 +75,17 @@ const Layout = ({ children }: LayoutProps) => {
                   <button
                     key={item.path}
                     onClick={() => handleNavigation(item.path)}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 min-w-[60px] ${
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] ${
                       active
-                        ? 'text-white bg-blue-600 shadow-md'
+                        ? 'text-sage bg-sage/10'
                         : isRestricted
                         ? 'text-slate-300 cursor-not-allowed'
-                        : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
+                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
                     }`}
                     disabled={isRestricted}
                   >
-                    <Icon size={22} strokeWidth={2} />
-                    <span className="text-xs mt-1 font-semibold">{item.label}</span>
+                    <Icon size={20} strokeWidth={1.5} />
+                    <span className="text-xs mt-1 font-medium">{item.label}</span>
                   </button>
                 );
               })}
@@ -96,17 +96,17 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Desktop Sidebar Navigation - Only show on specified pages */}
       {shouldShowNavigation && (
-        <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r-2 border-slate-200 shadow-lg z-40 flex-col">
-          <div className="p-6 flex justify-center bg-blue-600">
+        <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-40 flex-col">
+          <div className="p-6 flex justify-center">
             <img 
               src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
               alt="Yogi Logo" 
-              className="h-12 w-auto brightness-0 invert"
+              className="h-12 w-auto"
             />
           </div>
           
-          <div className="flex-1 px-4 py-6">
-            <div className="space-y-3">
+          <div className="flex-1 px-4">
+            <div className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
@@ -116,17 +116,17 @@ const Layout = ({ children }: LayoutProps) => {
                   <button
                     key={item.path}
                     onClick={() => handleNavigation(item.path)}
-                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 text-left ${
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
                       active
-                        ? 'text-white bg-blue-600 font-semibold shadow-md'
+                        ? 'text-sage bg-sage/10 font-medium'
                         : isRestricted
                         ? 'text-slate-300 cursor-not-allowed'
-                        : 'text-slate-700 hover:text-blue-600 hover:bg-blue-50'
+                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
                     }`}
                     disabled={isRestricted}
                   >
-                    <Icon size={22} strokeWidth={2} />
-                    <span className="font-medium">{item.label}</span>
+                    <Icon size={20} strokeWidth={1.5} />
+                    <span>{item.label}</span>
                   </button>
                 );
               })}

@@ -434,10 +434,10 @@ const BeforeAssessment = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Header title="Before Assessment" />
       
-      <div className="min-h-screen bg-blue-50 p-4">
+      <div className="min-h-screen bg-gradient-peaceful p-4">
         <div className="max-w-md mx-auto">
           <Card className="bg-white shadow-xl border-0">
             <CardHeader className="text-center pb-6">
@@ -485,7 +485,7 @@ const BeforeAssessment = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-medium shadow-lg"
+                    className="w-full bg-gradient-to-r from-primary to-sage text-white py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
                     disabled={loading || uploading}
                   >
                     {loading ? 'Saving Assessment...' : uploading ? 'Uploading Photo...' : 'Complete Assessment'}
