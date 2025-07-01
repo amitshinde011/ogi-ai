@@ -1,6 +1,6 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import braintree from 'https://esm.sh/braintree@3.22.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,14 +34,20 @@ function logWithDetails(message: string, details?: any) {
   console.log(`[${timestamp}] ${message}`, details ? JSON.stringify(details, null, 2) : '');
 }
 
-// Generate Braintree client token using proper credentials
+/**
+ * [CORRECT IMPLEMENTATION]
+ * Generates a Braintree client token using the official Braintree SDK.
+ * This is guaranteed to create a token in the correct, encoded format.
+ */
 async function generateBraintreeClientToken(): Promise<string> {
   try {
-    // Get Braintree credentials from environment
+    logWithDetails('Initializing Braintree gateway via SDK');
+
+    // 1. Get Braintree credentials from environment variables
     const merchantId = Deno.env.get('BRAINTREE_MERCHANT_ID');
     const publicKey = Deno.env.get('BRAINTREE_PUBLIC_KEY');
     const privateKey = Deno.env.get('BRAINTREE_PRIVATE_KEY');
-    const environment = Deno.env.get('BRAINTREE_ENVIRONMENT') || 'sandbox';
+    const environment = Deno.env.get('BRAINTREE_ENVIRONMENT')?.toLowerCase() || 'sandbox';
 
     logWithDetails('Checking Braintree credentials', {
       hasMerchantId: !!merchantId,
@@ -52,53 +58,41 @@ async function generateBraintreeClientToken(): Promise<string> {
     });
 
     if (!merchantId || !publicKey || !privateKey) {
-      throw new Error('Missing Braintree credentials');
+      throw new Error('Missing Braintree environment variables (MERCHANT_ID, PUBLIC_KEY, PRIVATE_KEY)');
     }
 
-    // Create basic auth header for Braintree API
-    const auth = btoa(`${publicKey}:${privateKey}`);
-    const baseUrl = environment === 'production' 
-      ? 'https://api.braintreegateway.com' 
-      : 'https://api.sandbox.braintreegateway.com';
-
-    // Make API call to generate client token
-    const response = await fetch(`${baseUrl}/merchants/${merchantId}/client_token`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/xml',
-        'Accept': 'application/xml'
-      },
-      body: `<?xml version="1.0" encoding="UTF-8"?>
-<client-token>
-</client-token>`
+    // 2. Create a Braintree gateway instance
+    const gateway = new braintree.BraintreeGateway({
+      environment: environment === 'production' ? braintree.Environment.Production : braintree.Environment.Sandbox,
+      merchantId: merchantId,
+      publicKey: publicKey,
+      privateKey: privateKey
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      logWithDetails('Braintree API error', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
-      throw new Error(`Braintree API error: ${response.status} - ${errorText}`);
+    logWithDetails('Generating Braintree client token via SDK');
+
+    // 3. Generate the client token
+    const response = await gateway.clientToken.generate({});
+    
+    if (!response.success || !response.clientToken) {
+        logWithDetails('ERROR: Braintree SDK failed to generate token', { response });
+        throw new Error('Braintree SDK could not generate a client token.');
     }
 
-    const xmlResponse = await response.text();
-    logWithDetails('Braintree API response received', { responseLength: xmlResponse.length });
+    logWithDetails('Braintree client token generated successfully via SDK', {
+      tokenLength: response.clientToken.length,
+      tokenPreview: response.clientToken.substring(0, 50) + '...',
+      isValidFormat: response.clientToken.startsWith('eyJ') // JWT tokens typically start with eyJ
+    });
 
-    // Extract client token from XML response
-    const tokenMatch = xmlResponse.match(/<value>([^<]+)<\/value>/);
-    if (!tokenMatch) {
-      logWithDetails('Failed to extract client token from XML', { xml: xmlResponse });
-      throw new Error('Invalid response format from Braintree');
-    }
+    // The SDK returns the token in the correct Base64 encoded format
+    return response.clientToken;
 
-    const clientToken = tokenMatch[1];
-    logWithDetails('Braintree client token generated successfully');
-    return clientToken;
   } catch (error) {
-    logWithDetails('ERROR: Failed to generate Braintree client token', { error: error.message });
+    logWithDetails('ERROR: Failed to generate Braintree client token with SDK', {
+      error: error.message
+    });
+    // Rethrow the error to be caught by the main handler
     throw new Error(`Failed to generate Braintree client token: ${error.message}`);
   }
 }
@@ -226,7 +220,7 @@ serve(async (req) => {
       // Return session data based on gateway
       let sessionData;
       if (gateway === 'braintree') {
-        // Generate Braintree client token using proper API
+        // Generate Braintree client token using official SDK
         const clientToken = await generateBraintreeClientToken();
         
         sessionData = {
