@@ -17,6 +17,15 @@ const Layout = ({ children }: LayoutProps) => {
   const { unreadCount } = useNotifications();
   const { isCompleted, completedSubscription } = useProgramCompletion();
 
+  // Define pages that should show navigation
+  const pagesWithNavigation = ['/home', '/', '/recipes', '/community', '/progress', '/settings'];
+  const shouldShowNavigation = pagesWithNavigation.some(path => {
+    if (path === '/home' || path === '/') {
+      return location.pathname === '/home' || location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  });
+
   const navigationItems = [
     { icon: Home, path: '/home', label: 'Home' },
     { icon: CookingPot, path: '/recipes', label: 'Recipes' },
@@ -48,84 +57,88 @@ const Layout = ({ children }: LayoutProps) => {
         <PostCompletionBanner completedProgramName={completedSubscription.programs?.name} />
       )}
       
-      <main className={`flex-1 pb-16 sm:pb-20 md:pb-0 md:pl-64 ${isCompleted ? 'pt-20 sm:pt-24 md:pt-32' : ''}`}>
+      <main className={`flex-1 ${shouldShowNavigation ? 'pb-16 sm:pb-20 md:pb-0 md:pl-64' : ''} ${isCompleted ? 'pt-20 sm:pt-24 md:pt-32' : ''}`}>
         {children}
       </main>
       
-      {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 md:hidden">
-        <div className="max-w-md mx-auto px-2 sm:px-4 py-2">
-          <div className="flex justify-around items-center">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              const isRestricted = isCompleted && (item.path === '/home' || item.path === '/recipes');
-              
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => handleNavigation(item.path)}
-                  className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] ${
-                    active
-                      ? 'text-sage bg-sage/10'
-                      : isRestricted
-                      ? 'text-slate-300 cursor-not-allowed'
-                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                  }`}
-                  disabled={isRestricted}
-                >
-                  <Icon size={20} strokeWidth={1.5} />
-                  <span className="text-xs mt-1 font-medium">{item.label}</span>
-                </button>
-              );
-            })}
+      {/* Mobile Bottom Navigation - Only show on specified pages */}
+      {shouldShowNavigation && (
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 backdrop-blur-xl bg-white/95 z-50 md:hidden">
+          <div className="max-w-md mx-auto px-2 sm:px-4 py-2">
+            <div className="flex justify-around items-center">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                const isRestricted = isCompleted && (item.path === '/home' || item.path === '/recipes');
+                
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] ${
+                      active
+                        ? 'text-sage bg-sage/10'
+                        : isRestricted
+                        ? 'text-slate-300 cursor-not-allowed'
+                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                    }`}
+                    disabled={isRestricted}
+                  >
+                    <Icon size={20} strokeWidth={1.5} />
+                    <span className="text-xs mt-1 font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      )}
 
-      {/* Desktop Sidebar Navigation */}
-      <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-40 flex-col">
-        <div className="p-6 flex justify-center">
-          <img 
-            src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
-            alt="Yogi Logo" 
-            className="h-12 w-auto"
-          />
-        </div>
-        
-        <div className="flex-1 px-4">
-          <div className="space-y-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              const isRestricted = isCompleted && (item.path === '/home' || item.path === '/recipes');
-              
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => handleNavigation(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
-                    active
-                      ? 'text-sage bg-sage/10 font-medium'
-                      : isRestricted
-                      ? 'text-slate-300 cursor-not-allowed'
-                      : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
-                  }`}
-                  disabled={isRestricted}
-                >
-                  <Icon size={20} strokeWidth={1.5} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
+      {/* Desktop Sidebar Navigation - Only show on specified pages */}
+      {shouldShowNavigation && (
+        <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-40 flex-col">
+          <div className="p-6 flex justify-center">
+            <img 
+              src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
+              alt="Yogi Logo" 
+              className="h-12 w-auto"
+            />
           </div>
-        </div>
+          
+          <div className="flex-1 px-4">
+            <div className="space-y-2">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                const isRestricted = isCompleted && (item.path === '/home' || item.path === '/recipes');
+                
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
+                      active
+                        ? 'text-sage bg-sage/10 font-medium'
+                        : isRestricted
+                        ? 'text-slate-300 cursor-not-allowed'
+                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
+                    }`}
+                    disabled={isRestricted}
+                  >
+                    <Icon size={20} strokeWidth={1.5} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-        {/* Footer in Sidebar */}
-        <div className="mt-auto">
-          <Footer />
-        </div>
-      </nav>
+          {/* Footer in Sidebar */}
+          <div className="mt-auto">
+            <Footer />
+          </div>
+        </nav>
+      )}
     </div>
   );
 };
