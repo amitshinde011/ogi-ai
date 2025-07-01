@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, ArrowRight, Clock, Info } from 'lucide-react';
@@ -9,9 +8,9 @@ import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
-import { ComfortQuestionsSection } from '@/components/assessment/ComfortQuestionsSection';
-import { HealthConditionsSection } from '@/components/assessment/HealthConditionsSection';
-import { PhotoUploadSection } from '@/components/assessment/PhotoUploadSection';
+import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
+import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
+import PhotoUploadSection from '@/components/assessment/PhotoUploadSection';
 
 const BeforeAssessment = () => {
   const navigate = useNavigate();
