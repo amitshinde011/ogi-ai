@@ -485,7 +485,7 @@ const BeforeAssessment = () => {
 
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-primary to-sage text-white py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 text-white py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                     disabled={loading || uploading}
                   >
                     {loading ? 'Saving Assessment...' : uploading ? 'Uploading Photo...' : 'Complete Assessment'}
