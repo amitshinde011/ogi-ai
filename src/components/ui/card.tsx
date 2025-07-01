@@ -10,7 +10,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      "rounded-xl border-2 border-gray-100 bg-white text-card-foreground shadow-lg hover:shadow-xl transition-all duration-300",
       "w-full max-w-none", // Ensure full width responsiveness
       className
     )}
@@ -42,7 +42,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "font-semibold leading-none tracking-tight",
+      "font-bold leading-none tracking-tight text-gray-800",
       "text-lg sm:text-xl md:text-2xl", // Responsive font sizes
       className
     )}
@@ -58,7 +58,7 @@ const CardDescription = React.forwardRef<
   <p
     ref={ref}
     className={cn(
-      "text-muted-foreground",
+      "text-gray-600",
       "text-xs sm:text-sm md:text-base", // Responsive font sizes
       className
     )}
