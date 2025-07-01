@@ -85,11 +85,12 @@
 
   html, body, #root {
     min-height: 100vh;
-    background: linear-gradient(135deg, rgb(248, 250, 252) 0%, rgb(241, 245, 249) 100%) !important;
+    background: linear-gradient(135deg, hsl(220, 13%, 98%) 0%, hsl(214, 20%, 95%) 100%) !important;
   }
 
+  /* Simplified heading styles without conflicts */
   h1, h2, h3, h4, h5, h6 {
-    color: rgb(15, 23, 42) !important;
+    color: hsl(220, 39%, 11%);
     font-weight: 700;
     letter-spacing: -0.025em;
   }
@@ -99,8 +100,9 @@
   h3 { @apply text-xl; }
   h4 { @apply text-lg; }
 
+  /* Simplified text styles */
   p, span, div {
-    color: rgb(15, 23, 42) !important;
+    color: hsl(220, 39%, 11%);
     line-height: 1.6;
   }
 }
