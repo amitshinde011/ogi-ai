@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Camera, Upload as UploadIcon, Check, Loader2 } from 'lucide-react';
+import { Camera, Upload as UploadIcon, Check, Loader2, Sun, Coffee, Moon, Apple } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,10 +22,10 @@ const Upload = () => {
   const { uploadToR2, uploading } = useR2Upload();
 
   const mealTypes = [
-    { id: 'breakfast', name: 'Breakfast', icon: '🌅', time: '6:00 - 11:00 AM' },
-    { id: 'lunch', name: 'Lunch', icon: '☀️', time: '11:00 AM - 3:00 PM' },
-    { id: 'dinner', name: 'Dinner', icon: '🌙', time: '3:00 PM - 10:00 PM' },
-    { id: 'snack', name: 'Snack', icon: '🍎', time: 'Anytime' }
+    { id: 'breakfast', name: 'Breakfast', icon: Coffee, time: '6:00 - 11:00 AM' },
+    { id: 'lunch', name: 'Lunch', icon: Sun, time: '11:00 AM - 3:00 PM' },
+    { id: 'dinner', name: 'Dinner', icon: Moon, time: '3:00 PM - 10:00 PM' },
+    { id: 'snack', name: 'Snack', icon: Apple, time: 'Anytime' }
   ];
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,30 +109,33 @@ const Upload = () => {
           <CardContent className="p-4">
             <h3 className="font-semibold text-stone mb-4">Select Meal Type</h3>
             <div className="space-y-3">
-              {mealTypes.map((meal) => (
-                <div
-                  key={meal.id}
-                  onClick={() => setSelectedMeal(meal.id)}
-                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    selectedMeal === meal.id
-                      ? 'border-sage bg-sage/10 shadow-md'
-                      : 'border-lavender/30 hover:border-sage hover:bg-lavender/5'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <span className="text-2xl mr-3">{meal.icon}</span>
-                      <div>
-                        <h4 className="font-medium text-stone">{meal.name}</h4>
-                        <p className="text-sm text-stone/60">{meal.time}</p>
+              {mealTypes.map((meal) => {
+                const IconComponent = meal.icon;
+                return (
+                  <div
+                    key={meal.id}
+                    onClick={() => setSelectedMeal(meal.id)}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      selectedMeal === meal.id
+                        ? 'border-sage bg-sage/10 shadow-md'
+                        : 'border-lavender/30 hover:border-sage hover:bg-lavender/5'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <IconComponent size={24} className="text-sage mr-3" />
+                        <div>
+                          <h4 className="font-medium text-stone">{meal.name}</h4>
+                          <p className="text-sm text-stone/60">{meal.time}</p>
+                        </div>
                       </div>
+                      {selectedMeal === meal.id && (
+                        <Check size={20} strokeWidth={1.5} className="text-sage" />
+                      )}
                     </div>
-                    {selectedMeal === meal.id && (
-                      <Check size={20} strokeWidth={1.5} className="text-sage" />
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
