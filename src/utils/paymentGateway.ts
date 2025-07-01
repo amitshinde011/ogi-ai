@@ -205,12 +205,8 @@ export const handleBraintreePayment = async (
             cardholderName: {
               required: false
             }
-          },
-          paypal: {
-            flow: 'checkout',
-            amount: sessionData.sessionData.amount,
-            currency: sessionData.sessionData.currency || 'USD'
           }
+          // Removed PayPal config as it might be causing the Drop-in creation error
         };
 
         console.log('Creating Braintree Drop-in with raw token string');
