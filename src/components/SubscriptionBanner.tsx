@@ -8,7 +8,7 @@ const SubscriptionBanner = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white p-4 shadow-2xl">
+    <div className="bg-purple-600 text-white p-4 shadow-lg">
       <div className="max-w-md mx-auto flex items-center justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">

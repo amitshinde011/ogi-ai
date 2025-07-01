@@ -10,7 +10,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl border-2 border-gray-100 bg-white text-card-foreground shadow-lg hover:shadow-xl transition-all duration-300",
+      "rounded-lg border border-gray-200 bg-white text-card-foreground shadow-md hover:shadow-lg transition-all duration-300",
       "w-full max-w-none", // Ensure full width responsiveness
       className
     )}

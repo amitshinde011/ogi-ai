@@ -51,7 +51,7 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Post-completion banner */}
       {isCompleted && completedSubscription && (
         <PostCompletionBanner completedProgramName={completedSubscription.programs?.name} />
@@ -63,7 +63,7 @@ const Layout = ({ children }: LayoutProps) => {
       
       {/* Mobile Bottom Navigation - Only show on specified pages */}
       {shouldShowNavigation && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t-2 border-purple-200 shadow-2xl z-50 md:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-200 shadow-lg z-50 md:hidden">
           <div className="max-w-md mx-auto px-2 sm:px-4 py-3">
             <div className="flex justify-around items-center">
               {navigationItems.map((item) => {
@@ -77,10 +77,10 @@ const Layout = ({ children }: LayoutProps) => {
                     onClick={() => handleNavigation(item.path)}
                     className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all duration-300 min-w-[60px] ${
                       active
-                        ? 'text-white bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg scale-105'
+                        ? 'text-white bg-blue-600 shadow-md'
                         : isRestricted
                         ? 'text-slate-300 cursor-not-allowed'
-                        : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50 hover:scale-105'
+                        : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
                     }`}
                     disabled={isRestricted}
                   >
@@ -96,8 +96,8 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Desktop Sidebar Navigation - Only show on specified pages */}
       {shouldShowNavigation && (
-        <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white/95 backdrop-blur-xl border-r-2 border-purple-200 shadow-2xl z-40 flex-col">
-          <div className="p-6 flex justify-center bg-gradient-to-r from-blue-500 to-purple-600">
+        <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r-2 border-slate-200 shadow-lg z-40 flex-col">
+          <div className="p-6 flex justify-center bg-blue-600">
             <img 
               src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
               alt="Yogi Logo" 
@@ -118,10 +118,10 @@ const Layout = ({ children }: LayoutProps) => {
                     onClick={() => handleNavigation(item.path)}
                     className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 text-left ${
                       active
-                        ? 'text-white bg-gradient-to-r from-blue-500 to-purple-600 font-semibold shadow-lg transform scale-105'
+                        ? 'text-white bg-blue-600 font-semibold shadow-md'
                         : isRestricted
                         ? 'text-slate-300 cursor-not-allowed'
-                        : 'text-slate-700 hover:text-blue-600 hover:bg-blue-50 hover:transform hover:scale-105'
+                        : 'text-slate-700 hover:text-blue-600 hover:bg-blue-50'
                     }`}
                     disabled={isRestricted}
                   >

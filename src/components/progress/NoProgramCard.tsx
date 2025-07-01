@@ -9,7 +9,7 @@ const NoProgramCard = () => {
   const navigate = useNavigate();
 
   return (
-    <Card className="bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 border-2 border-purple-200 w-full">
+    <Card className="bg-purple-50 border-2 border-purple-200 w-full">
       <CardContent className="p-4 sm:p-6 text-center">
         <div className="relative">
           <Search size={40} strokeWidth={1.5} className="text-purple-500 mx-auto mb-3 sm:mb-4 sm:w-12 sm:h-12" />
@@ -19,7 +19,7 @@ const NoProgramCard = () => {
         <p className="text-purple-600 mb-3 sm:mb-4 text-xs sm:text-sm">Start your wellness journey today!</p>
         <Button 
           onClick={() => navigate('/subscriptions')}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white w-full sm:w-auto text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3 hover:from-purple-600 hover:to-pink-600"
+          className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
         >
           <Sparkles className="w-4 h-4 mr-2" />
           Browse Programs

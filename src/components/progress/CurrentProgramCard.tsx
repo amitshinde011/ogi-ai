@@ -29,7 +29,7 @@ const CurrentProgramCard = ({ program }: CurrentProgramCardProps) => {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white border-none shadow-xl w-full">
+    <Card className="bg-emerald-500 text-white border-none shadow-lg w-full">
       <CardHeader className="pb-3 sm:pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base sm:text-lg text-white">Current Program</CardTitle>
