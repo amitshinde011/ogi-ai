@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Upload as UploadIcon, Check, Loader2, Sun, Coffee, Moon, Apple } from 'lucide-react';
+import { Camera, Upload as UploadIcon, Check, Loader2, Sun, Salad, Moon, Apple } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,7 +22,7 @@ const Upload = () => {
   const { uploadToR2, uploading } = useR2Upload();
 
   const mealTypes = [
-    { id: 'breakfast', name: 'Breakfast', icon: Coffee, time: '6:00 - 11:00 AM' },
+    { id: 'breakfast', name: 'Breakfast', icon: Salad, time: '6:00 - 11:00 AM' },
     { id: 'lunch', name: 'Lunch', icon: Sun, time: '11:00 AM - 3:00 PM' },
     { id: 'dinner', name: 'Dinner', icon: Moon, time: '3:00 PM - 10:00 PM' },
     { id: 'snack', name: 'Snack', icon: Apple, time: 'Anytime' }

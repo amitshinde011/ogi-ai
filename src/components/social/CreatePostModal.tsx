@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Coffee, Sun, Moon, Apple } from 'lucide-react';
+import { X, Plus, Salad, Sun, Moon, Apple } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,7 +27,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const { uploadToR2, uploading } = useR2Upload();
 
   const mealTypes = [
-    { id: 'breakfast', name: 'Breakfast', icon: Coffee },
+    { id: 'breakfast', name: 'Breakfast', icon: Salad },
     { id: 'lunch', name: 'Lunch', icon: Sun },
     { id: 'dinner', name: 'Dinner', icon: Moon },
     { id: 'snack', name: 'Snack', icon: Apple }
