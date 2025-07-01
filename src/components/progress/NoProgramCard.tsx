@@ -16,7 +16,7 @@ const NoProgramCard = () => {
         <p className="text-gray-600 mb-3 sm:mb-4 text-xs sm:text-sm">Start your wellness journey today!</p>
         <Button 
           onClick={() => navigate('/subscriptions')}
-          className="bg-gradient-sage text-white w-full sm:w-auto text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
         >
           Browse Programs
         </Button>

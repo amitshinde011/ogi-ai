@@ -51,7 +51,7 @@ const Layout = ({ children }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Post-completion banner */}
       {isCompleted && completedSubscription && (
         <PostCompletionBanner completedProgramName={completedSubscription.programs?.name} />
@@ -77,7 +77,7 @@ const Layout = ({ children }: LayoutProps) => {
                     onClick={() => handleNavigation(item.path)}
                     className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] ${
                       active
-                        ? 'text-sage bg-sage/10'
+                        ? 'text-primary bg-primary/10'
                         : isRestricted
                         ? 'text-slate-300 cursor-not-allowed'
                         : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
@@ -118,7 +118,7 @@ const Layout = ({ children }: LayoutProps) => {
                     onClick={() => handleNavigation(item.path)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${
                       active
-                        ? 'text-sage bg-sage/10 font-medium'
+                        ? 'text-primary bg-primary/10 font-medium'
                         : isRestricted
                         ? 'text-slate-300 cursor-not-allowed'
                         : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
