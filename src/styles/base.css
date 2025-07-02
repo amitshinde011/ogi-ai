@@ -3,38 +3,38 @@
 
 @layer base {
   :root {
-    --background: 45 100% 96%;
-    --foreground: 262 83% 58%;
-    --card: 45 100% 99%;
-    --card-foreground: 262 83% 58%;
-    --popover: 45 100% 99%;
-    --popover-foreground: 262 83% 58%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
     --primary: 320 85% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 180 100% 85%;
-    --secondary-foreground: 262 83% 58%;
-    --accent: 60 100% 70%;
-    --accent-foreground: 262 83% 58%;
-    --muted: 45 100% 92%;
-    --muted-foreground: 262 50% 45%;
+    --secondary-foreground: 0 0% 0%;
+    --accent: 0 0% 90%;
+    --accent-foreground: 0 0% 0%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 45 100% 88%;
-    --input: 45 100% 99%;
+    --border: 0 0% 90%;
+    --input: 0 0% 100%;
     --ring: 320 85% 60%;
     --radius: 0.75rem;
     --success: 142 76% 55%;
     --warning: 38 92% 65%;
     --info: 217 91% 70%;
-    --surface: 45 100% 99%;
-    --surface-secondary: 45 100% 96%;
-    --text-primary: 262 83% 58%;
-    --text-secondary: 262 70% 45%;
-    --text-tertiary: 262 50% 65%;
+    --surface: 0 0% 100%;
+    --surface-secondary: 0 0% 98%;
+    --text-primary: 0 0% 0%;
+    --text-secondary: 0 0% 30%;
+    --text-tertiary: 0 0% 50%;
     --sage: 160 65% 55%;
-    --light-gray: 45 100% 96%;
-    --card-gray: 45 100% 92%;
-    --dark-text: 262 83% 58%;
+    --light-gray: 0 0% 90%;
+    --card-gray: 0 0% 96%;
+    --dark-text: 0 0% 0%;
     --pastel-purple: 270 85% 75%;
     --pastel-pink: 351 100% 80%;
     --pastel-blue: 195 85% 75%;
@@ -85,12 +85,12 @@
 
   html, body, #root {
     min-height: 100vh;
-    background: linear-gradient(135deg, hsl(45, 100%, 96%) 0%, hsl(320, 85%, 85%) 50%, hsl(180, 100%, 85%) 100%) !important;
+    background: hsl(0, 0%, 100%) !important;
   }
 
   /* Joyful heading styles */
   h1, h2, h3, h4, h5, h6 {
-    color: hsl(262, 83%, 58%);
+    color: hsl(0, 0%, 0%);
     font-weight: 700;
     letter-spacing: -0.025em;
   }
@@ -102,7 +102,7 @@
 
   /* Bright text styles */
   p, span, div {
-    color: hsl(262, 83%, 58%);
+    color: hsl(0, 0%, 0%);
     line-height: 1.6;
   }
 }
