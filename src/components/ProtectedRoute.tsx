@@ -39,14 +39,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If route requires active subscription
   if (requiresActiveSubscription) {
-    // If program is completed, redirect to subscriptions
+    // If program is completed, redirect to progress page
     if (isCompleted) {
-      return <Navigate to="/subscriptions?completed=true" replace />;
+      return <Navigate to="/progress" replace />;
     }
     
-    // If no active program, redirect to subscriptions
+    // If no active program, redirect to progress page
     if (!userProgram) {
-      return <Navigate to="/subscriptions" replace />;
+      return <Navigate to="/progress" replace />;
     }
   }
 
