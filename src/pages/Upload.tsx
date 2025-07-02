@@ -10,11 +10,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useR2Upload } from '@/hooks/useR2Upload';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserProgram } from '@/hooks/useUserProgram';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
 const Upload = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { data: userProgram } = useUserProgram();
+  const { isCompleted } = useProgramCompletion();
   const [selectedMeal, setSelectedMeal] = useState(location.state?.mealType || '');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -46,6 +50,16 @@ const Upload = () => {
       if (!isAuthenticated || !user) {
         toast({ title: "Authentication required. Please try logging in again.", variant: "destructive" });
       }
+      return;
+    }
+
+    // Check if user has active subscription
+    if (!userProgram || isCompleted) {
+      toast({ 
+        title: "Subscription Required", 
+        description: "You need an active subscription to post meals.", 
+        variant: "destructive" 
+      });
       return;
     }
 
@@ -196,7 +210,7 @@ const Upload = () => {
         {/* Submit Button */}
         <Button
           onClick={handleSubmit}
-          disabled={!selectedMeal || !imageFile || uploading || !isAuthenticated || !user}
+          disabled={!selectedMeal || !imageFile || uploading || !isAuthenticated || !user || !userProgram || isCompleted}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white py-6 font-medium shadow-lg"
         >
           {uploading ? (

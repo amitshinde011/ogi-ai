@@ -4,10 +4,14 @@ import { Camera, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CreatePostModal from '@/components/social/CreatePostModal';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
+import { useUserProgram } from '@/hooks/useUserProgram';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
 const MealLogger = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { createPost, fetchDiscoverFeed } = useSocialPosts();
+  const { data: userProgram } = useUserProgram();
+  const { isCompleted } = useProgramCompletion();
 
   const handleCreateMealPost = async (imageUrl: string, caption: string, mealType?: string) => {
     const success = await createPost(imageUrl, caption, mealType);
@@ -31,19 +35,22 @@ const MealLogger = () => {
         
         <Button
           onClick={() => setShowCreateModal(true)}
-          className="w-full bg-sage hover:bg-sage/90 flex items-center justify-center gap-2"
+          disabled={!userProgram || isCompleted}
+          className="w-full bg-sage hover:bg-sage/90 flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
-          Log Your Meal
+          {!userProgram || isCompleted ? 'Subscription Required' : 'Log Your Meal'}
         </Button>
       </div>
 
-      <CreatePostModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onCreatePost={handleCreateMealPost}
-        showMealTypeSelection={true}
-      />
+      {userProgram && !isCompleted && (
+        <CreatePostModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onCreatePost={handleCreateMealPost}
+          showMealTypeSelection={true}
+        />
+      )}
     </>
   );
 };
