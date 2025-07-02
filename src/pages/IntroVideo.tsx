@@ -28,28 +28,27 @@ const IntroVideo = () => {
           return;
         }
 
-        // Check if intro video is already completed in onboarding state
-        if (onboardingState?.intro_video_watched) {
-          console.log('Intro video already completed, redirecting to before-assessment');
-          navigate('/before-assessment');
+        // Check if there's an active subscription first
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('id, created_at')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .maybeSingle();
+
+        if (!subscription) {
+          // No active subscription, redirect to subscriptions
+          navigate('/subscriptions');
           return;
         }
 
-        // Also check if there's an active subscription and if intro video was completed for it
-        const { data: subscription } = await supabase
-          .from('user_subscriptions')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .maybeSingle();
-
-        if (subscription) {
-          // Check if user has already watched intro video for current subscription
-          // We can use onboarding state as the source of truth for intro video completion
-          if (onboardingState?.intro_video_watched) {
-            console.log('Intro video already completed for current subscription, redirecting');
-            navigate('/before-assessment');
-          }
+        // For active subscriptions, check if intro video is completed
+        // Only redirect if intro video is watched AND there's an active subscription
+        if (onboardingState?.intro_video_watched && subscription) {
+          console.log('Intro video already completed for current subscription, redirecting');
+          navigate('/before-assessment');
+          return;
         }
       } catch (error) {
         console.error('Error checking video completion status:', error);

@@ -107,8 +107,11 @@ const Payment = () => {
       // Track payment success
       trackPayment(program.name, finalPrice, program.currency, gateway);
 
-      // Update onboarding state
-      await updateOnboardingState({ subscription_selected: true });
+      // Update onboarding state - reset intro video for new subscription
+      await updateOnboardingState({ 
+        subscription_selected: true,
+        intro_video_watched: false 
+      });
 
       // Create subscription record
       const startDate = new Date();
@@ -181,7 +184,10 @@ const Payment = () => {
           throw subscriptionError;
         }
 
-        await updateOnboardingState({ subscription_selected: true });
+        await updateOnboardingState({ 
+          subscription_selected: true,
+          intro_video_watched: false 
+        });
         
         toast({
           title: "Free Access Granted!",
