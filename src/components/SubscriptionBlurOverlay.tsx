@@ -17,8 +17,8 @@ const SubscriptionBlurOverlay: React.FC<SubscriptionBlurOverlayProps> = ({ child
         {children}
       </div>
       
-      {/* Overlay - positioned to avoid header/navigation */}
-      <div className="absolute top-16 left-0 right-0 bottom-0 bg-white/80 z-50">
+      {/* Overlay - positioned to only cover the content area */}
+      <div className="absolute inset-0 bg-white/80 z-50">
         {/* Message positioned near top */}
         <div className="pt-8 px-4 flex justify-center">
           <div className="text-center p-6 max-w-sm bg-white rounded-2xl shadow-lg border border-slate-200">
