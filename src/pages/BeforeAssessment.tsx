@@ -327,6 +327,59 @@ const BeforeAssessment = () => {
         <Header title="Schedule Your Journey" />
         
         <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+          {/* Sacred Journey Message */}
+          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-xl p-6 shadow-xl">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Compass className="w-8 h-8 text-amber-700" />
+              </div>
+              <h3 className="text-xl font-bold text-amber-900 mb-2">A Sacred Threshold</h3>
+              <div className="w-20 h-1 bg-gradient-to-r from-amber-400 to-orange-400 mx-auto rounded-full"></div>
+            </div>
+            
+            <div className="space-y-5 text-amber-800">
+              <div className="flex items-start gap-4 p-4 bg-white/50 rounded-lg backdrop-blur-sm">
+                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <Compass className="w-4 h-4 text-amber-600" />
+                </div>
+                <p className="text-sm leading-relaxed">
+                  Before you begin this journey, take a moment. Stand at the threshold and quiet your mind. 
+                  The path you are about to walk is powerful—it holds the potential to rejuvenate your body, 
+                  clarify your mind, and restore a youthful energy you may have thought was lost.
+                </p>
+              </div>
+              
+              <div className="flex items-start gap-4 p-4 bg-white/50 rounded-lg backdrop-blur-sm">
+                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <Heart className="w-4 h-4 text-amber-600" />
+                </div>
+                <p className="text-sm leading-relaxed">
+                  We ask for your patience and your persistence, but more than that, we ask for your commitment. 
+                  It is perfectly okay to take your time before you say 'yes.' But once you begin, make a sacred 
+                  contract with yourself: to see this through to completion, without looking back.
+                </p>
+              </div>
+              
+              <div className="flex items-start gap-4 p-4 bg-white/50 rounded-lg backdrop-blur-sm">
+                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                </div>
+                <p className="text-sm leading-relaxed">
+                  A new world of vibrant health, energy, and joy is waiting for you on the other side.
+                </p>
+              </div>
+              
+              <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg border border-amber-200">
+                <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <Hammer className="w-4 h-4 text-amber-700" />
+                </div>
+                <p className="text-sm font-semibold text-amber-900 leading-relaxed">
+                  You have the power to build it.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <Card className="text-center">
             <CardHeader>
               <CardTitle className="flex items-center justify-center gap-2">
@@ -439,52 +492,6 @@ const BeforeAssessment = () => {
       
       <div className="min-h-screen bg-gradient-peaceful p-4">
         <div className="max-w-md mx-auto">
-          {/* Sacred Journey Message */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6 shadow-lg">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                  <Compass className="w-5 h-5 text-amber-600" />
-                </div>
-                <h3 className="text-lg font-bold text-amber-900">A Sacred Threshold</h3>
-              </div>
-              
-              <div className="space-y-4 text-amber-800 leading-relaxed">
-                <div className="flex items-start gap-3">
-                  <Compass className="w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
-                  <p className="text-sm">
-                    Before you begin this journey, take a moment. Stand at the threshold and quiet your mind. 
-                    The path you are about to walk is powerful—it holds the potential to rejuvenate your body, 
-                    clarify your mind, and restore a youthful energy you may have thought was lost.
-                  </p>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Heart className="w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
-                  <p className="text-sm">
-                    We ask for your patience and your persistence, but more than that, we ask for your commitment. 
-                    It is perfectly okay to take your time before you say 'yes.' But once you begin, make a sacred 
-                    contract with yourself: to see this through to completion, without looking back.
-                  </p>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
-                  <p className="text-sm">
-                    A new world of vibrant health, energy, and joy is waiting for you on the other side.
-                  </p>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Hammer className="w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
-                  <p className="text-sm font-semibold">
-                    You have the power to build it.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <Card className="bg-white shadow-xl border-0">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel right now?</CardTitle>
