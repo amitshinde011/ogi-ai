@@ -140,7 +140,7 @@ export const useProfileSetup = () => {
         description: "Your profile has been successfully created.",
       });
 
-      navigate('/subscriptions');
+      navigate('/progress');
     } catch (error) {
       console.error('Error creating profile:', error);
       toast({
