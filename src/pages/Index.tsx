@@ -46,7 +46,14 @@ const Index = () => {
           return;
         }
 
-        // Check program completion status first
+        // Check profile completion FIRST - highest priority
+        if (!onboardingState.profile_completed) {
+          console.log('Profile not completed, redirecting to profile setup');
+          window.location.href = '/profile-setup';
+          return;
+        }
+
+        // Check program completion status after profile is completed
         if (isCompleted) {
           if (!hasFinalAssessment) {
             console.log('Program completed but final assessment not done, redirecting to program complete');
@@ -59,11 +66,8 @@ const Index = () => {
           }
         }
 
-        // Navigate based on onboarding progress
-        if (!onboardingState.profile_completed) {
-          console.log('Profile not completed, redirecting to profile setup');
-          window.location.href = '/profile-setup';
-        } else if (!onboardingState.subscription_selected) {
+        // Navigate based on remaining onboarding progress
+        if (!onboardingState.subscription_selected) {
           console.log('Subscription not selected, redirecting to progress');
           window.location.href = '/progress';
         } else if (!onboardingState.intro_video_watched) {
