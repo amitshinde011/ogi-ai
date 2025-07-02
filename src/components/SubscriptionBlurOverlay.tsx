@@ -11,14 +11,14 @@ const SubscriptionBlurOverlay: React.FC<SubscriptionBlurOverlayProps> = ({ child
   const navigate = useNavigate();
 
   return (
-    <div className="relative">
+    <>
       {/* Blurred content */}
       <div className="filter blur-sm pointer-events-none">
         {children}
       </div>
       
-      {/* Overlay - positioned to only cover the content area */}
-      <div className="absolute inset-0 bg-white/80 z-50">
+      {/* Overlay - positioned only over content, not header/nav */}
+      <div className="fixed inset-x-0 top-16 bottom-16 md:bottom-0 md:left-0 md:right-0 bg-white/80 z-40">
         {/* Message positioned near top */}
         <div className="pt-8 px-4 flex justify-center">
           <div className="text-center p-6 max-w-sm bg-white rounded-2xl shadow-lg border border-slate-200">
@@ -40,7 +40,7 @@ const SubscriptionBlurOverlay: React.FC<SubscriptionBlurOverlayProps> = ({ child
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
