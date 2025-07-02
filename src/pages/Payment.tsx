@@ -107,10 +107,12 @@ const Payment = () => {
       // Track payment success
       trackPayment(program.name, finalPrice, program.currency, gateway);
 
-      // Update onboarding state - reset intro video for new subscription
+      // Reset onboarding state for new subscription - all sequences restart
       await updateOnboardingState({ 
         subscription_selected: true,
-        intro_video_watched: false 
+        intro_video_watched: false,
+        before_assessment_completed: false,
+        journey_started: false
       });
 
       // Create subscription record
@@ -186,7 +188,9 @@ const Payment = () => {
 
         await updateOnboardingState({ 
           subscription_selected: true,
-          intro_video_watched: false 
+          intro_video_watched: false,
+          before_assessment_completed: false,
+          journey_started: false
         });
         
         toast({
