@@ -4,15 +4,18 @@ import { Navigate } from 'react-router-dom';
 import { useUserProgram } from '@/hooks/useUserProgram';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { Loader2 } from 'lucide-react';
+import SubscriptionBlurOverlay from './SubscriptionBlurOverlay';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiresActiveSubscription?: boolean;
+  showBlurOverlay?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
-  requiresActiveSubscription = false 
+  requiresActiveSubscription = false,
+  showBlurOverlay = false
 }) => {
   const { data: userProgram, isLoading: programLoading } = useUserProgram();
   const { isCompleted, loading: completionLoading } = useProgramCompletion();
@@ -48,6 +51,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (!userProgram) {
       return <Navigate to="/progress" replace />;
     }
+  }
+
+  // If showBlurOverlay is true and no active subscription, show blurred content
+  if (showBlurOverlay && (!userProgram || isCompleted)) {
+    return <SubscriptionBlurOverlay>{children}</SubscriptionBlurOverlay>;
   }
 
   return <>{children}</>;

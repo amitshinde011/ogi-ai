@@ -49,12 +49,19 @@ const AppWithAnalytics = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       
-      {/* Protected routes that require active subscription */}
+      {/* Routes with blur overlay for inactive users */}
       <Route path="/home" element={
-        <ProtectedRoute requiresActiveSubscription>
+        <ProtectedRoute showBlurOverlay>
           <Home />
         </ProtectedRoute>
       } />
+      <Route path="/recipes" element={
+        <ProtectedRoute showBlurOverlay>
+          <Recipes />
+        </ProtectedRoute>
+      } />
+      
+      {/* Protected routes that require active subscription */}
       <Route path="/before-assessment" element={
         <ProtectedRoute requiresActiveSubscription>
           <BeforeAssessment />
@@ -63,11 +70,6 @@ const AppWithAnalytics = () => {
       <Route path="/final-assessment" element={
         <ProtectedRoute requiresActiveSubscription>
           <FinalAssessment />
-        </ProtectedRoute>
-      } />
-      <Route path="/recipes" element={
-        <ProtectedRoute requiresActiveSubscription>
-          <Recipes />
         </ProtectedRoute>
       } />
       <Route path="/saved-recipes" element={

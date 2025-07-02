@@ -64,8 +64,8 @@ const Index = () => {
           console.log('Profile not completed, redirecting to profile setup');
           window.location.href = '/profile-setup';
         } else if (!onboardingState.subscription_selected) {
-          console.log('Subscription not selected, redirecting to subscriptions');
-          window.location.href = '/subscriptions';
+          console.log('Subscription not selected, redirecting to progress');
+          window.location.href = '/progress';
         } else if (!onboardingState.intro_video_watched) {
           console.log('Intro video not watched, redirecting to intro video');
           window.location.href = '/intro-video';
