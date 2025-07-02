@@ -3,71 +3,71 @@
 
 @layer base {
   :root {
-    --background: 220 13% 98%;
-    --foreground: 220 39% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 39% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 39% 11%;
-    --primary: 239 68% 68%;
+    --background: 45 100% 96%;
+    --foreground: 262 83% 58%;
+    --card: 45 100% 99%;
+    --card-foreground: 262 83% 58%;
+    --popover: 45 100% 99%;
+    --popover-foreground: 262 83% 58%;
+    --primary: 320 85% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 214 100% 97%;
-    --secondary-foreground: 220 39% 11%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 100%;
-    --muted: 220 13% 95%;
-    --muted-foreground: 220 9% 46%;
+    --secondary: 180 100% 85%;
+    --secondary-foreground: 262 83% 58%;
+    --accent: 60 100% 70%;
+    --accent-foreground: 262 83% 58%;
+    --muted: 45 100% 92%;
+    --muted-foreground: 262 50% 45%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 0 0% 100%;
-    --ring: 239 68% 68%;
+    --border: 45 100% 88%;
+    --input: 45 100% 99%;
+    --ring: 320 85% 60%;
     --radius: 0.75rem;
-    --success: 142 76% 36%;
-    --warning: 38 92% 50%;
-    --info: 217 91% 60%;
-    --surface: 0 0% 100%;
-    --surface-secondary: 220 13% 98%;
-    --text-primary: 220 39% 11%;
-    --text-secondary: 215 25% 27%;
-    --text-tertiary: 215 16% 47%;
-    --sage: 160 12% 39%;
-    --light-gray: 220 13% 98%;
-    --card-gray: 220 13% 95%;
-    --dark-text: 220 39% 11%;
-    --pastel-purple: 270 39% 71%;
-    --pastel-pink: 351 100% 86%;
-    --pastel-blue: 195 53% 79%;
-    --pastel-green: 120 93% 79%;
-    --pastel-yellow: 60 100% 94%;
-    --pastel-peach: 28 100% 86%;
-    --pastel-lavender: 240 67% 94%;
-    --pastel-mint: 150 100% 98%;
+    --success: 142 76% 55%;
+    --warning: 38 92% 65%;
+    --info: 217 91% 70%;
+    --surface: 45 100% 99%;
+    --surface-secondary: 45 100% 96%;
+    --text-primary: 262 83% 58%;
+    --text-secondary: 262 70% 45%;
+    --text-tertiary: 262 50% 65%;
+    --sage: 160 65% 55%;
+    --light-gray: 45 100% 96%;
+    --card-gray: 45 100% 92%;
+    --dark-text: 262 83% 58%;
+    --pastel-purple: 270 85% 75%;
+    --pastel-pink: 351 100% 80%;
+    --pastel-blue: 195 85% 75%;
+    --pastel-green: 120 85% 75%;
+    --pastel-yellow: 60 100% 85%;
+    --pastel-peach: 28 100% 80%;
+    --pastel-lavender: 240 85% 85%;
+    --pastel-mint: 150 85% 85%;
   }
 
   .dark {
-    --background: 220 39% 11%;
-    --foreground: 220 13% 98%;
-    --card: 220 33% 18%;
-    --card-foreground: 220 13% 98%;
-    --popover: 220 39% 11%;
-    --popover-foreground: 220 13% 98%;
-    --primary: 239 68% 68%;
+    --background: 262 40% 15%;
+    --foreground: 45 100% 96%;
+    --card: 262 40% 18%;
+    --card-foreground: 45 100% 96%;
+    --popover: 262 40% 15%;
+    --popover-foreground: 45 100% 96%;
+    --primary: 320 85% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 33% 18%;
-    --secondary-foreground: 220 13% 98%;
-    --accent: 142 76% 36%;
-    --accent-foreground: 220 39% 11%;
-    --muted: 220 33% 18%;
-    --muted-foreground: 215 16% 47%;
+    --secondary: 262 40% 22%;
+    --secondary-foreground: 45 100% 96%;
+    --accent: 60 100% 70%;
+    --accent-foreground: 262 40% 15%;
+    --muted: 262 40% 22%;
+    --muted-foreground: 262 30% 65%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 220 39% 11%;
-    --border: 215 28% 25%;
-    --input: 220 33% 18%;
-    --ring: 239 68% 68%;
-    --text-primary: 220 13% 98%;
-    --text-secondary: 220 14% 83%;
-    --text-tertiary: 215 16% 47%;
+    --destructive-foreground: 262 40% 15%;
+    --border: 262 40% 25%;
+    --input: 262 40% 18%;
+    --ring: 320 85% 60%;
+    --text-primary: 45 100% 96%;
+    --text-secondary: 45 80% 85%;
+    --text-tertiary: 262 30% 65%;
   }
 }
 
@@ -85,12 +85,12 @@
 
   html, body, #root {
     min-height: 100vh;
-    background: linear-gradient(135deg, hsl(220, 13%, 98%) 0%, hsl(214, 20%, 95%) 100%) !important;
+    background: linear-gradient(135deg, hsl(45, 100%, 96%) 0%, hsl(320, 85%, 85%) 50%, hsl(180, 100%, 85%) 100%) !important;
   }
 
-  /* Simplified heading styles without conflicts */
+  /* Joyful heading styles */
   h1, h2, h3, h4, h5, h6 {
-    color: hsl(220, 39%, 11%);
+    color: hsl(262, 83%, 58%);
     font-weight: 700;
     letter-spacing: -0.025em;
   }
@@ -100,9 +100,9 @@
   h3 { @apply text-xl; }
   h4 { @apply text-lg; }
 
-  /* Simplified text styles */
+  /* Bright text styles */
   p, span, div {
-    color: hsl(220, 39%, 11%);
+    color: hsl(262, 83%, 58%);
     line-height: 1.6;
   }
 }
