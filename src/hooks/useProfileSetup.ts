@@ -39,26 +39,7 @@ export const useProfileSetup = () => {
     physical_activity_intense: 3
   });
 
-  useEffect(() => {
-    // Check if user is already onboarded, if so, redirect to home
-    const checkOnboardingStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (profile) {
-        console.log('User profile exists, redirecting to home');
-        navigate('/home');
-      }
-    };
-
-    checkOnboardingStatus();
-  }, [navigate]);
+  // Removed automatic redirect logic - let Index.tsx handle all routing
 
   const handleImageSelect = (file: File) => {
     setSelectedImage(file);
