@@ -7,6 +7,7 @@ import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
 import { calculatePricing } from '@/utils/pricingUtils';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Program {
   id: string;
@@ -22,6 +23,7 @@ interface Program {
 export const useSubscriptionActions = (programs: Program[]) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { updateOnboardingState } = useOnboarding();
   const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
   const { isIndiaUser, userLocation } = useLocationDetection();
@@ -75,6 +77,9 @@ export const useSubscriptionActions = (programs: Program[]) => {
 
       await updateOnboardingState({ subscription_selected: true });
 
+      // Invalidate user program cache to refresh subscription data
+      queryClient.invalidateQueries({ queryKey: ['user-current-program'] });
+
       toast({
         title: "Free Access Granted!",
         description: `You've successfully got free access to ${program.name}`,
@@ -115,11 +120,12 @@ export const useSubscriptionActions = (programs: Program[]) => {
 
       console.log('Selected program:', program);
 
-      // FIXED: Check if user already has an active subscription - handle multiple results properly
+      // Check if user already has an active subscription to THIS specific program
       const { data: existingSubscriptions, error: existingError } = await supabase
         .from('user_subscriptions')
         .select('id, status, program_id')
         .eq('user_id', user.id)
+        .eq('program_id', program.id)
         .eq('status', 'active');
 
       console.log('Existing subscription check:', existingSubscriptions, existingError);
@@ -129,18 +135,18 @@ export const useSubscriptionActions = (programs: Program[]) => {
         throw existingError;
       }
 
-      // Check if any active subscriptions exist
+      // Only prevent subscription if user already has THIS specific program active
       if (existingSubscriptions && existingSubscriptions.length > 0) {
-        console.log('User has active subscriptions:', existingSubscriptions.length);
+        console.log('User already has this specific program active');
         toast({
           title: "Already Subscribed",
-          description: "You already have an active subscription.",
+          description: "You already have an active subscription to this program.",
           variant: "destructive",
         });
         return;
       }
 
-      console.log('No existing active subscription found. Proceeding to payment...');
+      console.log('No existing active subscription for this program found. Proceeding to payment...');
 
       // If 100% discount coupon is applied, create free subscription
       if (couponDiscountPercentage === 100) {

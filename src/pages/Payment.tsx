@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -16,6 +17,7 @@ const Payment = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { updateOnboardingState } = useOnboarding();
   const { trackPayment, trackEvent } = useAnalytics();
   
@@ -136,6 +138,9 @@ const Payment = () => {
         // Don't throw here as payment was successful
       }
 
+      // Invalidate user program cache to refresh subscription data
+      queryClient.invalidateQueries({ queryKey: ['user-current-program'] });
+
       toast({
         title: "Payment Successful!",
         description: `You've successfully subscribed to ${program.name}`,
@@ -192,6 +197,9 @@ const Payment = () => {
           before_assessment_completed: false,
           journey_started: false
         });
+
+        // Invalidate user program cache to refresh subscription data
+        queryClient.invalidateQueries({ queryKey: ['user-current-program'] });
         
         toast({
           title: "Free Access Granted!",
