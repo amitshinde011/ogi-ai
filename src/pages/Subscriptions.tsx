@@ -8,6 +8,7 @@ import { SubscriptionGrid } from '@/components/subscription/SubscriptionGrid';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
 import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
 import { Loader2 } from 'lucide-react';
+import Header from '@/components/Header';
 
 const Subscriptions = () => {
   const location = useLocation();
@@ -38,6 +39,7 @@ const Subscriptions = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+      <Header title="Subscriptions" showBack={true} />
       <div className="container mx-auto py-6 sm:py-8 md:py-12 px-4 sm:px-6 lg:px-8">
         {/* Achievement Banner */}
         {showAchievementBanner && completedSubscription && (
