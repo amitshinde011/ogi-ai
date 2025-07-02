@@ -50,9 +50,16 @@ export const useSubscriptionActions = (programs: Program[]) => {
         throw new Error('User not authenticated');
       }
 
-      // Mark previous subscription as completed if it exists
-      if (completedSubscription) {
-        await markSubscriptionCompleted(completedSubscription.id);
+      // First, mark any existing active subscriptions as completed
+      const { error: updateError } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'completed' })
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (updateError) {
+        console.error('Error updating existing subscriptions:', updateError);
+        // Don't throw here, continue with creating the new subscription
       }
 
       // Create the subscription directly with 'paid' status since it's processed (even though free)
@@ -75,7 +82,12 @@ export const useSubscriptionActions = (programs: Program[]) => {
         throw subscriptionError;
       }
 
-      await updateOnboardingState({ subscription_selected: true });
+      await updateOnboardingState({ 
+        subscription_selected: true,
+        intro_video_watched: false,
+        before_assessment_completed: false,
+        journey_started: false
+      });
 
       // Invalidate user program cache to refresh subscription data
       queryClient.invalidateQueries({ queryKey: ['user-current-program'] });
@@ -120,33 +132,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
 
       console.log('Selected program:', program);
 
-      // Check if user already has an active subscription to THIS specific program
-      const { data: existingSubscriptions, error: existingError } = await supabase
-        .from('user_subscriptions')
-        .select('id, status, program_id')
-        .eq('user_id', user.id)
-        .eq('program_id', program.id)
-        .eq('status', 'active');
-
-      console.log('Existing subscription check:', existingSubscriptions, existingError);
-
-      if (existingError) {
-        console.error('Error checking existing subscription:', existingError);
-        throw existingError;
-      }
-
-      // Only prevent subscription if user already has THIS specific program active
-      if (existingSubscriptions && existingSubscriptions.length > 0) {
-        console.log('User already has this specific program active');
-        toast({
-          title: "Already Subscribed",
-          description: "You already have an active subscription to this program.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('No existing active subscription for this program found. Proceeding to payment...');
+      console.log('Proceeding to payment...');
 
       // If 100% discount coupon is applied, create free subscription
       if (couponDiscountPercentage === 100) {

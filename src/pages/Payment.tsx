@@ -109,6 +109,18 @@ const Payment = () => {
       // Track payment success
       trackPayment(program.name, finalPrice, program.currency, gateway);
 
+      // First, mark any existing active subscriptions as completed
+      const { error: updateError } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'completed' })
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (updateError) {
+        console.error('Error updating existing subscriptions:', updateError);
+        // Don't throw here as payment was successful
+      }
+
       // Reset onboarding state for new subscription - all sequences restart
       await updateOnboardingState({ 
         subscription_selected: true,
@@ -117,7 +129,7 @@ const Payment = () => {
         journey_started: false
       });
 
-      // Create subscription record
+      // Create new subscription record
       const startDate = new Date();
       const endDate = new Date();
       endDate.setDate(startDate.getDate() + program.duration_days);
@@ -171,6 +183,17 @@ const Payment = () => {
 
       // Check if this is a free subscription (100% discount)
       if (finalPrice <= 0.01) {
+        // First, mark any existing active subscriptions as completed
+        const { error: updateError } = await supabase
+          .from('user_subscriptions')
+          .update({ status: 'completed' })
+          .eq('user_id', user.id)
+          .eq('status', 'active');
+
+        if (updateError) {
+          console.error('Error updating existing subscriptions:', updateError);
+        }
+
         // Handle free subscription directly
         const startDate = new Date();
         const endDate = new Date();
