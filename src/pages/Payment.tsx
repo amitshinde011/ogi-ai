@@ -85,7 +85,7 @@ const Payment = () => {
 
   const currencySymbol = isIndiaUser ? '₹' : '$';
   const finalPrice = Math.round(pricing.finalPrice || program.finalPrice || program.displayPrice);
-  const gateway = isIndiaUser ? 'razorpay' : 'braintree';
+  const gateway = 'razorpay'; // Always use Razorpay (supports both INR and USD via PayPal)
   const couponDiscountPercentage = getDiscountPercentage();
 
   const handlePaymentSuccess = async (orderId: string, transactionId: string) => {
@@ -197,12 +197,8 @@ const Payment = () => {
       
       console.log('Payment session created:', sessionData);
 
-      // Handle payment based on gateway
-      if (gateway === 'braintree') {
-        await handleBraintreePayment(sessionData, handlePaymentSuccess);
-      } else {
-        await handleRazorpayPayment(sessionData, program, handlePaymentSuccess);
-      }
+      // Always use Razorpay for all payments
+      await handleRazorpayPayment(sessionData, program, handlePaymentSuccess);
     } catch (error) {
       console.error('Payment error:', error);
       

@@ -51,12 +51,8 @@ export const usePayment = () => {
     setIsIndiaUser(locationData || false);
     setUserLocation(userLocationData || '');
     
-    // Set gateway based on location
-    if (locationData) {
-      setGateway('razorpay');
-    } else {
-      setGateway('braintree');
-    }
+    // Always use Razorpay (supports both INR and USD via PayPal)
+    setGateway('razorpay');
   }, [location.state, navigate]);
 
   const verifyPayment = async (orderId: string, transactionId: string) => {
