@@ -26,6 +26,7 @@ export const useOnboarding = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Get onboarding state
       const { data, error } = await supabase
         .from('user_onboarding')
         .select('*')
@@ -34,9 +35,8 @@ export const useOnboarding = () => {
 
       if (error && error.code !== 'PGRST116') throw error;
 
-      if (data) {
-        setOnboardingState(data);
-      } else {
+      let onboardingData = data;
+      if (!data) {
         // Create onboarding record if it doesn't exist
         const { data: newData, error: insertError } = await supabase
           .from('user_onboarding')
@@ -45,10 +45,42 @@ export const useOnboarding = () => {
           .single();
 
         if (insertError) throw insertError;
-        setOnboardingState(newData);
+        onboardingData = newData;
       }
+
+      // Double-check profile completion by verifying actual user profile exists
+      if (onboardingData?.profile_completed) {
+        const { data: profile, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        // If onboarding says profile is completed but no profile exists, reset the flag
+        if (profileError || !profile) {
+          console.log('Onboarding state says profile completed but no profile found, resetting flag');
+          const { error: updateError } = await supabase
+            .from('user_onboarding')
+            .update({ profile_completed: false })
+            .eq('user_id', user.id);
+
+          if (!updateError) {
+            onboardingData = { ...onboardingData, profile_completed: false };
+          }
+        }
+      }
+
+      setOnboardingState(onboardingData);
     } catch (error) {
       console.error('Error fetching onboarding state:', error);
+      // If there's an error, ensure we redirect to profile setup for safety
+      setOnboardingState({
+        profile_completed: false,
+        subscription_selected: false,
+        intro_video_watched: false,
+        before_assessment_completed: false,
+        journey_started: false
+      });
     } finally {
       setLoading(false);
     }
