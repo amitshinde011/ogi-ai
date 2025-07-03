@@ -102,10 +102,12 @@ const BeforeAssessment = () => {
           setShowDateSelection(true);
         } else {
           // Check if start date has arrived
-          const startDate = new Date(subscription.start_date);
-          const todayDate = new Date(today);
+          const startDate = new Date(subscription.start_date + 'T00:00:00');
+          const todayDate = new Date(today + 'T00:00:00');
           
           if (todayDate >= startDate) {
+            // Update onboarding and navigate to journey start
+            await updateOnboardingState({ before_assessment_completed: true });
             navigate('/journey-start');
           } else {
             setShowDateSelection(true);
@@ -247,7 +249,7 @@ const BeforeAssessment = () => {
       return;
     }
 
-    const selectedDate = new Date(selectedStartDate);
+    const selectedDate = new Date(selectedStartDate + 'T00:00:00');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -255,6 +257,17 @@ const BeforeAssessment = () => {
       toast({
         title: "Invalid Date",
         description: "Start date cannot be in the past.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 7);
+    if (selectedDate > maxDate) {
+      toast({
+        title: "Invalid Date",
+        description: "Start date must be within the next 7 days.",
         variant: "destructive",
       });
       return;
@@ -278,6 +291,9 @@ const BeforeAssessment = () => {
         .eq('id', currentSubscription.id);
 
       if (error) throw error;
+
+      // Update onboarding state
+      await updateOnboardingState({ before_assessment_completed: true });
 
       toast({
         title: "Journey Scheduled!",
@@ -314,9 +330,14 @@ const BeforeAssessment = () => {
   };
 
   const getMinDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const getMaxDate = () => {
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 7);
+    return maxDate.toISOString().split('T')[0];
   };
 
   if (showDateSelection && assessmentCompleted) {
@@ -393,12 +414,24 @@ const BeforeAssessment = () => {
                 {currentSubscription?.programs?.duration_days}-day {currentSubscription?.programs?.name} journey.
               </p>
 
+              {/* Week restriction message */}
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <div className="flex items-start gap-2 text-orange-800">
+                  <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium mb-1">Important:</p>
+                    <p>You must start your journey within the next 7 days to maintain your subscription. Please select a date from today to next week.</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <input
                   type="date"
                   value={selectedStartDate}
                   onChange={(e) => setSelectedStartDate(e.target.value)}
                   min={getMinDate()}
+                  max={getMaxDate()}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
 
