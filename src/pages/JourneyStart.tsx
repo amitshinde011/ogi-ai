@@ -40,7 +40,8 @@ const JourneyStart = () => {
         .lte('start_date', today)
         .gte('end_date', today)
         .maybeSingle();
-      console.error('Current sub :', currentSub);
+      console.log('User Subscription :', currentSub);
+      
       /*if (!currentSub) {
         // No active subscription that should start today
         navigate('/subscriptions');
