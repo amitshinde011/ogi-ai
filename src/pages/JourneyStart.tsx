@@ -41,11 +41,11 @@ const JourneyStart = () => {
         .gte('end_date', today)
         .maybeSingle();
 
-      if (!currentSub) {
+      /*if (!currentSub) {
         // No active subscription that should start today
         navigate('/subscriptions');
         return;
-      }
+      }*/
 
       // Check if start date is today or has passed
       const startDate = new Date(currentSub.start_date);
