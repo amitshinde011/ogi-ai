@@ -457,7 +457,7 @@ const BeforeAssessment = () => {
     );
   }
 
-  if (assessmentCompleted) {
+  if (assessmentCompleted && !showDateSelection) {
     return (
       <Layout>
         <Header title="Assessment Complete" />
