@@ -30,7 +30,7 @@ const JourneyStart = () => {
       }
 
       const today = new Date().toISOString().split('T')[0];
-
+      consol.log('Before getting sub:', today);
       // Get active subscription that should start today
       const { data: currentSub } = await supabase
         .from('user_subscriptions')
@@ -40,8 +40,9 @@ const JourneyStart = () => {
         .lte('start_date', today)
         .gte('end_date', today)
         .maybeSingle();
-      console.log('User Subscription :', currentSub);
-      
+
+
+      consol.log('Sub :', currentSub);
       /*if (!currentSub) {
         // No active subscription that should start today
         navigate('/subscriptions');
