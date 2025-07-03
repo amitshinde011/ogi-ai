@@ -279,18 +279,21 @@ const BeforeAssessment = () => {
 
       if (error) throw error;
 
+      // Ensure before_assessment_completed is set to true in onboarding
+      await updateOnboardingState({ before_assessment_completed: true });
+
       toast({
         title: "Journey Scheduled!",
         description: `Your journey will start on ${new Date(selectedStartDate).toLocaleDateString()}.`,
       });
 
-      // Check if start date is today
+      // Check if start date is today or has passed
       const todayStr = new Date().toISOString().split('T')[0];
-      if (selectedStartDate === todayStr) {
+      if (selectedStartDate <= todayStr) {
         navigate('/journey-start');
       } else {
-        // Stay on this page until start date arrives
-        window.location.reload();
+        // Navigate to journey-start page to wait for start date
+        navigate('/journey-start');
       }
     } catch (error) {
       console.error('Error setting start date:', error);
