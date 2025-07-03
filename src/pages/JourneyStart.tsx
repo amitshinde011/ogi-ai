@@ -30,7 +30,33 @@ const JourneyStart = () => {
       }
 
       const today = new Date().toISOString().split('T')[0];
-      console.log('Today ',today);
+      console.log('Today ', today);
+      const { data: planData, error: planError } = await supabase
+        .from('user_subscriptions')
+        .select('*, programs(*)')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .lte('start_date', today)
+        .gte('end_date', today)
+        .explain(); // This gets the execution plan
+
+      if (planError) {
+        console.error('Error fetching query plan:', planError);
+      } else {
+        console.log('--- Supabase Query Plan ---');
+
+        // Get the first element of the array
+        const planObject = planData?.[0];
+
+        // Check if planObject exists, is an object (not a string), and has the 'Plan' property
+        if (typeof planObject === 'object' && planObject !== null && 'Plan' in planObject) {
+          console.log(planObject.Plan);
+        } else {
+          // If the structure is not what we expect, log the whole object
+          console.log('Could not find the .Plan property. Inspect the full response instead:');
+          console.log(planData);
+        }
+      }
       // Get active subscription that should start today
       const { data: currentSub } = await supabase
         .from('user_subscriptions')
@@ -40,7 +66,7 @@ const JourneyStart = () => {
         .lte('start_date', today)
         .gte('end_date', today)
         .maybeSingle();
-      console.log('Subscription: ',currentSub);
+
       /*if (!currentSub) {
         // No active subscription that should start today
         navigate('/subscriptions');
@@ -68,7 +94,7 @@ const JourneyStart = () => {
     setLoading(true);
     try {
       await updateOnboardingState({ journey_started: true });
-      
+
       toast({
         title: "Journey Started! 🎉",
         description: "Welcome to your wellness transformation!",
@@ -109,7 +135,7 @@ const JourneyStart = () => {
   return (
     <Layout>
       <Header title="Your Journey Begins!" />
-      
+
       <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
         {/* Welcome Card */}
         <Card className="text-center bg-gradient-sage text-white">
@@ -139,14 +165,14 @@ const JourneyStart = () => {
               <span className="font-medium">Program:</span>
               <span className="text-primary font-semibold">{subscription.programs?.name}</span>
             </div>
-            
+
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
               <span className="font-medium">Duration:</span>
               <span className="text-primary font-semibold">
                 {subscription.programs?.duration_days} days
               </span>
             </div>
-            
+
             <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
               <span className="font-medium">Days Remaining:</span>
               <span className="text-primary font-semibold">
@@ -195,11 +221,11 @@ const JourneyStart = () => {
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-gray-600 mb-6">
-              Are you ready to begin your wellness transformation? 
+              Are you ready to begin your wellness transformation?
               Let's make every day count towards a healthier, happier you!
             </p>
-            
-            <Button 
+
+            <Button
               onClick={handleStartJourney}
               disabled={loading}
               className="w-full h-12 text-lg bg-gradient-sage text-white hover:opacity-90"
