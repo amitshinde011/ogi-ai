@@ -9,6 +9,7 @@ import QuickActions from '@/components/QuickActions';
 import TodayMeals from '@/components/TodayMeals';
 import WeeklyStreak from '@/components/WeeklyStreak';
 import StepTracker from '@/components/StepTracker';
+import DailySpecialTracking from '@/components/DailySpecialTracking';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,7 +28,9 @@ const Home = () => {
     lunch: false,
     dinner: false,
     steps: 0,
-    walkScore: 0
+    walkScore: 0,
+    saladBowl: false,
+    kanji: false
   });
   const [weeklyStreak, setWeeklyStreak] = useState<boolean[]>([]);
   const { isCompleted, completedSubscription } = useProgramCompletion();
@@ -99,7 +102,7 @@ const Home = () => {
       
       const { data: meals } = await supabase
         .from('meal_tracking')
-        .select('meal_type')
+        .select('meal_type, food_item')
         .eq('user_id', userId)
         .eq('date', today);
 
@@ -111,14 +114,25 @@ const Home = () => {
         .maybeSingle();
 
       const mealTypes = meals?.map(m => m.meal_type) || [];
+      const mealItems = meals?.map(m => m.food_item.toLowerCase()) || [];
       const todaySteps = steps?.steps_count || 0;
+      
+      // Check for special items
+      const hasSaladBowl = mealItems.some(item => 
+        item.includes('salad') && item.includes('bowl')
+      );
+      const hasKanji = mealItems.some(item => 
+        item.includes('kanji') || item.includes('millet') || item.includes('porridge')
+      );
       
       setTodayProgress({
         breakfast: mealTypes.includes('breakfast'),
         lunch: mealTypes.includes('lunch'),
         dinner: mealTypes.includes('dinner'),
         steps: todaySteps,
-        walkScore: Math.min(Math.floor(todaySteps / 2000), 5)
+        walkScore: Math.min(Math.floor(todaySteps / 2000), 5),
+        saladBowl: hasSaladBowl,
+        kanji: hasKanji
       });
 
       // Dispatch initial step count to synchronize components
@@ -227,6 +241,11 @@ const Home = () => {
           breakfast={todayProgress.breakfast}
           lunch={todayProgress.lunch}
           dinner={todayProgress.dinner}
+        />
+
+        <DailySpecialTracking 
+          saladBowlCompleted={todayProgress.saladBowl}
+          kanjiCompleted={todayProgress.kanji}
         />
 
         <WeeklyStreak streak={weeklyStreak} />

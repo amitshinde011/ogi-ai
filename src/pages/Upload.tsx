@@ -20,6 +20,7 @@ const Upload = () => {
   const { data: userProgram } = useUserProgram();
   const { isCompleted } = useProgramCompletion();
   const [selectedMeal, setSelectedMeal] = useState(location.state?.mealType || '');
+  const [specialTracking, setSpecialTracking] = useState(location.state?.specialTracking || '');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [description, setDescription] = useState('');
@@ -31,6 +32,19 @@ const Upload = () => {
     { id: 'dinner', name: 'Dinner', icon: Moon, time: '3:00 PM - 10:00 PM' },
     { id: 'snack', name: 'Snack', icon: Apple, time: 'Anytime' }
   ];
+
+  // Set default food item based on special tracking
+  React.useEffect(() => {
+    if (specialTracking) {
+      if (specialTracking === 'salad_bowl') {
+        setDescription('Daily Breakfast Salad Bowl');
+        setSelectedMeal('breakfast');
+      } else if (specialTracking === 'kanji') {
+        setDescription('Daily Kanji (Finger Millet Porridge)');
+        setSelectedMeal('breakfast');
+      }
+    }
+  }, [specialTracking]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

@@ -99,6 +99,7 @@ const AppWithAnalytics = () => {
       <Route path="/community/post/:id" element={<PostDetail />} />
       <Route path="/progress" element={<Progress />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/recipe/:id" element={<RecipeDetail />} />
       <Route path="/recipes/:id" element={<RecipeDetail />} />
       <Route path="/profile-setup" element={<ProfileSetup />} />
       <Route path="/profile-edit" element={<ProfileEdit />} />
