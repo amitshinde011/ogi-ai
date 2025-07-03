@@ -204,7 +204,7 @@ const JourneyStart = () => {
             </div>
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-              <p className="text-gray-700">Personalized recipes and meal guidance</p>
+              <p className="text-gray-700">Personalized recipes and meal guidance. Please make sure, you will not eat anything other than this.</p>
             </div>
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
