@@ -53,14 +53,16 @@ export const determineLandingPage = async (): Promise<string> => {
       .gte('end_date', today)
       .maybeSingle();
 
+    let isStarted = false;
     let isCompleted = false;
     let hasFinalAssessment = false;
 
     if (currentSubscription) {
+      const startDate = new Date(currentSubscription.start_date);
       const endDate = new Date(currentSubscription.end_date);
       const todayDate = new Date(today);
-      isCompleted = todayDate > endDate;
-
+      isCompleted = todayDate >= endDate;
+      isStarted = todayDate >= startDate;
       if (isCompleted) {
         const { data: finalAssessment } = await supabase
           .from('final_assessments')
@@ -99,7 +101,7 @@ export const determineLandingPage = async (): Promise<string> => {
     } else if (!onboardingState.intro_video_watched) {
       console.log('Intro video not watched, redirecting to intro video');
       return '/intro-video';
-    } else if (!onboardingState.before_assessment_completed) {
+    } else if (!onboardingState.before_assessment_completed || !isStarted) {
       console.log('Before assessment not completed, redirecting to before assessment');
       return '/before-assessment';
     } else if (!onboardingState.journey_started) {
