@@ -85,7 +85,7 @@ const ProgressPage = () => {
 
       // Separate current and historical programs
       const current = programsData.find(p => p.status === 'active' && new Date(p.end_date) >= new Date(today));
-      const historical = programsData.filter(p => p.status !== 'active' || new Date(p.end_date) < new Date(today));
+      const historical = programsData.filter(p => p.id !== current?.id && (p.status !== 'active' || new Date(p.end_date) < new Date(today)));
 
       setCurrentProgram(current || null);
       setHistoricalPrograms(historical);
