@@ -36,7 +36,7 @@ const IntroVideo = () => {
           .eq('status', 'active')
           .order('created_at', { ascending: false })
           .maybeSingle();
-
+        console.log('Subscription ',subscription );
         if (!subscription) {
           // No active subscription, redirect to subscriptions
           navigate('/subscriptions');
