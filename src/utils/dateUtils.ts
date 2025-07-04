@@ -63,8 +63,8 @@ export const calculateProgramProgress = (startDate: string, endDate: string) => 
   
   // Calculate days completed (1-based counting)
   // If today is the start date, it's day 1
-  const daysFromStart = Math.floor((todayDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  const daysCompleted = daysFromStart + 1; // +1 because we count the start date as day 1
+  const daysFromStart = Math.ceil((todayDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const daysCompleted = daysFromStart; // +1 because we count the start date as day 1
   
   // Progress percentage based on completed days
   const progressPercentage = Math.min(100, (daysCompleted / totalDays) * 100);
