@@ -28,7 +28,7 @@ export const PostActions: React.FC<PostActionsProps> = ({
           }`}
         >
           <Heart 
-            size={28}
+            size={32}
             strokeWidth={1.5}
             className={isLiked ? 'fill-current' : ''} 
           />
@@ -39,7 +39,7 @@ export const PostActions: React.FC<PostActionsProps> = ({
           onClick={onToggleComments}
           className="p-0 h-auto hover:bg-transparent text-gray-700"
         >
-          <MessageCircle size={28} strokeWidth={1.5} />
+          <MessageCircle size={32} strokeWidth={1.5} />
         </Button>
       </div>
 
