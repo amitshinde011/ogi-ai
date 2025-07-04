@@ -370,14 +370,14 @@ serve(async (req) => {
       logWithDetails('Payment verified successfully', { orderId, transactionId });
 
       // First, mark any existing active subscriptions as completed
-      const { error: updateError } = await supabase
+      const { error: subscriptionUpdateError } = await supabase
         .from('user_subscriptions')
         .update({ status: 'completed' })
         .eq('user_id', user.id)
         .eq('status', 'active');
 
-      if (updateError) {
-        logWithDetails('ERROR: Failed to update existing subscriptions', { error: updateError });
+      if (subscriptionUpdateError) {
+        logWithDetails('ERROR: Failed to update existing subscriptions', { error: subscriptionUpdateError });
       } else {
         logWithDetails('Existing active subscriptions marked as completed');
       }
