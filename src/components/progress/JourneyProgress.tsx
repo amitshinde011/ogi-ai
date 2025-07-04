@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { 
   TrendingUp, 
@@ -182,9 +181,6 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
                     tickLine={false}
                     tick={{ fontSize: 12, fill: '#6B7280' }}
                     domain={[0, 100]}
-                  />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent />}
                   />
                   <Line 
                     type="monotone" 

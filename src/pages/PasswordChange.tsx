@@ -7,7 +7,7 @@ import PasswordChangeForm from '@/components/settings/PasswordChangeForm';
 const PasswordChange = () => {
   return (
     <Layout>
-      <Header title="Change Password" />
+      <Header title="Change Password" showBack={true} />
       
       <div className="p-6 space-y-8 max-w-lg mx-auto bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
         <PasswordChangeForm />

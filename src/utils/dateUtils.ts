@@ -38,11 +38,8 @@ export const calculateProgramProgress = (startDate: string, endDate: string) => 
   const end = new Date(endDate);
   const todayDate = new Date(today);
   
-  // Add one day to end date to make it inclusive
-  const inclusiveEndDate = new Date(end);
-  inclusiveEndDate.setDate(inclusiveEndDate.getDate() + 1);
-  
-  const totalDays = Math.ceil((inclusiveEndDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  // Calculate total days from start to end (inclusive)
+  const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   const daysFromStart = Math.ceil((todayDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   const daysCompleted = Math.max(1, daysFromStart + 1);
   const progressPercentage = Math.min(100, ((daysCompleted - 1) / totalDays) * 100);
@@ -51,6 +48,6 @@ export const calculateProgramProgress = (startDate: string, endDate: string) => 
     totalDays,
     daysCompleted: Math.min(daysCompleted, totalDays),
     progressPercentage,
-    isCompleted: todayDate > end // Program completes the day after end date
+    isCompleted: todayDate > end
   };
 };
