@@ -25,7 +25,7 @@ export const usePricingConfig = () => {
       discountPercentage: isHoliday ? 20 : 0, // 20% discount during special occasions
       taxPercentage: 18, // 18% tax (you can adjust this)
       isSpecialOccasion: isHoliday,
-      occasionName: isHoliday ? 'Special Discount for Today' : undefined,
+      occasionName: isHoliday ? 'Special Discount For Today' : undefined,
     });
   }, []);
 
