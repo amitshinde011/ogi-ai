@@ -18,7 +18,7 @@ const IntroVideo = () => {
   const { toast } = useToast();
   const { trackVideoComplete, trackButtonClick } = useAnalytics();
   const [videoWatched, setVideoWatched] = useState(false);
-
+  console.log('IntroVideo - Before Subscription check:', videoWatched,setVideoWatched );
   useEffect(() => {
     const checkVideoCompletionStatus = async () => {
       try {
