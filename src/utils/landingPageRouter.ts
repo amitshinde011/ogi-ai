@@ -60,7 +60,13 @@ export const determineLandingPage = async (): Promise<string> => {
       return '/intro-video';
     }
 
-    // Get program completion state ONLY after intro video is watched
+    // Check before assessment completion - BEFORE checking program completion
+    if (!onboardingState.before_assessment_completed) {
+      console.log('Before assessment not completed, redirecting to before assessment');
+      return '/before-assessment';
+    }
+
+    // Get program completion state ONLY after before assessment is completed
     const today = new Date().toISOString().split('T')[0];
     
     const { data: currentSubscription } = await supabase
@@ -114,9 +120,9 @@ export const determineLandingPage = async (): Promise<string> => {
       }
     }
 
-    // Continue with onboarding flow based on remaining steps
-    if (!onboardingState.before_assessment_completed || !isStarted) {
-      console.log('Before assessment not completed or program not started, redirecting to before assessment');
+    // Check if journey should start (program started and assessment completed)
+    if (!isStarted) {
+      console.log('Program not started yet, redirecting to before assessment');
       return '/before-assessment';
     } else if (!onboardingState.journey_started) {
       console.log('Journey not started, redirecting to journey start');
