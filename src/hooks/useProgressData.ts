@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { calculateProgramProgress } from '@/utils/dateUtils';
 
 interface WeeklyProgressData {
   totalScore: number;
@@ -176,17 +177,20 @@ export const useProgressData = () => {
 
       // Fetch journey data if subscription exists
       if (subscription) {
-        const journeyStartDate = new Date(subscription.start_date);
-        const journeyEndDate = new Date(subscription.end_date);
-        const totalDays = Math.ceil((journeyEndDate.getTime() - journeyStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-        const completedDays = Math.ceil((today.getTime() - journeyStartDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        // Use the correct calculateProgramProgress function
+        const { totalDays, daysCompleted } = calculateProgramProgress(
+          subscription.start_date,
+          subscription.end_date
+        );
 
-        // Fetch journey milestones (every 7 days)
+        console.log('Journey Progress Calculation:', { totalDays, daysCompleted });
+
+        // Fetch journey milestones (every 7 days up to completed days)
         const milestones = [];
         const milestonePromises = [];
         
-        for (let day = 7; day <= Math.min(completedDays, totalDays); day += 7) {
-          const milestoneDate = new Date(journeyStartDate);
+        for (let day = 7; day <= daysCompleted; day += 7) {
+          const milestoneDate = new Date(subscription.start_date);
           milestoneDate.setDate(milestoneDate.getDate() + day - 1);
           const dateStr = milestoneDate.toISOString().split('T')[0];
           
@@ -218,14 +222,59 @@ export const useProgressData = () => {
         }
 
         const milestoneResults = await Promise.all(milestonePromises);
-        const journeyTotalScore = milestoneResults.reduce((sum, milestone) => sum + milestone.score, 0);
-        const journeyAverageScore = milestoneResults.length > 0 ? journeyTotalScore / milestoneResults.length : 0;
+        
+        // Calculate total score from all completed days (not just milestones)
+        let totalJourneyScore = 0;
+        let totalDaysWithData = 0;
+        
+        // Fetch data for each day from start to current completed days
+        for (let day = 1; day <= daysCompleted; day++) {
+          const dayDate = new Date(subscription.start_date);
+          dayDate.setDate(dayDate.getDate() + day - 1);
+          const dateStr = dayDate.toISOString().split('T')[0];
+          
+          const [meals, wellness, steps] = await Promise.all([
+            supabase
+              .from('meal_tracking')
+              .select('meal_type')
+              .eq('user_id', user.id)
+              .eq('date', dateStr),
+            supabase
+              .from('daily_wellness')
+              .select('*')
+              .eq('user_id', user.id)
+              .eq('date', dateStr)
+              .maybeSingle(),
+            supabase
+              .from('steps_tracking')
+              .select('steps_count')
+              .eq('user_id', user.id)
+              .eq('date', dateStr)
+              .maybeSingle()
+          ]);
+          
+          const dayScore = calculateDailyScore(meals.data, wellness.data, steps.data);
+          if (dayScore > 0) {
+            totalJourneyScore += dayScore;
+            totalDaysWithData++;
+          }
+        }
+
+        const journeyAverageScore = totalDaysWithData > 0 ? totalJourneyScore / totalDaysWithData : 0;
+
+        console.log('Journey Data:', {
+          totalDays,
+          daysCompleted,
+          totalJourneyScore,
+          journeyAverageScore,
+          milestonesCount: milestoneResults.length
+        });
 
         setJourneyData({
           totalDays,
-          completedDays: Math.min(completedDays, totalDays),
+          completedDays: daysCompleted,
           averageScore: journeyAverageScore,
-          totalScore: journeyTotalScore,
+          totalScore: totalJourneyScore,
           programName: subscription.programs?.name || 'Wellness Program',
           startDate: subscription.start_date,
           endDate: subscription.end_date,
