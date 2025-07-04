@@ -16,7 +16,6 @@ export const useUserProgram = () => {
         .select('*, programs(*)')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .gte('end_date', today)
         .order('created_at', { ascending: false });
 
       // Return the most recent active subscription
