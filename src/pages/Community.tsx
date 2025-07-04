@@ -11,6 +11,7 @@ import { useCommunityFeed, CommunityPost } from '@/hooks/useCommunityFeed';
 import { useAuth } from '@/hooks/useAuth';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
+import { useUserProgram } from '@/hooks/useUserProgram';
 
 const Community = () => {
   const { 
@@ -23,6 +24,7 @@ const Community = () => {
   
   const { user, isAuthenticated } = useAuth();
   const { isCompleted } = useProgramCompletion();
+  const { data: userProgram } = useUserProgram();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [localPosts, setLocalPosts] = useState<CommunityPost[]>([]);
 
@@ -91,8 +93,8 @@ const Community = () => {
           threshold={threshold}
         />
 
-        {/* Create Post Button - disabled if program completed */}
-        {!isCompleted ? (
+        {/* Create Post Button - only show for users with active subscription */}
+        {userProgram && !isCompleted ? (
           <Button
             onClick={() => setShowCreateModal(true)}
             className="w-full mb-6 bg-sage hover:bg-sage/90 flex items-center justify-center gap-2 py-3 text-base sm:text-lg"
@@ -103,7 +105,10 @@ const Community = () => {
         ) : (
           <div className="w-full mb-6 p-4 bg-gray-100 rounded-lg text-center">
             <p className="text-gray-600 text-sm">
-              🎉 Program completed! Start a new journey to create posts again.
+              {isCompleted 
+                ? "🎉 Program completed! Start a new journey to create posts again."
+                : "📝 Subscribe to a program to start sharing posts with the community!"
+              }
             </p>
           </div>
         )}
@@ -136,8 +141,8 @@ const Community = () => {
         )}
       </div>
 
-      {/* Create Post Modal - only show if program not completed */}
-      {!isCompleted && (
+      {/* Create Post Modal - only show if user has active subscription and program not completed */}
+      {userProgram && !isCompleted && (
         <CreatePostModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}

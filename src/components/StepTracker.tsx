@@ -11,10 +11,10 @@ const StepTracker = () => {
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [previousSteps, setPreviousSteps] = useState(stepData.steps);
 
-  const goal = 10000; // 10,000 steps goal
+  const goal = 5000; // 5,000 steps goal
 
   const goalMessages = [
-    "🚶‍♀️ Amazing! You've walked 10,000 steps today!",
+    "🚶‍♀️ Amazing! You've walked 5,000 steps today!",
     "👟 Fantastic! Your fitness goal is achieved!",
     "🎯 Outstanding! You've hit your daily step target!",
     "💪 Incredible! Your dedication to walking is inspiring!",

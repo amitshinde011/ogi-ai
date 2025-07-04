@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, Shield, HelpCircle, LogOut, FileText, Scale } from 'lucide-react';
+import { User, Shield, HelpCircle, LogOut, FileText, Scale, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -161,6 +161,12 @@ const Settings = () => {
           hasArrow: true
         },
         {
+          icon: KeyRound,
+          label: 'Change Password',
+          action: () => navigate('/password-change'),
+          hasArrow: true
+        },
+        {
           icon: Shield,
           label: 'Privacy & Security',
           action: () => navigate('/privacy'),
@@ -254,7 +260,7 @@ const Settings = () => {
 
         {/* Version */}
         <div className="text-center text-sm text-slate-500 font-medium">
-          Yogi-ai v1.0.0
+          Yogi v1.0.0
         </div>
       </div>
     </Layout>

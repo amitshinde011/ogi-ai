@@ -53,12 +53,12 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Updated to use HSL format consistently
+				// All custom colors using HSL format
 				sage: 'hsl(var(--sage))',
 				'light-gray': 'hsl(var(--light-gray))',
 				'card-gray': 'hsl(var(--card-gray))',
 				'dark-text': 'hsl(var(--dark-text))',
-				// Pastel color palette - using HSL
+				// Pastel color palette using HSL
 				'pastel-purple': 'hsl(var(--pastel-purple))',
 				'pastel-pink': 'hsl(var(--pastel-pink))',
 				'pastel-blue': 'hsl(var(--pastel-blue))',
@@ -69,7 +69,10 @@ export default {
 				'pastel-mint': 'hsl(var(--pastel-mint))',
 			},
 			backgroundImage: {
-				'gradient-sage': 'linear-gradient(135deg, rgb(34, 197, 94) 0%, rgb(16, 185, 129) 100%)',
+				'gradient-sage': 'linear-gradient(135deg, hsl(160, 65%, 55%) 0%, hsl(180, 100%, 85%) 100%)',
+				'gradient-joyful': 'linear-gradient(135deg, hsl(320, 85%, 60%) 0%, hsl(60, 100%, 70%) 50%, hsl(180, 100%, 85%) 100%)',
+				'gradient-peaceful': 'linear-gradient(135deg, hsl(45, 100%, 96%) 0%, hsl(195, 85%, 75%) 50%, hsl(270, 85%, 75%) 100%)',
+				'gradient-vibrant': 'linear-gradient(135deg, hsl(351, 100%, 80%) 0%, hsl(60, 100%, 85%) 50%, hsl(142, 76%, 55%) 100%)',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

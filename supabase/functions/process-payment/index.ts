@@ -9,7 +9,7 @@ const corsHeaders = {
 interface PaymentRequest {
   action?: string;
   programId: string;
-  gateway: 'braintree' | 'razorpay';
+  gateway: 'razorpay';
   amount: number;
   currency: string;
   paymentData?: any;
@@ -21,21 +21,10 @@ function validatePaymentRequest(data: any): data is PaymentRequest {
   return (
     data &&
     typeof data.programId === 'string' && data.programId.length > 0 &&
-    (data.gateway === 'braintree' || data.gateway === 'razorpay') &&
+    data.gateway === 'razorpay' &&
     typeof data.amount === 'number' && data.amount >= 0 &&
     typeof data.currency === 'string' && data.currency.length > 0
   );
-}
-
-// Sanitize error messages to prevent credential leakage
-function sanitizeError(error: any): string {
-  if (typeof error === 'string') {
-    return error.replace(/[a-zA-Z0-9_-]{20,}/g, '[REDACTED]')
-                .replace(/sk_[a-zA-Z0-9_-]+/g, '[REDACTED]')
-                .replace(/pk_[a-zA-Z0-9_-]+/g, '[REDACTED]')
-                .replace(/rzp_[a-zA-Z0-9_-]+/g, '[REDACTED]');
-  }
-  return 'Payment processing failed';
 }
 
 // Enhanced logging function
@@ -212,119 +201,101 @@ serve(async (req) => {
 
       logWithDetails('Order created successfully', { orderId: order.id });
 
-      // Return session data based on gateway
-      let sessionData;
-      if (gateway === 'braintree') {
-        // Generate Braintree client token
-        const clientToken = await generateBraintreeClientToken();
-        
-        sessionData = {
-          orderId: order.id,
-          sessionData: {
-            token: clientToken,
-            amount: amount,
-            currency: currency
-          },
-          gateway: 'braintree'
-        };
-        logWithDetails('Braintree session data created', { orderId: order.id });
-      } else {
-        // For Razorpay, get credentials and create order
-        const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID');
-        const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
-        
-        logWithDetails('Checking Razorpay credentials', {
-          hasKeyId: !!razorpayKeyId,
-          hasKeySecret: !!razorpayKeySecret,
-          keyIdLength: razorpayKeyId ? razorpayKeyId.length : 0,
-          keySecretLength: razorpayKeySecret ? razorpayKeySecret.length : 0,
-          keyIdPrefix: razorpayKeyId ? razorpayKeyId.substring(0, 8) + '...' : 'missing'
-        });
-        
-        if (!razorpayKeyId || !razorpayKeySecret) {
-          logWithDetails('ERROR: Missing Razorpay credentials');
-          return new Response(
-            JSON.stringify({ error: 'Payment gateway not configured properly' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        // Validate Razorpay key format
-        if (!razorpayKeyId.startsWith('rzp_')) {
-          logWithDetails('ERROR: Invalid Razorpay Key ID format', { keyIdPrefix: razorpayKeyId.substring(0, 8) });
-          return new Response(
-            JSON.stringify({ error: 'Invalid Razorpay Key ID format' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Create Razorpay order
-        const razorpayOrderData = {
-          amount: Math.round(amount * 100), // Convert to paise
-          currency: currency,
-          receipt: `order_${order.id}`,
-          notes: {
-            program_id: programId,
-            user_id: user.id
-          }
-        };
-
-        logWithDetails('Attempting to create Razorpay order', razorpayOrderData);
-
-        try {
-          // Create Razorpay order using REST API
-          const razorpayResponse = await fetch('https://api.razorpay.com/v1/orders', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Basic ${btoa(`${razorpayKeyId}:${razorpayKeySecret}`)}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(razorpayOrderData)
-          });
-
-          if (!razorpayResponse.ok) {
-            const errorText = await razorpayResponse.text();
-            logWithDetails('ERROR: Razorpay API call failed', {
-              status: razorpayResponse.status,
-              statusText: razorpayResponse.statusText,
-              error: errorText
-            });
-            throw new Error(`Razorpay API error: ${razorpayResponse.status} ${errorText}`);
-          }
-
-          const razorpayOrder = await razorpayResponse.json();
-          logWithDetails('Razorpay order created successfully', { 
-            razorpayOrderId: razorpayOrder.id,
-            amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency
-          });
-
-          sessionData = {
-            orderId: order.id,
-            sessionData: {
-              keyId: razorpayKeyId,
-              amount: razorpayOrder.amount,
-              currency: razorpayOrder.currency,
-              orderId: razorpayOrder.id,
-              name: 'Yogi-ai',
-              description: `Payment for program ${programId}`
-            },
-            gateway: 'razorpay'
-          };
-        } catch (razorpayError) {
-          logWithDetails('ERROR: Failed to create Razorpay order', { error: razorpayError.message });
-          return new Response(
-            JSON.stringify({ error: `Razorpay order creation failed: ${razorpayError.message}` }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+      // Get Razorpay credentials and create order
+      const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID');
+      const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+      
+      logWithDetails('Checking Razorpay credentials', {
+        hasKeyId: !!razorpayKeyId,
+        hasKeySecret: !!razorpayKeySecret,
+        keyIdLength: razorpayKeyId ? razorpayKeyId.length : 0,
+        keySecretLength: razorpayKeySecret ? razorpayKeySecret.length : 0,
+        keyIdPrefix: razorpayKeyId ? razorpayKeyId.substring(0, 8) + '...' : 'missing'
+      });
+      
+      if (!razorpayKeyId || !razorpayKeySecret) {
+        logWithDetails('ERROR: Missing Razorpay credentials');
+        return new Response(
+          JSON.stringify({ error: 'Payment gateway not configured properly' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Validate Razorpay key format
+      if (!razorpayKeyId.startsWith('rzp_')) {
+        logWithDetails('ERROR: Invalid Razorpay Key ID format', { keyIdPrefix: razorpayKeyId.substring(0, 8) });
+        return new Response(
+          JSON.stringify({ error: 'Invalid Razorpay Key ID format' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
-      logWithDetails('Session created successfully', { gateway, orderId: order.id });
-      return new Response(
-        JSON.stringify(sessionData),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      // Create Razorpay order
+      const razorpayOrderData = {
+        amount: Math.round(amount * 100), // Convert to paise
+        currency: currency,
+        receipt: order.id,
+        notes: {
+          program_id: programId,
+          user_id: user.id
+        }
+      };
+
+      logWithDetails('Attempting to create Razorpay order', razorpayOrderData);
+
+      try {
+        // Create Razorpay order using REST API
+        const razorpayResponse = await fetch('https://api.razorpay.com/v1/orders', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${btoa(`${razorpayKeyId}:${razorpayKeySecret}`)}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(razorpayOrderData)
+        });
+
+        if (!razorpayResponse.ok) {
+          const errorText = await razorpayResponse.text();
+          logWithDetails('ERROR: Razorpay API call failed', {
+            status: razorpayResponse.status,
+            statusText: razorpayResponse.statusText,
+            error: errorText
+          });
+          throw new Error(`Razorpay API error: ${razorpayResponse.status} ${errorText}`);
+        }
+
+        const razorpayOrder = await razorpayResponse.json();
+        logWithDetails('Razorpay order created successfully', { 
+          razorpayOrderId: razorpayOrder.id,
+          amount: razorpayOrder.amount,
+          currency: razorpayOrder.currency
+        });
+
+        const sessionData = {
+          orderId: order.id,
+          sessionData: {
+            keyId: razorpayKeyId,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            orderId: razorpayOrder.id,
+            name: 'Yogi',
+            description: `Payment for program ${programId}`
+          },
+          gateway: 'razorpay'
+        };
+
+        logWithDetails('Session created successfully', { gateway, orderId: order.id });
+        return new Response(
+          JSON.stringify(sessionData),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (razorpayError) {
+        logWithDetails('ERROR: Failed to create Razorpay order', { error: razorpayError.message });
+        return new Response(
+          JSON.stringify({ error: `Razorpay order creation failed: ${razorpayError.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Handle verify_payment action
@@ -364,35 +335,35 @@ serve(async (req) => {
 
       logWithDetails('Payment verified successfully', { orderId, transactionId });
 
-      // Get program details to create subscription
-      const { data: program, error: programError } = await supabase
-        .from('programs')
-        .select('duration_days')
-        .eq('id', order.program_id)
-        .single();
+      // First, mark any existing active subscriptions as completed
+      const { error: subscriptionUpdateError } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'completed' })
+        .eq('user_id', user.id)
+        .eq('status', 'active');
 
-      if (!programError && program) {
-        // Create subscription
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(startDate.getDate() + (program.duration_days || 30));
+      if (subscriptionUpdateError) {
+        logWithDetails('ERROR: Failed to update existing subscriptions', { error: subscriptionUpdateError });
+      } else {
+        logWithDetails('Existing active subscriptions marked as completed');
+      }
 
-        const { error: subscriptionError } = await supabase
-          .from('user_subscriptions')
-          .insert({
-            user_id: user.id,
-            program_id: order.program_id,
-            start_date: startDate.toISOString().split('T')[0],
-            end_date: endDate.toISOString().split('T')[0],
-            status: 'active',
-            payment_status: 'paid'
-          });
+      // Create subscription without start/end dates (to be set later on before-assessment)
+      const { error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .insert({
+          user_id: user.id,
+          program_id: order.program_id,
+          start_date: null,
+          end_date: null,
+          status: 'active',
+          payment_status: 'paid'
+        });
 
-        if (subscriptionError) {
-          logWithDetails('ERROR: Subscription creation failed', { error: subscriptionError });
-        } else {
-          logWithDetails('Subscription created successfully');
-        }
+      if (subscriptionError) {
+        logWithDetails('ERROR: Subscription creation failed', { error: subscriptionError });
+      } else {
+        logWithDetails('Subscription created successfully without dates');
       }
 
       return new Response(

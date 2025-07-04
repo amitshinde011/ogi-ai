@@ -8,12 +8,16 @@ import QuickActions from '@/components/QuickActions';
 import TodayMeals from '@/components/TodayMeals';
 import WeeklyStreak from '@/components/WeeklyStreak';
 import StepTracker from '@/components/StepTracker';
+import DailySpecialTracking from '@/components/DailySpecialTracking';
+import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/hooks/useAuth';
 import { useWellnessTracking } from '@/hooks/useWellnessTracking';
+import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -24,21 +28,15 @@ const Home = () => {
     lunch: false,
     dinner: false,
     steps: 0,
-    walkScore: 0
+    walkScore: 0,
+    saladBowl: false,
+    kanji: false
   });
   const [weeklyStreak, setWeeklyStreak] = useState<boolean[]>([]);
   const { isCompleted, completedSubscription } = useProgramCompletion();
   
   // Use wellness tracking hook
   const { wellnessData, loading: wellnessLoading, updateWellnessData } = useWellnessTracking();
-
-  // Redirect to subscriptions if program is completed
-  useEffect(() => {
-    if (isCompleted) {
-      navigate('/subscriptions');
-      return;
-    }
-  }, [isCompleted, navigate]);
 
   // Listen for step updates from step tracker
   useEffect(() => {
@@ -47,7 +45,7 @@ const Home = () => {
       setTodayProgress(prev => ({
         ...prev,
         steps: steps,
-        walkScore: Math.min(Math.floor(steps / 2000), 5)
+        walkScore: Math.min(Math.floor(steps / 1000), 5)
       }));
     };
 
@@ -96,7 +94,7 @@ const Home = () => {
       
       const { data: meals } = await supabase
         .from('meal_tracking')
-        .select('meal_type')
+        .select('meal_type, food_item')
         .eq('user_id', userId)
         .eq('date', today);
 
@@ -108,14 +106,25 @@ const Home = () => {
         .maybeSingle();
 
       const mealTypes = meals?.map(m => m.meal_type) || [];
+      const mealItems = meals?.map(m => m.food_item.toLowerCase()) || [];
       const todaySteps = steps?.steps_count || 0;
+      
+      // Check for special items
+      const hasSaladBowl = mealItems.some(item => 
+        item.includes('salad') && item.includes('bowl')
+      );
+      const hasKanji = mealItems.some(item => 
+        item.includes('kanji') || item.includes('millet') || item.includes('porridge')
+      );
       
       setTodayProgress({
         breakfast: mealTypes.includes('breakfast'),
         lunch: mealTypes.includes('lunch'),
         dinner: mealTypes.includes('dinner'),
         steps: todaySteps,
-        walkScore: Math.min(Math.floor(todaySteps / 2000), 5)
+        walkScore: Math.min(Math.floor(todaySteps / 1000), 5),
+        saladBowl: hasSaladBowl,
+        kanji: hasKanji
       });
 
       // Dispatch initial step count to synchronize components
@@ -176,6 +185,8 @@ const Home = () => {
     await updateWellnessData({ meditation_completed: !wellnessData.meditation_completed });
   };
 
+  const { showBanner } = useSubscriptionBanner();
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
@@ -188,18 +199,27 @@ const Home = () => {
 
   const mealsLogged = [todayProgress.breakfast, todayProgress.lunch, todayProgress.dinner].filter(Boolean).length;
 
+  // Profile menu component for the header
+  const profileElement = (
+    <ProfileMenu>
+      <button className="hover:bg-slate-100 rounded-xl transition-all duration-200 interactive">
+        <Avatar className="h-12 w-12 border-2 border-slate-300">
+          <AvatarImage 
+            src={userProfile.profile_photo_url || undefined} 
+            alt={userProfile.name}
+          />
+          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+            {userProfile.name?.charAt(0) || 'U'}
+          </AvatarFallback>
+        </Avatar>
+      </button>
+    </ProfileMenu>
+  );
+
   return (
     <Layout>
-      <Header 
-        title={getGreeting()}
-        rightElement={
-          <ProfileMenu>
-            <button className="w-8 h-8 rounded-full overflow-hidden border-2 border-sage/30 hover:border-sage transition-colors cursor-pointer">
-              <img src={userProfile.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} alt="Profile" className="w-full h-full object-cover" />
-            </button>
-          </ProfileMenu>
-        }
-      />
+      <Header title="Home" rightElement={profileElement} />
+      {showBanner && <SubscriptionBanner />}
       
       <div className="p-4 space-y-6 max-w-md mx-auto">
         {isCompleted && completedSubscription && (
@@ -230,6 +250,11 @@ const Home = () => {
           breakfast={todayProgress.breakfast}
           lunch={todayProgress.lunch}
           dinner={todayProgress.dinner}
+        />
+
+        <DailySpecialTracking 
+          saladBowlCompleted={todayProgress.saladBowl}
+          kanjiCompleted={todayProgress.kanji}
         />
 
         <WeeklyStreak streak={weeklyStreak} />

@@ -18,9 +18,9 @@ const IntroVideo = () => {
   const { toast } = useToast();
   const { trackVideoComplete, trackButtonClick } = useAnalytics();
   const [videoWatched, setVideoWatched] = useState(false);
-
+  
   useEffect(() => {
-    const checkVideoCompletionStatus = async () => {
+    const checkAuthAndRedirect = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -28,36 +28,19 @@ const IntroVideo = () => {
           return;
         }
 
-        // Check if intro video is already completed in onboarding state
+        // Only redirect if intro video is already completed
         if (onboardingState?.intro_video_watched) {
           console.log('Intro video already completed, redirecting to before-assessment');
           navigate('/before-assessment');
           return;
         }
-
-        // Also check if there's an active subscription and if intro video was completed for it
-        const { data: subscription } = await supabase
-          .from('user_subscriptions')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .maybeSingle();
-
-        if (subscription) {
-          // Check if user has already watched intro video for current subscription
-          // We can use onboarding state as the source of truth for intro video completion
-          if (onboardingState?.intro_video_watched) {
-            console.log('Intro video already completed for current subscription, redirecting');
-            navigate('/before-assessment');
-          }
-        }
       } catch (error) {
-        console.error('Error checking video completion status:', error);
+        console.error('Error checking auth status:', error);
       }
     };
 
     if (onboardingState !== null) {
-      checkVideoCompletionStatus();
+      checkAuthAndRedirect();
     }
   }, [onboardingState, navigate]);
 

@@ -31,7 +31,6 @@ export const usePayment = () => {
   const [loading, setLoading] = useState(false);
   const [program, setProgram] = useState<Program | null>(null);
   const [pricing, setPricing] = useState<PricingInfo | null>(null);
-  const [gateway, setGateway] = useState<'braintree' | 'razorpay'>('braintree');
   const [userLocation, setUserLocation] = useState<string>('');
   const [isIndiaUser, setIsIndiaUser] = useState(false);
 
@@ -50,13 +49,6 @@ export const usePayment = () => {
     setPricing(pricingData);
     setIsIndiaUser(locationData || false);
     setUserLocation(userLocationData || '');
-    
-    // Set gateway based on location
-    if (locationData) {
-      setGateway('razorpay');
-    } else {
-      setGateway('braintree');
-    }
   }, [location.state, navigate]);
 
   const verifyPayment = async (orderId: string, transactionId: string) => {
@@ -66,14 +58,14 @@ export const usePayment = () => {
           action: 'verify_payment',
           orderId,
           transactionId,
-          gateway
+          gateway: 'razorpay'
         }
       });
 
       if (error) throw error;
 
       if (program && pricing) {
-        trackPayment(program.name, pricing.finalPrice, program.currency, gateway);
+        trackPayment(program.name, pricing.finalPrice, program.currency, 'razorpay');
       }
 
       await updateOnboardingState({ subscription_selected: true });
@@ -100,7 +92,7 @@ export const usePayment = () => {
     setLoading,
     program,
     pricing,
-    gateway,
+    gateway: 'razorpay' as const,
     userLocation,
     isIndiaUser,
     trackButtonClick,

@@ -14,7 +14,7 @@ const Header = ({ title, showBack = false, rightElement }: HeaderProps) => {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 backdrop-blur-xl bg-white/95">
-      <div className="flex items-center justify-between max-w-md mx-auto px-4 py-4">
+      <div className="flex items-center justify-between max-w-md mx-auto px-4 py-3">
         <div className="flex items-center">
           {showBack && (
             <button

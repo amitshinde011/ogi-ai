@@ -112,7 +112,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
             }`}
           >
             <Heart 
-              size={24}
+              size={28}
               strokeWidth={1.5}
               className={post.is_liked ? 'fill-current' : ''} 
             />
@@ -123,14 +123,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
             onClick={handleCommentClick}
             className="p-0 h-auto hover:bg-transparent text-gray-700"
           >
-            <MessageSquare size={24} strokeWidth={1.5} />
+            <MessageSquare size={28} strokeWidth={1.5} />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             className="p-0 h-auto hover:bg-transparent text-gray-700"
           >
-            <Plus size={24} strokeWidth={1.5} />
+            <Plus size={28} strokeWidth={1.5} />
           </Button>
         </div>
 

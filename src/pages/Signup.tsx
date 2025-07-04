@@ -56,7 +56,7 @@ const Signup = () => {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/profile-setup`
         }
       });
 
@@ -67,7 +67,8 @@ const Signup = () => {
           description: error.message,
           variant: "destructive"
         });
-      } else {
+      } else if (data.user && !data.user.email_confirmed_at) {
+        // New user created successfully
         console.log('Signup success:', data);
         toast({
           title: "Account created successfully!",
@@ -75,6 +76,13 @@ const Signup = () => {
         });
         // Redirect to login page with verification message
         navigate('/login?message=verify');
+      } else {
+        // User already exists
+        toast({
+          title: "User already exists",
+          description: "An account with this email already exists. Please sign in instead.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Signup catch error:', error);
@@ -97,7 +105,7 @@ const Signup = () => {
       <Card className="w-full max-w-md animate-fade-in shadow-lg border-gray-200 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
-            <div className="w-24 h-24 mx-auto flex items-center justify-center mb-4">
+            <div className="w-32 h-32 mx-auto flex items-center justify-center mb-4">
               <img 
                 src="/lovable-uploads/6cf2c839-5326-4219-9033-549deb1fb03c.png" 
                 alt="Yogi Logo" 

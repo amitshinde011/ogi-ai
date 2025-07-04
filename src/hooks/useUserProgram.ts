@@ -11,15 +11,15 @@ export const useUserProgram = () => {
 
       const today = new Date().toISOString().split('T')[0];
       
-      const { data: subscription } = await supabase
+      const { data: subscriptions } = await supabase
         .from('user_subscriptions')
         .select('*, programs(*)')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .gte('end_date', today)
-        .maybeSingle();
+        .order('created_at', { ascending: false });
 
-      return subscription;
+      // Return the most recent active subscription
+      return subscriptions && subscriptions.length > 0 ? subscriptions[0] : null;
     },
   });
 };

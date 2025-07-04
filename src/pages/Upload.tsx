@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Camera, Upload as UploadIcon, Check, Loader2 } from 'lucide-react';
+import { Camera, Upload as UploadIcon, Check, Loader2, Sun, Salad, Moon, Apple } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,23 +10,41 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useR2Upload } from '@/hooks/useR2Upload';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserProgram } from '@/hooks/useUserProgram';
+import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
 const Upload = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { data: userProgram } = useUserProgram();
+  const { isCompleted } = useProgramCompletion();
   const [selectedMeal, setSelectedMeal] = useState(location.state?.mealType || '');
+  const [specialTracking, setSpecialTracking] = useState(location.state?.specialTracking || '');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const { uploadToR2, uploading } = useR2Upload();
 
   const mealTypes = [
-    { id: 'breakfast', name: 'Breakfast', icon: '🌅', time: '6:00 - 11:00 AM' },
-    { id: 'lunch', name: 'Lunch', icon: '☀️', time: '11:00 AM - 3:00 PM' },
-    { id: 'dinner', name: 'Dinner', icon: '🌙', time: '3:00 PM - 10:00 PM' },
-    { id: 'snack', name: 'Snack', icon: '🍎', time: 'Anytime' }
+    { id: 'breakfast', name: 'Breakfast', icon: Salad, time: '6:00 - 11:00 AM' },
+    { id: 'lunch', name: 'Lunch', icon: Sun, time: '11:00 AM - 3:00 PM' },
+    { id: 'dinner', name: 'Dinner', icon: Moon, time: '3:00 PM - 10:00 PM' },
+    { id: 'snack', name: 'Snack', icon: Apple, time: 'Anytime' }
   ];
+
+  // Set default food item based on special tracking
+  React.useEffect(() => {
+    if (specialTracking) {
+      if (specialTracking === 'salad_bowl') {
+        setDescription('Daily Breakfast Salad Bowl');
+        setSelectedMeal('breakfast');
+      } else if (specialTracking === 'kanji') {
+        setDescription('Daily Kanji (Finger Millet Porridge)');
+        setSelectedMeal('breakfast');
+      }
+    }
+  }, [specialTracking]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -47,6 +64,16 @@ const Upload = () => {
       if (!isAuthenticated || !user) {
         toast({ title: "Authentication required. Please try logging in again.", variant: "destructive" });
       }
+      return;
+    }
+
+    // Check if user has active subscription
+    if (!userProgram || isCompleted) {
+      toast({ 
+        title: "Subscription Required", 
+        description: "You need an active subscription to post meals.", 
+        variant: "destructive" 
+      });
       return;
     }
 
@@ -110,30 +137,33 @@ const Upload = () => {
           <CardContent className="p-4">
             <h3 className="font-semibold text-stone mb-4">Select Meal Type</h3>
             <div className="space-y-3">
-              {mealTypes.map((meal) => (
-                <div
-                  key={meal.id}
-                  onClick={() => setSelectedMeal(meal.id)}
-                  className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    selectedMeal === meal.id
-                      ? 'border-sage bg-sage/10 shadow-md'
-                      : 'border-lavender/30 hover:border-sage hover:bg-lavender/5'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <span className="text-2xl mr-3">{meal.icon}</span>
-                      <div>
-                        <h4 className="font-medium text-stone">{meal.name}</h4>
-                        <p className="text-sm text-stone/60">{meal.time}</p>
+              {mealTypes.map((meal) => {
+                const IconComponent = meal.icon;
+                return (
+                  <div
+                    key={meal.id}
+                    onClick={() => setSelectedMeal(meal.id)}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      selectedMeal === meal.id
+                        ? 'border-sage bg-sage/10 shadow-md'
+                        : 'border-lavender/30 hover:border-sage hover:bg-lavender/5'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <IconComponent size={24} className="text-sage mr-3" />
+                        <div>
+                          <h4 className="font-medium text-stone">{meal.name}</h4>
+                          <p className="text-sm text-stone/60">{meal.time}</p>
+                        </div>
                       </div>
+                      {selectedMeal === meal.id && (
+                        <Check size={20} strokeWidth={1.5} className="text-sage" />
+                      )}
                     </div>
-                    {selectedMeal === meal.id && (
-                      <Check size={20} strokeWidth={1.5} className="text-sage" />
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -194,7 +224,7 @@ const Upload = () => {
         {/* Submit Button */}
         <Button
           onClick={handleSubmit}
-          disabled={!selectedMeal || !imageFile || uploading || !isAuthenticated || !user}
+          disabled={!selectedMeal || !imageFile || uploading || !isAuthenticated || !user || !userProgram || isCompleted}
           className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white py-6 font-medium shadow-lg"
         >
           {uploading ? (

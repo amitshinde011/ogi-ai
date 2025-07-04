@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
@@ -14,6 +15,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isForgotPasswordLoading, setIsForgotPasswordLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +53,48 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address to reset your password.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsForgotPasswordLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+      
+      if (error) {
+        console.error('Forgot password error:', error);
+        toast({
+          title: "Reset failed",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Password reset email sent",
+          description: "Check your email for instructions to reset your password."
+        });
+      }
+    } catch (error) {
+      console.error('Forgot password catch error:', error);
+      toast({
+        title: "An error occurred",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsForgotPasswordLoading(false);
+    }
+  };
+
   return (
     <form onSubmit={handleLogin} className="space-y-4">
       <div>
@@ -82,6 +126,17 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
       >
         {isLoading ? "Signing in..." : "Sign In"}
       </Button>
+      
+      <div className="text-center">
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          disabled={isForgotPasswordLoading}
+          className="text-sm text-sage hover:underline disabled:opacity-50"
+        >
+          {isForgotPasswordLoading ? "Sending..." : "Forgot your password?"}
+        </button>
+      </div>
     </form>
   );
 };

@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Salad, Sun, Moon, Apple } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,10 +27,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const { uploadToR2, uploading } = useR2Upload();
 
   const mealTypes = [
-    { id: 'breakfast', name: 'Breakfast', emoji: '🌅' },
-    { id: 'lunch', name: 'Lunch', emoji: '☀️' },
-    { id: 'dinner', name: 'Dinner', emoji: '🌙' },
-    { id: 'snack', name: 'Snack', emoji: '🍎' }
+    { id: 'breakfast', name: 'Breakfast', icon: Salad },
+    { id: 'lunch', name: 'Lunch', icon: Sun },
+    { id: 'dinner', name: 'Dinner', icon: Moon },
+    { id: 'snack', name: 'Snack', icon: Apple }
   ];
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,21 +143,24 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 Meal Type *
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {mealTypes.map((meal) => (
-                  <button
-                    key={meal.id}
-                    type="button"
-                    onClick={() => setSelectedMealType(meal.id)}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedMealType === meal.id
-                        ? 'border-sage bg-sage/10'
-                        : 'border-gray-200 hover:border-sage'
-                    }`}
-                  >
-                    <div className="text-2xl mb-1">{meal.emoji}</div>
-                    <div className="text-sm font-medium">{meal.name}</div>
-                  </button>
-                ))}
+                {mealTypes.map((meal) => {
+                  const IconComponent = meal.icon;
+                  return (
+                    <button
+                      key={meal.id}
+                      type="button"
+                      onClick={() => setSelectedMealType(meal.id)}
+                      className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center ${
+                        selectedMealType === meal.id
+                          ? 'border-sage bg-sage/10'
+                          : 'border-gray-200 hover:border-sage'
+                      }`}
+                    >
+                      <IconComponent size={24} className="text-sage mb-1" />
+                      <div className="text-sm font-medium">{meal.name}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

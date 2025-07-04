@@ -7,6 +7,7 @@ import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
 import { calculatePricing } from '@/utils/pricingUtils';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Program {
   id: string;
@@ -22,6 +23,7 @@ interface Program {
 export const useSubscriptionActions = (programs: Program[]) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { updateOnboardingState } = useOnboarding();
   const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
   const { isIndiaUser, userLocation } = useLocationDetection();
@@ -48,9 +50,16 @@ export const useSubscriptionActions = (programs: Program[]) => {
         throw new Error('User not authenticated');
       }
 
-      // Mark previous subscription as completed if it exists
-      if (completedSubscription) {
-        await markSubscriptionCompleted(completedSubscription.id);
+      // First, mark any existing active subscriptions as completed
+      const { error: updateError } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'completed' })
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (updateError) {
+        console.error('Error updating existing subscriptions:', updateError);
+        // Don't throw here, continue with creating the new subscription
       }
 
       // Create the subscription directly with 'paid' status since it's processed (even though free)
@@ -73,7 +82,15 @@ export const useSubscriptionActions = (programs: Program[]) => {
         throw subscriptionError;
       }
 
-      await updateOnboardingState({ subscription_selected: true });
+      await updateOnboardingState({ 
+        subscription_selected: true,
+        intro_video_watched: false,
+        before_assessment_completed: false,
+        journey_started: false
+      });
+
+      // Invalidate user program cache to refresh subscription data
+      queryClient.invalidateQueries({ queryKey: ['user-current-program'] });
 
       toast({
         title: "Free Access Granted!",
@@ -115,29 +132,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
 
       console.log('Selected program:', program);
 
-      // Check if user already has an active subscription
-      const { data: existingSub, error: existingError } = await supabase
-        .from('user_subscriptions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      console.log('Existing subscription check:', existingSub, existingError);
-
-      if (existingError && existingError.code !== 'PGRST116') {
-        console.error('Error checking existing subscription:', existingError);
-        throw existingError;
-      }
-
-      if (existingSub) {
-        toast({
-          title: "Already Subscribed",
-          description: "You already have an active subscription.",
-          variant: "destructive",
-        });
-        return;
-      }
+      console.log('Proceeding to payment...');
 
       // If 100% discount coupon is applied, create free subscription
       if (couponDiscountPercentage === 100) {

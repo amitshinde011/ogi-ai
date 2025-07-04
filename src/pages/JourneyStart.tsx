@@ -1,156 +1,251 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, Star, Target, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast';
+import Layout from '@/components/Layout';
+import Header from '@/components/Header';
+import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 
 const JourneyStart = () => {
   const navigate = useNavigate();
-  const { onboardingState, updateOnboardingState } = useOnboarding();
+  const { toast } = useToast();
+  const { updateOnboardingState } = useOnboarding();
+  const [loading, setLoading] = useState(false);
+  const [subscription, setSubscription] = useState<any>(null);
 
   useEffect(() => {
-    // Check if journey was already started for current subscription
-    const checkJourneyStatus = async () => {
-      try {
-        // If onboarding shows journey is started, redirect to home
-        if (onboardingState?.journey_started) {
-          console.log('Journey already started, redirecting to home');
-          navigate('/home');
-          return;
-        }
+    checkJourneyStart();
+  }, []);
 
-        // If before assessment is not completed, redirect back
-        if (!onboardingState?.before_assessment_completed) {
-          console.log('Before assessment not completed, redirecting to before assessment');
+  const checkJourneyStart = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      console.log('Today ', today);
+      const { data: planData, error: planError } = await supabase
+        .from('user_subscriptions')
+        .select('*, programs(*)')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .lte('start_date', today)
+        .gte('end_date', today)
+        .explain();
+
+      if (planError) {
+        console.error('Error fetching query plan:', planError);
+      } else {
+        console.log('--- Supabase Query Plan ---');
+
+        const planObject = planData?.[0];
+
+        if (typeof planObject === 'object' && planObject !== null && 'Plan' in planObject) {
+          console.log(planObject.Plan);
+        } else {
+          console.log('Could not find the .Plan property. Inspect the full response instead:');
+          console.log(planData);
+        }
+      }
+      
+      // Get active subscription that should start today
+      const { data: currentSub } = await supabase
+        .from('user_subscriptions')
+        .select('*, programs(*)')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .or('start_date.is.null,start_date.lte.' + today)
+        .or('end_date.is.null,end_date.gte.' + today)
+        .maybeSingle();
+
+      // Check if start date is today or has passed (only if dates exist)
+      if (currentSub && currentSub.start_date && currentSub.end_date) {
+        const startDate = new Date(currentSub.start_date);
+        const todayDate = new Date(today);
+
+        if (todayDate < startDate) {
+          // Start date hasn't arrived yet
           navigate('/before-assessment');
           return;
         }
-      } catch (error) {
-        console.error('Error checking journey status:', error);
+      } else if (currentSub) {
+        // If dates are null, subscription is not yet started - redirect to before-assessment
+        navigate('/before-assessment');
+        return;
       }
-    };
 
-    if (onboardingState) {
-      checkJourneyStatus();
+      setSubscription(currentSub);
+    } catch (error) {
+      console.error('Error checking journey start:', error);
+      navigate('/subscriptions');
     }
-  }, [onboardingState, navigate]);
+  };
 
   const handleStartJourney = async () => {
-    await updateOnboardingState({ journey_started: true });
-    navigate('/home');
+    setLoading(true);
+    try {
+      await updateOnboardingState({ journey_started: true });
+
+      toast({
+        title: "Journey Started! 🎉",
+        description: "Welcome to your wellness transformation!",
+      });
+
+      navigate('/home');
+    } catch (error) {
+      console.error('Error starting journey:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start journey. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!subscription) {
+    return (
+      <Layout>
+        <Header title="Journey Start" />
+        <div className="min-h-screen bg-light-gray flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  const getDaysRemaining = () => {
+    const today = new Date();
+    const endDate = new Date(subscription.end_date);
+    // Add 1 day since end date is inclusive
+    endDate.setDate(endDate.getDate() + 1);
+    const diffTime = endDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 p-4 md:p-6 flex items-center justify-center no-yellow">
-      <div className="max-w-4xl w-full space-y-6 md:space-y-8">
-        {/* Hero Section */}
-        <Card className="bg-white border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
-          <CardHeader className="text-center pb-6 md:pb-8 px-4 md:px-8">
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-orange-400 via-amber-400 to-orange-500 rounded-full mx-auto flex items-center justify-center mb-6 md:mb-8 shadow-2xl animate-pulse">
-              <span className="text-4xl md:text-6xl">🏆</span>
+    <Layout>
+      <Header title="Your Journey Begins!" />
+
+      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+        {/* Welcome Card */}
+        <Card className="text-center bg-gradient-sage text-white">
+          <CardContent className="p-8">
+            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Star className="w-10 h-10 text-yellow-300" />
             </div>
-            <CardTitle className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent mb-4 leading-tight">
-              Your Journey Begins Now!
-            </CardTitle>
-            <p className="text-lg md:text-2xl text-slate-600 font-medium px-2">
-              Welcome to your personalized wellness transformation
+            <h1 className="text-2xl font-bold mb-4">
+              Welcome to Your Wellness Journey!
+            </h1>
+            <p className="text-white/90 text-lg">
+              Today marks the beginning of your transformation with {subscription.programs?.name}
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Program Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              Your Program Details
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-8 md:space-y-10 p-4 md:p-8">
-            {/* Feature Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-              <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200 hover:shadow-lg transition-all duration-200 hover:scale-105">
-                <CardContent className="p-4 md:p-6 text-center space-y-3 md:space-y-4">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
-                    <span className="text-2xl md:text-3xl">❤️</span>
-                  </div>
-                  <h3 className="font-bold text-lg md:text-xl text-slate-900">Daily Tracking</h3>
-                  <p className="text-sm md:text-base text-slate-600 leading-relaxed">Monitor your wellness progress with intuitive daily tracking tools</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:shadow-lg transition-all duration-200 hover:scale-105">
-                <CardContent className="p-4 md:p-6 text-center space-y-3 md:space-y-4">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
-                    <span className="text-2xl md:text-3xl">🎯</span>
-                  </div>
-                  <h3 className="font-bold text-lg md:text-xl text-slate-900">Guided Activities</h3>
-                  <p className="text-sm md:text-base text-slate-600 leading-relaxed">Follow personalized routines designed for your specific goals</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:shadow-lg transition-all duration-200 hover:scale-105">
-                <CardContent className="p-4 md:p-6 text-center space-y-3 md:space-y-4">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
-                    <span className="text-2xl md:text-3xl">👥</span>
-                  </div>
-                  <h3 className="font-bold text-lg md:text-xl text-slate-900">Community Support</h3>
-                  <p className="text-sm md:text-base text-slate-600 leading-relaxed">Connect with like-minded people on similar journeys</p>
-                </CardContent>
-              </Card>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+              <span className="font-medium">Program:</span>
+              <span className="text-primary font-semibold">{subscription.programs?.name}</span>
             </div>
 
-            {/* Success Tips */}
-            <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200 shadow-lg">
-              <CardContent className="p-4 md:p-8">
-                <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg mx-auto sm:mx-0">
-                    <span className="text-2xl">⭐</span>
-                  </div>
-                  <div className="space-y-4 w-full">
-                    <h3 className="text-xl md:text-2xl font-bold text-indigo-900 text-center sm:text-left">Keys to Success</h3>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <div className="flex items-start space-x-3">
-                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">🏠</span>
-                          <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Stay consistent with daily activities</span>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">🎯</span>
-                          <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Track your progress honestly</span>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">👥</span>
-                          <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Engage with the community</span>
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-start space-x-3">
-                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">⭐</span>
-                          <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Follow guided routines</span>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">❤️</span>
-                          <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Stay committed to your program</span>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                          <span className="text-lg text-indigo-600 flex-shrink-0 mt-0.5">🏆</span>
-                          <span className="text-sm md:text-base text-indigo-800 font-semibold leading-relaxed">Celebrate small victories</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+              <span className="font-medium">Duration:</span>
+              <span className="text-primary font-semibold">
+                {subscription.programs?.duration_days} days
+              </span>
+            </div>
 
-            {/* CTA Button */}
-            <div className="text-center px-4">
-              <Button 
-                onClick={handleStartJourney}
-                size="lg"
-                variant="secondary"
-                className="h-16 md:h-20 px-8 md:px-16 rounded-3xl font-bold text-lg md:text-xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
-              >
-                <span className="text-2xl mr-3 md:mr-4">🏆</span>
-                <span className="text-base md:text-xl">Enter My Wellness Dashboard</span>
-              </Button>
+            <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+              <span className="font-medium">Days Remaining:</span>
+              <span className="text-primary font-semibold">
+                {getDaysRemaining()} days
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <span className="font-medium flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Journey End Date:
+              </span>
+              <span className="text-blue-700 font-semibold">
+                {new Date(subscription.end_date).toLocaleDateString()} (Inclusive)
+              </span>
             </div>
           </CardContent>
         </Card>
+
+        {/* What to Expect */}
+        <Card>
+          <CardHeader>
+            <CardTitle>What to Expect</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+              <p className="text-gray-700">Daily wellness activities and tracking</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+              <p className="text-gray-700">Personalized recipes and meal guidance. Please make sure, you will not eat anything other than this.</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+              <p className="text-gray-700">Community support and sharing</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
+              <p className="text-gray-700">Progress tracking and insights</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Start Journey Button */}
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-gray-600 mb-6">
+              Are you ready to begin your wellness transformation?
+              Let's make every day count towards a healthier, happier you!
+            </p>
+
+            <Button
+              onClick={handleStartJourney}
+              disabled={loading}
+              className="w-full h-12 text-lg bg-gradient-sage text-white hover:opacity-90"
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 mr-2 animate-spin rounded-full border-b-2 border-white" />
+                  Starting Journey...
+                </>
+              ) : (
+                <>
+                  Start My Journey
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 

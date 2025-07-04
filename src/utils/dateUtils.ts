@@ -30,3 +30,50 @@ export const getRelativeTime = (dateString: string): string => {
 
   return date.toLocaleDateString();
 };
+
+// Helper function to calculate program completion with inclusive end date
+export const calculateProgramProgress = (startDate: string, endDate: string) => {
+  const today = new Date().toISOString().split('T')[0];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const todayDate = new Date(today);
+  
+  // Calculate total days from start to end (inclusive)
+  const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  console.log(' totalDays ',totalDays);
+  // If today is before the start date, we haven't started yet
+  if (todayDate < start) {
+    return {
+      totalDays,
+      daysCompleted: 0,
+      progressPercentage: 0,
+      isCompleted: false
+    };
+  }
+  
+  // If today is after the end date, program is completed
+  if (todayDate > end) {
+    return {
+      totalDays,
+      daysCompleted: totalDays,
+      progressPercentage: 100,
+      isCompleted: true
+    };
+  }
+  
+  // Calculate days completed (1-based counting)
+  // If today is the start date, it's day 1
+  const daysFromStart = Math.floor((todayDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const daysCompleted = daysFromStart+1; // +1 because we count the start date as day 1
+  console.log(' daysFromStart ',daysFromStart);
+  console.log(' daysCompleted ',daysCompleted);
+  // Progress percentage based on completed days
+  const progressPercentage = Math.min(100, (daysCompleted / totalDays) * 100);
+  
+  return {
+    totalDays,
+    daysCompleted,
+    progressPercentage,
+    isCompleted: false
+  };
+};

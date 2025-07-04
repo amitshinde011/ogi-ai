@@ -15,6 +15,7 @@ import { useUserProgram } from '@/hooks/useUserProgram';
 import { useProgramRecipes } from '@/hooks/useProgramRecipes';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { Link } from 'react-router-dom';
+import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 
 const Recipes = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Recipes = () => {
   const { data: userProgram, isLoading: programLoading } = useUserProgram();
   const { programRecipes, categories, isLoading: recipesLoading } = useProgramRecipes(userProgram);
   const { isCompleted } = useProgramCompletion();
+  const { showBanner } = useSubscriptionBanner();
 
   // Filter recipes based on search and category
   const filteredRecipes = React.useMemo(() => {
@@ -42,13 +44,6 @@ const Recipes = () => {
   }, [programRecipes, searchTerm, selectedCategory]);
 
   const isLoading = programLoading || recipesLoading;
-
-  // Handle program completion redirect
-  useEffect(() => {
-    if (isCompleted && !isLoading) {
-      navigate('/subscriptions');
-    }
-  }, [isCompleted, navigate, isLoading]);
 
   if (isLoading) {
     return (

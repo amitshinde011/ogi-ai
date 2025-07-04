@@ -11,7 +11,7 @@ interface DailyProgressCardProps {
 }
 
 const DailyProgressCard = ({ mealsLogged, steps, walkScore }: DailyProgressCardProps) => {
-  const stepsProgress = Math.min((steps / 10000) * 100, 100);
+  const stepsProgress = Math.min((steps / 5000) * 100, 100);
 
   return (
     <Card className="gradient-primary text-white shadow-xl border-0 animate-slide-up interactive">

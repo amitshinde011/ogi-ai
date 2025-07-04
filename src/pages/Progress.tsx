@@ -1,13 +1,22 @@
-
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import CurrentProgramCard from '@/components/progress/CurrentProgramCard';
 import NoProgramCard from '@/components/progress/NoProgramCard';
 import ProgramHistorySection from '@/components/progress/ProgramHistorySection';
+import DailyActivityProgress from '@/components/progress/DailyActivityProgress';
+import WeeklyProgress from '@/components/progress/WeeklyProgress';
+import JourneyProgress from '@/components/progress/JourneyProgress';
+import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Calendar, TrendingUp, Activity, Target } from 'lucide-react';
+import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
+import { calculateProgramProgress } from '@/utils/dateUtils';
+import { useTodayActivity } from '@/hooks/useTodayActivity';
+import { useProgressData } from '@/hooks/useProgressData';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ProgramData {
   id: string;
@@ -25,6 +34,9 @@ const ProgressPage = () => {
   const [currentProgram, setCurrentProgram] = useState<ProgramData | null>(null);
   const [historicalPrograms, setHistoricalPrograms] = useState<ProgramData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { showBanner } = useSubscriptionBanner();
+  const { activityData, loading: activityLoading } = useTodayActivity();
+  const { weeklyData, journeyData, loading: progressLoading } = useProgressData();
 
   useEffect(() => {
     fetchProgressData();
@@ -59,13 +71,8 @@ const ProgressPage = () => {
       if (!subscriptions) return;
 
       const programsData: ProgramData[] = subscriptions.map(sub => {
-        const startDate = new Date(sub.start_date);
-        const endDate = new Date(sub.end_date);
-        const todayDate = new Date(today);
-        
-        const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const daysCompleted = Math.max(0, Math.ceil((todayDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-        const progressPercentage = Math.min(100, (daysCompleted / totalDays) * 100);
+        const { totalDays, daysCompleted, progressPercentage, isCompleted } = 
+          calculateProgramProgress(sub.start_date, sub.end_date);
 
         return {
           id: sub.id,
@@ -75,13 +82,19 @@ const ProgressPage = () => {
           end_date: sub.end_date,
           status: sub.status,
           progress_percentage: progressPercentage,
-          days_completed: Math.min(daysCompleted, totalDays)
+          days_completed: daysCompleted
         };
       });
 
       // Separate current and historical programs
-      const current = programsData.find(p => p.status === 'active' && new Date(p.end_date) >= new Date(today));
-      const historical = programsData.filter(p => p.status !== 'active' || new Date(p.end_date) < new Date(today));
+      const current = programsData.find(p => {
+        if (p.status !== 'active') return false;
+        const endDate = new Date(p.end_date);
+        const todayDate = new Date(today);
+        return todayDate <= endDate; // Program is current until end date (inclusive)
+      });
+      
+      const historical = programsData.filter(p => p.id !== current?.id);
 
       setCurrentProgram(current || null);
       setHistoricalPrograms(historical);
@@ -92,12 +105,20 @@ const ProgressPage = () => {
     }
   };
 
-  if (loading) {
+  const handleHistoryItemClick = (programId: string) => {
+    navigate('/comparison', { state: { subscriptionId: programId } });
+  };
+
+  if (loading || activityLoading || progressLoading) {
     return (
       <Layout>
         <Header title="Progress" />
-        <div className="min-h-screen bg-light-gray flex items-center justify-center">
-          <Loader2 size={32} strokeWidth={1.5} className="text-sage animate-spin" />
+        {showBanner && <SubscriptionBanner />}
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 size={40} strokeWidth={1.5} className="text-sage animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Loading your progress...</p>
+          </div>
         </div>
       </Layout>
     );
@@ -106,17 +127,58 @@ const ProgressPage = () => {
   return (
     <Layout>
       <Header title="Your Progress" />
+      {showBanner && <SubscriptionBanner />}
       
-      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
-        {/* Current Program or No Program */}
-        {currentProgram ? (
-          <CurrentProgramCard program={currentProgram} />
-        ) : (
-          <NoProgramCard />
-        )}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="p-4 max-w-4xl mx-auto">
+          <Tabs defaultValue="today" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm">
+              <TabsTrigger value="today" className="flex items-center gap-2">
+                <Calendar size={16} />
+                Today
+              </TabsTrigger>
+              <TabsTrigger value="weekly" className="flex items-center gap-2">
+                <TrendingUp size={16} />
+                Weekly
+              </TabsTrigger>
+              <TabsTrigger value="journey" className="flex items-center gap-2">
+                <Activity size={16} />
+                Journey
+              </TabsTrigger>
+              <TabsTrigger value="program" className="flex items-center gap-2">
+                <Target size={16} />
+                Program
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Program History */}
-        <ProgramHistorySection programs={historicalPrograms} />
+            <TabsContent value="today" className="space-y-6">
+              <DailyActivityProgress activityData={activityData} />
+            </TabsContent>
+
+            <TabsContent value="weekly" className="space-y-6">
+              <WeeklyProgress data={weeklyData} />
+            </TabsContent>
+
+            <TabsContent value="journey" className="space-y-6">
+              <JourneyProgress data={journeyData} />
+            </TabsContent>
+
+            <TabsContent value="program" className="space-y-6">
+              {/* Current Program or No Program */}
+              {currentProgram ? (
+                <CurrentProgramCard program={currentProgram} />
+              ) : (
+                <NoProgramCard />
+              )}
+
+              {/* Program History */}
+              <ProgramHistorySection 
+                programs={historicalPrograms} 
+                onItemClick={handleHistoryItemClick}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </Layout>
   );
