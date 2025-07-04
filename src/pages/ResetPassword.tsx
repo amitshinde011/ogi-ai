@@ -15,20 +15,54 @@ const ResetPassword = () => {
     password: '',
     confirmPassword: '',
   });
+  const [isValidReset, setIsValidReset] = useState(false);
 
   useEffect(() => {
-    // Check if we have the required tokens from the URL
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    
-    if (!accessToken || !refreshToken) {
-      toast({
-        title: "Invalid reset link",
-        description: "Please request a new password reset link.",
-        variant: "destructive"
-      });
-      navigate('/login');
-    }
+    const checkResetSession = async () => {
+      // Get the hash from URL (Supabase sends tokens in URL hash)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+
+      // Also check query params as fallback
+      const queryAccessToken = searchParams.get('access_token');
+      const queryRefreshToken = searchParams.get('refresh_token');
+      const queryType = searchParams.get('type');
+
+      const finalAccessToken = accessToken || queryAccessToken;
+      const finalRefreshToken = refreshToken || queryRefreshToken;
+      const finalType = type || queryType;
+
+      if (finalType === 'recovery' && finalAccessToken && finalRefreshToken) {
+        // Set the session with the tokens from the URL
+        const { error } = await supabase.auth.setSession({
+          access_token: finalAccessToken,
+          refresh_token: finalRefreshToken
+        });
+
+        if (error) {
+          console.error('Session set error:', error);
+          toast({
+            title: "Invalid reset link",
+            description: "Please request a new password reset link.",
+            variant: "destructive"
+          });
+          navigate('/login');
+        } else {
+          setIsValidReset(true);
+        }
+      } else {
+        toast({
+          title: "Invalid reset link",
+          description: "Please request a new password reset link.",
+          variant: "destructive"
+        });
+        navigate('/login');
+      }
+    };
+
+    checkResetSession();
   }, [searchParams, navigate, toast]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -88,6 +122,22 @@ const ResetPassword = () => {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Show loading state while checking reset validity
+  if (!isValidReset) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md animate-fade-in shadow-lg border-gray-200 bg-white">
+          <CardContent className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage mx-auto mb-4"></div>
+              <p className="text-black/70">Verifying reset link...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
