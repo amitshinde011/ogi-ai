@@ -308,7 +308,7 @@ export const handleRazorpayPayment = async (
       key: sessionData.sessionData.keyId,
       amount: sessionData.sessionData.amount,
       currency: sessionData.sessionData.currency,
-      name: 'Yogi-ai',
+      name: 'Yogi',
       description: `Payment for ${program?.name || 'Program'}`,
       order_id: sessionData.sessionData.orderId,
       handler: async (response: any) => {
