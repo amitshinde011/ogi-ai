@@ -110,7 +110,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             </p>
             
             <div className="text-xs text-gray-400 bg-gray-50 px-2 sm:px-3 py-1 rounded-full inline-block">
-              Payment via <span className="font-medium">{isIndiaUser ? 'Razorpay' : 'Braintree'}</span>
+              Payment via <span className="font-medium">Razorpay</span>
             </div>
           </div>
       </CardHeader>

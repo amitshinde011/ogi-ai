@@ -31,7 +31,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
       ) : (
         <>
           <CreditCard size={18} strokeWidth={1.5} className="mr-2" />
-          Pay {currencySymbol}{displayPrice}
+          Pay via Razorpay {currencySymbol}{displayPrice}
         </>
       )}
     </Button>

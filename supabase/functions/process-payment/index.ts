@@ -1,6 +1,6 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import braintree from 'https://esm.sh/braintree@3.22.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,7 +10,7 @@ const corsHeaders = {
 interface PaymentRequest {
   action?: string;
   programId: string;
-  gateway: 'braintree' | 'razorpay';
+  gateway: 'razorpay';
   amount: number;
   currency: string;
   paymentData?: any;
@@ -22,7 +22,7 @@ function validatePaymentRequest(data: any): data is PaymentRequest {
   return (
     data &&
     typeof data.programId === 'string' && data.programId.length > 0 &&
-    (data.gateway === 'braintree' || data.gateway === 'razorpay') &&
+    data.gateway === 'razorpay' &&
     typeof data.amount === 'number' && data.amount >= 0 &&
     typeof data.currency === 'string' && data.currency.length > 0
   );
@@ -32,69 +32,6 @@ function validatePaymentRequest(data: any): data is PaymentRequest {
 function logWithDetails(message: string, details?: any) {
   const timestamp = new Date().toISOString();
   console.log(`[${timestamp}] ${message}`, details ? JSON.stringify(details, null, 2) : '');
-}
-
-/**
- * [CORRECT IMPLEMENTATION]
- * Generates a Braintree client token using the official Braintree SDK.
- * This is guaranteed to create a token in the correct, encoded format.
- */
-async function generateBraintreeClientToken(): Promise<string> {
-  try {
-    logWithDetails('Initializing Braintree gateway via SDK');
-
-    // 1. Get Braintree credentials from environment variables
-    const merchantId = Deno.env.get('BRAINTREE_MERCHANT_ID');
-    const publicKey = Deno.env.get('BRAINTREE_PUBLIC_KEY');
-    const privateKey = Deno.env.get('BRAINTREE_PRIVATE_KEY');
-    const environment = Deno.env.get('BRAINTREE_ENVIRONMENT')?.toLowerCase() || 'sandbox';
-
-    logWithDetails('Checking Braintree credentials', {
-      hasMerchantId: !!merchantId,
-      hasPublicKey: !!publicKey,
-      hasPrivateKey: !!privateKey,
-      environment,
-      merchantIdLength: merchantId ? merchantId.length : 0
-    });
-
-    if (!merchantId || !publicKey || !privateKey) {
-      throw new Error('Missing Braintree environment variables (MERCHANT_ID, PUBLIC_KEY, PRIVATE_KEY)');
-    }
-
-    // 2. Create a Braintree gateway instance
-    const gateway = new braintree.BraintreeGateway({
-      environment: environment === 'production' ? braintree.Environment.Production : braintree.Environment.Sandbox,
-      merchantId: merchantId,
-      publicKey: publicKey,
-      privateKey: privateKey
-    });
-
-    logWithDetails('Generating Braintree client token via SDK');
-
-    // 3. Generate the client token
-    const response = await gateway.clientToken.generate({});
-    
-    if (!response.success || !response.clientToken) {
-        logWithDetails('ERROR: Braintree SDK failed to generate token', { response });
-        throw new Error('Braintree SDK could not generate a client token.');
-    }
-
-    logWithDetails('Braintree client token generated successfully via SDK', {
-      tokenLength: response.clientToken.length,
-      tokenPreview: response.clientToken.substring(0, 50) + '...',
-      isValidFormat: response.clientToken.startsWith('eyJ') // JWT tokens typically start with eyJ
-    });
-
-    // The SDK returns the token in the correct Base64 encoded format
-    return response.clientToken;
-
-  } catch (error) {
-    logWithDetails('ERROR: Failed to generate Braintree client token with SDK', {
-      error: error.message
-    });
-    // Rethrow the error to be caught by the main handler
-    throw new Error(`Failed to generate Braintree client token: ${error.message}`);
-  }
 }
 
 serve(async (req) => {
@@ -217,119 +154,101 @@ serve(async (req) => {
 
       logWithDetails('Order created successfully', { orderId: order.id });
 
-      // Return session data based on gateway
-      let sessionData;
-      if (gateway === 'braintree') {
-        // Generate Braintree client token using official SDK
-        const clientToken = await generateBraintreeClientToken();
-        
-        sessionData = {
-          orderId: order.id,
-          sessionData: {
-            token: clientToken,
-            amount: amount,
-            currency: currency
-          },
-          gateway: 'braintree'
-        };
-        logWithDetails('Braintree session data created', { orderId: order.id });
-      } else {
-        // For Razorpay, get credentials and create order
-        const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID');
-        const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
-        
-        logWithDetails('Checking Razorpay credentials', {
-          hasKeyId: !!razorpayKeyId,
-          hasKeySecret: !!razorpayKeySecret,
-          keyIdLength: razorpayKeyId ? razorpayKeyId.length : 0,
-          keySecretLength: razorpayKeySecret ? razorpayKeySecret.length : 0,
-          keyIdPrefix: razorpayKeyId ? razorpayKeyId.substring(0, 8) + '...' : 'missing'
-        });
-        
-        if (!razorpayKeyId || !razorpayKeySecret) {
-          logWithDetails('ERROR: Missing Razorpay credentials');
-          return new Response(
-            JSON.stringify({ error: 'Payment gateway not configured properly' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        // Validate Razorpay key format
-        if (!razorpayKeyId.startsWith('rzp_')) {
-          logWithDetails('ERROR: Invalid Razorpay Key ID format', { keyIdPrefix: razorpayKeyId.substring(0, 8) });
-          return new Response(
-            JSON.stringify({ error: 'Invalid Razorpay Key ID format' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Create Razorpay order
-        const razorpayOrderData = {
-          amount: Math.round(amount * 100), // Convert to paise
-          currency: currency,
-          receipt: order.id,
-          notes: {
-            program_id: programId,
-            user_id: user.id
-          }
-        };
-
-        logWithDetails('Attempting to create Razorpay order', razorpayOrderData);
-
-        try {
-          // Create Razorpay order using REST API
-          const razorpayResponse = await fetch('https://api.razorpay.com/v1/orders', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Basic ${btoa(`${razorpayKeyId}:${razorpayKeySecret}`)}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(razorpayOrderData)
-          });
-
-          if (!razorpayResponse.ok) {
-            const errorText = await razorpayResponse.text();
-            logWithDetails('ERROR: Razorpay API call failed', {
-              status: razorpayResponse.status,
-              statusText: razorpayResponse.statusText,
-              error: errorText
-            });
-            throw new Error(`Razorpay API error: ${razorpayResponse.status} ${errorText}`);
-          }
-
-          const razorpayOrder = await razorpayResponse.json();
-          logWithDetails('Razorpay order created successfully', { 
-            razorpayOrderId: razorpayOrder.id,
-            amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency
-          });
-
-          sessionData = {
-            orderId: order.id,
-            sessionData: {
-              keyId: razorpayKeyId,
-              amount: razorpayOrder.amount,
-              currency: razorpayOrder.currency,
-              orderId: razorpayOrder.id,
-              name: 'Yogi',
-              description: `Payment for program ${programId}`
-            },
-            gateway: 'razorpay'
-          };
-        } catch (razorpayError) {
-          logWithDetails('ERROR: Failed to create Razorpay order', { error: razorpayError.message });
-          return new Response(
-            JSON.stringify({ error: `Razorpay order creation failed: ${razorpayError.message}` }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+      // Get Razorpay credentials and create order
+      const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID');
+      const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET');
+      
+      logWithDetails('Checking Razorpay credentials', {
+        hasKeyId: !!razorpayKeyId,
+        hasKeySecret: !!razorpayKeySecret,
+        keyIdLength: razorpayKeyId ? razorpayKeyId.length : 0,
+        keySecretLength: razorpayKeySecret ? razorpayKeySecret.length : 0,
+        keyIdPrefix: razorpayKeyId ? razorpayKeyId.substring(0, 8) + '...' : 'missing'
+      });
+      
+      if (!razorpayKeyId || !razorpayKeySecret) {
+        logWithDetails('ERROR: Missing Razorpay credentials');
+        return new Response(
+          JSON.stringify({ error: 'Payment gateway not configured properly' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Validate Razorpay key format
+      if (!razorpayKeyId.startsWith('rzp_')) {
+        logWithDetails('ERROR: Invalid Razorpay Key ID format', { keyIdPrefix: razorpayKeyId.substring(0, 8) });
+        return new Response(
+          JSON.stringify({ error: 'Invalid Razorpay Key ID format' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
-      logWithDetails('Session created successfully', { gateway, orderId: order.id });
-      return new Response(
-        JSON.stringify(sessionData),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      // Create Razorpay order
+      const razorpayOrderData = {
+        amount: Math.round(amount * 100), // Convert to paise
+        currency: currency,
+        receipt: order.id,
+        notes: {
+          program_id: programId,
+          user_id: user.id
+        }
+      };
+
+      logWithDetails('Attempting to create Razorpay order', razorpayOrderData);
+
+      try {
+        // Create Razorpay order using REST API
+        const razorpayResponse = await fetch('https://api.razorpay.com/v1/orders', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${btoa(`${razorpayKeyId}:${razorpayKeySecret}`)}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(razorpayOrderData)
+        });
+
+        if (!razorpayResponse.ok) {
+          const errorText = await razorpayResponse.text();
+          logWithDetails('ERROR: Razorpay API call failed', {
+            status: razorpayResponse.status,
+            statusText: razorpayResponse.statusText,
+            error: errorText
+          });
+          throw new Error(`Razorpay API error: ${razorpayResponse.status} ${errorText}`);
+        }
+
+        const razorpayOrder = await razorpayResponse.json();
+        logWithDetails('Razorpay order created successfully', { 
+          razorpayOrderId: razorpayOrder.id,
+          amount: razorpayOrder.amount,
+          currency: razorpayOrder.currency
+        });
+
+        const sessionData = {
+          orderId: order.id,
+          sessionData: {
+            keyId: razorpayKeyId,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            orderId: razorpayOrder.id,
+            name: 'Yogi',
+            description: `Payment for program ${programId}`
+          },
+          gateway: 'razorpay'
+        };
+
+        logWithDetails('Session created successfully', { gateway, orderId: order.id });
+        return new Response(
+          JSON.stringify(sessionData),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (razorpayError) {
+        logWithDetails('ERROR: Failed to create Razorpay order', { error: razorpayError.message });
+        return new Response(
+          JSON.stringify({ error: `Razorpay order creation failed: ${razorpayError.message}` }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Handle verify_payment action

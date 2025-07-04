@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Shield, CreditCard } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -11,7 +12,7 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { CouponCodeInput } from '@/components/CouponCodeInput';
 import { useCouponCode } from '@/hooks/useCouponCode';
 import { Link } from 'react-router-dom';
-import { createPaymentSession, handleBraintreePayment, handleRazorpayPayment } from '@/utils/paymentGateway';
+import { createPaymentSession, handleRazorpayPayment } from '@/utils/paymentGateway';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -87,7 +88,6 @@ const Payment = () => {
 
   const currencySymbol = isIndiaUser ? '₹' : '$';
   const finalPrice = Math.round(pricing.finalPrice || program.finalPrice || program.displayPrice);
-  const gateway = 'razorpay'; // Always use Razorpay (supports both INR and USD via PayPal)
   const couponDiscountPercentage = getDiscountPercentage();
 
   const handlePaymentSuccess = async (orderId: string, transactionId: string) => {
@@ -98,7 +98,7 @@ const Payment = () => {
           action: 'verify_payment',
           orderId,
           transactionId,
-          gateway
+          gateway: 'razorpay'
         }
       });
 
@@ -107,7 +107,7 @@ const Payment = () => {
       }
 
       // Track payment success
-      trackPayment(program.name, finalPrice, program.currency, gateway);
+      trackPayment(program.name, finalPrice, program.currency, 'razorpay');
 
       // Reset onboarding state for new subscription - all sequences restart
       await updateOnboardingState({ 
@@ -144,7 +144,7 @@ const Payment = () => {
       console.log('Starting payment process for:', {
         programId: program.id,
         finalPrice,
-        gateway,
+        gateway: 'razorpay',
         currency: program.currency
       });
 
@@ -197,11 +197,11 @@ const Payment = () => {
       }
 
       // Create payment session
-      const sessionData = await createPaymentSession(program, gateway);
+      const sessionData = await createPaymentSession(program, 'razorpay');
       
       console.log('Payment session created:', sessionData);
 
-      // Always use Razorpay for all payments
+      // Use Razorpay for payment
       await handleRazorpayPayment(sessionData, program, handlePaymentSuccess);
     } catch (error) {
       console.error('Payment error:', error);
@@ -275,7 +275,7 @@ const Payment = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Payment Method:</p>
-                    <p className="font-medium capitalize">{gateway}</p>
+                    <p className="font-medium">Razorpay</p>
                   </div>
                 </div>
               </div>
@@ -372,7 +372,7 @@ const Payment = () => {
             {/* Security Notice */}
             <div className="flex items-center justify-center gap-2 text-sm text-slate-600 pt-2">
               <Shield size={16} />
-              <span>Payments are processed securely</span>
+              <span>Payments are processed securely via Razorpay</span>
             </div>
           </CardContent>
         </Card>
