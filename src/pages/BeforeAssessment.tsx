@@ -67,7 +67,7 @@ const BeforeAssessment = () => {
         .select('*, programs(*)')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .gte('end_date', today)
+        .or('end_date.is.null,end_date.gte.' + today)
         .maybeSingle();
 
       if (!subscription) {

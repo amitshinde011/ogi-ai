@@ -63,8 +63,8 @@ const JourneyStart = () => {
         .select('*, programs(*)')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .lte('start_date', today)
-        .gte('end_date', today)
+        .or('start_date.is.null,start_date.lte.' + today)
+        .or('end_date.is.null,end_date.gte.' + today)
         .maybeSingle();
 
       /*if (!currentSub) {
@@ -73,12 +73,18 @@ const JourneyStart = () => {
         return;
       }*/
 
-      // Check if start date is today or has passed
-      const startDate = new Date(currentSub.start_date);
-      const todayDate = new Date(today);
+      // Check if start date is today or has passed (only if dates exist)
+      if (currentSub.start_date && currentSub.end_date) {
+        const startDate = new Date(currentSub.start_date);
+        const todayDate = new Date(today);
 
-      if (todayDate < startDate) {
-        // Start date hasn't arrived yet
+        if (todayDate < startDate) {
+          // Start date hasn't arrived yet
+          navigate('/before-assessment');
+          return;
+        }
+      } else {
+        // If dates are null, subscription is not yet started - redirect to before-assessment
         navigate('/before-assessment');
         return;
       }
