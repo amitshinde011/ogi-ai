@@ -64,7 +64,7 @@ export const useProgressData = () => {
     const suryaScore = Math.min(((wellness?.surya_namaskar_count || 0) / 12) * 20, 20);
     const meditationScore = (wellness?.meditation_completed || false) ? 20 : 0;
     const waterScore = Math.min(((wellness?.water_litres || 0) / 4) * 15, 15);
-    const stepsScore = Math.min(((steps?.steps_count || 0) / 10000) * 15, 15);
+    const stepsScore = Math.min(((steps?.steps_count || 0) / 5000) * 15, 15);
     
     return mealsScore + suryaScore + meditationScore + waterScore + stepsScore;
   };

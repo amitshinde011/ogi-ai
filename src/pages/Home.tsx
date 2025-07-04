@@ -53,7 +53,7 @@ const Home = () => {
       setTodayProgress(prev => ({
         ...prev,
         steps: steps,
-        walkScore: Math.min(Math.floor(steps / 2000), 5)
+        walkScore: Math.min(Math.floor(steps / 1000), 5)
       }));
     };
 
@@ -130,7 +130,7 @@ const Home = () => {
         lunch: mealTypes.includes('lunch'),
         dinner: mealTypes.includes('dinner'),
         steps: todaySteps,
-        walkScore: Math.min(Math.floor(todaySteps / 2000), 5),
+        walkScore: Math.min(Math.floor(todaySteps / 1000), 5),
         saladBowl: hasSaladBowl,
         kanji: hasKanji
       });

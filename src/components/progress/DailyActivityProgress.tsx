@@ -43,7 +43,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
   };
 
   const calculateStepsProgress = () => {
-    return Math.min((activityData.steps / 10000) * 15, 15);
+    return Math.min((activityData.steps / 5000) * 15, 15);
   };
 
   const totalProgress = 
@@ -98,7 +98,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       name: 'Steps',
       icon: Target,
       current: activityData.steps,
-      target: 10000,
+      target: 5000,
       progress: calculateStepsProgress(),
       weight: 15,
       unit: 'steps',
