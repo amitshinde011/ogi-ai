@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -18,6 +17,7 @@ import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/hooks/useAuth';
 import { useWellnessTracking } from '@/hooks/useWellnessTracking';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -207,9 +207,26 @@ const Home = () => {
 
   const mealsLogged = [todayProgress.breakfast, todayProgress.lunch, todayProgress.dinner].filter(Boolean).length;
 
+  // Profile menu component for the header
+  const profileElement = (
+    <ProfileMenu>
+      <button className="p-2 hover:bg-slate-100 rounded-xl transition-all duration-200 interactive">
+        <Avatar className="h-8 w-8">
+          <AvatarImage 
+            src={userProfile.profile_photo_url || undefined} 
+            alt={userProfile.name}
+          />
+          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+            {userProfile.name?.charAt(0) || 'U'}
+          </AvatarFallback>
+        </Avatar>
+      </button>
+    </ProfileMenu>
+  );
+
   return (
     <Layout>
-      <Header title="Home" />
+      <Header title="Home" rightElement={profileElement} />
       {showBanner && <SubscriptionBanner />}
       
       <div className="p-4 space-y-6 max-w-md mx-auto">
