@@ -104,7 +104,7 @@ const Signup = () => {
                 className="w-full h-full object-contain"
               />
             </div>
-            <p className="text-black">Start your wellness journey today</p>
+            <p className="text-black">Become the best version of yourself</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
