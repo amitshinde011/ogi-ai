@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
@@ -7,12 +6,15 @@ import CurrentProgramCard from '@/components/progress/CurrentProgramCard';
 import NoProgramCard from '@/components/progress/NoProgramCard';
 import ProgramHistorySection from '@/components/progress/ProgramHistorySection';
 import DailyActivityProgress from '@/components/progress/DailyActivityProgress';
+import WeeklyProgress from '@/components/progress/WeeklyProgress';
+import JourneyProgress from '@/components/progress/JourneyProgress';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Calendar, TrendingUp } from 'lucide-react';
+import { Loader2, Calendar, TrendingUp, Activity, Target } from 'lucide-react';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { calculateProgramProgress } from '@/utils/dateUtils';
 import { useTodayActivity } from '@/hooks/useTodayActivity';
+import { useProgressData } from '@/hooks/useProgressData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -34,6 +36,7 @@ const ProgressPage = () => {
   const [loading, setLoading] = useState(true);
   const { showBanner } = useSubscriptionBanner();
   const { activityData, loading: activityLoading } = useTodayActivity();
+  const { weeklyData, journeyData, loading: progressLoading } = useProgressData();
 
   useEffect(() => {
     fetchProgressData();
@@ -106,7 +109,7 @@ const ProgressPage = () => {
     navigate('/comparison', { state: { subscriptionId: programId } });
   };
 
-  if (loading || activityLoading) {
+  if (loading || activityLoading || progressLoading) {
     return (
       <Layout>
         <Header title="Progress" />
@@ -129,19 +132,35 @@ const ProgressPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="p-4 max-w-4xl mx-auto">
           <Tabs defaultValue="today" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm">
+            <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm">
               <TabsTrigger value="today" className="flex items-center gap-2">
                 <Calendar size={16} />
-                Today's Activity
+                Today
+              </TabsTrigger>
+              <TabsTrigger value="weekly" className="flex items-center gap-2">
+                <TrendingUp size={16} />
+                Weekly
+              </TabsTrigger>
+              <TabsTrigger value="journey" className="flex items-center gap-2">
+                <Activity size={16} />
+                Journey
               </TabsTrigger>
               <TabsTrigger value="program" className="flex items-center gap-2">
-                <TrendingUp size={16} />
-                Program Progress
+                <Target size={16} />
+                Program
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="today" className="space-y-6">
               <DailyActivityProgress activityData={activityData} />
+            </TabsContent>
+
+            <TabsContent value="weekly" className="space-y-6">
+              <WeeklyProgress data={weeklyData} />
+            </TabsContent>
+
+            <TabsContent value="journey" className="space-y-6">
+              <JourneyProgress data={journeyData} />
             </TabsContent>
 
             <TabsContent value="program" className="space-y-6">
