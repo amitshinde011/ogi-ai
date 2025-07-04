@@ -49,8 +49,8 @@ export const determineLandingPage = async (): Promise<string> => {
       .select('*, programs(*)')
       .eq('user_id', user.id)
       .eq('status', 'active')
-      .lte('start_date', today)
-      .gte('end_date', today)
+      .or('start_date.is.null,start_date.lte.' + today)
+      .or('end_date.is.null,end_date.gte.' + today)
       .maybeSingle();
 
     let isStarted = false;
@@ -58,11 +58,18 @@ export const determineLandingPage = async (): Promise<string> => {
     let hasFinalAssessment = false;
 
     if (currentSubscription) {
-      const startDate = new Date(currentSubscription.start_date);
-      const endDate = new Date(currentSubscription.end_date);
-      const todayDate = new Date(today);
-      isCompleted = todayDate >= endDate;
-      isStarted = todayDate >= startDate;
+      if (currentSubscription.start_date && currentSubscription.end_date) {
+        const startDate = new Date(currentSubscription.start_date);
+        const endDate = new Date(currentSubscription.end_date);
+        const todayDate = new Date(today);
+        isCompleted = todayDate >= endDate;
+        isStarted = todayDate >= startDate;
+      } else {
+        // If dates are null, subscription is not yet started
+        isStarted = false;
+        isCompleted = false;
+      }
+      
       if (isCompleted) {
         const { data: finalAssessment } = await supabase
           .from('final_assessments')
