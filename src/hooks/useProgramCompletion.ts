@@ -32,14 +32,15 @@ export const useProgramCompletion = () => {
       }
 
       const today = new Date().toISOString().split('T')[0];
+      const todayDate = new Date(today);
       
-      // Get active subscription that has ended
+      // Get active subscription that has ended (end date is inclusive, so program ends the day after)
       const { data: subscription } = await supabase
         .from('user_subscriptions')
         .select('*, programs(*)')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .lte('end_date', today)
+        .lt('end_date', today) // Program completes the day after end date
         .maybeSingle();
 
       if (subscription) {

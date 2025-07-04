@@ -278,9 +278,9 @@ const BeforeAssessment = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !currentSubscription) return;
 
-      // Calculate end date
+      // Calculate end date (inclusive - so duration_days from start date)
       const endDate = new Date(selectedDate);
-      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days);
+      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days - 1);
 
       const { error } = await supabase
         .from('user_subscriptions')
@@ -297,7 +297,7 @@ const BeforeAssessment = () => {
 
       toast({
         title: "Journey Scheduled!",
-        description: `Your journey will start on ${new Date(selectedStartDate).toLocaleDateString()}.`,
+        description: `Your journey will start on ${new Date(selectedStartDate).toLocaleDateString()} and end on ${endDate.toLocaleDateString()} (inclusive).`,
       });
 
       // Check if start date is today
@@ -479,7 +479,7 @@ const BeforeAssessment = () => {
                   <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
                   <div className="text-sm">
                     <p className="font-medium mb-1">Important:</p>
-                    <p>You can change your start date anytime before it arrives. Once your journey begins, the date cannot be modified.</p>
+                    <p>You can change your start date anytime before it arrives. Once your journey begins, the date cannot be modified. The end date is inclusive - your program runs through the final day.</p>
                   </div>
                 </div>
               </div>

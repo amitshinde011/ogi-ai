@@ -10,6 +10,7 @@ import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
+import { calculateProgramProgress } from '@/utils/dateUtils';
 
 interface ProgramData {
   id: string;
@@ -62,14 +63,8 @@ const ProgressPage = () => {
       if (!subscriptions) return;
 
       const programsData: ProgramData[] = subscriptions.map(sub => {
-        const startDate = new Date(sub.start_date);
-        const endDate = new Date(sub.end_date);
-        const todayDate = new Date(today);
-        
-        const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const daysFromStart = Math.ceil((todayDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const daysCompleted = Math.max(1, daysFromStart + 1); // First day shows as Day 1
-        const progressPercentage = Math.min(100, ((daysCompleted - 1) / totalDays) * 100);
+        const { totalDays, daysCompleted, progressPercentage, isCompleted } = 
+          calculateProgramProgress(sub.start_date, sub.end_date);
 
         return {
           id: sub.id,
@@ -79,13 +74,20 @@ const ProgressPage = () => {
           end_date: sub.end_date,
           status: sub.status,
           progress_percentage: progressPercentage,
-          days_completed: Math.min(daysCompleted, totalDays)
+          days_completed: daysCompleted
         };
       });
 
       // Separate current and historical programs
-      const current = programsData.find(p => p.status === 'active' && new Date(p.end_date) >= new Date(today));
-      const historical = programsData.filter(p => p.id !== current?.id && (p.status !== 'active' || new Date(p.end_date) < new Date(today)));
+      // Current program is active and not completed (end date is inclusive)
+      const current = programsData.find(p => {
+        if (p.status !== 'active') return false;
+        const endDate = new Date(p.end_date);
+        const todayDate = new Date(today);
+        return todayDate <= endDate; // Program is current until end date (inclusive)
+      });
+      
+      const historical = programsData.filter(p => p.id !== current?.id);
 
       setCurrentProgram(current || null);
       setHistoricalPrograms(historical);

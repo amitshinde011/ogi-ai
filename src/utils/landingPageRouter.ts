@@ -87,7 +87,9 @@ export const determineLandingPage = async (): Promise<string> => {
         const startDate = new Date(currentSubscription.start_date);
         const endDate = new Date(currentSubscription.end_date);
         const todayDate = new Date(today);
-        isCompleted = todayDate >= endDate;
+        
+        // Program is completed the day AFTER the end date (inclusive end date)
+        isCompleted = todayDate > endDate;
         isStarted = todayDate >= startDate;
       } else {
         // If dates are null, subscription is not yet started

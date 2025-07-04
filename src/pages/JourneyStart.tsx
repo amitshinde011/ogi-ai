@@ -38,25 +38,23 @@ const JourneyStart = () => {
         .eq('status', 'active')
         .lte('start_date', today)
         .gte('end_date', today)
-        .explain(); // This gets the execution plan
+        .explain();
 
       if (planError) {
         console.error('Error fetching query plan:', planError);
       } else {
         console.log('--- Supabase Query Plan ---');
 
-        // Get the first element of the array
         const planObject = planData?.[0];
 
-        // Check if planObject exists, is an object (not a string), and has the 'Plan' property
         if (typeof planObject === 'object' && planObject !== null && 'Plan' in planObject) {
           console.log(planObject.Plan);
         } else {
-          // If the structure is not what we expect, log the whole object
           console.log('Could not find the .Plan property. Inspect the full response instead:');
           console.log(planData);
         }
       }
+      
       // Get active subscription that should start today
       const { data: currentSub } = await supabase
         .from('user_subscriptions')
@@ -67,14 +65,8 @@ const JourneyStart = () => {
         .or('end_date.is.null,end_date.gte.' + today)
         .maybeSingle();
 
-      /*if (!currentSub) {
-        // No active subscription that should start today
-        navigate('/subscriptions');
-        return;
-      }*/
-
       // Check if start date is today or has passed (only if dates exist)
-      if (currentSub.start_date && currentSub.end_date) {
+      if (currentSub && currentSub.start_date && currentSub.end_date) {
         const startDate = new Date(currentSub.start_date);
         const todayDate = new Date(today);
 
@@ -83,7 +75,7 @@ const JourneyStart = () => {
           navigate('/before-assessment');
           return;
         }
-      } else {
+      } else if (currentSub) {
         // If dates are null, subscription is not yet started - redirect to before-assessment
         navigate('/before-assessment');
         return;
@@ -133,6 +125,8 @@ const JourneyStart = () => {
   const getDaysRemaining = () => {
     const today = new Date();
     const endDate = new Date(subscription.end_date);
+    // Add 1 day since end date is inclusive
+    endDate.setDate(endDate.getDate() + 1);
     const diffTime = endDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
@@ -192,7 +186,7 @@ const JourneyStart = () => {
                 Journey End Date:
               </span>
               <span className="text-blue-700 font-semibold">
-                {new Date(subscription.end_date).toLocaleDateString()}
+                {new Date(subscription.end_date).toLocaleDateString()} (Inclusive)
               </span>
             </div>
           </CardContent>
