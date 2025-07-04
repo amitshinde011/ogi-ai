@@ -28,20 +28,24 @@ const IntroVideo = () => {
           return;
         }
 
-        // Check if there's an active subscription first
-        const { data: subscription } = await supabase
-          .from('user_subscriptions')
-          .select('id, created_at')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-          .maybeSingle();
-        console.log('Subscription ',subscription );
-        if (!subscription) {
-          // No active subscription, redirect to subscriptions
-          navigate('/subscriptions');
-          return;
-        }
+      // Check if there's an active subscription first - align with landingPageRouter logic
+      const today = new Date().toISOString().split('T')[0];
+      const { data: subscription } = await supabase
+        .from('user_subscriptions')
+        .select('id, created_at, start_date, end_date')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .or('end_date.is.null,end_date.gte.' + today)
+        .order('created_at', { ascending: false })
+        .maybeSingle();
+      
+      console.log('IntroVideo - Subscription check:', subscription);
+      if (!subscription) {
+        // No active subscription, redirect to subscriptions
+        console.log('IntroVideo - No active subscription found, redirecting to subscriptions');
+        navigate('/subscriptions');
+        return;
+      }
 
         // For active subscriptions, check if intro video is completed
         // Only redirect if intro video is watched AND there's an active subscription
