@@ -23,7 +23,7 @@ export const PostActions: React.FC<PostActionsProps> = ({
           variant="ghost"
           size="sm"
           onClick={onLike}
-          className={`p-0 h-auto hover:bg-transparent ${
+          className={`p-2 hover:bg-transparent ${
             isLiked ? 'text-red-500' : 'text-gray-700'
           }`}
         >
@@ -37,7 +37,7 @@ export const PostActions: React.FC<PostActionsProps> = ({
           variant="ghost"
           size="sm"
           onClick={onToggleComments}
-          className="p-0 h-auto hover:bg-transparent text-gray-700"
+          className="p-2 hover:bg-transparent text-gray-700"
         >
           <MessageCircle size={40} strokeWidth={1.5} />
         </Button>
