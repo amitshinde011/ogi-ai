@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, Shield, HelpCircle, LogOut, FileText, Scale } from 'lucide-react';
+import { User, Shield, HelpCircle, LogOut, FileText, Scale, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -158,6 +158,12 @@ const Settings = () => {
           icon: User,
           label: 'Edit Profile',
           action: () => navigate('/profile-edit'),
+          hasArrow: true
+        },
+        {
+          icon: KeyRound,
+          label: 'Change Password',
+          action: () => navigate('/password-change'),
           hasArrow: true
         },
         {
