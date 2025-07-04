@@ -67,8 +67,9 @@ const ProgressPage = () => {
         const todayDate = new Date(today);
         
         const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const daysCompleted = Math.max(0, Math.ceil((todayDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
-        const progressPercentage = Math.min(100, (daysCompleted / totalDays) * 100);
+        const daysFromStart = Math.ceil((todayDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        const daysCompleted = Math.max(1, daysFromStart + 1); // First day shows as Day 1
+        const progressPercentage = Math.min(100, ((daysCompleted - 1) / totalDays) * 100);
 
         return {
           id: sub.id,
