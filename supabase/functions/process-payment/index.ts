@@ -369,35 +369,35 @@ serve(async (req) => {
 
       logWithDetails('Payment verified successfully', { orderId, transactionId });
 
-      // Get program details to create subscription
-      const { data: program, error: programError } = await supabase
-        .from('programs')
-        .select('duration_days')
-        .eq('id', order.program_id)
-        .single();
+      // First, mark any existing active subscriptions as completed
+      const { error: updateError } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'completed' })
+        .eq('user_id', user.id)
+        .eq('status', 'active');
 
-      if (!programError && program) {
-        // Create subscription
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(startDate.getDate() + (program.duration_days || 30));
+      if (updateError) {
+        logWithDetails('ERROR: Failed to update existing subscriptions', { error: updateError });
+      } else {
+        logWithDetails('Existing active subscriptions marked as completed');
+      }
 
-        const { error: subscriptionError } = await supabase
-          .from('user_subscriptions')
-          .insert({
-            user_id: user.id,
-            program_id: order.program_id,
-            start_date: startDate.toISOString().split('T')[0],
-            end_date: endDate.toISOString().split('T')[0],
-            status: 'active',
-            payment_status: 'paid'
-          });
+      // Create subscription without start/end dates (to be set later on before-assessment)
+      const { error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .insert({
+          user_id: user.id,
+          program_id: order.program_id,
+          start_date: null,
+          end_date: null,
+          status: 'active',
+          payment_status: 'paid'
+        });
 
-        if (subscriptionError) {
-          logWithDetails('ERROR: Subscription creation failed', { error: subscriptionError });
-        } else {
-          logWithDetails('Subscription created successfully');
-        }
+      if (subscriptionError) {
+        logWithDetails('ERROR: Subscription creation failed', { error: subscriptionError });
+      } else {
+        logWithDetails('Subscription created successfully without dates');
       }
 
       return new Response(

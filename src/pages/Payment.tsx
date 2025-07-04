@@ -109,18 +109,6 @@ const Payment = () => {
       // Track payment success
       trackPayment(program.name, finalPrice, program.currency, gateway);
 
-      // First, mark any existing active subscriptions as completed
-      const { error: updateError } = await supabase
-        .from('user_subscriptions')
-        .update({ status: 'completed' })
-        .eq('user_id', user.id)
-        .eq('status', 'active');
-
-      if (updateError) {
-        console.error('Error updating existing subscriptions:', updateError);
-        // Don't throw here as payment was successful
-      }
-
       // Reset onboarding state for new subscription - all sequences restart
       await updateOnboardingState({ 
         subscription_selected: true,
@@ -128,27 +116,6 @@ const Payment = () => {
         before_assessment_completed: false,
         journey_started: false
       });
-
-      // Create new subscription record
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(startDate.getDate() + program.duration_days);
-
-      const { error: subscriptionError } = await supabase
-        .from('user_subscriptions')
-        .insert({
-          user_id: user.id,
-          program_id: program.id,
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
-          status: 'active',
-          payment_status: 'paid'
-        });
-
-      if (subscriptionError) {
-        console.error('Subscription creation error:', subscriptionError);
-        // Don't throw here as payment was successful
-      }
 
       // Invalidate user program cache to refresh subscription data
       queryClient.invalidateQueries({ queryKey: ['user-current-program'] });
@@ -194,18 +161,14 @@ const Payment = () => {
           console.error('Error updating existing subscriptions:', updateError);
         }
 
-        // Handle free subscription directly
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(startDate.getDate() + program.duration_days);
-
+        // Handle free subscription directly - create without dates
         const { error: subscriptionError } = await supabase
           .from('user_subscriptions')
           .insert({
             user_id: user.id,
             program_id: program.id,
-            start_date: startDate.toISOString().split('T')[0],
-            end_date: endDate.toISOString().split('T')[0],
+            start_date: null,
+            end_date: null,
             status: 'active',
             payment_status: 'paid'
           });
