@@ -254,7 +254,7 @@ const Settings = () => {
 
         {/* Version */}
         <div className="text-center text-sm text-slate-500 font-medium">
-          Yogi-ai v1.0.0
+          Yogi v1.0.0
         </div>
       </div>
     </Layout>
