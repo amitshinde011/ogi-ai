@@ -97,14 +97,14 @@ const Signup = () => {
       <Card className="w-full max-w-md animate-fade-in shadow-lg border-gray-200 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
-            <div className="w-24 h-24 mx-auto flex items-center justify-center mb-4">
+            <div className="w-32 h-32 mx-auto flex items-center justify-center mb-4">
               <img 
                 src="/lovable-uploads/6cf2c839-5326-4219-9033-549deb1fb03c.png" 
                 alt="Yogi Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
-            <p className="text-black">Become the best version of yourself</p>
+            <p className="text-black">Start your wellness journey today</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
