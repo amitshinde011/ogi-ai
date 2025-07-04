@@ -18,14 +18,14 @@ export const useLocationDetection = () => {
   useEffect(() => {
     const detectUserLocation = async () => {
       // If test flag is enabled, use simulated location
-      if (TEST_SIMULATE_INDIA !== null) {
+      /*if (TEST_SIMULATE_INDIA !== null) {
         console.log('🧪 TEST MODE: Simulating location -', TEST_SIMULATE_INDIA ? 'India' : 'International');
         setLocationData({
           userLocation: TEST_SIMULATE_INDIA ? 'India (Test)' : 'International (Test)',
           isIndiaUser: TEST_SIMULATE_INDIA
         });
         return;
-      }
+      }*/
 
       try {
         // Try multiple methods to get location
