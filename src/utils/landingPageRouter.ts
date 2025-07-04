@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface OnboardingState {
@@ -41,7 +42,25 @@ export const determineLandingPage = async (): Promise<string> => {
     const onboardingState: OnboardingState = onboardingData || {};
     console.log('Onboarding state:', onboardingState);
 
-    // Get program completion state
+    // Check profile completion FIRST - highest priority
+    if (!onboardingState.profile_completed) {
+      console.log('Profile not completed, redirecting to profile setup');
+      return '/profile-setup';
+    }
+
+    // Check subscription selection
+    if (!onboardingState.subscription_selected) {
+      console.log('Subscription not selected, redirecting to progress');
+      return '/progress';
+    }
+
+    // Check intro video completion
+    if (!onboardingState.intro_video_watched) {
+      console.log('Intro video not watched, redirecting to intro video');
+      return '/intro-video';
+    }
+
+    // Get program completion state ONLY after intro video is watched
     const today = new Date().toISOString().split('T')[0];
     
     const { data: currentSubscription } = await supabase
@@ -84,13 +103,7 @@ export const determineLandingPage = async (): Promise<string> => {
 
     console.log('Program completion:', { isCompleted, hasFinalAssessment });
 
-    // Check profile completion FIRST - highest priority
-    if (!onboardingState.profile_completed) {
-      console.log('Profile not completed, redirecting to profile setup');
-      return '/profile-setup';
-    }
-
-    // Check program completion status after profile is completed
+    // Handle program completion
     if (isCompleted) {
       if (!hasFinalAssessment) {
         console.log('Program completed but final assessment not done, redirecting to program complete');
@@ -101,15 +114,9 @@ export const determineLandingPage = async (): Promise<string> => {
       }
     }
 
-    // Navigate based on remaining onboarding progress
-    if (!onboardingState.subscription_selected) {
-      console.log('Subscription not selected, redirecting to progress');
-      return '/progress';
-    } else if (!onboardingState.intro_video_watched) {
-      console.log('Intro video not watched, redirecting to intro video');
-      return '/intro-video';
-    } else if (!onboardingState.before_assessment_completed || !isStarted) {
-      console.log('Before assessment not completed, redirecting to before assessment');
+    // Continue with onboarding flow based on remaining steps
+    if (!onboardingState.before_assessment_completed || !isStarted) {
+      console.log('Before assessment not completed or program not started, redirecting to before assessment');
       return '/before-assessment';
     } else if (!onboardingState.journey_started) {
       console.log('Journey not started, redirecting to journey start');
