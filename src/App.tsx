@@ -79,11 +79,7 @@ const AppWithAnalytics = () => {
           <SavedRecipes />
         </ProtectedRoute>
       } />
-      <Route path="/intro-video" element={
-        <ProtectedRoute requiresActiveSubscription>
-          <IntroVideo />
-        </ProtectedRoute>
-      } />
+      <Route path="/intro-video" element={<IntroVideo />} />
       <Route path="/journey-start" element={
         <ProtectedRoute requiresActiveSubscription>
           <JourneyStart />
