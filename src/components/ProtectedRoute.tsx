@@ -20,6 +20,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { data: userProgram, isLoading: programLoading } = useUserProgram();
   const { isCompleted, loading: completionLoading } = useProgramCompletion();
 
+  console.log('ProtectedRoute - userProgram:', userProgram);
+  console.log('ProtectedRoute - isCompleted:', isCompleted);
+  console.log('ProtectedRoute - requiresActiveSubscription:', requiresActiveSubscription);
+  console.log('ProtectedRoute - showBlurOverlay:', showBlurOverlay);
+
   // Show loading while checking subscription status
   if (programLoading || completionLoading) {
     return (
@@ -42,20 +47,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If route requires active subscription
   if (requiresActiveSubscription) {
-    // If program is completed, redirect to progress page
+    // If program is completed, either show blur overlay or redirect
     if (isCompleted) {
+      if (showBlurOverlay) {
+        return <SubscriptionBlurOverlay>{children}</SubscriptionBlurOverlay>;
+      }
       return <Navigate to="/progress" replace />;
     }
     
-    // If no active program, redirect to progress page
+    // If no active program, either show blur overlay or redirect
     if (!userProgram) {
+      if (showBlurOverlay) {
+        return <SubscriptionBlurOverlay>{children}</SubscriptionBlurOverlay>;
+      }
       return <Navigate to="/progress" replace />;
     }
-  }
-
-  // If showBlurOverlay is true and no active subscription, show blurred content
-  if (showBlurOverlay && (!userProgram || isCompleted)) {
-    return <SubscriptionBlurOverlay>{children}</SubscriptionBlurOverlay>;
   }
 
   return <>{children}</>;

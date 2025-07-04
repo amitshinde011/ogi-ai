@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Loader2 } from 'lucide-react';
@@ -43,13 +44,6 @@ const Recipes = () => {
   }, [programRecipes, searchTerm, selectedCategory]);
 
   const isLoading = programLoading || recipesLoading;
-
-  // Handle program completion redirect
-  useEffect(() => {
-    if (isCompleted && !isLoading) {
-      navigate('/subscriptions');
-    }
-  }, [isCompleted, navigate, isLoading]);
 
   if (isLoading) {
     return (

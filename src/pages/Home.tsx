@@ -38,14 +38,6 @@ const Home = () => {
   // Use wellness tracking hook
   const { wellnessData, loading: wellnessLoading, updateWellnessData } = useWellnessTracking();
 
-  // Redirect to subscriptions if program is completed
-  useEffect(() => {
-    if (isCompleted) {
-      navigate('/subscriptions');
-      return;
-    }
-  }, [isCompleted, navigate]);
-
   // Listen for step updates from step tracker
   useEffect(() => {
     const handleStepsUpdated = (event: CustomEvent) => {

@@ -98,7 +98,7 @@ const App = () => {
             <Route path="/cancellations-refunds" element={<CancellationsRefunds />} />
 
             {/* Protected routes */}
-            <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/home" element={<ProtectedRoute requiresActiveSubscription={true} showBlurOverlay={true}><Home /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/password-change" element={<ProtectedRoute><PasswordChange /></ProtectedRoute>} />
             <Route path="/profile-setup" element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
@@ -109,9 +109,9 @@ const App = () => {
             <Route path="/subscriptions" element={<ProtectedRoute><Subscriptions /></ProtectedRoute>} />
             <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
             <Route path="/progress" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
-            <Route path="/recipes" element={<ProtectedRoute><Recipes /></ProtectedRoute>} />
-            <Route path="/recipe/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
-            <Route path="/saved-recipes" element={<ProtectedRoute><SavedRecipes /></ProtectedRoute>} />
+            <Route path="/recipes" element={<ProtectedRoute requiresActiveSubscription={true} showBlurOverlay={true}><Recipes /></ProtectedRoute>} />
+            <Route path="/recipe/:id" element={<ProtectedRoute requiresActiveSubscription={true}><RecipeDetail /></ProtectedRoute>} />
+            <Route path="/saved-recipes" element={<ProtectedRoute requiresActiveSubscription={true}><SavedRecipes /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
             <Route path="/post/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
