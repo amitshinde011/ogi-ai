@@ -267,7 +267,7 @@ serve(async (req) => {
         const razorpayOrderData = {
           amount: Math.round(amount * 100), // Convert to paise
           currency: currency,
-          receipt: `order_${order.id}`,
+          receipt: order.id,
           notes: {
             program_id: programId,
             user_id: user.id
@@ -311,7 +311,7 @@ serve(async (req) => {
               amount: razorpayOrder.amount,
               currency: razorpayOrder.currency,
               orderId: razorpayOrder.id,
-              name: 'Yogi-ai',
+              name: 'Yogi',
               description: `Payment for program ${programId}`
             },
             gateway: 'razorpay'
