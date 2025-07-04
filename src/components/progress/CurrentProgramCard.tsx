@@ -29,7 +29,7 @@ const CurrentProgramCard = ({ program }: CurrentProgramCardProps) => {
   };
 
   return (
-    <Card className="bg-primary text-primary-foreground border-gray-300 w-full">
+    <Card className="bg-sage text-white border-gray-300 w-full">
       <CardHeader className="pb-3 sm:pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base sm:text-lg">Current Program</CardTitle>
@@ -39,7 +39,7 @@ const CurrentProgramCard = ({ program }: CurrentProgramCardProps) => {
       <CardContent className="space-y-3 sm:space-y-4">
         <div>
           <h3 className="font-bold text-lg sm:text-xl">{program.name}</h3>
-          <p className="text-primary-foreground/90 text-sm sm:text-base">
+          <p className="text-white/90 text-sm sm:text-base">
             Day {program.days_completed} of {program.duration_days}
           </p>
         </div>
@@ -49,7 +49,7 @@ const CurrentProgramCard = ({ program }: CurrentProgramCardProps) => {
             <span>Progress</span>
             <span>{Math.round(program.progress_percentage)}%</span>
           </div>
-          <Progress value={program.progress_percentage} className="bg-primary-foreground/30 h-2 sm:h-3" />
+          <Progress value={program.progress_percentage} className="bg-white/30 h-2 sm:h-3" />
         </div>
         
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs sm:text-sm">
