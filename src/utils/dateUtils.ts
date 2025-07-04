@@ -41,9 +41,29 @@ export const calculateProgramProgress = (startDate: string, endDate: string) => 
   // Calculate total days from start to end (inclusive)
   const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   
-  // Calculate days completed (1-based, so day 1 is the start date)
+  // Calculate days completed - if today is the start date, it's day 1
   const daysFromStart = Math.ceil((todayDate.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   const daysCompleted = Math.max(1, daysFromStart + 1);
+  
+  // If today is before the start date, we haven't started yet
+  if (todayDate < start) {
+    return {
+      totalDays,
+      daysCompleted: 0,
+      progressPercentage: 0,
+      isCompleted: false
+    };
+  }
+  
+  // If today is the start date, it's day 1
+  if (todayDate.getTime() === start.getTime()) {
+    return {
+      totalDays,
+      daysCompleted: 1,
+      progressPercentage: (1 / totalDays) * 100,
+      isCompleted: false
+    };
+  }
   
   // Progress percentage based on completed days
   const progressPercentage = Math.min(100, (daysCompleted / totalDays) * 100);
