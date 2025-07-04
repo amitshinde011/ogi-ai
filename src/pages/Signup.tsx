@@ -67,7 +67,8 @@ const Signup = () => {
           description: error.message,
           variant: "destructive"
         });
-      } else {
+      } else if (data.user && !data.user.email_confirmed_at) {
+        // New user created successfully
         console.log('Signup success:', data);
         toast({
           title: "Account created successfully!",
@@ -75,6 +76,13 @@ const Signup = () => {
         });
         // Redirect to login page with verification message
         navigate('/login?message=verify');
+      } else {
+        // User already exists
+        toast({
+          title: "User already exists",
+          description: "An account with this email already exists. Please sign in instead.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Signup catch error:', error);

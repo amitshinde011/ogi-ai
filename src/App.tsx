@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
 import Upload from "./pages/Upload";
 import Community from "./pages/Community";
@@ -48,6 +49,7 @@ const AppWithAnalytics = () => {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       
       {/* Routes with blur overlay for inactive users */}
       <Route path="/home" element={
