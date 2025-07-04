@@ -18,9 +18,9 @@ const IntroVideo = () => {
   const { toast } = useToast();
   const { trackVideoComplete, trackButtonClick } = useAnalytics();
   const [videoWatched, setVideoWatched] = useState(false);
-  console.log('IntroVideo - Before Subscription check:', videoWatched,setVideoWatched );
+  
   useEffect(() => {
-    const checkVideoCompletionStatus = async () => {
+    const checkAuthAndRedirect = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -28,39 +28,19 @@ const IntroVideo = () => {
           return;
         }
 
-      // Check if there's an active subscription first - align with landingPageRouter logic
-      const today = new Date().toISOString().split('T')[0];
-      const { data: subscription } = await supabase
-        .from('user_subscriptions')
-        .select('id, created_at, start_date, end_date')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .or('end_date.is.null,end_date.gte.' + today)
-        .order('created_at', { ascending: false })
-        .maybeSingle();
-      
-      console.log('IntroVideo - Subscription check:', subscription);
-      if (!subscription) {
-        // No active subscription, redirect to subscriptions
-        console.log('IntroVideo - No active subscription found, redirecting to subscriptions');
-        navigate('/subscriptions');
-        return;
-      }
-
-        // For active subscriptions, check if intro video is completed
-        // Only redirect if intro video is watched AND there's an active subscription
-        if (onboardingState?.intro_video_watched && subscription) {
-          console.log('Intro video already completed for current subscription, redirecting');
+        // Only redirect if intro video is already completed
+        if (onboardingState?.intro_video_watched) {
+          console.log('Intro video already completed, redirecting to before-assessment');
           navigate('/before-assessment');
           return;
         }
       } catch (error) {
-        console.error('Error checking video completion status:', error);
+        console.error('Error checking auth status:', error);
       }
     };
 
     if (onboardingState !== null) {
-      checkVideoCompletionStatus();
+      checkAuthAndRedirect();
     }
   }, [onboardingState, navigate]);
 
