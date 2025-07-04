@@ -6,11 +6,15 @@ import Header from '@/components/Header';
 import CurrentProgramCard from '@/components/progress/CurrentProgramCard';
 import NoProgramCard from '@/components/progress/NoProgramCard';
 import ProgramHistorySection from '@/components/progress/ProgramHistorySection';
+import DailyActivityProgress from '@/components/progress/DailyActivityProgress';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Calendar, TrendingUp } from 'lucide-react';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { calculateProgramProgress } from '@/utils/dateUtils';
+import { useTodayActivity } from '@/hooks/useTodayActivity';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ProgramData {
   id: string;
@@ -29,6 +33,7 @@ const ProgressPage = () => {
   const [historicalPrograms, setHistoricalPrograms] = useState<ProgramData[]>([]);
   const [loading, setLoading] = useState(true);
   const { showBanner } = useSubscriptionBanner();
+  const { activityData, loading: activityLoading } = useTodayActivity();
 
   useEffect(() => {
     fetchProgressData();
@@ -79,7 +84,6 @@ const ProgressPage = () => {
       });
 
       // Separate current and historical programs
-      // Current program is active and not completed (end date is inclusive)
       const current = programsData.find(p => {
         if (p.status !== 'active') return false;
         const endDate = new Date(p.end_date);
@@ -99,17 +103,19 @@ const ProgressPage = () => {
   };
 
   const handleHistoryItemClick = (programId: string) => {
-    // Navigate to comparison page for completed program
     navigate('/comparison', { state: { subscriptionId: programId } });
   };
 
-  if (loading) {
+  if (loading || activityLoading) {
     return (
       <Layout>
         <Header title="Progress" />
         {showBanner && <SubscriptionBanner />}
-        <div className="min-h-screen bg-light-gray flex items-center justify-center">
-          <Loader2 size={32} strokeWidth={1.5} className="text-sage animate-spin" />
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 size={40} strokeWidth={1.5} className="text-sage animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Loading your progress...</p>
+          </div>
         </div>
       </Layout>
     );
@@ -120,19 +126,40 @@ const ProgressPage = () => {
       <Header title="Your Progress" />
       {showBanner && <SubscriptionBanner />}
       
-      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
-        {/* Current Program or No Program */}
-        {currentProgram ? (
-          <CurrentProgramCard program={currentProgram} />
-        ) : (
-          <NoProgramCard />
-        )}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="p-4 max-w-4xl mx-auto">
+          <Tabs defaultValue="today" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm">
+              <TabsTrigger value="today" className="flex items-center gap-2">
+                <Calendar size={16} />
+                Today's Activity
+              </TabsTrigger>
+              <TabsTrigger value="program" className="flex items-center gap-2">
+                <TrendingUp size={16} />
+                Program Progress
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Program History */}
-        <ProgramHistorySection 
-          programs={historicalPrograms} 
-          onItemClick={handleHistoryItemClick}
-        />
+            <TabsContent value="today" className="space-y-6">
+              <DailyActivityProgress activityData={activityData} />
+            </TabsContent>
+
+            <TabsContent value="program" className="space-y-6">
+              {/* Current Program or No Program */}
+              {currentProgram ? (
+                <CurrentProgramCard program={currentProgram} />
+              ) : (
+                <NoProgramCard />
+              )}
+
+              {/* Program History */}
+              <ProgramHistorySection 
+                programs={historicalPrograms} 
+                onItemClick={handleHistoryItemClick}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </Layout>
   );
