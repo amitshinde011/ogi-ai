@@ -210,7 +210,7 @@ const Home = () => {
   // Profile menu component for the header
   const profileElement = (
     <ProfileMenu>
-      <button className="p-1 hover:bg-slate-100 rounded-xl transition-all duration-200 interactive">
+      <button className="hover:bg-slate-100 rounded-xl transition-all duration-200 interactive">
         <Avatar className="h-12 w-12 border-2 border-slate-300">
           <AvatarImage 
             src={userProfile.profile_photo_url || undefined} 
