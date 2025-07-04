@@ -58,17 +58,18 @@ const BeforeAssessment = () => {
         navigate('/login');
         return;
       }
-
+      console.log('In BA page');
       const today = new Date().toISOString().split('T')[0];
-
+      console.log('In BA pager: ',today);
       // Get active subscription
       const { data: subscription } = await supabase
         .from('user_subscriptions')
         .select('*, programs(*)')
         .eq('user_id', user.id)
         .eq('status', 'active')
+        .or('end_date.is.null,end_date.gte.' + today)
         .maybeSingle();
-
+      console.log('Subscription ',subscription);
       if (!subscription) {
         navigate('/subscriptions');
         return;
