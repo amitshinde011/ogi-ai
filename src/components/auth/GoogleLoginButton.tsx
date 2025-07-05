@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { GoogleAuth } from '@capacitor-community/google-auth';
 import { Capacitor } from '@capacitor/core';
 
 interface GoogleLoginButtonProps {
@@ -15,43 +14,22 @@ const GoogleLoginButton = ({ isLoading }: GoogleLoginButtonProps) => {
 
   const handleGoogleLogin = async () => {
     try {
-      // Check if we're on a native platform (iOS/Android)
-      if (Capacitor.isNativePlatform()) {
-        // Use native Google Auth for mobile
-        const result = await GoogleAuth.signIn();
-        
-        if (result.authentication?.idToken) {
-          const { error } = await supabase.auth.signInWithIdToken({
-            provider: 'google',
-            token: result.authentication.idToken,
-          });
-          
-          if (error) {
-            console.error('Google native login error:', error);
-            toast({
-              title: "Google login failed",
-              description: error.message,
-              variant: "destructive"
-            });
-          }
+      // For now, use web OAuth for all platforms
+      // This ensures the app works while we configure native plugins properly
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
         }
-      } else {
-        // Use web OAuth for browser/web
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}/`
-          }
+      });
+      
+      if (error) {
+        console.error('Google login error:', error);
+        toast({
+          title: "Google login failed",
+          description: error.message,
+          variant: "destructive"
         });
-        
-        if (error) {
-          console.error('Google web login error:', error);
-          toast({
-            title: "Google login failed",
-            description: error.message,
-            variant: "destructive"
-          });
-        }
       }
     } catch (error) {
       console.error('Google login catch error:', error);

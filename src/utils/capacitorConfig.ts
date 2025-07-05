@@ -1,13 +1,8 @@
 
-import { GoogleAuth } from '@capacitor-community/google-auth';
 import { Capacitor } from '@capacitor/core';
 
 export const initializeCapacitorPlugins = async () => {
-  if (Capacitor.isNativePlatform()) {
-    await GoogleAuth.initialize({
-      clientId: '735765936537-7qtbvhvn62vn9j1vqmjk3hm6s1kv2bks.apps.googleusercontent.com', // Your Google OAuth client ID
-      scopes: ['profile', 'email'],
-      grantOfflineAccess: true,
-    });
-  }
+  // For now, we'll use web-based Google OAuth for all platforms
+  // This can be extended later when native plugins are properly configured
+  console.log('Capacitor platform:', Capacitor.getPlatform());
 };
