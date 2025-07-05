@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Capacitor } from '@capacitor/core';
 
 interface GoogleLoginButtonProps {
   isLoading: boolean;
@@ -13,20 +14,31 @@ const GoogleLoginButton = ({ isLoading }: GoogleLoginButtonProps) => {
 
   const handleGoogleLogin = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Starting Google OAuth login...');
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`
+          redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         }
       });
+      
+      console.log('Google OAuth response:', { data, error });
       
       if (error) {
         console.error('Google login error:', error);
         toast({
           title: "Google login failed",
-          description: error.message,
+          description: error.message || "Please try again",
           variant: "destructive"
         });
+      } else {
+        console.log('Google OAuth initiated successfully');
+        // The redirect will happen automatically
       }
     } catch (error) {
       console.error('Google login catch error:', error);
