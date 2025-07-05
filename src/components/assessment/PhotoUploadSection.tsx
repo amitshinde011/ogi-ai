@@ -53,6 +53,7 @@ const PhotoUploadSection = ({ formData, setFormData }: PhotoUploadSectionProps) 
             <input
               type="file"
               accept="image/*"
+              capture="user"
               onChange={handleFileChange}
               className="hidden"
               id="photo-upload"

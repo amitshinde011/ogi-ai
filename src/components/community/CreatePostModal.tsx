@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -98,6 +97,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               <input
                 type="file"
                 accept="image/*"
+                capture="user"
                 onChange={handleImageSelect}
                 className="hidden"
               />

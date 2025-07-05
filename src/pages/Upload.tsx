@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Camera, Upload as UploadIcon, Check, Loader2, Sun, Salad, Moon, Apple } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -181,6 +180,7 @@ const Upload = () => {
                 <input
                   type="file"
                   accept="image/*"
+                  capture="user"
                   onChange={handleImageUpload}
                   className="hidden"
                 />
