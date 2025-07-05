@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, Plus, Salad, Sun, Moon, Apple } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -106,13 +107,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <label className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-sage rounded-lg cursor-pointer hover:bg-sage/5 transition-colors">
               <Plus size={48} strokeWidth={1.5} className="text-sage mb-2" />
               <span className="text-sage font-medium">Tap to select photo</span>
-              <span className="text-sm text-gray-500 mt-1">or take a new one</span>
+              <span className="text-sm text-gray-500 mt-1">from camera or gallery</span>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageSelect}
                 className="hidden"
-                capture="environment"
               />
             </label>
           ) : (

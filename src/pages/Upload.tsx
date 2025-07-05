@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Camera, Upload as UploadIcon, Check, Loader2, Sun, Salad, Moon, Apple } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -182,7 +183,6 @@ const Upload = () => {
                   accept="image/*"
                   onChange={handleImageUpload}
                   className="hidden"
-                  capture="environment"
                 />
               </label>
             ) : (
