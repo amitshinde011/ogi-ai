@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { X, Plus, Salad, Sun, Moon, Apple } from 'lucide-react';
+import { X, Plus, Salad, Sun, Moon, Apple, Camera, Image } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -103,18 +104,43 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
         <div className="space-y-4">
           {/* Image Upload */}
           {!imagePreview ? (
-            <label className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-sage rounded-lg cursor-pointer hover:bg-sage/5 transition-colors">
+            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-sage rounded-lg">
               <Plus size={48} strokeWidth={1.5} className="text-sage mb-2" />
-              <span className="text-sage font-medium">Tap to select photo</span>
-              <span className="text-sm text-gray-500 mt-1">from camera or gallery</span>
-              <input
-                type="file"
-                accept="image/*"
-                capture="user"
-                onChange={handleImageSelect}
-                className="hidden"
-              />
-            </label>
+              <span className="text-sage font-medium mb-4">Select photo</span>
+              
+              <div className="flex gap-3">
+                <label className="cursor-pointer">
+                  <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                    <span>
+                      <Camera size={16} className="mr-2" />
+                      Take Photo
+                    </span>
+                  </Button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="user"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                </label>
+
+                <label className="cursor-pointer">
+                  <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                    <span>
+                      <Image size={16} className="mr-2" />
+                      Gallery
+                    </span>
+                  </Button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            </div>
           ) : (
             <div className="relative">
               <img
