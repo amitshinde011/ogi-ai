@@ -18,21 +18,18 @@ export const determineLandingPage = async (): Promise<string> => {
   try {
     console.log('Landing page router: Starting redirect logic');
     
-    // Use getSession instead of getUser for better error handling
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    if (sessionError) {
-      console.error('Session error:', sessionError);
-      // If there's a session error, redirect to login
+    if (userError) {
+      console.error('Error getting user:', userError);
       return '/login';
     }
 
-    if (!session || !session.user) {
-      console.log('No session found, redirecting to login');
+    if (!user) {
+      console.log('No user found, redirecting to login');
       return '/login';
     }
 
-    const user = session.user;
     console.log('User found:', user.id);
 
     // Get onboarding state
