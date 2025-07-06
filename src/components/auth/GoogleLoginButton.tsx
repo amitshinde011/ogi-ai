@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Capacitor } from '@capacitor/core';
+import { isNativePlatform, signInWithGoogleNative } from '@/utils/nativeGoogleAuth';
 
 interface GoogleLoginButtonProps {
   isLoading: boolean;
@@ -12,9 +12,9 @@ interface GoogleLoginButtonProps {
 const GoogleLoginButton = ({ isLoading }: GoogleLoginButtonProps) => {
   const { toast } = useToast();
 
-  const handleGoogleLogin = async () => {
+  const handleWebGoogleLogin = async () => {
     try {
-      console.log('Starting Google OAuth login...');
+      console.log('Starting web Google OAuth login...');
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -27,26 +27,63 @@ const GoogleLoginButton = ({ isLoading }: GoogleLoginButtonProps) => {
         }
       });
       
-      console.log('Google OAuth response:', { data, error });
+      console.log('Web Google OAuth response:', { data, error });
       
       if (error) {
-        console.error('Google login error:', error);
+        console.error('Web Google login error:', error);
         toast({
           title: "Google login failed",
           description: error.message || "Please try again",
           variant: "destructive"
         });
       } else {
-        console.log('Google OAuth initiated successfully');
-        // The redirect will happen automatically
+        console.log('Web Google OAuth initiated successfully');
       }
     } catch (error) {
-      console.error('Google login catch error:', error);
+      console.error('Web Google login catch error:', error);
       toast({
         title: "An error occurred",
         description: "Google login failed. Please try again.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleNativeGoogleLogin = async () => {
+    try {
+      console.log('Starting native Google login...');
+      
+      const { user, error } = await signInWithGoogleNative();
+      
+      if (error) {
+        console.error('Native Google login error:', error);
+        toast({
+          title: "Google login failed",
+          description: error,
+          variant: "destructive"
+        });
+      } else if (user) {
+        console.log('Native Google login successful:', user);
+        toast({
+          title: "Login successful",
+          description: `Welcome, ${user.name}!`,
+        });
+      }
+    } catch (error) {
+      console.error('Native Google login catch error:', error);
+      toast({
+        title: "An error occurred",
+        description: "Google login failed. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    if (isNativePlatform()) {
+      await handleNativeGoogleLogin();
+    } else {
+      await handleWebGoogleLogin();
     }
   };
 
