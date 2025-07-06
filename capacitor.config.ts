@@ -10,10 +10,9 @@ const config: CapacitorConfig = {
     cleartext: true
   },
   plugins: {
-    GoogleAuth: {
-      scopes: ['profile', 'email'],
-      serverClientId: process.env.GOOGLE_WEB_CLIENT_ID || '', // Will be set during configuration
-      forceCodeForRefreshToken: true
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['google.com']
     }
   }
 };
