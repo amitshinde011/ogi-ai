@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,9 +22,15 @@ export const useWellnessTracking = () => {
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const lastFetchRef = useRef<string>('');
 
   useEffect(() => {
-    fetchTodayWellness();
+    const today = new Date().toISOString().split('T')[0];
+    // Only fetch if date changed or first load
+    if (lastFetchRef.current !== today) {
+      fetchTodayWellness();
+      lastFetchRef.current = today;
+    }
   }, []);
 
   const fetchTodayWellness = async () => {
@@ -67,6 +73,9 @@ export const useWellnessTracking = () => {
       const updatedData = { ...wellnessData, ...updates };
       const today = new Date().toISOString().split('T')[0];
 
+      // Optimistic update
+      setWellnessData(updatedData);
+
       if (wellnessData.id) {
         // Update existing record
         const { error } = await supabase
@@ -81,7 +90,7 @@ export const useWellnessTracking = () => {
 
         if (error) throw error;
       } else {
-        // Create new record - use insert with conflict resolution
+        // Create new record
         const { data, error } = await supabase
           .from('daily_wellness')
           .upsert(
@@ -103,13 +112,13 @@ export const useWellnessTracking = () => {
 
         if (error) throw error;
         if (data) {
-          updatedData.id = data.id;
+          setWellnessData(prev => ({ ...prev, id: data.id }));
         }
       }
-
-      setWellnessData(updatedData);
     } catch (error) {
       console.error('Error updating wellness data:', error);
+      // Revert optimistic update on error
+      setWellnessData(wellnessData);
       toast({
         title: "Error",
         description: "Failed to update wellness data.",
