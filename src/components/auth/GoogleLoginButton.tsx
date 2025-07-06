@@ -31,13 +31,26 @@ const GoogleLoginButton = ({ isLoading }: GoogleLoginButtonProps) => {
       
       if (error) {
         console.error('Web Google login error:', error);
+        
+        // Provide more specific error messages for web OAuth
+        let errorMessage = "Please try again";
+        if (error.message.includes('OAuth')) {
+          errorMessage = "Google OAuth is not properly configured. Please contact support.";
+        } else if (error.message.includes('redirect')) {
+          errorMessage = "Redirect URL configuration issue. Please contact support.";
+        }
+        
         toast({
           title: "Google login failed",
-          description: error.message || "Please try again",
+          description: errorMessage,
           variant: "destructive"
         });
       } else {
         console.log('Web Google OAuth initiated successfully');
+        toast({
+          title: "Redirecting to Google",
+          description: "Please complete the sign-in process",
+        });
       }
     } catch (error) {
       console.error('Web Google login catch error:', error);
@@ -67,6 +80,12 @@ const GoogleLoginButton = ({ isLoading }: GoogleLoginButtonProps) => {
         toast({
           title: "Login successful",
           description: `Welcome, ${user.name}!`,
+        });
+      } else {
+        toast({
+          title: "Login cancelled",
+          description: "Google sign-in was cancelled",
+          variant: "destructive"
         });
       }
     } catch (error) {

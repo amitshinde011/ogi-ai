@@ -8,6 +8,7 @@ This guide explains how to configure Google Auth for native Android and iOS apps
 1. Google Cloud Console project with OAuth 2.0 credentials
 2. Android Studio (for Android development)
 3. Xcode (for iOS development - macOS only)
+4. Supabase project with Google OAuth provider enabled
 
 ## Google Cloud Console Setup
 
@@ -23,7 +24,11 @@ This guide explains how to configure Google Auth for native Android and iOS apps
 2. Package name: `app.lovable.d058b66d4dd6438ca799b62e81c5c371`
 3. Get SHA-1 certificate fingerprint:
    ```bash
+   # For debug keystore
    keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+   
+   # For release keystore (when publishing)
+   keytool -list -v -keystore your-release-key.keystore -alias your-key-alias
    ```
 4. Add the SHA-1 fingerprint to Google Console
 5. Download `google-services.json`
@@ -33,6 +38,13 @@ This guide explains how to configure Google Auth for native Android and iOS apps
 1. Choose "iOS" as application type
 2. Bundle ID: `app.lovable.d058b66d4dd6438ca799b62e81c5c371`
 3. Download `GoogleService-Info.plist`
+
+### 4. Web Application (Required for Supabase Integration)
+
+1. Choose "Web application" as application type
+2. Add your Supabase project URL as authorized JavaScript origin
+3. Add your Supabase auth callback URL as authorized redirect URI
+4. **IMPORTANT**: Copy the Web Client ID - you'll need this for the native apps
 
 ## Project Setup
 
@@ -70,8 +82,9 @@ npx cap sync
 
 ### 4. iOS Setup
 
-1. Place `GoogleService-Info.plist` in the iOS app folder via Xcode
-2. Update `ios/App/App/Info.plist`:
+1. Open `ios/App/App.xcworkspace` in Xcode
+2. Add `GoogleService-Info.plist` to the project (drag and drop into Xcode)
+3. Update `ios/App/App/Info.plist`:
    ```xml
    <key>CFBundleURLTypes</key>
    <array>
@@ -80,7 +93,7 @@ npx cap sync
            <string>REVERSED_CLIENT_ID</string>
            <key>CFBundleURLSchemes</key>
            <array>
-               <string>YOUR_REVERSED_CLIENT_ID</string>
+               <string>YOUR_REVERSED_CLIENT_ID_FROM_PLIST</string>
            </array>
        </dict>
    </array>
@@ -88,7 +101,7 @@ npx cap sync
 
 ### 5. Update Capacitor Configuration
 
-Update `capacitor.config.ts` with your server client ID:
+Update `capacitor.config.ts` with your **WEB** client ID (not Android/iOS client ID):
 
 ```typescript
 plugins: {
@@ -99,6 +112,25 @@ plugins: {
   }
 }
 ```
+
+**CRITICAL**: Use the Web Client ID here, not the Android or iOS client ID.
+
+## Supabase Configuration
+
+### 1. Enable Google OAuth Provider
+
+1. Go to Supabase Dashboard > Authentication > Providers
+2. Enable Google provider
+3. Enter your **Web** Client ID and Client Secret
+4. Set redirect URL to: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
+
+### 2. Configure Site URL and Redirect URLs
+
+1. Go to Authentication > URL Configuration
+2. Set Site URL to your app's URL
+3. Add redirect URLs:
+   - `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
+   - Your app's custom URLs if any
 
 ## Building and Running
 
@@ -116,40 +148,74 @@ npx cap run android
 npx cap run ios
 ```
 
-## Supabase Configuration
+## Validation and Testing
 
-Ensure your Supabase project has:
+### 1. Test Web Login First
+- Ensure web Google OAuth works in browser
+- Check Supabase dashboard for successful authentications
 
-1. Google OAuth provider enabled
-2. Web client ID and secret configured
-3. Proper redirect URLs set
+### 2. Test Native Apps
+- Test on real devices (simulators may have limitations)
+- Check console logs for detailed error information
+- Use `adb logcat` for Android debugging
+- Use Xcode console for iOS debugging
 
-## Testing
+### 3. Common Validation Points
 
-1. Test web login first to ensure Supabase OAuth works
-2. Test native apps on real devices (simulators may have limitations)
-3. Check console logs for debugging information
+**Android:**
+- SHA-1 fingerprint matches your keystore
+- `google-services.json` in correct location (`android/app/`)
+- Package name matches everywhere
+- Google Play Services available on device
+
+**iOS:**
+- Bundle ID matches Google Console
+- `GoogleService-Info.plist` added to Xcode project
+- URL schemes correctly configured in Info.plist
+- iOS version supports Google Sign-In
+
+**Supabase:**
+- Web client ID and secret configured
+- Redirect URLs match exactly
+- Google provider enabled
 
 ## Troubleshooting
 
-### Android Issues
-- Ensure SHA-1 fingerprint matches your keystore
-- Check `google-services.json` is in correct location
-- Verify package name matches everywhere
+### Error: "12501 - User cancelled the dialog"
+- User cancelled the sign-in process
+- This is normal behavior, not an error
 
-### iOS Issues
-- Ensure bundle ID matches Google Console
-- Check `GoogleService-Info.plist` is added to Xcode project
-- Verify URL schemes in Info.plist
+### Error: "12502 - Network error"
+- Check internet connectivity
+- Verify Google Play Services availability
+- Check if Google APIs are accessible
 
-### Supabase Issues
-- Check if web OAuth works first
-- Verify client IDs match between Google Console and Supabase
-- Ensure redirect URLs are configured properly
+### Error: "10 - Developer error"
+- SHA-1 fingerprint mismatch
+- Wrong package name
+- Google Services configuration issue
+
+### Error: "Invalid login credentials" in Supabase
+- Web client ID not configured in Supabase
+- Client secret missing or incorrect
+- Google provider not enabled in Supabase
+
+### Error: "OAuth client ID is invalid"
+- Wrong client ID in capacitor.config.ts
+- Using Android/iOS client ID instead of Web client ID
+- Client ID not created or enabled in Google Console
+
+## Key Points for Success
+
+1. **Use Web Client ID** in capacitor.config.ts (not Android/iOS client ID)
+2. **Test web OAuth first** to ensure Supabase integration works
+3. **Use real devices** for testing native auth
+4. **Check console logs** for detailed error information
+5. **Verify all URLs and IDs** match exactly between services
 
 ## Package Information
 
 This implementation uses:
-- `@codetrix-studio/capacitor-google-auth` - The official Capacitor Google Auth plugin
+- `@codetrix-studio/capacitor-google-auth` - The community Capacitor Google Auth plugin
 - `@capacitor/core` - Capacitor core functionality
 - Supabase auth integration for session management
