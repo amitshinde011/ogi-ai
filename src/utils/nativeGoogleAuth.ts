@@ -42,13 +42,13 @@ export const signInWithGoogleNative = async (): Promise<{ user: GoogleAuthUser |
       email: result.email,
       name: result.name,
       imageUrl: result.imageUrl,
-      idToken: result.idToken
+      idToken: result.authentication.idToken
     };
 
     // Sign in to Supabase using the Google ID token
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
-      token: result.idToken,
+      token: result.authentication.idToken,
     });
 
     if (error) {
