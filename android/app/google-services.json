@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "894086114400",
+    "project_id": "yogi-eb5b1",
+    "storage_bucket": "yogi-eb5b1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:894086114400:android:a73a81056fa5a595d66705",
+        "android_client_info": {
+          "package_name": "care.yogi.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "894086114400-9i67rkq6o0urq3bfc0vs4jf9cfpvdi0j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "care.yogi.app",
+            "certificate_hash": "726aaf5308500a7c794b088ba7d805431438e770"
+          }
+        },
+        {
+          "client_id": "894086114400-nft2svg5i99uedgnc00tnupljq82f7gt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5P-9ziLCBh2clK86e-v65yPfAx3JUrZM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "894086114400-nft2svg5i99uedgnc00tnupljq82f7gt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
