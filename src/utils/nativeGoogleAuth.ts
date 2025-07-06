@@ -63,7 +63,7 @@ export const signInWithGoogleNative = async (): Promise<{ user: GoogleAuthUser |
       id: result.user.uid,
       email: result.user.email,
       name: result.user.displayName || result.user.email.split('@')[0],
-      imageUrl: result.user.photoURL || '',
+      imageUrl: result.user.photoUrl || '',
       idToken: token
     };
 
