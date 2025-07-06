@@ -22,6 +22,9 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
       clearTimeout(updateTimeoutRef.current);
     }
 
+    // Store the previous state for potential rollback
+    const previousState = { ...wellnessData };
+
     // Update local state immediately for UI responsiveness
     setWellnessData(prev => ({ ...prev, ...updates }));
 
@@ -75,14 +78,8 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
         }
       } catch (error) {
         console.error('Error updating wellness data:', error);
-        // Revert optimistic update on error
-        setWellnessData(prev => {
-          const reverted = { ...prev };
-          Object.keys(updates).forEach(key => {
-            reverted[key as keyof WellnessData] = initialData[key as keyof WellnessData];
-          });
-          return reverted;
-        });
+        // Revert to previous state on error
+        setWellnessData(previousState);
         
         toast({
           title: "Error",
@@ -93,7 +90,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
         setIsUpdating(false);
       }
     }, 500); // 500ms debounce
-  }, [wellnessData, initialData, toast]);
+  }, [wellnessData, toast]);
 
   const updateWater = useCallback((delta: number) => {
     const newValue = Math.max(0, wellnessData.water_litres + delta);
