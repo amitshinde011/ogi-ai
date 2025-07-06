@@ -1,7 +1,7 @@
 
 # Native Google Auth Setup Guide
 
-This guide explains how to configure Google Auth for native Android and iOS apps.
+This guide explains how to configure Google Auth for native Android and iOS apps using the `@codetrix-studio/capacitor-google-auth` plugin.
 
 ## Prerequisites
 
@@ -47,7 +47,14 @@ npx cap add android
 npx cap add ios
 ```
 
-### 2. Android Setup
+### 2. Install Google Auth Plugin
+
+```bash
+npm install @codetrix-studio/capacitor-google-auth
+npx cap sync
+```
+
+### 3. Android Setup
 
 1. Place `google-services.json` in `android/app/`
 2. Update `android/app/build.gradle`:
@@ -61,7 +68,7 @@ npx cap add ios
    }
    ```
 
-### 3. iOS Setup
+### 4. iOS Setup
 
 1. Place `GoogleService-Info.plist` in the iOS app folder via Xcode
 2. Update `ios/App/App/Info.plist`:
@@ -79,7 +86,7 @@ npx cap add ios
    </array>
    ```
 
-### 4. Update Capacitor Configuration
+### 5. Update Capacitor Configuration
 
 Update `capacitor.config.ts` with your server client ID:
 
@@ -139,3 +146,10 @@ Ensure your Supabase project has:
 - Check if web OAuth works first
 - Verify client IDs match between Google Console and Supabase
 - Ensure redirect URLs are configured properly
+
+## Package Information
+
+This implementation uses:
+- `@codetrix-studio/capacitor-google-auth` - The official Capacitor Google Auth plugin
+- `@capacitor/core` - Capacitor core functionality
+- Supabase auth integration for session management
