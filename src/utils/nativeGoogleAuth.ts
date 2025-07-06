@@ -3,6 +3,10 @@ import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { supabase } from '@/integrations/supabase/client';
 
+// Import Firebase for web platform fallback
+import { initializeApp, getApps } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+
 export interface GoogleAuthUser {
   id: string;
   email: string;
@@ -18,15 +22,26 @@ export const isNativePlatform = () => {
 export const initializeGoogleAuth = async () => {
   if (isNativePlatform()) {
     try {
-      // Firebase Authentication doesn't require explicit initialization
+      // Firebase Authentication doesn't require explicit initialization on native
       console.log('Firebase Authentication ready for native platform');
       return true;
     } catch (error) {
       console.error('Failed to initialize Firebase Authentication:', error);
       return false;
     }
+  } else {
+    // Initialize Firebase for web if not already initialized
+    try {
+      if (getApps().length === 0) {
+        // Firebase config would be needed here for web, but we're using Supabase OAuth for web
+        console.log('Web platform - using Supabase OAuth instead of Firebase');
+      }
+      return true;
+    } catch (error) {
+      console.error('Firebase web initialization error:', error);
+      return true; // Continue anyway since we're using Supabase for web
+    }
   }
-  return true; // Web doesn't need initialization
 };
 
 export const signInWithGoogleNative = async (): Promise<{ user: GoogleAuthUser | null; error: string | null }> => {
