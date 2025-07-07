@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +17,11 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
   const pendingUpdatesRef = useRef<Partial<WellnessData>>({});
   const isUpdateInProgressRef = useRef(false);
+
+  // Sync with initial data when it changes (e.g., when returning to the page)
+  useEffect(() => {
+    setWellnessData(initialData);
+  }, [initialData.id, initialData.water_litres, initialData.surya_namaskar_count, initialData.meditation_completed]);
 
   const debouncedUpdate = useCallback(async (updates: Partial<WellnessData>) => {
     // Clear existing timeout
@@ -132,6 +137,15 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
   const toggleMeditation = useCallback(() => {
     debouncedUpdate({ meditation_completed: !wellnessData.meditation_completed });
   }, [wellnessData.meditation_completed, debouncedUpdate]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) {
+        clearTimeout(updateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     wellnessData,

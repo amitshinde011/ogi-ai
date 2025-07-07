@@ -14,6 +14,7 @@ interface HomeData {
   };
   weeklyStreak: boolean[];
   wellnessData: {
+    id?: string;
     water_litres: number;
     surya_namaskar_count: number;
     meditation_completed: boolean;
@@ -107,6 +108,7 @@ export const useOptimizedHomeData = () => {
       // Process wellness data
       const wellness = wellnessResult.data;
       const wellnessData = {
+        id: wellness?.id,
         water_litres: wellness?.water_litres || 0,
         surya_namaskar_count: wellness?.surya_namaskar_count || 0,
         meditation_completed: wellness?.meditation_completed || false
