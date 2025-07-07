@@ -1,4 +1,3 @@
-
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,11 +51,7 @@ export const signInWithWebGoogle = async () => {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/`, // Ensure this matches your Supabase redirect URL settings
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
-      },
+      redirectTo: window.location.origin, // Redirects back to the web app's home page
     },
   });
 

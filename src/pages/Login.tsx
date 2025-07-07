@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -18,49 +17,21 @@ const Login = () => {
 
   // Listen for authentication changes to handle navigation after login
   useEffect(() => {
-    let mounted = true;
-
-    // Handle OAuth callback
-    const handleAuthCallback = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Auth callback error:', error);
-        return;
-      }
-
-      if (data.session && mounted) {
-        console.log("OAuth callback successful, navigating...");
-        navigate('/', { replace: true });
-      }
-    };
-
-    // Check for OAuth callback parameters
-    if (searchParams.get('code') || searchParams.get('access_token')) {
-      console.log('OAuth callback detected');
-      handleAuthCallback();
-    }
-
     // This listener will fire when the user successfully signs in via native or web.
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (!mounted) return;
-        
-        console.log('Auth state change:', event);
         if (event === "SIGNED_IN" && session) {
           console.log("User signed in, navigating...");
-          navigate('/', { replace: true });
+          navigate('/');
         }
       }
     );
 
     // Also check for an existing session when the component first loads
     const checkUser = async () => {
-      if (!mounted) return;
-      
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        navigate('/', { replace: true });
+        navigate('/');
       }
     };
     
@@ -68,13 +39,12 @@ const Login = () => {
 
     // Clean up the listener when the component unmounts
     return () => {
-      mounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [navigate, searchParams]);
+  }, [navigate]);
 
   const handleLoginSuccess = () => {
-    navigate('/', { replace: true });
+    navigate('/');
   };
 
   return (
