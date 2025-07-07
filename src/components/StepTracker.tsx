@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Footprints, Plus, Play, Pause, AlertCircle } from 'lucide-react';
+import { Footprints, Plus } from 'lucide-react';
 import { useStepTracking } from '@/hooks/useStepTracking';
 import { GoalCompletionMessage } from './wellness/GoalCompletionMessage';
 import { Capacitor } from '@capacitor/core';
@@ -11,7 +11,7 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 const StepTracker = () => {
   console.log('👟 StepTracker: Component initialized');
   
-  const { stepData, isTracking, permission, manuallyAddSteps, requestPermission } = useStepTracking();
+  const { stepData, isTracking, manuallyAddSteps } = useStepTracking();
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [goalAchievedToday, setGoalAchievedToday] = useState(false);
   const { trackEvent } = useAnalytics();
@@ -86,27 +86,6 @@ const StepTracker = () => {
     }));
   };
 
-  const handlePermissionRequest = () => {
-    console.log('🔐 StepTracker: Permission request initiated');
-    trackEvent('step_permission_request', 'Permissions', 'User Initiated');
-    requestPermission();
-  };
-
-  const getPermissionMessage = () => {
-    const platform = Capacitor.getPlatform();
-    console.log('📱 StepTracker: Getting permission message for platform:', platform);
-    
-    if (Capacitor.isNativePlatform()) {
-      if (platform === 'android') {
-        return "Activity Recognition permission is required to track steps automatically. Please enable it in your device settings under Apps > Permissions.";
-      } else if (platform === 'ios') {
-        return "Motion & Fitness permission is required to track steps automatically. Please enable it in iOS Settings > Privacy & Security > Motion & Fitness.";
-      }
-    }
-    
-    return "Step tracking permission denied. You can still manually add steps below.";
-  };
-
   const getPlatformSpecificInfo = () => {
     const platform = Capacitor.getPlatform();
     console.log('📱 StepTracker: Getting platform info for:', platform);
@@ -130,14 +109,13 @@ const StepTracker = () => {
     console.log('🎨 StepTracker: Component rendered with state:', {
       steps: stepData.steps,
       isTracking,
-      permission,
       goal,
       progress: Math.round(progressPercentage),
       kmWalked,
       goalAchievedToday
     });
     trackEvent('step_tracker_view', 'UI', 'Component Render');
-  }, [stepData.steps, isTracking, permission, goal, progressPercentage, kmWalked, goalAchievedToday, trackEvent]);
+  }, [stepData.steps, isTracking, goal, progressPercentage, kmWalked, goalAchievedToday, trackEvent]);
 
   return (
     <Card className="bg-white border border-gray-200 relative">
@@ -154,9 +132,9 @@ const StepTracker = () => {
                 <span className="text-sm">Tracking</span>
               </div>
             ) : (
-              <div className="flex items-center text-gray-500">
-                <Pause size={16} className="mr-1" />
-                <span className="text-sm">Not tracking</span>
+              <div className="flex items-center text-orange-500">
+                <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                <span className="text-sm">Starting...</span>
               </div>
             )}
           </div>
@@ -184,36 +162,6 @@ const StepTracker = () => {
             ></div>
           </div>
         </div>
-
-        {permission === 'prompt' && (
-          <Button 
-            onClick={handlePermissionRequest}
-            className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-            variant="outline"
-          >
-            <Play size={16} className="mr-2" />
-            Enable Step Tracking
-          </Button>
-        )}
-
-        {permission === 'denied' && (
-          <div className="text-center mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
-            <div className="flex items-center justify-center mb-2">
-              <AlertCircle size={20} className="text-red-600 mr-2" />
-              <span className="font-medium text-red-800">Permission Required</span>
-            </div>
-            <p className="text-sm text-red-700 mb-3">
-              {getPermissionMessage()}
-            </p>
-            <Button 
-              onClick={handlePermissionRequest}
-              size="sm"
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Try Again
-            </Button>
-          </div>
-        )}
 
         <div className="space-y-2">
           <p className="text-sm font-medium text-center text-gray-700">Manually add steps:</p>

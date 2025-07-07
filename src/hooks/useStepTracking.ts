@@ -9,17 +9,9 @@ interface StepData {
   lastUpdated: Date;
 }
 
-// Extend the DeviceMotionEvent interface for iOS permission
-declare global {
-  interface DeviceMotionEvent {
-    requestPermission?: () => Promise<'granted' | 'denied'>;
-  }
-}
-
 export const useStepTracking = () => {
   const [stepData, setStepData] = useState<StepData>({ steps: 0, lastUpdated: new Date() });
   const [isTracking, setIsTracking] = useState(false);
-  const [permission, setPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
   const { toast } = useToast();
 
   // Callback to update step data and sync with parent components
@@ -34,129 +26,72 @@ export const useStepTracking = () => {
   }, []);
 
   useEffect(() => {
-    checkPermissionAndStartTracking();
+    initializeStepTracking();
     fetchTodaySteps();
   }, []);
 
-  const requestAndroidPermissions = async () => {
-    // For Android, we need to request ACTIVITY_RECOGNITION permission
-    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
-      try {
-        // Check if permissions are already granted
-        const result = await (navigator as any).permissions?.query({ name: 'activity-recognition' });
-        
-        if (result?.state === 'granted') {
-          return 'granted';
-        } else if (result?.state === 'denied') {
-          return 'denied';
-        }
-        
-        // Request permission if not determined
-        const permissionResult = await (navigator as any).permissions?.request({ name: 'activity-recognition' });
-        return permissionResult?.state === 'granted' ? 'granted' : 'denied';
-      } catch (error) {
-        console.log('Android permission request error:', error);
-        // Fallback: assume permission is needed and try to use the API
-        return 'prompt';
-      }
-    }
-    return 'granted'; // For web, assume granted
-  };
-
-  const requestiOSPermissions = async () => {
-    // For iOS, we need to request DeviceMotion permission
-    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
-      try {
-        // Check if DeviceMotionEvent.requestPermission exists (iOS 13+)
-        if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
-          const permission = await (DeviceMotionEvent as any).requestPermission();
-          return permission;
-        }
-        
-        // For older iOS versions, assume permission is granted
-        return 'granted';
-      } catch (error) {
-        console.log('iOS motion permission request error:', error);
-        return 'denied';
-      }
-    }
-    return 'granted';
-  };
-
-  const checkPermissionAndStartTracking = async () => {
-    // Handle iOS permission request
-    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
-      const iosPermission = await requestiOSPermissions();
-      setPermission(iosPermission as 'granted' | 'denied' | 'prompt');
-      
-      if (iosPermission === 'granted') {
-        startStepTracking();
-      } else if (iosPermission === 'denied') {
-        toast({
-          title: "Motion Permission Required",
-          description: "Please enable Motion & Fitness permission in iOS Settings > Privacy & Security > Motion & Fitness to track steps.",
-          variant: "destructive",
-        });
-      }
-    } 
-    // Handle Android permission request
-    else if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
-      const androidPermission = await requestAndroidPermissions();
-      setPermission(androidPermission as 'granted' | 'denied' | 'prompt');
-      if (androidPermission === 'granted') {
-        startStepTracking();
-      } else if (androidPermission === 'denied') {
-        toast({
-          title: "Permission Required",
-          description: "Please enable Activity Recognition permission in your device settings to track steps.",
-          variant: "destructive",
-        });
-      }
-    }
-    // Handle web browsers
-    else {
-      setPermission('granted');
-      startStepTracking();
-    }
-  };
-
-  const startStepTracking = () => {
-    // Try to use native step counter API first (iOS and Android)
+  const initializeStepTracking = async () => {
+    console.log('🚀 Initializing step tracking for platform:', Capacitor.getPlatform());
+    
+    // Always start tracking immediately
     if (Capacitor.isNativePlatform()) {
-      try {
-        startNativeStepTracking();
-        return;
-      } catch (error) {
-        console.log('Native step tracking not available, falling back to accelerometer');
-      }
-    }
-
-    // Fallback to accelerometer-based step detection
-    if ('DeviceMotionEvent' in window) {
-      startAccelerometerStepTracking();
+      startNativeStepTracking();
     } else {
-      console.log('Device motion not supported');
-      toast({
-        title: "Step tracking not available",
-        description: "Your device doesn't support step tracking.",
-        variant: "destructive",
-      });
+      // For web, use device motion if available
+      if ('DeviceMotionEvent' in window) {
+        startAccelerometerStepTracking();
+      } else {
+        console.log('Device motion not supported on web');
+      }
     }
   };
 
   const startNativeStepTracking = () => {
-    // This would use native step counter APIs
-    // For now, we'll use the accelerometer fallback
-    console.log('Native step tracking would be implemented here');
-    startAccelerometerStepTracking();
+    console.log('📱 Starting native step tracking');
+    
+    // For Android and iOS, try to use device sensors directly
+    if (Capacitor.getPlatform() === 'android') {
+      startAndroidStepTracking();
+    } else if (Capacitor.getPlatform() === 'ios') {
+      startIOSStepTracking();
+    } else {
+      // Fallback to accelerometer
+      startAccelerometerStepTracking();
+    }
+  };
+
+  const startAndroidStepTracking = () => {
+    console.log('🤖 Starting Android step tracking');
+    
+    // Try to access Android step counter sensor
+    if ('DeviceMotionEvent' in window) {
+      startAccelerometerStepTracking();
+    }
+    
+    // Set tracking to true for Android
+    setIsTracking(true);
+  };
+
+  const startIOSStepTracking = () => {
+    console.log('🍎 Starting iOS step tracking');
+    
+    // For iOS, try to use DeviceMotion
+    if ('DeviceMotionEvent' in window) {
+      startAccelerometerStepTracking();
+    }
+    
+    // Set tracking to true for iOS
+    setIsTracking(true);
   };
 
   const startAccelerometerStepTracking = () => {
+    console.log('📱 Starting accelerometer-based step tracking');
+    
     let lastAcceleration = { x: 0, y: 0, z: 0 };
     let stepCount = stepData.steps;
     let lastStepTime = 0;
-    const stepThreshold = 15;
-    const timeThreshold = 400;
+    const stepThreshold = 12; // Lowered threshold for better sensitivity
+    const timeThreshold = 300; // Reduced time threshold
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
       if (!event.accelerationIncludingGravity) return;
@@ -174,9 +109,11 @@ export const useStepTracking = () => {
       if (magnitude > stepThreshold && currentTime - lastStepTime > timeThreshold) {
         stepCount++;
         lastStepTime = currentTime;
+        console.log('👣 Step detected! Total steps:', stepCount);
         updateStepData(stepCount);
         
-        if (stepCount % 5 === 0) {
+        // Save to database every 10 steps
+        if (stepCount % 10 === 0) {
           saveStepsToDatabase(stepCount);
         }
       }
@@ -184,9 +121,32 @@ export const useStepTracking = () => {
       lastAcceleration = { x, y, z };
     };
 
-    window.addEventListener('devicemotion', handleDeviceMotion);
-    setIsTracking(true);
+    // Request permission for iOS 13+ devices
+    if (Capacitor.getPlatform() === 'ios' && typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+      (DeviceMotionEvent as any).requestPermission()
+        .then((permission: string) => {
+          if (permission === 'granted') {
+            window.addEventListener('devicemotion', handleDeviceMotion);
+            setIsTracking(true);
+            console.log('✅ iOS motion permission granted');
+          } else {
+            console.log('❌ iOS motion permission denied');
+            // Still set tracking to true to show manual buttons
+            setIsTracking(true);
+          }
+        })
+        .catch((error: any) => {
+          console.log('iOS motion permission error:', error);
+          setIsTracking(true);
+        });
+    } else {
+      // For Android and older iOS, start listening immediately
+      window.addEventListener('devicemotion', handleDeviceMotion);
+      setIsTracking(true);
+      console.log('✅ Motion tracking started');
+    }
 
+    // Auto-save interval every 30 seconds
     const autoSaveInterval = setInterval(() => {
       if (stepCount > 0) {
         saveStepsToDatabase(stepCount);
@@ -216,6 +176,7 @@ export const useStepTracking = () => {
       if (error) throw error;
 
       if (data) {
+        console.log('📊 Fetched today steps from database:', data.steps_count);
         updateStepData(data.steps_count);
       }
     } catch (error) {
@@ -241,6 +202,7 @@ export const useStepTracking = () => {
         });
 
       if (error) throw error;
+      console.log('💾 Steps saved to database:', steps);
     } catch (error) {
       console.error('Error saving steps:', error);
     }
@@ -248,20 +210,15 @@ export const useStepTracking = () => {
 
   const manuallyAddSteps = async (additionalSteps: number) => {
     const newStepCount = stepData.steps + additionalSteps;
+    console.log('➕ Adding manual steps:', additionalSteps, 'New total:', newStepCount);
     updateStepData(newStepCount);
     await saveStepsToDatabase(newStepCount);
-  };
-
-  const requestPermission = async () => {
-    await checkPermissionAndStartTracking();
   };
 
   return {
     stepData,
     isTracking,
-    permission,
     manuallyAddSteps,
-    requestPermission,
     saveStepsToDatabase: () => saveStepsToDatabase(stepData.steps)
   };
 };
