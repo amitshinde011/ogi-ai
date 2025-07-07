@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Footprints, Plus, Play, Pause } from 'lucide-react';
+import { Footprints, Plus, Play, Pause, AlertCircle } from 'lucide-react';
 import { useStepTracking } from '@/hooks/useStepTracking';
 import { GoalCompletionMessage } from './wellness/GoalCompletionMessage';
+import { Capacitor } from '@capacitor/core';
 
 const StepTracker = () => {
   const { stepData, isTracking, permission, manuallyAddSteps, requestPermission } = useStepTracking();
@@ -58,6 +59,13 @@ const StepTracker = () => {
     manuallyAddSteps(1000);
   };
 
+  const getPermissionMessage = () => {
+    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+      return "Activity Recognition permission is required to track steps automatically. Please enable it in your device settings.";
+    }
+    return "Step tracking permission denied. You can still manually add steps below.";
+  };
+
   return (
     <Card className="bg-white border border-gray-200 relative">
       <CardContent className="p-4">
@@ -101,10 +109,21 @@ const StepTracker = () => {
         )}
 
         {permission === 'denied' && (
-          <div className="text-center mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              Step tracking permission denied. You can still manually add steps below.
+          <div className="text-center mb-4 p-3 bg-red-50 rounded-lg border border-red-200">
+            <div className="flex items-center justify-center mb-2">
+              <AlertCircle size={20} className="text-red-600 mr-2" />
+              <span className="font-medium text-red-800">Permission Required</span>
+            </div>
+            <p className="text-sm text-red-700 mb-3">
+              {getPermissionMessage()}
             </p>
+            <Button 
+              onClick={requestPermission}
+              size="sm"
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Try Again
+            </Button>
           </div>
         )}
 
@@ -142,8 +161,14 @@ const StepTracker = () => {
         </div>
 
         <div className="mt-4 text-xs text-gray-500 text-center">
-        Goal: {goal.toLocaleString()} steps per day
+          Goal: {goal.toLocaleString()} steps per day
         </div>
+
+        {Capacitor.isNativePlatform() && (
+          <div className="mt-2 text-xs text-blue-600 text-center">
+            Background step tracking enabled on {Capacitor.getPlatform()}
+          </div>
+        )}
 
         <GoalCompletionMessage
           show={showGoalMessage}

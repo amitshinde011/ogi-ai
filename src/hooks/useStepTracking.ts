@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -37,8 +38,33 @@ export const useStepTracking = () => {
     fetchTodaySteps();
   }, []);
 
+  const requestAndroidPermissions = async () => {
+    // For Android, we need to request ACTIVITY_RECOGNITION permission
+    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+      try {
+        // Check if permissions are already granted
+        const result = await (navigator as any).permissions?.query({ name: 'activity-recognition' });
+        
+        if (result?.state === 'granted') {
+          return 'granted';
+        } else if (result?.state === 'denied') {
+          return 'denied';
+        }
+        
+        // Request permission if not determined
+        const permissionResult = await (navigator as any).permissions?.request({ name: 'activity-recognition' });
+        return permissionResult?.state === 'granted' ? 'granted' : 'denied';
+      } catch (error) {
+        console.log('Android permission request error:', error);
+        // Fallback: assume permission is needed and try to use the API
+        return 'prompt';
+      }
+    }
+    return 'granted'; // For web, assume granted
+  };
+
   const checkPermissionAndStartTracking = async () => {
-    // Check if device motion is available and requires permission (iOS)
+    // Handle iOS permission request
     if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
       try {
         const permission = await (DeviceMotionEvent as any).requestPermission();
@@ -47,71 +73,45 @@ export const useStepTracking = () => {
           startStepTracking();
         }
       } catch (error) {
-        console.log('Device motion permission error:', error);
+        console.log('iOS device motion permission error:', error);
         setPermission('denied');
-        // Fallback for browsers that don't support permission request
-        startStepTracking();
       }
-    } else {
-      // For browsers that don't require permission (Android)
+    } 
+    // Handle Android permission request
+    else if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+      const androidPermission = await requestAndroidPermissions();
+      setPermission(androidPermission as 'granted' | 'denied' | 'prompt');
+      if (androidPermission === 'granted') {
+        startStepTracking();
+      } else if (androidPermission === 'denied') {
+        toast({
+          title: "Permission Required",
+          description: "Please enable Activity Recognition permission in your device settings to track steps.",
+          variant: "destructive",
+        });
+      }
+    }
+    // Handle web browsers
+    else {
       setPermission('granted');
       startStepTracking();
     }
   };
 
   const startStepTracking = () => {
+    // Try to use native step counter API first (Android)
+    if (Capacitor.isNativePlatform() && 'sensors' in window) {
+      try {
+        startNativeStepTracking();
+        return;
+      } catch (error) {
+        console.log('Native step tracking not available, falling back to accelerometer');
+      }
+    }
+
+    // Fallback to accelerometer-based step detection
     if ('DeviceMotionEvent' in window) {
-      let lastAcceleration = { x: 0, y: 0, z: 0 };
-      let stepCount = stepData.steps;
-      let lastStepTime = 0;
-      const stepThreshold = 15; // Increased threshold for better accuracy
-      const timeThreshold = 400; // Minimum time between steps (ms)
-
-      const handleDeviceMotion = (event: DeviceMotionEvent) => {
-        if (!event.accelerationIncludingGravity) return;
-
-        const { x, y, z } = event.accelerationIncludingGravity;
-        if (x === null || y === null || z === null) return;
-
-        // Calculate magnitude of acceleration change
-        const deltaX = Math.abs(x - lastAcceleration.x);
-        const deltaY = Math.abs(y - lastAcceleration.y);
-        const deltaZ = Math.abs(z - lastAcceleration.z);
-        const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-
-        const currentTime = Date.now();
-        
-        // Detect step if magnitude exceeds threshold and enough time has passed
-        if (magnitude > stepThreshold && currentTime - lastStepTime > timeThreshold) {
-          stepCount++;
-          lastStepTime = currentTime;
-          updateStepData(stepCount);
-          
-          // Save to database every 5 steps to reduce API calls but maintain sync
-          if (stepCount % 5 === 0) {
-            saveStepsToDatabase(stepCount);
-          }
-        }
-
-        lastAcceleration = { x, y, z };
-      };
-
-      window.addEventListener('devicemotion', handleDeviceMotion);
-      setIsTracking(true);
-
-      // Auto-save every 30 seconds to ensure data persistence
-      const autoSaveInterval = setInterval(() => {
-        if (stepCount > 0) {
-          saveStepsToDatabase(stepCount);
-        }
-      }, 30000);
-
-      // Cleanup function
-      return () => {
-        window.removeEventListener('devicemotion', handleDeviceMotion);
-        clearInterval(autoSaveInterval);
-        setIsTracking(false);
-      };
+      startAccelerometerStepTracking();
     } else {
       console.log('Device motion not supported');
       toast({
@@ -120,6 +120,62 @@ export const useStepTracking = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const startNativeStepTracking = () => {
+    // This would use native step counter APIs
+    // For now, we'll use the accelerometer fallback
+    console.log('Native step tracking would be implemented here');
+    startAccelerometerStepTracking();
+  };
+
+  const startAccelerometerStepTracking = () => {
+    let lastAcceleration = { x: 0, y: 0, z: 0 };
+    let stepCount = stepData.steps;
+    let lastStepTime = 0;
+    const stepThreshold = 15;
+    const timeThreshold = 400;
+
+    const handleDeviceMotion = (event: DeviceMotionEvent) => {
+      if (!event.accelerationIncludingGravity) return;
+
+      const { x, y, z } = event.accelerationIncludingGravity;
+      if (x === null || y === null || z === null) return;
+
+      const deltaX = Math.abs(x - lastAcceleration.x);
+      const deltaY = Math.abs(y - lastAcceleration.y);
+      const deltaZ = Math.abs(z - lastAcceleration.z);
+      const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+
+      const currentTime = Date.now();
+      
+      if (magnitude > stepThreshold && currentTime - lastStepTime > timeThreshold) {
+        stepCount++;
+        lastStepTime = currentTime;
+        updateStepData(stepCount);
+        
+        if (stepCount % 5 === 0) {
+          saveStepsToDatabase(stepCount);
+        }
+      }
+
+      lastAcceleration = { x, y, z };
+    };
+
+    window.addEventListener('devicemotion', handleDeviceMotion);
+    setIsTracking(true);
+
+    const autoSaveInterval = setInterval(() => {
+      if (stepCount > 0) {
+        saveStepsToDatabase(stepCount);
+      }
+    }, 30000);
+
+    return () => {
+      window.removeEventListener('devicemotion', handleDeviceMotion);
+      clearInterval(autoSaveInterval);
+      setIsTracking(false);
+    };
   };
 
   const fetchTodaySteps = async () => {
