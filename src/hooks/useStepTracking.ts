@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Health } from 'capacitor-health';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,87 +42,134 @@ export const useStepTracking = () => {
   };
 
   const startNativeStepTracking = async () => {
-    console.log('📱 Starting native step tracking with Health plugin');
+    console.log('📱 Starting enhanced device motion step tracking');
     
-    try {
-      // Check if health API is available
-      const healthAvailable = await Health.isHealthAvailable();
-      
-      if (healthAvailable.available) {
-        // Request permissions for steps
-        const permissions = await Health.requestHealthPermissions({
-          permissions: [
-            { type: 'Steps', read: true } as any
-          ]
-        } as any);
-
-        console.log('📋 Health permissions:', permissions);
-        setIsTracking(true);
-        
-        // Start periodic sync from native step counter
-        const syncInterval = setInterval(async () => {
-          await syncNativeSteps();
-        }, 60000); // Sync every minute
-        
-        // Initial sync
-        await syncNativeSteps();
-        
-        return () => {
-          clearInterval(syncInterval);
-        };
-      } else {
-        console.log('❌ Health API not available');
-        toast({
-          title: "Step Tracking",
-          description: "Health API not available. Using device motion tracking.",
-          variant: "destructive"
-        });
-        startWebStepTracking();
-      }
-    } catch (error) {
-      console.error('❌ Failed to start native step tracking:', error);
-      
-      // Fallback to device motion for older devices
-      console.log('🔄 Falling back to device motion tracking');
+    // For native platforms, use enhanced motion detection with persistence
+    if (Capacitor.isNativePlatform()) {
+      startEnhancedWebStepTracking();
+    } else {
       startWebStepTracking();
     }
   };
 
-  const syncNativeSteps = async () => {
-    console.log('🔄 Syncing steps from Health plugin');
+  const startEnhancedWebStepTracking = () => {
+    console.log('🚀 Starting enhanced native device motion step tracking');
     
-    try {
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    let lastAcceleration = { x: 0, y: 0, z: 0 };
+    let stepCount = stepData.steps;
+    let lastStepTime = 0;
+    let stepHistory: number[] = [];
+    
+    // Enhanced step detection parameters for better accuracy
+    const stepThreshold = 11;
+    const timeThreshold = 300;
+    const minTimeBetweenSteps = 200;
+    const maxTimeBetweenSteps = 2000;
 
-      const result = await Health.queryAggregated({
-        startDate: startOfDay.toISOString(),
-        endDate: endOfDay.toISOString(),
-        dataType: 'Steps',
-        bucket: 'day'
-      } as any);
+    const handleDeviceMotion = (event: DeviceMotionEvent) => {
+      if (!event.accelerationIncludingGravity) return;
 
-      console.log('📊 Health query result:', result);
+      const { x, y, z } = event.accelerationIncludingGravity;
+      if (x === null || y === null || z === null) return;
 
-      if (result && (result as any).value > 0 && (result as any).value !== stepData.steps) {
-        console.log('📊 Native steps updated:', (result as any).value);
-        updateStepData((result as any).value);
-        await saveStepsToDatabase((result as any).value);
+      // Calculate magnitude of acceleration change
+      const deltaX = Math.abs(x - lastAcceleration.x);
+      const deltaY = Math.abs(y - lastAcceleration.y);
+      const deltaZ = Math.abs(z - lastAcceleration.z);
+      const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+
+      const currentTime = Date.now();
+      const timeSinceLastStep = currentTime - lastStepTime;
+      
+      // Enhanced step detection with timing validation
+      if (magnitude > stepThreshold && 
+          timeSinceLastStep > minTimeBetweenSteps && 
+          timeSinceLastStep < maxTimeBetweenSteps) {
+        
+        // Add to step history for pattern validation
+        stepHistory.push(currentTime);
+        if (stepHistory.length > 10) stepHistory.shift();
+        
+        // Validate step pattern (avoid false positives)
+        if (stepHistory.length >= 3) {
+          const recentSteps = stepHistory.slice(-3);
+          const intervals = [];
+          for (let i = 1; i < recentSteps.length; i++) {
+            intervals.push(recentSteps[i] - recentSteps[i-1]);
+          }
+          
+          // Check if intervals are within reasonable walking rhythm
+          const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
+          if (avgInterval > 200 && avgInterval < 1500) {
+            stepCount++;
+            lastStepTime = currentTime;
+            console.log('👣 Enhanced step detected! Total steps:', stepCount);
+            updateStepData(stepCount);
+            
+            // Save to database every 5 steps for better performance
+            if (stepCount % 5 === 0) {
+              saveStepsToDatabase(stepCount);
+            }
+          }
+        } else {
+          // For first few steps, use basic detection
+          stepCount++;
+          lastStepTime = currentTime;
+          console.log('👣 Initial step detected! Total steps:', stepCount);
+          updateStepData(stepCount);
+        }
       }
-    } catch (error) {
-      console.error('❌ Failed to sync native steps:', error);
+
+      lastAcceleration = { x, y, z };
+    };
+
+    // Request motion permissions and start tracking
+    if (Capacitor.getPlatform() === 'ios' && typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+      (DeviceMotionEvent as any).requestPermission()
+        .then((permission: string) => {
+          if (permission === 'granted') {
+            window.addEventListener('devicemotion', handleDeviceMotion);
+            setIsTracking(true);
+            console.log('✅ iOS enhanced motion permission granted');
+          } else {
+            console.log('❌ iOS motion permission denied');
+            setIsTracking(true); // Still allow manual tracking
+          }
+        })
+        .catch((error: any) => {
+          console.log('iOS motion permission error:', error);
+          setIsTracking(true);
+        });
+    } else {
+      // For Android and older iOS, start listening immediately
+      window.addEventListener('devicemotion', handleDeviceMotion);
+      setIsTracking(true);
+      console.log('✅ Enhanced motion tracking started');
     }
+
+    // Auto-save interval every 20 seconds
+    const autoSaveInterval = setInterval(() => {
+      if (stepCount > 0) {
+        saveStepsToDatabase(stepCount);
+      }
+    }, 20000);
+
+    return () => {
+      window.removeEventListener('devicemotion', handleDeviceMotion);
+      clearInterval(autoSaveInterval);
+      setIsTracking(false);
+      console.log('🛑 Enhanced step tracking stopped');
+    };
   };
 
   const startWebStepTracking = () => {
-    console.log('🌐 Starting web-based step tracking (foreground only)');
+    console.log('🌐 Starting basic web step tracking (compatibility mode)');
     
     let lastAcceleration = { x: 0, y: 0, z: 0 };
     let stepCount = stepData.steps;
     let lastStepTime = 0;
     const stepThreshold = 12;
-    const timeThreshold = 300;
+    const timeThreshold = 400;
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
       if (!event.accelerationIncludingGravity) return;
