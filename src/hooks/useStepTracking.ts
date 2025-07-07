@@ -53,18 +53,53 @@ export const useStepTracking = () => {
   };
 
   const startEnhancedWebStepTracking = () => {
-    console.log('🚀 Starting enhanced native device motion step tracking');
+    console.log('🚀 Starting Google Fit-like step tracking with advanced algorithms');
     
-    let lastAcceleration = { x: 0, y: 0, z: 0 };
     let stepCount = stepData.steps;
     let lastStepTime = 0;
-    let stepHistory: number[] = [];
+    let accelerationHistory: { x: number, y: number, z: number, timestamp: number }[] = [];
+    let magnitudeHistory: number[] = [];
+    let peakHistory: { magnitude: number, timestamp: number }[] = [];
     
-    // Enhanced step detection parameters for better accuracy
-    const stepThreshold = 11;
-    const timeThreshold = 300;
-    const minTimeBetweenSteps = 200;
-    const maxTimeBetweenSteps = 2000;
+    // Google Fit-like parameters optimized for accuracy
+    const minStepThreshold = 8.5;
+    const maxStepThreshold = 25;
+    const minTimeBetweenSteps = 250;  // 240 steps/min max
+    const maxTimeBetweenSteps = 2000; // 30 steps/min min
+    const windowSize = 10; // samples for smoothing
+    const peakWindowSize = 5; // for peak detection
+
+    const calculateMagnitude = (acc: { x: number, y: number, z: number }) => {
+      return Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+    };
+
+    const smoothAcceleration = (history: { x: number, y: number, z: number, timestamp: number }[]) => {
+      if (history.length === 0) return { x: 0, y: 0, z: 0 };
+      
+      const sum = history.reduce((acc, curr) => ({
+        x: acc.x + curr.x,
+        y: acc.y + curr.y,
+        z: acc.z + curr.z
+      }), { x: 0, y: 0, z: 0 });
+      
+      return {
+        x: sum.x / history.length,
+        y: sum.y / history.length,
+        z: sum.z / history.length
+      };
+    };
+
+    const detectPeaks = (magnitudes: number[], threshold: number) => {
+      const peaks: number[] = [];
+      for (let i = 1; i < magnitudes.length - 1; i++) {
+        if (magnitudes[i] > magnitudes[i - 1] && 
+            magnitudes[i] > magnitudes[i + 1] && 
+            magnitudes[i] > threshold) {
+          peaks.push(i);
+        }
+      }
+      return peaks;
+    };
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
       if (!event.accelerationIncludingGravity) return;
@@ -72,55 +107,82 @@ export const useStepTracking = () => {
       const { x, y, z } = event.accelerationIncludingGravity;
       if (x === null || y === null || z === null) return;
 
-      // Calculate magnitude of acceleration change
-      const deltaX = Math.abs(x - lastAcceleration.x);
-      const deltaY = Math.abs(y - lastAcceleration.y);
-      const deltaZ = Math.abs(z - lastAcceleration.z);
-      const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-
       const currentTime = Date.now();
-      const timeSinceLastStep = currentTime - lastStepTime;
       
-      // Enhanced step detection with timing validation
-      if (magnitude > stepThreshold && 
-          timeSinceLastStep > minTimeBetweenSteps && 
-          timeSinceLastStep < maxTimeBetweenSteps) {
-        
-        // Add to step history for pattern validation
-        stepHistory.push(currentTime);
-        if (stepHistory.length > 10) stepHistory.shift();
-        
-        // Validate step pattern (avoid false positives)
-        if (stepHistory.length >= 3) {
-          const recentSteps = stepHistory.slice(-3);
-          const intervals = [];
-          for (let i = 1; i < recentSteps.length; i++) {
-            intervals.push(recentSteps[i] - recentSteps[i-1]);
-          }
-          
-          // Check if intervals are within reasonable walking rhythm
-          const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
-          if (avgInterval > 200 && avgInterval < 1500) {
-            stepCount++;
-            lastStepTime = currentTime;
-            console.log('👣 Enhanced step detected! Total steps:', stepCount);
-            updateStepData(stepCount);
-            
-            // Save to database every 5 steps for better performance
-            if (stepCount % 5 === 0) {
-              saveStepsToDatabase(stepCount);
-            }
-          }
-        } else {
-          // For first few steps, use basic detection
-          stepCount++;
-          lastStepTime = currentTime;
-          console.log('👣 Initial step detected! Total steps:', stepCount);
-          updateStepData(stepCount);
-        }
+      // Add to acceleration history
+      accelerationHistory.push({ x, y, z, timestamp: currentTime });
+      if (accelerationHistory.length > windowSize) {
+        accelerationHistory.shift();
       }
 
-      lastAcceleration = { x, y, z };
+      // Wait for enough data
+      if (accelerationHistory.length < windowSize) return;
+
+      // Smooth the acceleration data
+      const smoothed = smoothAcceleration(accelerationHistory);
+      const magnitude = calculateMagnitude(smoothed);
+      
+      // Add to magnitude history
+      magnitudeHistory.push(magnitude);
+      if (magnitudeHistory.length > windowSize) {
+        magnitudeHistory.shift();
+      }
+
+      // Detect peaks in magnitude
+      const peaks = detectPeaks(magnitudeHistory, minStepThreshold);
+      
+      if (peaks.length > 0) {
+        const latestPeak = peaks[peaks.length - 1];
+        const peakMagnitude = magnitudeHistory[latestPeak];
+        
+        // Check if this is a valid step
+        if (peakMagnitude >= minStepThreshold && 
+            peakMagnitude <= maxStepThreshold &&
+            currentTime - lastStepTime >= minTimeBetweenSteps &&
+            currentTime - lastStepTime <= maxTimeBetweenSteps) {
+          
+          // Add to peak history for pattern validation
+          peakHistory.push({ magnitude: peakMagnitude, timestamp: currentTime });
+          if (peakHistory.length > peakWindowSize) {
+            peakHistory.shift();
+          }
+          
+          // Validate step pattern (Google Fit-like rhythm detection)
+          if (peakHistory.length >= 3) {
+            const intervals = [];
+            for (let i = 1; i < peakHistory.length; i++) {
+              intervals.push(peakHistory[i].timestamp - peakHistory[i-1].timestamp);
+            }
+            
+            // Check for consistent rhythm
+            const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
+            const variance = intervals.reduce((acc, interval) => 
+              acc + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
+            const stdDev = Math.sqrt(variance);
+            
+            // Accept step if rhythm is consistent (low variance)
+            if (stdDev < avgInterval * 0.3 && avgInterval > minTimeBetweenSteps) {
+              stepCount++;
+              lastStepTime = currentTime;
+              console.log('👣 Google Fit-like step detected! Total steps:', stepCount, 
+                         'Peak magnitude:', peakMagnitude.toFixed(2),
+                         'Rhythm consistency:', (100 - (stdDev / avgInterval * 100)).toFixed(1) + '%');
+              updateStepData(stepCount);
+              
+              // Save to database every 5 steps
+              if (stepCount % 5 === 0) {
+                saveStepsToDatabase(stepCount);
+              }
+            }
+          } else {
+            // For first few steps, use basic validation
+            stepCount++;
+            lastStepTime = currentTime;
+            console.log('👣 Initial step detected! Total steps:', stepCount);
+            updateStepData(stepCount);
+          }
+        }
+      }
     };
 
     // Request motion permissions and start tracking
