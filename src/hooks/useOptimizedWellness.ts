@@ -21,18 +21,36 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
   const pendingUpdatesRef = useRef<Partial<WellnessData>>({});
   const isUpdateInProgressRef = useRef(false);
+  const lastUpdateRef = useRef<number>(0);
 
-  // Sync with initial data when it changes (e.g., when returning to the page)
+  // Sync with initial data when it changes
   useEffect(() => {
-    console.log('🔄 useOptimizedWellness: Syncing with new initial data:', {
-      oldData: wellnessData,
-      newData: initialData
-    });
-    setWellnessData(initialData);
-    trackEvent('wellness_data_sync', 'Data Management', 'Initial Data Updated');
-  }, [initialData.id, initialData.water_litres, initialData.surya_namaskar_count, initialData.meditation_completed, trackEvent]);
+    // Only update if data is different to prevent loops
+    const hasChanges = 
+      initialData.id !== wellnessData.id ||
+      initialData.water_litres !== wellnessData.water_litres ||
+      initialData.surya_namaskar_count !== wellnessData.surya_namaskar_count ||
+      initialData.meditation_completed !== wellnessData.meditation_completed;
+
+    if (hasChanges) {
+      console.log('🔄 useOptimizedWellness: Syncing with new initial data:', {
+        oldData: wellnessData,
+        newData: initialData
+      });
+      setWellnessData(initialData);
+      trackEvent('wellness_data_sync', 'Data Management', 'Initial Data Updated');
+    }
+  }, [initialData.id, initialData.water_litres, initialData.surya_namaskar_count, initialData.meditation_completed]); // Remove wellnessData and trackEvent from dependencies
 
   const debouncedUpdate = useCallback(async (updates: Partial<WellnessData>) => {
+    const now = Date.now();
+    
+    // Prevent too frequent updates
+    if (now - lastUpdateRef.current < 1000) {
+      console.log('🚫 useOptimizedWellness: Throttling update request');
+      return;
+    }
+
     console.log('⏱️ useOptimizedWellness: Debounced update triggered with:', updates);
     
     // Clear existing timeout
@@ -70,6 +88,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
 
       isUpdateInProgressRef.current = true;
       setIsUpdating(true);
+      lastUpdateRef.current = Date.now();
       console.log('🚀 useOptimizedWellness: Starting API update process');
 
       // Get all pending updates and clear them
@@ -94,7 +113,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
         });
 
         if (updatedData.id) {
-          // Update existing record with accumulated values
+          // Update existing record
           console.log('🔄 useOptimizedWellness: Updating existing record with ID:', updatedData.id);
           const { error } = await supabase
             .from('daily_wellness')
@@ -113,7 +132,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
           console.log('✅ useOptimizedWellness: Successfully updated existing record');
           trackEvent('wellness_update_success', 'Wellness', 'Update Existing');
         } else {
-          // Create new record with accumulated values
+          // Create new record
           console.log('➕ useOptimizedWellness: Creating new wellness record');
           const { data, error } = await supabase
             .from('daily_wellness')
@@ -157,12 +176,6 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
           trackEvent('meditation_toggle', 'Wellness', 'Meditation', updatedData.meditation_completed ? 1 : 0);
         }
 
-        // If there are new pending updates that came in during the API call, schedule another update
-        if (Object.keys(pendingUpdatesRef.current).length > 0) {
-          console.log('🔄 useOptimizedWellness: New updates pending, scheduling another update');
-          isUpdateInProgressRef.current = false;
-          debouncedUpdate({});
-        }
       } catch (error) {
         console.error('❌ useOptimizedWellness: Error updating wellness data:', error);
         trackEvent('wellness_update_error', 'Error', 'API Failure');
@@ -173,14 +186,12 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
           variant: "destructive",
         });
       } finally {
-        if (Object.keys(pendingUpdatesRef.current).length === 0) {
-          isUpdateInProgressRef.current = false;
-          setIsUpdating(false);
-          console.log('🏁 useOptimizedWellness: Update process completed');
-        }
+        isUpdateInProgressRef.current = false;
+        setIsUpdating(false);
+        console.log('🏁 useOptimizedWellness: Update process completed');
       }
-    }, 1000); // 1 second debounce delay
-  }, [wellnessData, toast, trackEvent]);
+    }, 2000); // Increased debounce delay to 2 seconds
+  }, [wellnessData, toast]); // Remove trackEvent from dependencies
 
   const updateWater = useCallback((delta: number) => {
     const newValue = Math.max(0, wellnessData.water_litres + delta);
@@ -191,7 +202,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('water_intake_action', 'UI', delta > 0 ? 'Increase' : 'Decrease', Math.abs(delta));
     debouncedUpdate({ water_litres: newValue });
-  }, [wellnessData.water_litres, debouncedUpdate, trackEvent]);
+  }, [wellnessData.water_litres, debouncedUpdate]); // Remove trackEvent from dependencies
 
   const updateSuryaNamaskar = useCallback((delta: number) => {
     const newValue = Math.max(0, wellnessData.surya_namaskar_count + delta);
@@ -202,7 +213,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('surya_namaskar_action', 'UI', delta > 0 ? 'Increase' : 'Decrease', Math.abs(delta));
     debouncedUpdate({ surya_namaskar_count: newValue });
-  }, [wellnessData.surya_namaskar_count, debouncedUpdate, trackEvent]);
+  }, [wellnessData.surya_namaskar_count, debouncedUpdate]); // Remove trackEvent from dependencies
 
   const toggleMeditation = useCallback(() => {
     const newValue = !wellnessData.meditation_completed;
@@ -212,7 +223,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('meditation_action', 'UI', newValue ? 'Complete' : 'Incomplete');
     debouncedUpdate({ meditation_completed: newValue });
-  }, [wellnessData.meditation_completed, debouncedUpdate, trackEvent]);
+  }, [wellnessData.meditation_completed, debouncedUpdate]); // Remove trackEvent from dependencies
 
   // Cleanup timeout on unmount
   useEffect(() => {

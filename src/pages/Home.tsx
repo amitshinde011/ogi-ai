@@ -44,8 +44,15 @@ const Home = () => {
     toggleMeditation
   } = useOptimizedWellness(homeData.wellnessData);
 
+  // Calculate meals logged once
+  const mealsLogged = [
+    homeData.todayProgress.breakfast, 
+    homeData.todayProgress.lunch, 
+    homeData.todayProgress.dinner
+  ].filter(Boolean).length;
+
   // Always call useEffect hooks in the same order
-  // Listen for step updates from step tracker
+  // Listen for step updates from step tracker (only once)
   useEffect(() => {
     const handleStepsUpdated = (event: CustomEvent) => {
       console.log('📢 Home: Steps updated event received:', event.detail);
@@ -58,7 +65,7 @@ const Home = () => {
       console.log('🧹 Home: Cleaning up steps updated listener');
       window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
     };
-  }, [trackEvent]);
+  }, []); // Remove trackEvent from dependencies to prevent loops
 
   // Auth check effect - always called, but logic is conditional
   useEffect(() => {
@@ -76,7 +83,7 @@ const Home = () => {
       console.log('✅ Home: User authenticated successfully:', user.id);
       trackEvent('home_page_view', 'Navigation', 'Authenticated Access');
     }
-  }, [navigate, user, isAuthenticated, authLoading, trackEvent]);
+  }, [navigate, user, isAuthenticated, authLoading]); // Remove trackEvent from dependencies
 
   // Track user engagement on home page - always called
   useEffect(() => {
@@ -93,20 +100,14 @@ const Home = () => {
         clearTimeout(engagementTimer);
       };
     }
-  }, [trackUserEngagement, authLoading, isAuthenticated]);
+  }, [authLoading, isAuthenticated]); // Remove trackUserEngagement from dependencies
 
   // Track meals completion - always called
-  const mealsLogged = [
-    homeData.todayProgress.breakfast, 
-    homeData.todayProgress.lunch, 
-    homeData.todayProgress.dinner
-  ].filter(Boolean).length;
-
   useEffect(() => {
     if (mealsLogged > 0) {
       trackEvent('daily_meals_count', 'Nutrition', `${mealsLogged} meals logged`);
     }
-  }, [mealsLogged, trackEvent]);
+  }, [mealsLogged]); // Remove trackEvent from dependencies
 
   // Show loading screen while checking auth or fetching data
   if (authLoading || homeLoading) {
