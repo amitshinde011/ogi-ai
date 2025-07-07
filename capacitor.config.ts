@@ -16,6 +16,12 @@ const config: CapacitorConfig = {
       'android.permission.ACTIVITY_RECOGNITION',
       'android.permission.BODY_SENSORS'
     ]
+  },
+  ios: {
+    entitlements: {
+      'com.apple.developer.healthkit': true,
+      'com.apple.developer.motion': true
+    }
   }
 };
 

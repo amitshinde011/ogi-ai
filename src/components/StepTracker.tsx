@@ -60,10 +60,31 @@ const StepTracker = () => {
   };
 
   const getPermissionMessage = () => {
-    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
-      return "Activity Recognition permission is required to track steps automatically. Please enable it in your device settings.";
+    const platform = Capacitor.getPlatform();
+    
+    if (Capacitor.isNativePlatform()) {
+      if (platform === 'android') {
+        return "Activity Recognition permission is required to track steps automatically. Please enable it in your device settings under Apps > Permissions.";
+      } else if (platform === 'ios') {
+        return "Motion & Fitness permission is required to track steps automatically. Please enable it in iOS Settings > Privacy & Security > Motion & Fitness.";
+      }
     }
+    
     return "Step tracking permission denied. You can still manually add steps below.";
+  };
+
+  const getPlatformSpecificInfo = () => {
+    const platform = Capacitor.getPlatform();
+    
+    if (Capacitor.isNativePlatform()) {
+      if (platform === 'android') {
+        return "Background step tracking enabled on Android";
+      } else if (platform === 'ios') {
+        return "Background step tracking enabled on iOS";
+      }
+    }
+    
+    return "Web-based step tracking active";
   };
 
   return (
@@ -166,7 +187,7 @@ const StepTracker = () => {
 
         {Capacitor.isNativePlatform() && (
           <div className="mt-2 text-xs text-blue-600 text-center">
-            Background step tracking enabled on {Capacitor.getPlatform()}
+            {getPlatformSpecificInfo()}
           </div>
         )}
 

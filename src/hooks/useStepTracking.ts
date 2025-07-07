@@ -63,18 +63,40 @@ export const useStepTracking = () => {
     return 'granted'; // For web, assume granted
   };
 
+  const requestiOSPermissions = async () => {
+    // For iOS, we need to request DeviceMotion permission
+    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
+      try {
+        // Check if DeviceMotionEvent.requestPermission exists (iOS 13+)
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+          const permission = await (DeviceMotionEvent as any).requestPermission();
+          return permission;
+        }
+        
+        // For older iOS versions, assume permission is granted
+        return 'granted';
+      } catch (error) {
+        console.log('iOS motion permission request error:', error);
+        return 'denied';
+      }
+    }
+    return 'granted';
+  };
+
   const checkPermissionAndStartTracking = async () => {
     // Handle iOS permission request
-    if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
-      try {
-        const permission = await (DeviceMotionEvent as any).requestPermission();
-        setPermission(permission);
-        if (permission === 'granted') {
-          startStepTracking();
-        }
-      } catch (error) {
-        console.log('iOS device motion permission error:', error);
-        setPermission('denied');
+    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
+      const iosPermission = await requestiOSPermissions();
+      setPermission(iosPermission as 'granted' | 'denied' | 'prompt');
+      
+      if (iosPermission === 'granted') {
+        startStepTracking();
+      } else if (iosPermission === 'denied') {
+        toast({
+          title: "Motion Permission Required",
+          description: "Please enable Motion & Fitness permission in iOS Settings > Privacy & Security > Motion & Fitness to track steps.",
+          variant: "destructive",
+        });
       }
     } 
     // Handle Android permission request
@@ -99,8 +121,8 @@ export const useStepTracking = () => {
   };
 
   const startStepTracking = () => {
-    // Try to use native step counter API first (Android)
-    if (Capacitor.isNativePlatform() && 'sensors' in window) {
+    // Try to use native step counter API first (iOS and Android)
+    if (Capacitor.isNativePlatform()) {
       try {
         startNativeStepTracking();
         return;
