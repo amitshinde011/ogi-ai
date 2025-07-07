@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Health } from '@capacitor-community/health';
+import { Backgroundstep } from 'capacitor-background-step';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,23 +43,16 @@ export const useStepTracking = () => {
   };
 
   const startNativeStepTracking = async () => {
-    console.log('📱 Starting native step tracking with Health plugin');
+    console.log('📱 Starting native step tracking with Backgroundstep plugin');
     
     try {
-      // Request permissions for step tracking
-      const permissions = await Health.requestPermissions({
-        permissions: [
-          {
-            read: ['steps'],
-            write: []
-          }
-        ]
-      });
-
-      console.log('📋 Health permissions:', permissions);
-
-      if (permissions.granted.length > 0) {
-        console.log('✅ Health permissions granted');
+      // Check and request permissions first
+      const permissionResult = await Backgroundstep.checkAndRequestPermission();
+      
+      if (permissionResult.granted) {
+        // Start background step counting service
+        await Backgroundstep.serviceStart();
+        console.log('✅ Background step tracking started');
         setIsTracking(true);
         
         // Start periodic sync from native step counter
@@ -74,13 +67,13 @@ export const useStepTracking = () => {
           clearInterval(syncInterval);
         };
       } else {
-        console.log('❌ Health permissions denied');
+        console.log('❌ Background step permissions denied');
         toast({
           title: "Step Tracking",
-          description: "Health permissions required for background step tracking. Using manual tracking.",
+          description: "Background step tracking permissions denied. Using foreground tracking.",
           variant: "destructive"
         });
-        setIsTracking(true); // Still allow manual tracking
+        startWebStepTracking();
       }
     } catch (error) {
       console.error('❌ Failed to start native step tracking:', error);
@@ -92,32 +85,16 @@ export const useStepTracking = () => {
   };
 
   const syncNativeSteps = async () => {
-    console.log('🔄 Syncing steps from Health plugin');
+    console.log('🔄 Syncing steps from Backgroundstep plugin');
     
     try {
-      const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+      const result = await Backgroundstep.getToday();
+      console.log('📊 Backgroundstep result:', result);
 
-      const result = await Health.queryHealthData({
-        dataType: 'steps',
-        startDate: startOfDay.toISOString(),
-        endDate: endOfDay.toISOString()
-      });
-
-      console.log('📊 Health query result:', result);
-
-      if (result.data && result.data.length > 0) {
-        // Sum up all step counts for today
-        const totalSteps = result.data.reduce((sum, entry) => {
-          return sum + (entry.value || 0);
-        }, 0);
-
-        if (totalSteps > 0 && totalSteps !== stepData.steps) {
-          console.log('📊 Native steps updated:', totalSteps);
-          updateStepData(totalSteps);
-          await saveStepsToDatabase(totalSteps);
-        }
+      if (result && result.count > 0 && result.count !== stepData.steps) {
+        console.log('📊 Native steps updated:', result.count);
+        updateStepData(result.count);
+        await saveStepsToDatabase(result.count);
       }
     } catch (error) {
       console.error('❌ Failed to sync native steps:', error);
