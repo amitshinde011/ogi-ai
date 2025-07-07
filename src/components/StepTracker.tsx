@@ -16,14 +16,14 @@ const StepTracker = () => {
   const [previousSteps, setPreviousSteps] = useState(stepData.steps);
   const { trackEvent } = useAnalytics();
 
-  const goal = 10000; // Updated to 10,000 steps goal for 10km
+  const goal = 5000; // Updated to 5,000 steps goal for 5km
 
   const goalMessages = [
-    "🚶‍♀️ Amazing! You've walked 10,000 steps today - that's 10km!",
-    "👟 Fantastic! Your 10km fitness goal is achieved!",
-    "🎯 Outstanding! You've hit your daily 10,000 step target!",
-    "💪 Incredible! You've walked 10km today - your dedication is inspiring!",
-    "⭐ Perfect! You've mastered your daily 10km movement goal!"
+    "🚶‍♀️ Amazing! You've walked 5,000 steps today - that's 5km!",
+    "👟 Fantastic! Your 5km fitness goal is achieved!",
+    "🎯 Outstanding! You've hit your daily 5,000 step target!",
+    "💪 Incredible! You've walked 5km today - your dedication is inspiring!",
+    "⭐ Perfect! You've mastered your daily 5km movement goal!"
   ];
 
   useEffect(() => {
@@ -36,9 +36,9 @@ const StepTracker = () => {
 
     // Check if goal was just completed
     if (stepData.steps >= goal && previousSteps < goal && previousSteps > 0) {
-      console.log('🎯 StepTracker: 10km goal completed! Showing celebration message');
+      console.log('🎯 StepTracker: 5km goal completed! Showing celebration message');
       setShowGoalMessage(true);
-      trackEvent('step_goal_achieved', 'Fitness', '10km Goal', stepData.steps);
+      trackEvent('step_goal_achieved', 'Fitness', '5km Goal', stepData.steps);
     }
     setPreviousSteps(stepData.steps);
   }, [stepData.steps, goal, previousSteps, trackEvent]);
@@ -164,7 +164,7 @@ const StepTracker = () => {
         {/* Progress bar */}
         <div className="mb-4">
           <div className="flex justify-between text-sm text-gray-600 mb-1">
-            <span>Progress to 10km</span>
+            <span>Progress to 5km</span>
             <span>{progressPercentage.toFixed(0)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -239,7 +239,7 @@ const StepTracker = () => {
         </div>
 
         <div className="mt-4 text-xs text-gray-500 text-center">
-          Goal: {goal.toLocaleString()} steps per day (10km)
+          Goal: {goal.toLocaleString()} steps per day (5km)
         </div>
 
         {Capacitor.isNativePlatform() && (

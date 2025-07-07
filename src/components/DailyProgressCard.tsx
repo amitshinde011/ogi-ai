@@ -23,9 +23,9 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
       const newSteps = event.detail.steps;
       setCurrentSteps(newSteps);
       
-      // Calculate walk score: 1000 steps = 1km, so 10km = 10,000 steps
-      // Score out of 5: each 2000 steps = 1 point
-      const newWalkScore = Math.min(Math.floor(newSteps / 2000), 5);
+      // Calculate walk score: 1000 steps = 1km, so 5km = 5,000 steps
+      // Score out of 5: each 1000 steps = 1 point
+      const newWalkScore = Math.min(Math.floor(newSteps / 1000), 5);
       setCurrentWalkScore(newWalkScore);
       
       console.log('📊 DailyProgressCard: Updated steps and walk score:', { 
@@ -60,7 +60,7 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
     }
   }, [initialSteps, initialWalkScore, currentSteps, currentWalkScore]);
 
-  const stepsProgress = Math.min((currentSteps / 10000) * 100, 100); // 10,000 steps = 100%
+  const stepsProgress = Math.min((currentSteps / 5000) * 100, 100); // 5,000 steps = 100%
   const kmWalked = (currentSteps / 1000).toFixed(1); // 1000 steps ≈ 1km
 
   console.log('📈 DailyProgressCard: Current state:', {
@@ -106,7 +106,7 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
           
           <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
             <div className="flex justify-between items-center">
-              <span className="text-white font-medium">10km Walk Score</span>
+              <span className="text-white font-medium">5km Walk Score</span>
               <div className="flex items-center">
                 <span className="font-bold mr-2 text-white text-lg">{currentWalkScore}/5</span>
                 <div className="flex">
@@ -124,7 +124,7 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
               </div>
             </div>
             <div className="text-white/80 text-sm mt-1">
-              {(currentWalkScore * 2000).toLocaleString()} / 10,000 steps to 10km
+              {(currentWalkScore * 1000).toLocaleString()} / 5,000 steps to 5km
             </div>
           </div>
         </div>
