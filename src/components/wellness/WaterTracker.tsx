@@ -23,7 +23,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
   const goal = 4; // 4 litres goal
   const progressPercentage = Math.min((waterLitres / goal) * 100, 100);
   const [showGoalMessage, setShowGoalMessage] = useState(false);
-  const [previousWater, setPreviousWater] = useState(waterLitres);
+  const [goalAchievedToday, setGoalAchievedToday] = useState(false);
   const { trackEvent } = useAnalytics();
 
   const goalMessages = [
@@ -34,23 +34,31 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
     "💪 Outstanding! Your cells are dancing with joy!"
   ];
 
+  // Check if goal was achieved today and store in localStorage
   useEffect(() => {
-    console.log('💧 WaterTracker: Water level updated:', { 
-      current: waterLitres, 
-      previous: previousWater, 
-      goal, 
-      progress: progressPercentage,
-      goalReached: waterLitres >= goal
+    const today = new Date().toISOString().split('T')[0];
+    const storageKey = `water_goal_achieved_${today}`;
+    const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
+    
+    setGoalAchievedToday(wasAchievedToday);
+    
+    console.log('💧 WaterTracker: Goal status check:', {
+      today,
+      waterLitres,
+      goal,
+      wasAchievedToday,
+      currentlyAtGoal: waterLitres >= goal
     });
 
-    // Check if goal was just completed
-    if (waterLitres >= goal && previousWater < goal && previousWater > 0) {
-      console.log('🎯 WaterTracker: Hydration goal completed!');
+    // Only show message if goal is reached and hasn't been achieved today yet
+    if (waterLitres >= goal && !wasAchievedToday) {
+      console.log('🎯 WaterTracker: Hydration goal completed for the first time today!');
       setShowGoalMessage(true);
+      setGoalAchievedToday(true);
+      localStorage.setItem(storageKey, 'true');
       trackEvent('water_goal_achieved', 'Wellness', 'Daily Goal', waterLitres);
     }
-    setPreviousWater(waterLitres);
-  }, [waterLitres, goal, previousWater, progressPercentage, trackEvent]);
+  }, [waterLitres, goal, trackEvent]);
 
   const getRandomMessage = () => {
     const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
@@ -84,10 +92,11 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
       waterLitres,
       progressPercentage,
       loading,
-      goalReached: waterLitres >= goal
+      goalReached: waterLitres >= goal,
+      goalAchievedToday
     });
     trackEvent('water_tracker_view', 'UI', 'Component Update', Math.round(progressPercentage));
-  }, [waterLitres, progressPercentage, loading, goal, trackEvent]);
+  }, [waterLitres, progressPercentage, loading, goal, goalAchievedToday, trackEvent]);
 
   return (
     <div className="space-y-3 relative">

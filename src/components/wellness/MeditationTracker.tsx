@@ -21,7 +21,7 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
   console.log('🧘‍♀️ MeditationTracker: Component rendered with:', { meditationCompleted, loading });
   
   const [showGoalMessage, setShowGoalMessage] = useState(false);
-  const [previousCompleted, setPreviousCompleted] = useState(meditationCompleted);
+  const [goalAchievedToday, setGoalAchievedToday] = useState(false);
   const { trackEvent } = useAnalytics();
 
   const goalMessages = [
@@ -32,21 +32,29 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
     "🕯️ Centered! Your soul is at peace!"
   ];
 
+  // Check if goal was achieved today and store in localStorage
   useEffect(() => {
-    console.log('🧘‍♀️ MeditationTracker: Meditation status updated:', { 
-      current: meditationCompleted, 
-      previous: previousCompleted,
-      justCompleted: meditationCompleted && !previousCompleted
+    const today = new Date().toISOString().split('T')[0];
+    const storageKey = `meditation_goal_achieved_${today}`;
+    const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
+    
+    setGoalAchievedToday(wasAchievedToday);
+    
+    console.log('🧘‍♀️ MeditationTracker: Goal status check:', {
+      today,
+      meditationCompleted,
+      wasAchievedToday
     });
 
-    // Check if meditation was just completed
-    if (meditationCompleted && !previousCompleted) {
-      console.log('🎯 MeditationTracker: Meditation just completed!');
+    // Only show message if meditation is completed and hasn't been achieved today yet
+    if (meditationCompleted && !wasAchievedToday) {
+      console.log('🎯 MeditationTracker: Meditation completed for the first time today!');
       setShowGoalMessage(true);
+      setGoalAchievedToday(true);
+      localStorage.setItem(storageKey, 'true');
       trackEvent('meditation_completed', 'Wellness', 'Daily Goal');
     }
-    setPreviousCompleted(meditationCompleted);
-  }, [meditationCompleted, previousCompleted, trackEvent]);
+  }, [meditationCompleted, trackEvent]);
 
   const getRandomMessage = () => {
     const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
@@ -67,10 +75,11 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
   useEffect(() => {
     console.log('🎨 MeditationTracker: Component state updated:', {
       meditationCompleted,
-      loading
+      loading,
+      goalAchievedToday
     });
     trackEvent('meditation_tracker_view', 'UI', 'Component Update', meditationCompleted ? 1 : 0);
-  }, [meditationCompleted, loading, trackEvent]);
+  }, [meditationCompleted, loading, goalAchievedToday, trackEvent]);
 
   return (
     <div className="space-y-3 relative">

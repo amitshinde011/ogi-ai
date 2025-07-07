@@ -13,10 +13,10 @@ const StepTracker = () => {
   
   const { stepData, isTracking, permission, manuallyAddSteps, requestPermission } = useStepTracking();
   const [showGoalMessage, setShowGoalMessage] = useState(false);
-  const [previousSteps, setPreviousSteps] = useState(stepData.steps);
+  const [goalAchievedToday, setGoalAchievedToday] = useState(false);
   const { trackEvent } = useAnalytics();
 
-  const goal = 5000; // Updated to 5,000 steps goal for 5km
+  const goal = 5000; // 5,000 steps goal for 5km
 
   const goalMessages = [
     "🚶‍♀️ Amazing! You've walked 5,000 steps today - that's 5km!",
@@ -26,22 +26,31 @@ const StepTracker = () => {
     "⭐ Perfect! You've mastered your daily 5km movement goal!"
   ];
 
+  // Check if goal was achieved today and store in localStorage
   useEffect(() => {
-    console.log('📊 StepTracker: Steps data updated:', { 
-      currentSteps: stepData.steps, 
-      previousSteps, 
-      goalReached: stepData.steps >= goal,
-      kmWalked: (stepData.steps / 1000).toFixed(1)
+    const today = new Date().toISOString().split('T')[0];
+    const storageKey = `step_goal_achieved_${today}`;
+    const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
+    
+    setGoalAchievedToday(wasAchievedToday);
+    
+    console.log('👟 StepTracker: Goal status check:', {
+      today,
+      currentSteps: stepData.steps,
+      goal,
+      wasAchievedToday,
+      currentlyAtGoal: stepData.steps >= goal
     });
 
-    // Check if goal was just completed
-    if (stepData.steps >= goal && previousSteps < goal && previousSteps > 0) {
-      console.log('🎯 StepTracker: 5km goal completed! Showing celebration message');
+    // Only show message if goal is reached and hasn't been achieved today yet
+    if (stepData.steps >= goal && !wasAchievedToday) {
+      console.log('🎯 StepTracker: 5km goal completed for the first time today!');
       setShowGoalMessage(true);
+      setGoalAchievedToday(true);
+      localStorage.setItem(storageKey, 'true');
       trackEvent('step_goal_achieved', 'Fitness', '5km Goal', stepData.steps);
     }
-    setPreviousSteps(stepData.steps);
-  }, [stepData.steps, goal, previousSteps, trackEvent]);
+  }, [stepData.steps, goal, trackEvent]);
 
   // Listen for external step updates and sync with parent components
   useEffect(() => {
@@ -124,10 +133,11 @@ const StepTracker = () => {
       permission,
       goal,
       progress: Math.round(progressPercentage),
-      kmWalked
+      kmWalked,
+      goalAchievedToday
     });
     trackEvent('step_tracker_view', 'UI', 'Component Render');
-  }, [stepData.steps, isTracking, permission, goal, progressPercentage, kmWalked, trackEvent]);
+  }, [stepData.steps, isTracking, permission, goal, progressPercentage, kmWalked, goalAchievedToday, trackEvent]);
 
   return (
     <Card className="bg-white border border-gray-200 relative">
