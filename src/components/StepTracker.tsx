@@ -6,11 +6,15 @@ import { Footprints, Plus, Play, Pause, AlertCircle } from 'lucide-react';
 import { useStepTracking } from '@/hooks/useStepTracking';
 import { GoalCompletionMessage } from './wellness/GoalCompletionMessage';
 import { Capacitor } from '@capacitor/core';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const StepTracker = () => {
+  console.log('👟 StepTracker: Component initialized');
+  
   const { stepData, isTracking, permission, manuallyAddSteps, requestPermission } = useStepTracking();
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [previousSteps, setPreviousSteps] = useState(stepData.steps);
+  const { trackEvent } = useAnalytics();
 
   const goal = 5000; // 5,000 steps goal
 
@@ -23,44 +27,69 @@ const StepTracker = () => {
   ];
 
   useEffect(() => {
+    console.log('📊 StepTracker: Steps data updated:', { 
+      currentSteps: stepData.steps, 
+      previousSteps, 
+      goalReached: stepData.steps >= goal 
+    });
+
     // Check if goal was just completed
     if (stepData.steps >= goal && previousSteps < goal && previousSteps > 0) {
+      console.log('🎯 StepTracker: Goal completed! Showing celebration message');
       setShowGoalMessage(true);
+      trackEvent('step_goal_achieved', 'Fitness', 'Daily Goal', stepData.steps);
     }
     setPreviousSteps(stepData.steps);
-  }, [stepData.steps, goal, previousSteps]);
+  }, [stepData.steps, goal, previousSteps, trackEvent]);
 
   // Listen for external step updates and sync with parent components
   useEffect(() => {
     const handleStepsUpdated = (event: CustomEvent) => {
-      // This ensures the step tracker stays in sync with other components
+      console.log('📢 StepTracker: External steps update received:', event.detail);
+      trackEvent('steps_sync_external', 'Data Management', 'External Update');
     };
 
     window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
     
     return () => {
+      console.log('🧹 StepTracker: Cleaning up external steps listener');
       window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
     };
-  }, []);
+  }, [trackEvent]);
 
   const getRandomMessage = () => {
-    return goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    console.log('🎉 StepTracker: Selected goal completion message:', message);
+    return message;
   };
 
   const handleAdd100Steps = () => {
+    console.log('➕ StepTracker: Adding 100 steps manually');
+    trackEvent('manual_steps_add', 'Fitness', '100 Steps');
     manuallyAddSteps(100);
   };
 
   const handleAdd500Steps = () => {
+    console.log('➕ StepTracker: Adding 500 steps manually');
+    trackEvent('manual_steps_add', 'Fitness', '500 Steps');
     manuallyAddSteps(500);
   };
 
   const handleAdd1000Steps = () => {
+    console.log('➕ StepTracker: Adding 1000 steps manually');
+    trackEvent('manual_steps_add', 'Fitness', '1000 Steps');
     manuallyAddSteps(1000);
+  };
+
+  const handlePermissionRequest = () => {
+    console.log('🔐 StepTracker: Permission request initiated');
+    trackEvent('step_permission_request', 'Permissions', 'User Initiated');
+    requestPermission();
   };
 
   const getPermissionMessage = () => {
     const platform = Capacitor.getPlatform();
+    console.log('📱 StepTracker: Getting permission message for platform:', platform);
     
     if (Capacitor.isNativePlatform()) {
       if (platform === 'android') {
@@ -75,6 +104,7 @@ const StepTracker = () => {
 
   const getPlatformSpecificInfo = () => {
     const platform = Capacitor.getPlatform();
+    console.log('📱 StepTracker: Getting platform info for:', platform);
     
     if (Capacitor.isNativePlatform()) {
       if (platform === 'android') {
@@ -86,6 +116,18 @@ const StepTracker = () => {
     
     return "Web-based step tracking active";
   };
+
+  // Track component render
+  useEffect(() => {
+    console.log('🎨 StepTracker: Component rendered with state:', {
+      steps: stepData.steps,
+      isTracking,
+      permission,
+      goal,
+      progress: Math.round((stepData.steps / goal) * 100)
+    });
+    trackEvent('step_tracker_view', 'UI', 'Component Render');
+  }, [stepData.steps, isTracking, permission, goal, trackEvent]);
 
   return (
     <Card className="bg-white border border-gray-200 relative">
@@ -120,7 +162,7 @@ const StepTracker = () => {
 
         {permission === 'prompt' && (
           <Button 
-            onClick={requestPermission}
+            onClick={handlePermissionRequest}
             className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
             variant="outline"
           >
@@ -139,7 +181,7 @@ const StepTracker = () => {
               {getPermissionMessage()}
             </p>
             <Button 
-              onClick={requestPermission}
+              onClick={handlePermissionRequest}
               size="sm"
               className="bg-red-600 hover:bg-red-700 text-white"
             >
@@ -194,7 +236,11 @@ const StepTracker = () => {
         <GoalCompletionMessage
           show={showGoalMessage}
           message={getRandomMessage()}
-          onComplete={() => setShowGoalMessage(false)}
+          onComplete={() => {
+            console.log('🎉 StepTracker: Goal completion message dismissed');
+            setShowGoalMessage(false);
+            trackEvent('step_goal_message_dismissed', 'UI', 'Goal Celebration');
+          }}
           duration={8000}
         />
       </CardContent>

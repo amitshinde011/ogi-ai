@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Minus, Droplets } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { GoalCompletionMessage } from './GoalCompletionMessage';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface WaterTrackerProps {
   waterLitres: number;
@@ -17,10 +18,13 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
   onWaterChange,
   loading
 }) => {
+  console.log('💧 WaterTracker: Component rendered with:', { waterLitres, loading });
+  
   const goal = 4; // 4 litres goal
   const progressPercentage = Math.min((waterLitres / goal) * 100, 100);
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [previousWater, setPreviousWater] = useState(waterLitres);
+  const { trackEvent } = useAnalytics();
 
   const goalMessages = [
     "🌊 Amazing! You've reached your hydration goal!",
@@ -31,16 +35,59 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
   ];
 
   useEffect(() => {
+    console.log('💧 WaterTracker: Water level updated:', { 
+      current: waterLitres, 
+      previous: previousWater, 
+      goal, 
+      progress: progressPercentage,
+      goalReached: waterLitres >= goal
+    });
+
     // Check if goal was just completed
     if (waterLitres >= goal && previousWater < goal && previousWater > 0) {
+      console.log('🎯 WaterTracker: Hydration goal completed!');
       setShowGoalMessage(true);
+      trackEvent('water_goal_achieved', 'Wellness', 'Daily Goal', waterLitres);
     }
     setPreviousWater(waterLitres);
-  }, [waterLitres, goal, previousWater]);
+  }, [waterLitres, goal, previousWater, progressPercentage, trackEvent]);
 
   const getRandomMessage = () => {
-    return goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    console.log('🎉 WaterTracker: Selected goal completion message:', message);
+    return message;
   };
+
+  const handleWaterDecrease = () => {
+    if (loading || waterLitres <= 0) {
+      console.log('⚠️ WaterTracker: Water decrease blocked - loading or already at minimum');
+      return;
+    }
+    console.log('➖ WaterTracker: Decreasing water by 0.25L');
+    trackEvent('water_decrease', 'Wellness', 'Manual Adjustment', 0.25);
+    onWaterChange(-0.25);
+  };
+
+  const handleWaterIncrease = () => {
+    if (loading) {
+      console.log('⚠️ WaterTracker: Water increase blocked - loading');
+      return;
+    }
+    console.log('➕ WaterTracker: Increasing water by 0.25L');
+    trackEvent('water_increase', 'Wellness', 'Manual Adjustment', 0.25);
+    onWaterChange(0.25);
+  };
+
+  // Track component interactions
+  useEffect(() => {
+    console.log('🎨 WaterTracker: Component state updated:', {
+      waterLitres,
+      progressPercentage,
+      loading,
+      goalReached: waterLitres >= goal
+    });
+    trackEvent('water_tracker_view', 'UI', 'Component Update', Math.round(progressPercentage));
+  }, [waterLitres, progressPercentage, loading, goal, trackEvent]);
 
   return (
     <div className="space-y-3 relative">
@@ -56,7 +103,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
           <Button 
             size="sm" 
             variant="outline" 
-            onClick={() => onWaterChange(-0.25)}
+            onClick={handleWaterDecrease}
             disabled={loading || waterLitres <= 0}
             className="h-8 w-8 p-0 sm:h-9 sm:w-9"
           >
@@ -65,7 +112,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
           <Button 
             size="sm" 
             variant="outline" 
-            onClick={() => onWaterChange(0.25)}
+            onClick={handleWaterIncrease}
             disabled={loading}
             className="h-8 w-8 p-0 sm:h-9 sm:w-9"
           >
@@ -78,7 +125,11 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
       <GoalCompletionMessage
         show={showGoalMessage}
         message={getRandomMessage()}
-        onComplete={() => setShowGoalMessage(false)}
+        onComplete={() => {
+          console.log('💧 WaterTracker: Goal completion message dismissed');
+          setShowGoalMessage(false);
+          trackEvent('water_goal_message_dismissed', 'UI', 'Goal Celebration');
+        }}
         duration={8000}
       />
     </div>

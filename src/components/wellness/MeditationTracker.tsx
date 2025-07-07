@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Brain } from 'lucide-react';
 import MeditationAudioPlayer from '../MeditationAudioPlayer';
 import { GoalCompletionMessage } from './GoalCompletionMessage';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface MeditationTrackerProps {
   meditationCompleted: boolean;
@@ -17,8 +18,11 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
   onMeditationToggle,
   loading
 }) => {
+  console.log('🧘‍♀️ MeditationTracker: Component rendered with:', { meditationCompleted, loading });
+  
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [previousCompleted, setPreviousCompleted] = useState(meditationCompleted);
+  const { trackEvent } = useAnalytics();
 
   const goalMessages = [
     "🧘‍♀️ Peaceful! You've found your inner calm today!",
@@ -29,16 +33,44 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
   ];
 
   useEffect(() => {
+    console.log('🧘‍♀️ MeditationTracker: Meditation status updated:', { 
+      current: meditationCompleted, 
+      previous: previousCompleted,
+      justCompleted: meditationCompleted && !previousCompleted
+    });
+
     // Check if meditation was just completed
     if (meditationCompleted && !previousCompleted) {
+      console.log('🎯 MeditationTracker: Meditation just completed!');
       setShowGoalMessage(true);
+      trackEvent('meditation_completed', 'Wellness', 'Daily Goal');
     }
     setPreviousCompleted(meditationCompleted);
-  }, [meditationCompleted, previousCompleted]);
+  }, [meditationCompleted, previousCompleted, trackEvent]);
 
   const getRandomMessage = () => {
-    return goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    console.log('🎉 MeditationTracker: Selected completion message:', message);
+    return message;
   };
+
+  const handleMeditationToggle = () => {
+    console.log('🔄 MeditationTracker: Meditation toggle clicked:', { 
+      currentState: meditationCompleted,
+      willBecome: !meditationCompleted 
+    });
+    trackEvent('meditation_toggle_click', 'UI', meditationCompleted ? 'Uncheck' : 'Check');
+    onMeditationToggle();
+  };
+
+  // Track component state
+  useEffect(() => {
+    console.log('🎨 MeditationTracker: Component state updated:', {
+      meditationCompleted,
+      loading
+    });
+    trackEvent('meditation_tracker_view', 'UI', 'Component Update', meditationCompleted ? 1 : 0);
+  }, [meditationCompleted, loading, trackEvent]);
 
   return (
     <div className="space-y-3 relative">
@@ -49,7 +81,7 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
         </Label>
         <Checkbox 
           checked={meditationCompleted}
-          onCheckedChange={onMeditationToggle}
+          onCheckedChange={handleMeditationToggle}
           disabled={loading}
           className="data-[state=checked]:bg-white data-[state=checked]:border-gray-600 border-gray-400 h-5 w-5 sm:h-6 sm:w-6"
         />
@@ -60,7 +92,11 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
       <GoalCompletionMessage
         show={showGoalMessage}
         message={getRandomMessage()}
-        onComplete={() => setShowGoalMessage(false)}
+        onComplete={() => {
+          console.log('🧘‍♀️ MeditationTracker: Goal completion message dismissed');
+          setShowGoalMessage(false);
+          trackEvent('meditation_goal_message_dismissed', 'UI', 'Goal Celebration');
+        }}
         duration={8000}
       />
     </div>
