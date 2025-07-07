@@ -15,6 +15,8 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { toast } = useToast();
   const updateTimeoutRef = useRef<NodeJS.Timeout>();
+  const pendingUpdatesRef = useRef<Partial<WellnessData>>({});
+  const isUpdateInProgressRef = useRef(false);
 
   const debouncedUpdate = useCallback(async (updates: Partial<WellnessData>) => {
     // Clear existing timeout
@@ -22,24 +24,42 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
       clearTimeout(updateTimeoutRef.current);
     }
 
-    // Store the previous state for potential rollback
-    const previousState = { ...wellnessData };
+    // Accumulate pending updates
+    pendingUpdatesRef.current = {
+      ...pendingUpdatesRef.current,
+      ...updates
+    };
 
     // Update local state immediately for UI responsiveness
     setWellnessData(prev => ({ ...prev, ...updates }));
 
+    // If an update is already in progress, just accumulate the changes
+    if (isUpdateInProgressRef.current) {
+      return;
+    }
+
     // Debounce the actual API call
     updateTimeoutRef.current = setTimeout(async () => {
+      if (isUpdateInProgressRef.current) {
+        return;
+      }
+
+      isUpdateInProgressRef.current = true;
       setIsUpdating(true);
+
+      // Get all pending updates and clear them
+      const allPendingUpdates = { ...pendingUpdatesRef.current };
+      pendingUpdatesRef.current = {};
+
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         const today = new Date().toISOString().split('T')[0];
-        const updatedData = { ...wellnessData, ...updates };
+        const updatedData = { ...wellnessData, ...allPendingUpdates };
 
         if (updatedData.id) {
-          // Update existing record
+          // Update existing record with accumulated values
           const { error } = await supabase
             .from('daily_wellness')
             .update({
@@ -51,7 +71,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
 
           if (error) throw error;
         } else {
-          // Create new record
+          // Create new record with accumulated values
           const { data, error } = await supabase
             .from('daily_wellness')
             .upsert(
@@ -76,10 +96,14 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
             setWellnessData(prev => ({ ...prev, id: data.id }));
           }
         }
+
+        // If there are new pending updates that came in during the API call, schedule another update
+        if (Object.keys(pendingUpdatesRef.current).length > 0) {
+          isUpdateInProgressRef.current = false;
+          debouncedUpdate({});
+        }
       } catch (error) {
         console.error('Error updating wellness data:', error);
-        // Revert to previous state on error
-        setWellnessData(previousState);
         
         toast({
           title: "Error",
@@ -87,7 +111,10 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
           variant: "destructive",
         });
       } finally {
-        setIsUpdating(false);
+        if (Object.keys(pendingUpdatesRef.current).length === 0) {
+          isUpdateInProgressRef.current = false;
+          setIsUpdating(false);
+        }
       }
     }, 1000); // 1 second debounce delay
   }, [wellnessData, toast]);
