@@ -25,6 +25,8 @@ const Home = () => {
   console.log('🏠 Home: Component initialized');
   
   const navigate = useNavigate();
+  
+  // Always call all hooks in the same order - never conditionally
   const { user, userProfile, loading: authLoading, isAuthenticated } = useAuth();
   const { isCompleted, completedSubscription } = useProgramCompletion();
   const { showBanner } = useSubscriptionBanner();
@@ -42,6 +44,7 @@ const Home = () => {
     toggleMeditation
   } = useOptimizedWellness(homeData.wellnessData);
 
+  // Always call useEffect hooks in the same order
   // Listen for step updates from step tracker
   useEffect(() => {
     const handleStepsUpdated = (event: CustomEvent) => {
@@ -57,40 +60,55 @@ const Home = () => {
     };
   }, [trackEvent]);
 
+  // Auth check effect - always called, but logic is conditional
   useEffect(() => {
     console.log('🔐 Home: Auth state check:', { authLoading, isAuthenticated, hasUser: !!user });
     
-    if (authLoading) {
-      console.log('⏳ Home: Auth still loading, waiting...');
-      return;
-    }
-    
-    if (!isAuthenticated || !user) {
-      console.log('🚪 Home: No authenticated user found, redirecting to login');
-      trackEvent('home_access_denied', 'Security', 'Unauthenticated');
-      navigate('/login');
-      return;
-    }
+    // Only redirect if we're sure about auth state
+    if (!authLoading) {
+      if (!isAuthenticated || !user) {
+        console.log('🚪 Home: No authenticated user found, redirecting to login');
+        trackEvent('home_access_denied', 'Security', 'Unauthenticated');
+        navigate('/login');
+        return;
+      }
 
-    console.log('✅ Home: User authenticated successfully:', user.id);
-    trackEvent('home_page_view', 'Navigation', 'Authenticated Access');
+      console.log('✅ Home: User authenticated successfully:', user.id);
+      trackEvent('home_page_view', 'Navigation', 'Authenticated Access');
+    }
   }, [navigate, user, isAuthenticated, authLoading, trackEvent]);
 
-  // Track user engagement on home page
+  // Track user engagement on home page - always called
   useEffect(() => {
-    console.log('📊 Home: Tracking user engagement on home page');
-    trackUserEngagement('home_page_visit');
-    
-    const engagementTimer = setTimeout(() => {
-      console.log('⏰ Home: User engaged for 5+ seconds');
-      trackUserEngagement('home_page_engaged_5s');
-    }, 5000);
+    if (!authLoading && isAuthenticated) {
+      console.log('📊 Home: Tracking user engagement on home page');
+      trackUserEngagement('home_page_visit');
+      
+      const engagementTimer = setTimeout(() => {
+        console.log('⏰ Home: User engaged for 5+ seconds');
+        trackUserEngagement('home_page_engaged_5s');
+      }, 5000);
 
-    return () => {
-      clearTimeout(engagementTimer);
-    };
-  }, [trackUserEngagement]);
+      return () => {
+        clearTimeout(engagementTimer);
+      };
+    }
+  }, [trackUserEngagement, authLoading, isAuthenticated]);
 
+  // Track meals completion - always called
+  const mealsLogged = [
+    homeData.todayProgress.breakfast, 
+    homeData.todayProgress.lunch, 
+    homeData.todayProgress.dinner
+  ].filter(Boolean).length;
+
+  useEffect(() => {
+    if (mealsLogged > 0) {
+      trackEvent('daily_meals_count', 'Nutrition', `${mealsLogged} meals logged`);
+    }
+  }, [mealsLogged, trackEvent]);
+
+  // Show loading screen while checking auth or fetching data
   if (authLoading || homeLoading) {
     console.log('⏳ Home: Showing loading state');
     return (
@@ -100,27 +118,15 @@ const Home = () => {
     );
   }
 
+  // Early return for missing auth - but hooks have already been called
   if (!user || !userProfile) {
     console.log('❌ Home: Missing user or profile data');
     return null;
   }
 
-  const mealsLogged = [
-    homeData.todayProgress.breakfast, 
-    homeData.todayProgress.lunch, 
-    homeData.todayProgress.dinner
-  ].filter(Boolean).length;
-
   console.log('🍽️ Home: Meals logged today:', mealsLogged);
   console.log('📊 Home: Current wellness data:', wellnessData);
   console.log('🏃 Home: Today\'s progress:', homeData.todayProgress);
-
-  // Track meals completion
-  useEffect(() => {
-    if (mealsLogged > 0) {
-      trackEvent('daily_meals_count', 'Nutrition', `${mealsLogged} meals logged`);
-    }
-  }, [mealsLogged, trackEvent]);
 
   // Profile menu component for the header
   const profileElement = (
