@@ -47,6 +47,42 @@ export const useOptimizedHomeData = () => {
   const fetchingRef = useRef(false);
   const lastFetchRef = useRef<number>(0);
 
+  // Listen for step updates and sync with data
+  useEffect(() => {
+    const handleStepsUpdated = (event: CustomEvent) => {
+      console.log('📢 useOptimizedHomeData: External steps update received:', event.detail);
+      const newSteps = event.detail.steps;
+      
+      setData(prev => {
+        const newWalkScore = Math.min(Math.floor(newSteps / 2000), 5);
+        const updatedData = {
+          ...prev,
+          todayProgress: {
+            ...prev.todayProgress,
+            steps: newSteps,
+            walkScore: newWalkScore
+          }
+        };
+        
+        console.log('📊 useOptimizedHomeData: Data updated with new steps:', {
+          oldSteps: prev.todayProgress.steps,
+          newSteps,
+          oldWalkScore: prev.todayProgress.walkScore,
+          newWalkScore
+        });
+        
+        return updatedData;
+      });
+    };
+
+    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    
+    return () => {
+      console.log('🧹 useOptimizedHomeData: Cleaning up steps listener');
+      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    };
+  }, []);
+
   const fetchAllData = useCallback(async () => {
     const now = Date.now();
     
@@ -130,6 +166,13 @@ export const useOptimizedHomeData = () => {
       const mealTypes = meals.map(m => m.meal_type);
       const mealItems = meals.map(m => m.food_item.toLowerCase());
       
+      console.log('🍽️ useOptimizedHomeData: Meals processed:', {
+        totalMeals: meals.length,
+        mealTypes,
+        hasSaladBowl: mealItems.some(item => item.includes('salad') && item.includes('bowl')),
+        hasKanji: mealItems.some(item => item.includes('kanji') || item.includes('millet') || item.includes('porridge'))
+      });
+      
       const hasSaladBowl = mealItems.some(item => 
         item.includes('salad') && item.includes('bowl')
       );
@@ -138,6 +181,14 @@ export const useOptimizedHomeData = () => {
       );
 
       const todaySteps = stepsResult.data?.steps_count || 0;
+      const walkScore = Math.min(Math.floor(todaySteps / 2000), 5); // Corrected calculation: 2000 steps = 1 point
+      
+      console.log('👟 useOptimizedHomeData: Steps processed:', {
+        todaySteps,
+        walkScore,
+        kmWalked: (todaySteps / 1000).toFixed(1)
+      });
+      
       const wellness = wellnessResult.data;
       const wellnessData = {
         id: wellness?.id,
@@ -145,6 +196,8 @@ export const useOptimizedHomeData = () => {
         surya_namaskar_count: wellness?.surya_namaskar_count || 0,
         meditation_completed: wellness?.meditation_completed || false
       };
+
+      console.log('🌟 useOptimizedHomeData: Wellness data processed:', wellnessData);
 
       const weeklyWellness = weeklyWellnessResult.data || [];
       const streak = weekDates.map(date => {
@@ -154,13 +207,18 @@ export const useOptimizedHomeData = () => {
                  (dayData?.surya_namaskar_count && dayData.surya_namaskar_count > 0));
       });
 
+      console.log('📈 useOptimizedHomeData: Weekly streak calculated:', {
+        streakDays: streak.filter(Boolean).length,
+        totalDays: streak.length
+      });
+
       const finalData = {
         todayProgress: {
           breakfast: mealTypes.includes('breakfast'),
           lunch: mealTypes.includes('lunch'),
           dinner: mealTypes.includes('dinner'),
           steps: todaySteps,
-          walkScore: Math.min(Math.floor(todaySteps / 1000), 5),
+          walkScore: walkScore,
           saladBowl: hasSaladBowl,
           kanji: hasKanji
         },
@@ -170,7 +228,7 @@ export const useOptimizedHomeData = () => {
 
       setData(finalData);
 
-      // Dispatch step count ONCE
+      // Dispatch step count update event
       console.log('📢 useOptimizedHomeData: Dispatching steps update event');
       window.dispatchEvent(new CustomEvent('stepsUpdated', { 
         detail: { steps: todaySteps, lastUpdated: new Date() } 
@@ -201,7 +259,9 @@ export const useOptimizedHomeData = () => {
   console.log('📊 useOptimizedHomeData: Current state:', { 
     loading, 
     dataKeys: Object.keys(data),
-    todayProgressKeys: Object.keys(data.todayProgress)
+    todayProgressKeys: Object.keys(data.todayProgress),
+    currentSteps: data.todayProgress.steps,
+    currentWalkScore: data.todayProgress.walkScore
   });
 
   return { data, loading, refetch: fetchAllData };

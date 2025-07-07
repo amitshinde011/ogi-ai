@@ -16,28 +16,29 @@ const StepTracker = () => {
   const [previousSteps, setPreviousSteps] = useState(stepData.steps);
   const { trackEvent } = useAnalytics();
 
-  const goal = 5000; // 5,000 steps goal
+  const goal = 10000; // Updated to 10,000 steps goal for 10km
 
   const goalMessages = [
-    "🚶‍♀️ Amazing! You've walked 5,000 steps today!",
-    "👟 Fantastic! Your fitness goal is achieved!",
-    "🎯 Outstanding! You've hit your daily step target!",
-    "💪 Incredible! Your dedication to walking is inspiring!",
-    "⭐ Perfect! You've mastered your daily movement goal!"
+    "🚶‍♀️ Amazing! You've walked 10,000 steps today - that's 10km!",
+    "👟 Fantastic! Your 10km fitness goal is achieved!",
+    "🎯 Outstanding! You've hit your daily 10,000 step target!",
+    "💪 Incredible! You've walked 10km today - your dedication is inspiring!",
+    "⭐ Perfect! You've mastered your daily 10km movement goal!"
   ];
 
   useEffect(() => {
     console.log('📊 StepTracker: Steps data updated:', { 
       currentSteps: stepData.steps, 
       previousSteps, 
-      goalReached: stepData.steps >= goal 
+      goalReached: stepData.steps >= goal,
+      kmWalked: (stepData.steps / 1000).toFixed(1)
     });
 
     // Check if goal was just completed
     if (stepData.steps >= goal && previousSteps < goal && previousSteps > 0) {
-      console.log('🎯 StepTracker: Goal completed! Showing celebration message');
+      console.log('🎯 StepTracker: 10km goal completed! Showing celebration message');
       setShowGoalMessage(true);
-      trackEvent('step_goal_achieved', 'Fitness', 'Daily Goal', stepData.steps);
+      trackEvent('step_goal_achieved', 'Fitness', '10km Goal', stepData.steps);
     }
     setPreviousSteps(stepData.steps);
   }, [stepData.steps, goal, previousSteps, trackEvent]);
@@ -63,22 +64,17 @@ const StepTracker = () => {
     return message;
   };
 
-  const handleAdd100Steps = () => {
-    console.log('➕ StepTracker: Adding 100 steps manually');
-    trackEvent('manual_steps_add', 'Fitness', '100 Steps');
-    manuallyAddSteps(100);
-  };
-
-  const handleAdd500Steps = () => {
-    console.log('➕ StepTracker: Adding 500 steps manually');
-    trackEvent('manual_steps_add', 'Fitness', '500 Steps');
-    manuallyAddSteps(500);
-  };
-
-  const handleAdd1000Steps = () => {
-    console.log('➕ StepTracker: Adding 1000 steps manually');
-    trackEvent('manual_steps_add', 'Fitness', '1000 Steps');
-    manuallyAddSteps(1000);
+  const handleAddSteps = (stepsToAdd: number) => {
+    console.log(`➕ StepTracker: Adding ${stepsToAdd} steps manually`);
+    trackEvent('manual_steps_add', 'Fitness', `${stepsToAdd} Steps`);
+    manuallyAddSteps(stepsToAdd);
+    
+    // Immediately dispatch the updated step count
+    const newStepCount = stepData.steps + stepsToAdd;
+    console.log('📢 StepTracker: Dispatching immediate step update:', newStepCount);
+    window.dispatchEvent(new CustomEvent('stepsUpdated', { 
+      detail: { steps: newStepCount, lastUpdated: new Date() } 
+    }));
   };
 
   const handlePermissionRequest = () => {
@@ -117,6 +113,9 @@ const StepTracker = () => {
     return "Web-based step tracking active";
   };
 
+  const kmWalked = (stepData.steps / 1000).toFixed(1);
+  const progressPercentage = Math.min((stepData.steps / goal) * 100, 100);
+
   // Track component render
   useEffect(() => {
     console.log('🎨 StepTracker: Component rendered with state:', {
@@ -124,10 +123,11 @@ const StepTracker = () => {
       isTracking,
       permission,
       goal,
-      progress: Math.round((stepData.steps / goal) * 100)
+      progress: Math.round(progressPercentage),
+      kmWalked
     });
     trackEvent('step_tracker_view', 'UI', 'Component Render');
-  }, [stepData.steps, isTracking, permission, goal, trackEvent]);
+  }, [stepData.steps, isTracking, permission, goal, progressPercentage, kmWalked, trackEvent]);
 
   return (
     <Card className="bg-white border border-gray-200 relative">
@@ -155,8 +155,23 @@ const StepTracker = () => {
         <div className="text-center mb-4">
           <div className="text-3xl font-bold text-gray-800">{stepData.steps.toLocaleString()}</div>
           <div className="text-sm text-gray-600">steps today</div>
+          <div className="text-sm text-blue-600 font-medium">{kmWalked} km walked</div>
           <div className="text-xs text-gray-500 mt-1">
             Last updated: {stepData.lastUpdated.toLocaleTimeString()}
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="mb-4">
+          <div className="flex justify-between text-sm text-gray-600 mb-1">
+            <span>Progress to 10km</span>
+            <span>{progressPercentage.toFixed(0)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
           </div>
         </div>
 
@@ -196,7 +211,7 @@ const StepTracker = () => {
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={handleAdd100Steps}
+              onClick={() => handleAddSteps(100)}
               className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-300"
             >
               <Plus size={14} className="mr-1" />
@@ -205,7 +220,7 @@ const StepTracker = () => {
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={handleAdd500Steps}
+              onClick={() => handleAddSteps(500)}
               className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-300"
             >
               <Plus size={14} className="mr-1" />
@@ -214,7 +229,7 @@ const StepTracker = () => {
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={handleAdd1000Steps}
+              onClick={() => handleAddSteps(1000)}
               className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-300"
             >
               <Plus size={14} className="mr-1" />
@@ -224,7 +239,7 @@ const StepTracker = () => {
         </div>
 
         <div className="mt-4 text-xs text-gray-500 text-center">
-          Goal: {goal.toLocaleString()} steps per day
+          Goal: {goal.toLocaleString()} steps per day (10km)
         </div>
 
         {Capacitor.isNativePlatform() && (
