@@ -18,7 +18,10 @@ const config: CapacitorConfig = {
     permissions: [
       'android.permission.ACTIVITY_RECOGNITION',
       'android.permission.BODY_SENSORS',
-      'com.google.android.gms.permission.ACTIVITY_RECOGNITION'
+      'com.google.android.gms.permission.ACTIVITY_RECOGNITION',
+      'android.permission.POST_NOTIFICATIONS',
+      'android.permission.FOREGROUND_SERVICE',
+      'android.permission.FOREGROUND_SERVICE_DATA_SYNC'
     ]
   },
   ios: {
