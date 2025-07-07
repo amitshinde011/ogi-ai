@@ -89,7 +89,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
       } finally {
         setIsUpdating(false);
       }
-    }, 500); // 500ms debounce
+    }, 1000); // 1 second debounce delay
   }, [wellnessData, toast]);
 
   const updateWater = useCallback((delta: number) => {
