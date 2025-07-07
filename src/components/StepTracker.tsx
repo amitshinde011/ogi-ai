@@ -92,9 +92,9 @@ const StepTracker = () => {
     
     if (Capacitor.isNativePlatform()) {
       if (platform === 'android') {
-        return "Background step tracking active (Android)";
+        return isTracking ? "Background step tracking active (Android Health)" : "Initializing Android step tracking...";
       } else if (platform === 'ios') {
-        return "Background step tracking active (iOS)";
+        return isTracking ? "Background step tracking active (iOS HealthKit)" : "Initializing iOS step tracking...";
       }
     }
     

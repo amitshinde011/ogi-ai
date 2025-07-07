@@ -9,12 +9,16 @@ const config: CapacitorConfig = {
     FirebaseAuthentication: {
       skipNativeAuth: false,
       providers: ['google.com']
+    },
+    Health: {
+      enableBackgroundDelivery: true
     }
   },
   android: {
     permissions: [
       'android.permission.ACTIVITY_RECOGNITION',
-      'android.permission.BODY_SENSORS'
+      'android.permission.BODY_SENSORS',
+      'com.google.android.gms.permission.ACTIVITY_RECOGNITION'
     ]
   },
   ios: {

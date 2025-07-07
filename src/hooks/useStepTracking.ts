@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { Health } from '@capacitor-community/health';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -42,97 +43,81 @@ export const useStepTracking = () => {
   };
 
   const startNativeStepTracking = async () => {
-    console.log('📱 Starting native step tracking with background support');
+    console.log('📱 Starting native step tracking with Health plugin');
     
     try {
-      if (Capacitor.getPlatform() === 'android') {
-        await startAndroidStepTracking();
-      } else if (Capacitor.getPlatform() === 'ios') {
-        await startIOSStepTracking();
-      }
-      
-      setIsTracking(true);
-      
-      // Set up periodic sync from native step counter
-      const syncInterval = setInterval(async () => {
+      // Request permissions for step tracking
+      const permissions = await Health.requestPermissions({
+        permissions: [
+          {
+            read: ['steps'],
+            write: []
+          }
+        ]
+      });
+
+      console.log('📋 Health permissions:', permissions);
+
+      if (permissions.granted.length > 0) {
+        console.log('✅ Health permissions granted');
+        setIsTracking(true);
+        
+        // Start periodic sync from native step counter
+        const syncInterval = setInterval(async () => {
+          await syncNativeSteps();
+        }, 60000); // Sync every minute
+        
+        // Initial sync
         await syncNativeSteps();
-      }, 60000); // Sync every minute
-      
-      return () => {
-        clearInterval(syncInterval);
-      };
+        
+        return () => {
+          clearInterval(syncInterval);
+        };
+      } else {
+        console.log('❌ Health permissions denied');
+        toast({
+          title: "Step Tracking",
+          description: "Health permissions required for background step tracking. Using manual tracking.",
+          variant: "destructive"
+        });
+        setIsTracking(true); // Still allow manual tracking
+      }
     } catch (error) {
       console.error('❌ Failed to start native step tracking:', error);
-      toast({
-        title: "Step Tracking",
-        description: "Could not enable background step tracking. Using manual tracking.",
-        variant: "destructive"
-      });
-      setIsTracking(true); // Still allow manual tracking
-    }
-  };
-
-  const startAndroidStepTracking = async () => {
-    console.log('🤖 Starting Android native step tracking');
-    
-    // Check if we can access native step counter
-    if ((window as any).StepCounter) {
-      try {
-        await (window as any).StepCounter.start();
-        console.log('✅ Android step counter started');
-      } catch (error) {
-        console.error('❌ Android step counter failed:', error);
-        throw error;
-      }
-    } else {
-      console.log('⚠️ Native step counter not available, using accelerometer fallback');
-      startWebStepTracking();
-    }
-  };
-
-  const startIOSStepTracking = async () => {
-    console.log('🍎 Starting iOS native step tracking');
-    
-    // Check if we can access native step counter (HealthKit/CoreMotion)
-    if ((window as any).HealthKit || (window as any).CoreMotion) {
-      try {
-        if ((window as any).HealthKit) {
-          await (window as any).HealthKit.requestAuthorization(['steps']);
-          console.log('✅ iOS HealthKit authorized');
-        } else if ((window as any).CoreMotion) {
-          await (window as any).CoreMotion.start();
-          console.log('✅ iOS CoreMotion started');
-        }
-      } catch (error) {
-        console.error('❌ iOS step tracking failed:', error);
-        throw error;
-      }
-    } else {
-      console.log('⚠️ Native step counter not available, using accelerometer fallback');
+      
+      // Fallback to device motion for older devices
+      console.log('🔄 Falling back to device motion tracking');
       startWebStepTracking();
     }
   };
 
   const syncNativeSteps = async () => {
-    console.log('🔄 Syncing steps from native counter');
+    console.log('🔄 Syncing steps from Health plugin');
     
     try {
-      let nativeSteps = 0;
-      
-      if (Capacitor.getPlatform() === 'android' && (window as any).StepCounter) {
-        nativeSteps = await (window as any).StepCounter.getTodaySteps();
-      } else if (Capacitor.getPlatform() === 'ios') {
-        if ((window as any).HealthKit) {
-          nativeSteps = await (window as any).HealthKit.getTodaySteps();
-        } else if ((window as any).CoreMotion) {
-          nativeSteps = await (window as any).CoreMotion.getTodaySteps();
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+      const result = await Health.queryHealthData({
+        dataType: 'steps',
+        startDate: startOfDay.toISOString(),
+        endDate: endOfDay.toISOString()
+      });
+
+      console.log('📊 Health query result:', result);
+
+      if (result.data && result.data.length > 0) {
+        // Sum up all step counts for today
+        const totalSteps = result.data.reduce((sum, entry) => {
+          return sum + (entry.value || 0);
+        }, 0);
+
+        if (totalSteps > 0 && totalSteps !== stepData.steps) {
+          console.log('📊 Native steps updated:', totalSteps);
+          updateStepData(totalSteps);
+          await saveStepsToDatabase(totalSteps);
         }
-      }
-      
-      if (nativeSteps > 0 && nativeSteps !== stepData.steps) {
-        console.log('📊 Native steps updated:', nativeSteps);
-        updateStepData(nativeSteps);
-        await saveStepsToDatabase(nativeSteps);
       }
     } catch (error) {
       console.error('❌ Failed to sync native steps:', error);
