@@ -86,19 +86,19 @@ const StepTracker = () => {
     }));
   };
 
-  const getPlatformSpecificInfo = () => {
+  const getPlatformInfo = () => {
     const platform = Capacitor.getPlatform();
     console.log('📱 StepTracker: Getting platform info for:', platform);
     
     if (Capacitor.isNativePlatform()) {
       if (platform === 'android') {
-        return "Background step tracking enabled on Android";
+        return "Background step tracking active (Android)";
       } else if (platform === 'ios') {
-        return "Background step tracking enabled on iOS";
+        return "Background step tracking active (iOS)";
       }
     }
     
-    return "Web-based step tracking active";
+    return "Web step tracking (foreground only)";
   };
 
   const kmWalked = (stepData.steps / 1000).toFixed(1);
@@ -129,7 +129,7 @@ const StepTracker = () => {
             {isTracking ? (
               <div className="flex items-center text-green-600">
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                <span className="text-sm">Tracking</span>
+                <span className="text-sm">Active</span>
               </div>
             ) : (
               <div className="flex items-center text-orange-500">
@@ -200,11 +200,9 @@ const StepTracker = () => {
           Goal: {goal.toLocaleString()} steps per day (5km)
         </div>
 
-        {Capacitor.isNativePlatform() && (
-          <div className="mt-2 text-xs text-blue-600 text-center">
-            {getPlatformSpecificInfo()}
-          </div>
-        )}
+        <div className="mt-2 text-xs text-blue-600 text-center">
+          {getPlatformInfo()}
+        </div>
 
         <GoalCompletionMessage
           show={showGoalMessage}

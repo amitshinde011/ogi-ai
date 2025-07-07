@@ -33,65 +33,120 @@ export const useStepTracking = () => {
   const initializeStepTracking = async () => {
     console.log('🚀 Initializing step tracking for platform:', Capacitor.getPlatform());
     
-    // Always start tracking immediately
     if (Capacitor.isNativePlatform()) {
-      startNativeStepTracking();
+      await startNativeStepTracking();
     } else {
-      // For web, use device motion if available
-      if ('DeviceMotionEvent' in window) {
-        startAccelerometerStepTracking();
-      } else {
-        console.log('Device motion not supported on web');
+      // For web, use device motion as fallback
+      startWebStepTracking();
+    }
+  };
+
+  const startNativeStepTracking = async () => {
+    console.log('📱 Starting native step tracking with background support');
+    
+    try {
+      if (Capacitor.getPlatform() === 'android') {
+        await startAndroidStepTracking();
+      } else if (Capacitor.getPlatform() === 'ios') {
+        await startIOSStepTracking();
       }
+      
+      setIsTracking(true);
+      
+      // Set up periodic sync from native step counter
+      const syncInterval = setInterval(async () => {
+        await syncNativeSteps();
+      }, 60000); // Sync every minute
+      
+      return () => {
+        clearInterval(syncInterval);
+      };
+    } catch (error) {
+      console.error('❌ Failed to start native step tracking:', error);
+      toast({
+        title: "Step Tracking",
+        description: "Could not enable background step tracking. Using manual tracking.",
+        variant: "destructive"
+      });
+      setIsTracking(true); // Still allow manual tracking
     }
   };
 
-  const startNativeStepTracking = () => {
-    console.log('📱 Starting native step tracking');
+  const startAndroidStepTracking = async () => {
+    console.log('🤖 Starting Android native step tracking');
     
-    // For Android and iOS, try to use device sensors directly
-    if (Capacitor.getPlatform() === 'android') {
-      startAndroidStepTracking();
-    } else if (Capacitor.getPlatform() === 'ios') {
-      startIOSStepTracking();
+    // Check if we can access native step counter
+    if ((window as any).StepCounter) {
+      try {
+        await (window as any).StepCounter.start();
+        console.log('✅ Android step counter started');
+      } catch (error) {
+        console.error('❌ Android step counter failed:', error);
+        throw error;
+      }
     } else {
-      // Fallback to accelerometer
-      startAccelerometerStepTracking();
+      console.log('⚠️ Native step counter not available, using accelerometer fallback');
+      startWebStepTracking();
     }
   };
 
-  const startAndroidStepTracking = () => {
-    console.log('🤖 Starting Android step tracking');
+  const startIOSStepTracking = async () => {
+    console.log('🍎 Starting iOS native step tracking');
     
-    // Try to access Android step counter sensor
-    if ('DeviceMotionEvent' in window) {
-      startAccelerometerStepTracking();
+    // Check if we can access native step counter (HealthKit/CoreMotion)
+    if ((window as any).HealthKit || (window as any).CoreMotion) {
+      try {
+        if ((window as any).HealthKit) {
+          await (window as any).HealthKit.requestAuthorization(['steps']);
+          console.log('✅ iOS HealthKit authorized');
+        } else if ((window as any).CoreMotion) {
+          await (window as any).CoreMotion.start();
+          console.log('✅ iOS CoreMotion started');
+        }
+      } catch (error) {
+        console.error('❌ iOS step tracking failed:', error);
+        throw error;
+      }
+    } else {
+      console.log('⚠️ Native step counter not available, using accelerometer fallback');
+      startWebStepTracking();
     }
-    
-    // Set tracking to true for Android
-    setIsTracking(true);
   };
 
-  const startIOSStepTracking = () => {
-    console.log('🍎 Starting iOS step tracking');
+  const syncNativeSteps = async () => {
+    console.log('🔄 Syncing steps from native counter');
     
-    // For iOS, try to use DeviceMotion
-    if ('DeviceMotionEvent' in window) {
-      startAccelerometerStepTracking();
+    try {
+      let nativeSteps = 0;
+      
+      if (Capacitor.getPlatform() === 'android' && (window as any).StepCounter) {
+        nativeSteps = await (window as any).StepCounter.getTodaySteps();
+      } else if (Capacitor.getPlatform() === 'ios') {
+        if ((window as any).HealthKit) {
+          nativeSteps = await (window as any).HealthKit.getTodaySteps();
+        } else if ((window as any).CoreMotion) {
+          nativeSteps = await (window as any).CoreMotion.getTodaySteps();
+        }
+      }
+      
+      if (nativeSteps > 0 && nativeSteps !== stepData.steps) {
+        console.log('📊 Native steps updated:', nativeSteps);
+        updateStepData(nativeSteps);
+        await saveStepsToDatabase(nativeSteps);
+      }
+    } catch (error) {
+      console.error('❌ Failed to sync native steps:', error);
     }
-    
-    // Set tracking to true for iOS
-    setIsTracking(true);
   };
 
-  const startAccelerometerStepTracking = () => {
-    console.log('📱 Starting accelerometer-based step tracking');
+  const startWebStepTracking = () => {
+    console.log('🌐 Starting web-based step tracking (foreground only)');
     
     let lastAcceleration = { x: 0, y: 0, z: 0 };
     let stepCount = stepData.steps;
     let lastStepTime = 0;
-    const stepThreshold = 12; // Lowered threshold for better sensitivity
-    const timeThreshold = 300; // Reduced time threshold
+    const stepThreshold = 12;
+    const timeThreshold = 300;
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
       if (!event.accelerationIncludingGravity) return;
@@ -131,8 +186,7 @@ export const useStepTracking = () => {
             console.log('✅ iOS motion permission granted');
           } else {
             console.log('❌ iOS motion permission denied');
-            // Still set tracking to true to show manual buttons
-            setIsTracking(true);
+            setIsTracking(true); // Still allow manual tracking
           }
         })
         .catch((error: any) => {
