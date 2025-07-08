@@ -131,11 +131,11 @@ export const useStepTracking = () => {
     let magnitudeHistory: number[] = [];
     let peakHistory: { magnitude: number, timestamp: number }[] = [];
     
-    // Google Fit parameters optimized for native sensors
-    const minStepThreshold = 7.0;  // Lower for better sensitivity on native
-    const maxStepThreshold = 20;
-    const minTimeBetweenSteps = 200;  // 300 steps/min max
-    const maxTimeBetweenSteps = 1800; // 33 steps/min min
+    // Google Fit parameters optimized for native sensors - increased sensitivity
+    const minStepThreshold = 5.5;  // Lower threshold for better sensitivity
+    const maxStepThreshold = 25;
+    const minTimeBetweenSteps = 150;  // 400 steps/min max
+    const maxTimeBetweenSteps = 2000; // 30 steps/min min
     const windowSize = 8;
     const peakWindowSize = 4;
 
@@ -230,8 +230,8 @@ export const useStepTracking = () => {
                 acc + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
               const stdDev = Math.sqrt(variance);
               
-              // Accept step if rhythm is consistent (low variance)
-              if (stdDev < avgInterval * 0.4 && avgInterval > minTimeBetweenSteps) {
+              // Accept step if rhythm is consistent (more permissive variance)
+              if (stdDev < avgInterval * 0.5 && avgInterval > minTimeBetweenSteps) {
                 stepCount++;
                 lastStepTime = currentTime;
                 console.log('👣 Native step detected! Total steps:', stepCount, 
@@ -288,11 +288,11 @@ export const useStepTracking = () => {
     let magnitudeHistory: number[] = [];
     let peakHistory: { magnitude: number, timestamp: number }[] = [];
     
-    // Google Fit-like parameters optimized for accuracy
-    const minStepThreshold = 8.5;
-    const maxStepThreshold = 25;
-    const minTimeBetweenSteps = 250;  // 240 steps/min max
-    const maxTimeBetweenSteps = 2000; // 30 steps/min min
+    // Google Fit-like parameters optimized for higher sensitivity
+    const minStepThreshold = 6.5;   // Lower threshold for better sensitivity
+    const maxStepThreshold = 30;
+    const minTimeBetweenSteps = 180;  // 333 steps/min max
+    const maxTimeBetweenSteps = 2200; // 27 steps/min min
     const windowSize = 10; // samples for smoothing
     const peakWindowSize = 5; // for peak detection
 
@@ -387,8 +387,8 @@ export const useStepTracking = () => {
               acc + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
             const stdDev = Math.sqrt(variance);
             
-            // Accept step if rhythm is consistent (low variance)
-            if (stdDev < avgInterval * 0.3 && avgInterval > minTimeBetweenSteps) {
+            // Accept step if rhythm is consistent (more permissive variance)
+            if (stdDev < avgInterval * 0.4 && avgInterval > minTimeBetweenSteps) {
               stepCount++;
               lastStepTime = currentTime;
               console.log('👣 Google Fit-like step detected! Total steps:', stepCount, 
@@ -457,8 +457,8 @@ export const useStepTracking = () => {
     let lastAcceleration = { x: 0, y: 0, z: 0 };
     let stepCount = stepData.steps;
     let lastStepTime = 0;
-    const stepThreshold = 12;
-    const timeThreshold = 400;
+    const stepThreshold = 8;    // Lower threshold for better sensitivity
+    const timeThreshold = 300;  // Shorter time threshold
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
       if (!event.accelerationIncludingGravity) return;

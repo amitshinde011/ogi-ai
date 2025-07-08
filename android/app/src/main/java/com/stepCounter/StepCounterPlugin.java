@@ -161,7 +161,7 @@ public class StepCounterPlugin extends Plugin implements SensorEventListener {
             
         } else if (event.sensor.getType() == Sensor.TYPE_STEP_DETECTOR) {
             // Step detector - increment counter
-            if (currentTime - lastStepTime > 200) { // Debounce
+            if (currentTime - lastStepTime > 150) { // Reduced debounce for higher sensitivity
                 todaySteps++;
                 lastStepTime = currentTime;
                 
