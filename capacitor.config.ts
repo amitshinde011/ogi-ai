@@ -10,24 +10,23 @@ const config: CapacitorConfig = {
       skipNativeAuth: false,
       providers: ['google.com']
     },
-    Health: {
-      enableBackgroundDelivery: true
+    Motion: {
+      interval: 100
     }
   },
   android: {
     permissions: [
       'android.permission.ACTIVITY_RECOGNITION',
-      'android.permission.health.READ_STEPS',
-      'android.permission.health.READ_ACTIVE_CALORIES_BURNED',
-      'android.permission.health.READ_DISTANCE',
-      'android.permission.health.READ_EXERCISE',
-      'android.permission.health.READ_HEART_RATE'
+      'android.permission.BODY_SENSORS',
+      'android.permission.HIGH_SAMPLING_RATE_SENSORS'
     ]
   },
   ios: {
     entitlements: {
-      'com.apple.developer.healthkit': true,
       'com.apple.developer.motion': true
+    },
+    infoPlist: {
+      'NSMotionUsageDescription': 'This app uses motion sensors to track your steps and physical activity.'
     }
   }
 };

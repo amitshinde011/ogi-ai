@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { Motion } from '@capacitor/motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -42,13 +43,169 @@ export const useStepTracking = () => {
   };
 
   const startNativeStepTracking = async () => {
-    console.log('📱 Starting enhanced device motion step tracking');
+    console.log('📱 Starting native step tracking for platform:', Capacitor.getPlatform());
     
-    // For native platforms, use enhanced motion detection with persistence
     if (Capacitor.isNativePlatform()) {
-      startEnhancedWebStepTracking();
+      await startNativeMotionTracking();
     } else {
-      startWebStepTracking();
+      startEnhancedWebStepTracking();
+    }
+  };
+
+  const startNativeMotionTracking = async () => {
+    console.log('🔬 Starting native motion sensor tracking (Google Fit-like)');
+    
+    let stepCount = stepData.steps;
+    let lastStepTime = 0;
+    let accelerationHistory: { x: number, y: number, z: number, timestamp: number }[] = [];
+    let magnitudeHistory: number[] = [];
+    let peakHistory: { magnitude: number, timestamp: number }[] = [];
+    
+    // Google Fit parameters optimized for native sensors
+    const minStepThreshold = 7.0;  // Lower for better sensitivity on native
+    const maxStepThreshold = 20;
+    const minTimeBetweenSteps = 200;  // 300 steps/min max
+    const maxTimeBetweenSteps = 1800; // 33 steps/min min
+    const windowSize = 8;
+    const peakWindowSize = 4;
+
+    const calculateMagnitude = (acc: { x: number, y: number, z: number }) => {
+      return Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+    };
+
+    const smoothAcceleration = (history: { x: number, y: number, z: number, timestamp: number }[]) => {
+      if (history.length === 0) return { x: 0, y: 0, z: 0 };
+      
+      const sum = history.reduce((acc, curr) => ({
+        x: acc.x + curr.x,
+        y: acc.y + curr.y,
+        z: acc.z + curr.z
+      }), { x: 0, y: 0, z: 0 });
+      
+      return {
+        x: sum.x / history.length,
+        y: sum.y / history.length,
+        z: sum.z / history.length
+      };
+    };
+
+    const detectPeaks = (magnitudes: number[], threshold: number) => {
+      const peaks: number[] = [];
+      for (let i = 1; i < magnitudes.length - 1; i++) {
+        if (magnitudes[i] > magnitudes[i - 1] && 
+            magnitudes[i] > magnitudes[i + 1] && 
+            magnitudes[i] > threshold) {
+          peaks.push(i);
+        }
+      }
+      return peaks;
+    };
+
+    try {
+      // Start motion tracking with native APIs
+      const accelHandler = await Motion.addListener('accel', (event) => {
+        const acceleration = event.accelerationIncludingGravity || event.acceleration;
+        if (!acceleration) return;
+        const { x, y, z } = acceleration;
+        const currentTime = Date.now();
+        
+        // Add to acceleration history
+        accelerationHistory.push({ x, y, z, timestamp: currentTime });
+        if (accelerationHistory.length > windowSize) {
+          accelerationHistory.shift();
+        }
+
+        // Wait for enough data
+        if (accelerationHistory.length < windowSize) return;
+
+        // Smooth the acceleration data
+        const smoothed = smoothAcceleration(accelerationHistory);
+        const magnitude = calculateMagnitude(smoothed);
+        
+        // Add to magnitude history
+        magnitudeHistory.push(magnitude);
+        if (magnitudeHistory.length > windowSize) {
+          magnitudeHistory.shift();
+        }
+
+        // Detect peaks in magnitude
+        const peaks = detectPeaks(magnitudeHistory, minStepThreshold);
+        
+        if (peaks.length > 0) {
+          const latestPeak = peaks[peaks.length - 1];
+          const peakMagnitude = magnitudeHistory[latestPeak];
+          
+          // Check if this is a valid step
+          if (peakMagnitude >= minStepThreshold && 
+              peakMagnitude <= maxStepThreshold &&
+              currentTime - lastStepTime >= minTimeBetweenSteps &&
+              currentTime - lastStepTime <= maxTimeBetweenSteps) {
+            
+            // Add to peak history for pattern validation
+            peakHistory.push({ magnitude: peakMagnitude, timestamp: currentTime });
+            if (peakHistory.length > peakWindowSize) {
+              peakHistory.shift();
+            }
+            
+            // Validate step pattern (Google Fit-like rhythm detection)
+            if (peakHistory.length >= 3) {
+              const intervals = [];
+              for (let i = 1; i < peakHistory.length; i++) {
+                intervals.push(peakHistory[i].timestamp - peakHistory[i-1].timestamp);
+              }
+              
+              // Check for consistent rhythm
+              const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
+              const variance = intervals.reduce((acc, interval) => 
+                acc + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
+              const stdDev = Math.sqrt(variance);
+              
+              // Accept step if rhythm is consistent (low variance)
+              if (stdDev < avgInterval * 0.4 && avgInterval > minTimeBetweenSteps) {
+                stepCount++;
+                lastStepTime = currentTime;
+                console.log('👣 Native step detected! Total steps:', stepCount, 
+                           'Peak magnitude:', peakMagnitude.toFixed(2),
+                           'Platform:', Capacitor.getPlatform());
+                updateStepData(stepCount);
+                
+                // Save to database every 3 steps for better performance
+                if (stepCount % 3 === 0) {
+                  saveStepsToDatabase(stepCount);
+                }
+              }
+            } else {
+              // For first few steps, use basic validation
+              stepCount++;
+              lastStepTime = currentTime;
+              console.log('👣 Native initial step detected! Total steps:', stepCount);
+              updateStepData(stepCount);
+            }
+          }
+        }
+      });
+
+      // Start motion detection with high frequency for accuracy
+      setIsTracking(true);
+      console.log('✅ Native motion tracking started successfully');
+
+      // Auto-save interval every 15 seconds
+      const autoSaveInterval = setInterval(() => {
+        if (stepCount > 0) {
+          saveStepsToDatabase(stepCount);
+        }
+      }, 15000);
+
+      return () => {
+        accelHandler.remove();
+        clearInterval(autoSaveInterval);
+        setIsTracking(false);
+        console.log('🛑 Native motion tracking stopped');
+      };
+    } catch (error) {
+      console.error('❌ Native motion tracking failed:', error);
+      // Fallback to enhanced web tracking
+      startEnhancedWebStepTracking();
     }
   };
 
