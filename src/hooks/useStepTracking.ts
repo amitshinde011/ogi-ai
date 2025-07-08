@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Motion } from '@capacitor/motion';
+import { StepCounter } from '@/plugins/step-counter';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,20 +36,89 @@ export const useStepTracking = () => {
     console.log('🚀 Initializing step tracking for platform:', Capacitor.getPlatform());
     
     if (Capacitor.isNativePlatform()) {
-      await startNativeStepTracking();
+      await startNativeHardwareStepTracking();
     } else {
       // For web, use device motion as fallback
       startWebStepTracking();
     }
   };
 
-  const startNativeStepTracking = async () => {
-    console.log('📱 Starting native step tracking for platform:', Capacitor.getPlatform());
+  const startNativeHardwareStepTracking = async () => {
+    console.log('📱 Starting native hardware step tracking for platform:', Capacitor.getPlatform());
     
-    if (Capacitor.isNativePlatform()) {
+    try {
+      // Check if step counting is supported
+      const { supported } = await StepCounter.isSupported();
+      if (!supported) {
+        console.log('❌ Hardware step counting not supported, falling back to motion sensors');
+        await startNativeMotionTracking();
+        return;
+      }
+
+      // Request permissions
+      const { granted } = await StepCounter.requestPermissions();
+      if (!granted) {
+        console.log('❌ Step counting permissions not granted, falling back to motion sensors');
+        await startNativeMotionTracking();
+        return;
+      }
+
+      // Initialize the step counter
+      const { success } = await StepCounter.initialize();
+      if (!success) {
+        console.log('❌ Failed to initialize step counter, falling back to motion sensors');
+        await startNativeMotionTracking();
+        return;
+      }
+
+      // Get initial step count
+      const { steps } = await StepCounter.getTodaySteps();
+      updateStepData(steps);
+      console.log('📊 Initial hardware step count:', steps);
+
+      // Start listening for updates
+      const { success: startSuccess } = await StepCounter.startListening();
+      if (!startSuccess) {
+        console.log('❌ Failed to start step listener, falling back to motion sensors');
+        await startNativeMotionTracking();
+        return;
+      }
+
+      // Add listener for step updates
+      await StepCounter.addListener('stepUpdate', (data) => {
+        console.log('👣 Hardware step update received:', data.steps);
+        updateStepData(data.steps);
+        
+        // Save to database every 5 steps for efficiency
+        if (data.steps % 5 === 0) {
+          saveStepsToDatabase(data.steps);
+        }
+      });
+
+      setIsTracking(true);
+      console.log('✅ Native hardware step tracking started successfully');
+
+      // Auto-save interval every 30 seconds
+      const autoSaveInterval = setInterval(() => {
+        StepCounter.getTodaySteps().then(({ steps }) => {
+          if (steps > 0) {
+            saveStepsToDatabase(steps);
+          }
+        });
+      }, 30000);
+
+      return () => {
+        StepCounter.stopListening();
+        StepCounter.removeAllListeners();
+        clearInterval(autoSaveInterval);
+        setIsTracking(false);
+        console.log('🛑 Native hardware step tracking stopped');
+      };
+      
+    } catch (error) {
+      console.error('❌ Hardware step tracking failed:', error);
+      // Fallback to motion sensor tracking
       await startNativeMotionTracking();
-    } else {
-      startEnhancedWebStepTracking();
     }
   };
 

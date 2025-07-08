@@ -23,10 +23,13 @@ const config: CapacitorConfig = {
   },
   ios: {
     entitlements: {
-      'com.apple.developer.motion': true
+      'com.apple.developer.motion': true,
+      'com.apple.developer.healthkit': true
     },
     infoPlist: {
-      'NSMotionUsageDescription': 'This app uses motion sensors to track your steps and physical activity.'
+      'NSMotionUsageDescription': 'This app uses motion sensors to track your steps and physical activity.',
+      'NSHealthShareUsageDescription': 'This app uses HealthKit to provide accurate step counting.',
+      'NSHealthUpdateUsageDescription': 'This app uses HealthKit to track your fitness activities.'
     }
   }
 };
