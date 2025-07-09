@@ -26,57 +26,27 @@ export const useStepCounter = (config: StepCounterConfig) => {
 
   // Advanced step detection with filtering
   const processMotionSample = useCallback((magnitude: number, timestamp: number) => {
-    console.log('🔬 Step Counter: Processing motion sample:', {
-      magnitude: magnitude.toFixed(2),
-      timestamp,
-      threshold: config.stepThreshold,
-      historyLength: magnitudeHistory.length
-    });
-
     // Update magnitude history for filtering
     setMagnitudeHistory(prev => {
       const newHistory = [...prev, magnitude];
-      const trimmedHistory = newHistory.slice(-config.filterWindowSize);
-      console.log('📊 Updated magnitude history:', trimmedHistory.map(m => m.toFixed(2)));
-      return trimmedHistory;
+      return newHistory.slice(-config.filterWindowSize);
     });
 
-    // Need at least 3 samples for peak detection
-    if (magnitudeHistory.length >= 2) {
-      const currentHistory = [...magnitudeHistory, magnitude];
-      const recentMagnitudes = currentHistory.slice(-3);
+    // Peak detection
+    if (magnitudeHistory.length >= 3) {
+      const recentMagnitudes = magnitudeHistory.slice(-3);
       const [prev, current, next] = recentMagnitudes;
       
-      console.log('🔍 Peak detection analysis:', {
-        prev: prev?.toFixed(2) || 'none',
-        current: current?.toFixed(2) || 'none', 
-        next: next?.toFixed(2) || 'none',
-        threshold: config.stepThreshold
-      });
-      
-      // Check if current is a peak (simpler detection)
-      const isPeak = current && current > config.stepThreshold && 
-                    (!prev || current > prev) && 
-                    (!next || current > next);
-      
-      console.log('🎯 Peak detection result:', { isPeak, magnitude: current?.toFixed(2) });
+      // Check if current is a peak
+      const isPeak = current > prev && current > (next || 0) && current > config.stepThreshold;
       
       if (isPeak) {
         setStepData(prevData => {
           const timeSinceLastStep = timestamp - prevData.lastStepTime;
           
-          console.log('⏱️ Step timing check:', {
-            timeSinceLastStep,
-            minInterval: config.minStepInterval,
-            maxInterval: config.maxStepInterval,
-            lastStepTime: prevData.lastStepTime,
-            isValidTiming: timeSinceLastStep >= config.minStepInterval
-          });
-          
-          // Validate step timing (be more lenient for the first step)
-          if (prevData.lastStepTime === 0 || 
-              (timeSinceLastStep >= config.minStepInterval && 
-               timeSinceLastStep <= config.maxStepInterval)) {
+          // Validate step timing
+          if (timeSinceLastStep >= config.minStepInterval && 
+              timeSinceLastStep <= config.maxStepInterval) {
             
             // Update peak history for rhythm analysis
             setPeakHistory(prevPeaks => {
@@ -103,9 +73,8 @@ export const useStepCounter = (config: StepCounterConfig) => {
             console.log('👣 Step detected!', {
               steps: prevData.steps + 1,
               confidence: confidence.toFixed(2),
-              magnitude: current?.toFixed(2) || 'unknown',
-              interval: timeSinceLastStep,
-              newTotal: prevData.steps + 1
+              magnitude: current.toFixed(2),
+              interval: timeSinceLastStep
             });
 
             return {
@@ -115,14 +84,9 @@ export const useStepCounter = (config: StepCounterConfig) => {
             };
           }
           
-          console.log('❌ Step timing invalid, skipping');
           return prevData;
         });
-      } else {
-        console.log('❌ No peak detected');
       }
-    } else {
-      console.log('⏳ Not enough samples for peak detection, need at least 2');
     }
   }, [magnitudeHistory, peakHistory, config]);
 

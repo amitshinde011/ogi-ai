@@ -40,7 +40,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
       setWellnessData(initialData);
       trackEvent('wellness_data_sync', 'Data Management', 'Initial Data Updated');
     }
-  }, [initialData.id, initialData.water_litres, initialData.surya_namaskar_count, initialData.meditation_completed]);
+  }, [initialData.id, initialData.water_litres, initialData.surya_namaskar_count, initialData.meditation_completed]); // Remove wellnessData and trackEvent from dependencies
 
   const debouncedUpdate = useCallback(async (updates: Partial<WellnessData>) => {
     const now = Date.now();
@@ -191,7 +191,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
         console.log('🏁 useOptimizedWellness: Update process completed');
       }
     }, 2000); // Increased debounce delay to 2 seconds
-  }, [wellnessData, toast]);
+  }, [wellnessData, toast]); // Remove trackEvent from dependencies
 
   const updateWater = useCallback((delta: number) => {
     const newValue = Math.max(0, wellnessData.water_litres + delta);
@@ -202,7 +202,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('water_intake_action', 'UI', delta > 0 ? 'Increase' : 'Decrease', Math.abs(delta));
     debouncedUpdate({ water_litres: newValue });
-  }, [wellnessData.water_litres, debouncedUpdate]);
+  }, [wellnessData.water_litres, debouncedUpdate]); // Remove trackEvent from dependencies
 
   const updateSuryaNamaskar = useCallback((delta: number) => {
     const newValue = Math.max(0, wellnessData.surya_namaskar_count + delta);
@@ -213,7 +213,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('surya_namaskar_action', 'UI', delta > 0 ? 'Increase' : 'Decrease', Math.abs(delta));
     debouncedUpdate({ surya_namaskar_count: newValue });
-  }, [wellnessData.surya_namaskar_count, debouncedUpdate]);
+  }, [wellnessData.surya_namaskar_count, debouncedUpdate]); // Remove trackEvent from dependencies
 
   const toggleMeditation = useCallback(() => {
     const newValue = !wellnessData.meditation_completed;
@@ -223,7 +223,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('meditation_action', 'UI', newValue ? 'Complete' : 'Incomplete');
     debouncedUpdate({ meditation_completed: newValue });
-  }, [wellnessData.meditation_completed, debouncedUpdate]);
+  }, [wellnessData.meditation_completed, debouncedUpdate]); // Remove trackEvent from dependencies
 
   // Cleanup timeout on unmount
   useEffect(() => {

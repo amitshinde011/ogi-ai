@@ -249,7 +249,7 @@ export const useOptimizedHomeData = () => {
       fetchingRef.current = false;
       console.log('🏁 useOptimizedHomeData: Loading state updated to false');
     }
-  }, []); // Remove trackEvent to prevent infinite loops
+  }, []); // Remove trackEvent from dependencies to prevent loops
 
   useEffect(() => {
     console.log('🔄 useOptimizedHomeData: useEffect triggered, calling fetchAllData');

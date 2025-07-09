@@ -49,7 +49,7 @@ const StepTracker = () => {
       localStorage.setItem(storageKey, 'true');
       trackEvent('step_goal_achieved', 'Fitness', '5km Goal', stepData.steps);
     }
-  }, [stepData.steps, goal]);
+  }, [stepData.steps, goal, trackEvent]);
 
   // Listen for external step updates and sync with parent components
   useEffect(() => {
@@ -64,7 +64,7 @@ const StepTracker = () => {
       console.log('🧹 StepTracker: Cleaning up external steps listener');
       window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
     };
-  }, []);
+  }, [trackEvent]);
 
   const getRandomMessage = () => {
     const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
@@ -109,7 +109,7 @@ const StepTracker = () => {
       goalAchievedToday
     });
     trackEvent('step_tracker_view', 'UI', 'Component Render');
-  }, [stepData.steps, isTracking, goal, progressPercentage, kmWalked, goalAchievedToday]);
+  }, [stepData.steps, isTracking, goal, progressPercentage, kmWalked, goalAchievedToday, trackEvent]);
 
   return (
     <Card className="bg-white border border-gray-200 relative">
