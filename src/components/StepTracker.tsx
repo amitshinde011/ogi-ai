@@ -11,7 +11,7 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 const StepTracker = () => {
   console.log('👟 StepTracker: Component initialized');
   
-  const { stepData, isTracking, motionState, manuallyAddSteps } = useStepTracking();
+  const { stepData, isTracking, manuallyAddSteps } = useStepTracking();
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [goalAchievedToday, setGoalAchievedToday] = useState(false);
   const { trackEvent } = useAnalytics();
@@ -92,19 +92,13 @@ const StepTracker = () => {
     
     if (Capacitor.isNativePlatform()) {
       if (platform === 'android') {
-        return isTracking 
-          ? `Intelligent tracking ${motionState.isActive ? '(Walking)' : '(Idle)'} - Android`
-          : "Initializing intelligent Android tracking...";
+        return isTracking ? "Background step tracking active (Android Health)" : "Initializing Android step tracking...";
       } else if (platform === 'ios') {
-        return isTracking 
-          ? `Intelligent tracking ${motionState.isActive ? '(Walking)' : '(Idle)'} - iOS`
-          : "Initializing intelligent iOS tracking...";
+        return isTracking ? "Background step tracking active (iOS HealthKit)" : "Initializing iOS step tracking...";
       }
     }
     
-    return isTracking 
-      ? `Smart web tracking ${motionState.isActive ? '(Walking)' : '(Idle)'}`
-      : "Initializing smart web tracking...";
+    return "Web step tracking (foreground only)";
   };
 
   const kmWalked = (stepData.steps / 1000).toFixed(1);
@@ -133,18 +127,9 @@ const StepTracker = () => {
           </div>
           <div className="flex items-center">
             {isTracking ? (
-              <div className="flex items-center">
-                {motionState.isActive ? (
-                  <div className="flex items-center text-green-600">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                    <span className="text-sm">Walking</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center text-blue-600">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                    <span className="text-sm">Idle</span>
-                  </div>
-                )}
+              <div className="flex items-center text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                <span className="text-sm">Active</span>
               </div>
             ) : (
               <div className="flex items-center text-orange-500">
