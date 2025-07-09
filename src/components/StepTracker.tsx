@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Footprints, Plus } from 'lucide-react';
 import { useStepTracking } from '@/hooks/useStepTracking';
 import { GoalCompletionMessage } from './wellness/GoalCompletionMessage';
+import { Capacitor } from '@capacitor/core';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
 const StepTracker = () => {
   console.log('👟 StepTracker: Component initialized');
   
-  const { stepData, isTracking, manuallyAddSteps, trackingState } = useStepTracking();
+  const { stepData, isTracking, manuallyAddSteps } = useStepTracking();
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [goalAchievedToday, setGoalAchievedToday] = useState(false);
   const { trackEvent } = useAnalytics();
@@ -85,14 +86,19 @@ const StepTracker = () => {
     }));
   };
 
-  const getStatusInfo = () => {
-    if (!isTracking) return "Initializing intelligent step tracking...";
+  const getPlatformInfo = () => {
+    const platform = Capacitor.getPlatform();
+    console.log('📱 StepTracker: Getting platform info for:', platform);
     
-    const motionStatus = trackingState?.isMoving ? "Moving" : "Stationary";
-    const syncStatus = trackingState?.syncStatus || 'synced';
-    const confidence = trackingState?.confidence ? `${Math.round(trackingState.confidence * 100)}%` : '100%';
+    if (Capacitor.isNativePlatform()) {
+      if (platform === 'android') {
+        return isTracking ? "Background step tracking active (Android Health)" : "Initializing Android step tracking...";
+      } else if (platform === 'ios') {
+        return isTracking ? "Background step tracking active (iOS HealthKit)" : "Initializing iOS step tracking...";
+      }
+    }
     
-    return `${motionStatus} • Sync: ${syncStatus} • Accuracy: ${confidence}`;
+    return "Web step tracking (foreground only)";
   };
 
   const kmWalked = (stepData.steps / 1000).toFixed(1);
@@ -121,23 +127,9 @@ const StepTracker = () => {
           </div>
           <div className="flex items-center">
             {isTracking ? (
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center text-green-600">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
-                  <span className="text-xs">Active</span>
-                </div>
-                {trackingState?.isMoving && (
-                  <div className="flex items-center text-blue-600">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-1 animate-bounce"></div>
-                    <span className="text-xs">Moving</span>
-                  </div>
-                )}
-                {trackingState?.syncStatus === 'pending' && (
-                  <div className="flex items-center text-amber-600">
-                    <div className="w-2 h-2 bg-amber-500 rounded-full mr-1"></div>
-                    <span className="text-xs">Sync Pending</span>
-                  </div>
-                )}
+              <div className="flex items-center text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                <span className="text-sm">Active</span>
               </div>
             ) : (
               <div className="flex items-center text-orange-500">
@@ -209,7 +201,7 @@ const StepTracker = () => {
         </div>
 
         <div className="mt-2 text-xs text-blue-600 text-center">
-          {getStatusInfo()}
+          {getPlatformInfo()}
         </div>
 
         <GoalCompletionMessage
