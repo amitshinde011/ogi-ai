@@ -9,9 +9,20 @@ interface StepData {
   lastUpdated: Date;
 }
 
+interface MotionState {
+  isActive: boolean;
+  lastMotionTime: number;
+  inactivityThreshold: number;
+}
+
 export const useStepTracking = () => {
   const [stepData, setStepData] = useState<StepData>({ steps: 0, lastUpdated: new Date() });
   const [isTracking, setIsTracking] = useState(false);
+  const [motionState, setMotionState] = useState<MotionState>({
+    isActive: false,
+    lastMotionTime: 0,
+    inactivityThreshold: 30000 // 30 seconds of inactivity before going idle
+  });
   const { toast } = useToast();
 
   // Callback to update step data and sync with parent components
@@ -25,27 +36,80 @@ export const useStepTracking = () => {
     }));
   }, []);
 
+  // Intelligent sync logic - batch updates every 100 steps or 15 minutes
+  const intelligentSync = useCallback((steps: number, forceSync: boolean = false) => {
+    const lastSyncSteps = localStorage.getItem('lastSyncSteps');
+    const lastSyncTime = localStorage.getItem('lastSyncTime');
+    
+    const stepsSinceLastSync = steps - (lastSyncSteps ? parseInt(lastSyncSteps) : 0);
+    const timeSinceLastSync = Date.now() - (lastSyncTime ? parseInt(lastSyncTime) : 0);
+    
+    const shouldSync = forceSync || 
+                      stepsSinceLastSync >= 100 || 
+                      timeSinceLastSync >= 900000; // 15 minutes
+    
+    if (shouldSync) {
+      console.log('🔄 Intelligent sync triggered:', { steps, stepsSinceLastSync, timeSinceLastSync });
+      saveStepsToDatabase(steps);
+      localStorage.setItem('lastSyncSteps', steps.toString());
+      localStorage.setItem('lastSyncTime', Date.now().toString());
+    }
+  }, []);
+
+  // Motion detection for idle/active state management
+  const updateMotionState = useCallback((hasMotion: boolean) => {
+    const currentTime = Date.now();
+    
+    setMotionState(prev => {
+      const newState = {
+        ...prev,
+        lastMotionTime: hasMotion ? currentTime : prev.lastMotionTime,
+        isActive: hasMotion || (currentTime - prev.lastMotionTime < prev.inactivityThreshold)
+      };
+      
+      if (prev.isActive !== newState.isActive) {
+        console.log(`🎯 Motion state changed: ${newState.isActive ? 'ACTIVE' : 'IDLE'}`);
+      }
+      
+      return newState;
+    });
+  }, []);
+
   useEffect(() => {
     initializeStepTracking();
     fetchTodaySteps();
     
-    // Add background operation support
+    // Enhanced background operation support
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        console.log('📱 App backgrounded - maintaining step tracking');
+        console.log('📱 App backgrounded - maintaining intelligent step tracking');
+        // Force sync when app goes to background
+        intelligentSync(stepData.steps, true);
       } else {
-        console.log('📱 App foregrounded - continuing step tracking');
-        // Sync data when app comes back to foreground
-        fetchTodaySteps();
+        console.log('📱 App foregrounded - syncing latest data');
+        // Fetch latest data and force sync when app comes back to foreground
+        fetchTodaySteps().then(() => {
+          intelligentSync(stepData.steps, true);
+        });
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
+    // Motion state monitoring for idle detection
+    const motionMonitor = setInterval(() => {
+      const timeSinceMotion = Date.now() - motionState.lastMotionTime;
+      if (timeSinceMotion > motionState.inactivityThreshold && motionState.isActive) {
+        console.log('💤 Entering idle state due to inactivity');
+        updateMotionState(false);
+      }
+    }, 5000); // Check every 5 seconds
+    
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(motionMonitor);
     };
-  }, []);
+  }, [intelligentSync, stepData.steps, motionState.lastMotionTime, motionState.inactivityThreshold, motionState.isActive, updateMotionState]);
 
   const initializeStepTracking = async () => {
     console.log('🚀 Initializing enhanced software step tracking for platform:', Capacitor.getPlatform());
@@ -60,25 +124,38 @@ export const useStepTracking = () => {
 
 
   const startNativeMotionTracking = async () => {
-    console.log('🔬 Starting Android/iOS optimized motion tracking');
+    console.log('🔬 Starting intelligent Android/iOS motion tracking');
     
     let stepCount = stepData.steps;
     let lastStepTime = 0;
     let accelerationHistory: { x: number, y: number, z: number, timestamp: number }[] = [];
     let magnitudeHistory: number[] = [];
+    let lastActivityCheck = Date.now();
 
-    // --- NEW: State to ensure a valley is detected before a peak ---
+    // --- Enhanced state management ---
     let isPeakPhase = false;
+    let isCurrentlyActive = false;
     
-    // --- Tuned for realistic step detection, preventing hand-tremor counts ---
+    // --- Tuned for realistic step detection with motion-based activation ---
     const minStepThreshold = 12.5;
     const maxStepThreshold = 40;
     const minTimeBetweenSteps = 300;
     const maxTimeBetweenSteps = 2500;
     const windowSize = 10;
+    const motionThreshold = 8.0; // Threshold for detecting general motion
 
     const calculateMagnitude = (acc: { x: number, y: number, z: number }) => {
       return Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+    };
+
+    const checkMotionActivity = (magnitudeHistory: number[]) => {
+      if (magnitudeHistory.length < 5) return false;
+      
+      const recent = magnitudeHistory.slice(-5);
+      const average = recent.reduce((a, b) => a + b, 0) / recent.length;
+      const variance = recent.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / recent.length;
+      
+      return variance > motionThreshold;
     };
 
     try {
@@ -102,8 +179,19 @@ export const useStepTracking = () => {
           magnitudeHistory.shift();
         }
 
-        // --- IMPROVED "VALLEY-THEN-PEAK" STEP DETECTION LOGIC ---
-        if (magnitudeHistory.length >= 3) {
+        // Motion-based activation check (every 2 seconds)
+        if (currentTime - lastActivityCheck > 2000) {
+          const hasMotion = checkMotionActivity(magnitudeHistory);
+          if (hasMotion !== isCurrentlyActive) {
+            isCurrentlyActive = hasMotion;
+            updateMotionState(hasMotion);
+            console.log(`🎯 Motion detected: ${hasMotion ? 'WALKING' : 'STATIONARY'}`);
+          }
+          lastActivityCheck = currentTime;
+        }
+
+        // Only process steps if motion is detected (energy efficient)
+        if (isCurrentlyActive && magnitudeHistory.length >= 3) {
           const latest = magnitudeHistory[magnitudeHistory.length - 1];
           const previous = magnitudeHistory[magnitudeHistory.length - 2];
           
@@ -118,12 +206,11 @@ export const useStepTracking = () => {
             if (previous > minStepThreshold && currentTime - lastStepTime > minTimeBetweenSteps) {
                 stepCount++;
                 lastStepTime = currentTime;
-                console.log('👣 Step detected! Total:', stepCount);
+                console.log('👣 Intelligent step detected! Total:', stepCount);
                 updateStepData(stepCount);
 
-                if (stepCount % 2 === 0) {
-                    saveStepsToDatabase(stepCount);
-                }
+                // Use intelligent sync instead of fixed intervals
+                intelligentSync(stepCount);
             }
             // Reset to look for the next valley, completing the step cycle.
             isPeakPhase = false;
@@ -152,18 +239,20 @@ export const useStepTracking = () => {
         throw new Error('DeviceMotionEvent not supported');
       }
 
-      // Auto-save interval
-      const autoSaveInterval = setInterval(() => {
+      // Smart background sync - only sync when necessary
+      const backgroundSyncInterval = setInterval(() => {
         if (stepCount > 0) {
-          saveStepsToDatabase(stepCount);
+          intelligentSync(stepCount);
         }
-      }, 10000);
+      }, 60000); // Check every minute, but only sync if criteria met
 
       return () => {
         window.removeEventListener('devicemotion', handleDeviceMotion);
-        clearInterval(autoSaveInterval);
+        clearInterval(backgroundSyncInterval);
         setIsTracking(false);
-        console.log('🛑 Android motion tracking stopped');
+        // Force final sync when stopping
+        intelligentSync(stepCount, true);
+        console.log('🛑 Intelligent motion tracking stopped');
       };
     } catch (error) {
       console.error('❌ Android motion tracking failed:', error);
@@ -172,15 +261,17 @@ export const useStepTracking = () => {
   };
 
   const startEnhancedWebStepTracking = () => {
-    console.log('🚀 Starting Google Fit-like step tracking with advanced algorithms');
+    console.log('🚀 Starting intelligent web step tracking with motion detection');
     
     let stepCount = stepData.steps;
     let lastStepTime = 0;
     let accelerationHistory: { x: number, y: number, z: number, timestamp: number }[] = [];
     let magnitudeHistory: number[] = [];
+    let lastActivityCheck = Date.now();
 
-    // --- NEW: State for valley-then-peak detection ---
+    // --- Enhanced state for motion-activated tracking ---
     let isPeakPhase = false;
+    let isCurrentlyActive = false;
     
     // --- Tuned for reliable web-based tracking ---
     const minStepThreshold = 12.0;
@@ -188,9 +279,20 @@ export const useStepTracking = () => {
     const minTimeBetweenSteps = 300;
     const maxTimeBetweenSteps = 2800;
     const windowSize = 10;
+    const motionThreshold = 6.0; // Lower threshold for web
 
     const calculateMagnitude = (acc: { x: number, y: number, z: number }) => {
       return Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+    };
+
+    const checkMotionActivity = (magnitudeHistory: number[]) => {
+      if (magnitudeHistory.length < 5) return false;
+      
+      const recent = magnitudeHistory.slice(-5);
+      const average = recent.reduce((a, b) => a + b, 0) / recent.length;
+      const variance = recent.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / recent.length;
+      
+      return variance > motionThreshold;
     };
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
@@ -213,8 +315,19 @@ export const useStepTracking = () => {
           magnitudeHistory.shift();
         }
 
-        // --- IMPROVED "VALLEY-THEN-PEAK" STEP DETECTION LOGIC ---
-        if (magnitudeHistory.length >= 3) {
+        // Motion-based activation check (every 3 seconds for web)
+        if (currentTime - lastActivityCheck > 3000) {
+          const hasMotion = checkMotionActivity(magnitudeHistory);
+          if (hasMotion !== isCurrentlyActive) {
+            isCurrentlyActive = hasMotion;
+            updateMotionState(hasMotion);
+            console.log(`🎯 Web motion detected: ${hasMotion ? 'WALKING' : 'STATIONARY'}`);
+          }
+          lastActivityCheck = currentTime;
+        }
+
+        // Only process steps if motion is detected (energy efficient)
+        if (isCurrentlyActive && magnitudeHistory.length >= 3) {
           const latest = magnitudeHistory[magnitudeHistory.length - 1];
           const previous = magnitudeHistory[magnitudeHistory.length - 2];
           
@@ -226,12 +339,11 @@ export const useStepTracking = () => {
             if (previous > minStepThreshold && currentTime - lastStepTime > minTimeBetweenSteps) {
                 stepCount++;
                 lastStepTime = currentTime;
-                console.log('👣 Web step detected! Total:', stepCount);
+                console.log('👣 Intelligent web step detected! Total:', stepCount);
                 updateStepData(stepCount);
 
-                if (stepCount % 5 === 0) {
-                    saveStepsToDatabase(stepCount);
-                }
+                // Use intelligent sync instead of fixed intervals
+                intelligentSync(stepCount);
             }
             isPeakPhase = false;
           }
@@ -262,18 +374,20 @@ export const useStepTracking = () => {
       console.log('✅ Enhanced motion tracking started');
     }
 
-    // Auto-save interval
-    const autoSaveInterval = setInterval(() => {
+    // Smart background sync for web
+    const backgroundSyncInterval = setInterval(() => {
       if (stepCount > 0) {
-        saveStepsToDatabase(stepCount);
+        intelligentSync(stepCount);
       }
-    }, 20000);
+    }, 90000); // Check every 1.5 minutes for web
 
     return () => {
       window.removeEventListener('devicemotion', handleDeviceMotion);
-      clearInterval(autoSaveInterval);
+      clearInterval(backgroundSyncInterval);
       setIsTracking(false);
-      console.log('🛑 Enhanced step tracking stopped');
+      // Force final sync when stopping
+      intelligentSync(stepCount, true);
+      console.log('🛑 Intelligent web step tracking stopped');
     };
   };
 
@@ -358,8 +472,12 @@ export const useStepTracking = () => {
       if (error) throw error;
 
       if (data) {
-        console.log('📊 Fetched today steps from database:', data.steps_count);
+        console.log('📊 Real-time sync: Fetched today steps from database:', data.steps_count);
         updateStepData(data.steps_count);
+        
+        // Update local sync tracking
+        localStorage.setItem('lastSyncSteps', data.steps_count.toString());
+        localStorage.setItem('lastSyncTime', Date.now().toString());
       }
     } catch (error) {
       console.error('Error fetching today steps:', error);
@@ -384,7 +502,7 @@ export const useStepTracking = () => {
         });
 
       if (error) throw error;
-      console.log('💾 Steps saved to database:', steps);
+      console.log('💾 Intelligent sync: Steps saved to database:', steps);
     } catch (error) {
       console.error('Error saving steps:', error);
     }
@@ -394,13 +512,16 @@ export const useStepTracking = () => {
     const newStepCount = stepData.steps + additionalSteps;
     console.log('➕ Adding manual steps:', additionalSteps, 'New total:', newStepCount);
     updateStepData(newStepCount);
-    await saveStepsToDatabase(newStepCount);
+    // Force sync for manual additions
+    intelligentSync(newStepCount, true);
   };
 
   return {
     stepData,
     isTracking,
+    motionState,
     manuallyAddSteps,
-    saveStepsToDatabase: () => saveStepsToDatabase(stepData.steps)
+    saveStepsToDatabase: () => saveStepsToDatabase(stepData.steps),
+    intelligentSync: (force?: boolean) => intelligentSync(stepData.steps, force)
   };
 };
