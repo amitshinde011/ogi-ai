@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 
 declare global {
@@ -29,7 +29,7 @@ export const useAnalytics = () => {
     }
   }, [location]);
 
-  const trackEvent = (action: string, category: string, label?: string, value?: number) => {
+  const trackEvent = useCallback((action: string, category: string, label?: string, value?: number) => {
     if (typeof window.gtag !== 'undefined' && window.GA_MEASUREMENT_ID) {
       window.gtag('event', action, {
         event_category: category,
@@ -40,9 +40,9 @@ export const useAnalytics = () => {
         },
       });
     }
-  };
+  }, []);
 
-  const trackPayment = (programName: string, amount: number, currency: string, gateway: string) => {
+  const trackPayment = useCallback((programName: string, amount: number, currency: string, gateway: string) => {
     if (typeof window.gtag !== 'undefined' && window.GA_MEASUREMENT_ID) {
       const transactionId = `yogi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
@@ -73,71 +73,71 @@ export const useAnalytics = () => {
         currency: currency,
       });
     }
-  };
+  }, [trackEvent]);
 
-  const trackVideoComplete = (videoName: string) => {
+  const trackVideoComplete = useCallback((videoName: string) => {
     trackEvent('video_complete', 'Engagement', videoName);
-  };
+  }, [trackEvent]);
 
-  const trackRecipeSave = (recipeId: string, recipeName: string) => {
+  const trackRecipeSave = useCallback((recipeId: string, recipeName: string) => {
     trackEvent('recipe_save', 'Content', recipeName);
-  };
+  }, [trackEvent]);
 
-  const trackRecipeUnsave = (recipeId: string, recipeName: string) => {
+  const trackRecipeUnsave = useCallback((recipeId: string, recipeName: string) => {
     trackEvent('recipe_unsave', 'Content', recipeName);
-  };
+  }, [trackEvent]);
 
-  const trackPostCreate = (category: string) => {
+  const trackPostCreate = useCallback((category: string) => {
     trackEvent('post_create', 'Community', category);
-  };
+  }, [trackEvent]);
 
-  const trackPostLike = (postId: string) => {
+  const trackPostLike = useCallback((postId: string) => {
     trackEvent('post_like', 'Community', postId);
-  };
+  }, [trackEvent]);
 
-  const trackFormSubmit = (formName: string) => {
+  const trackFormSubmit = useCallback((formName: string) => {
     trackEvent('form_submit', 'Form', formName);
-  };
+  }, [trackEvent]);
 
-  const trackButtonClick = (buttonName: string, location: string) => {
+  const trackButtonClick = useCallback((buttonName: string, location: string) => {
     trackEvent('button_click', 'UI', `${buttonName} - ${location}`);
-  };
+  }, [trackEvent]);
 
-  const trackMealUpload = (mealType: string) => {
+  const trackMealUpload = useCallback((mealType: string) => {
     trackEvent('meal_upload', 'Content', mealType);
-  };
+  }, [trackEvent]);
 
-  const trackProgressView = () => {
+  const trackProgressView = useCallback(() => {
     trackEvent('progress_view', 'Engagement', 'Progress Page');
-  };
+  }, [trackEvent]);
 
-  const trackAssessmentComplete = (assessmentType: string) => {
+  const trackAssessmentComplete = useCallback((assessmentType: string) => {
     trackEvent('assessment_complete', 'Engagement', assessmentType);
-  };
+  }, [trackEvent]);
 
-  const trackSignup = (method: string) => {
+  const trackSignup = useCallback((method: string) => {
     trackEvent('sign_up', 'Authentication', method);
-  };
+  }, [trackEvent]);
 
-  const trackLogin = (method: string) => {
+  const trackLogin = useCallback((method: string) => {
     trackEvent('login', 'Authentication', method);
-  };
+  }, [trackEvent]);
 
-  const trackSubscriptionStart = (programName: string) => {
+  const trackSubscriptionStart = useCallback((programName: string) => {
     trackEvent('begin_checkout', 'Subscription', programName);
-  };
+  }, [trackEvent]);
 
-  const trackUserEngagement = (action: string, content?: string) => {
+  const trackUserEngagement = useCallback((action: string, content?: string) => {
     trackEvent('user_engagement', 'Engagement', content, 1);
-  };
+  }, [trackEvent]);
 
-  const trackSearch = (searchTerm: string, category: string) => {
+  const trackSearch = useCallback((searchTerm: string, category: string) => {
     trackEvent('search', 'Content', `${category}: ${searchTerm}`);
-  };
+  }, [trackEvent]);
 
-  const trackShare = (contentType: string, contentId?: string) => {
+  const trackShare = useCallback((contentType: string, contentId?: string) => {
     trackEvent('share', 'Social', `${contentType}${contentId ? ': ' + contentId : ''}`);
-  };
+  }, [trackEvent]);
 
   return {
     trackEvent,
