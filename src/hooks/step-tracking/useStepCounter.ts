@@ -26,6 +26,13 @@ export const useStepCounter = (config: StepCounterConfig) => {
 
   // Advanced step detection with filtering
   const processMotionSample = useCallback((magnitude: number, timestamp: number) => {
+    console.log('🔬 Step Counter: Processing motion sample:', {
+      magnitude: magnitude.toFixed(2),
+      timestamp,
+      threshold: config.stepThreshold,
+      historyLength: magnitudeHistory.length
+    });
+
     // Update magnitude history for filtering
     setMagnitudeHistory(prev => {
       const newHistory = [...prev, magnitude];
@@ -36,6 +43,16 @@ export const useStepCounter = (config: StepCounterConfig) => {
     if (magnitudeHistory.length >= 3) {
       const recentMagnitudes = magnitudeHistory.slice(-3);
       const [prev, current, next] = recentMagnitudes;
+      
+      console.log('🔍 Step Counter: Peak detection analysis:', {
+        prev: prev.toFixed(2),
+        current: current.toFixed(2),
+        next: (next || 0).toFixed(2),
+        threshold: config.stepThreshold,
+        isPeakCondition1: current > prev,
+        isPeakCondition2: current > (next || 0),
+        isPeakCondition3: current > config.stepThreshold
+      });
       
       // Check if current is a peak
       const isPeak = current > prev && current > (next || 0) && current > config.stepThreshold;
