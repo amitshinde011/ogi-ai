@@ -65,7 +65,7 @@ const Home = () => {
       console.log('🧹 Home: Cleaning up steps updated listener');
       window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
     };
-  }, [trackEvent]);
+  }, []); // Remove trackEvent to prevent loops
 
   // Auth check effect - always called, but logic is conditional
   useEffect(() => {
@@ -83,7 +83,7 @@ const Home = () => {
       console.log('✅ Home: User authenticated successfully:', user.id);
       trackEvent('home_page_view', 'Navigation', 'Authenticated Access');
     }
-  }, [navigate, user, isAuthenticated, authLoading, trackEvent]);
+  }, [navigate, user, isAuthenticated, authLoading]);
 
   // Track user engagement on home page - always called
   useEffect(() => {
@@ -100,14 +100,14 @@ const Home = () => {
         clearTimeout(engagementTimer);
       };
     }
-  }, [authLoading, isAuthenticated, trackUserEngagement]);
+  }, [authLoading, isAuthenticated]);
 
   // Track meals completion - always called
   useEffect(() => {
     if (mealsLogged > 0) {
       trackEvent('daily_meals_count', 'Nutrition', `${mealsLogged} meals logged`);
     }
-  }, [mealsLogged, trackEvent]);
+  }, [mealsLogged]);
 
   // Show loading screen while checking auth or fetching data
   if (authLoading || homeLoading) {
