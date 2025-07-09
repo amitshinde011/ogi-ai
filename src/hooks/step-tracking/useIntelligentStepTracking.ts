@@ -64,9 +64,14 @@ export const useIntelligentStepTracking = () => {
   // Initialize step tracking
   useEffect(() => {
     const initializeTracking = async () => {
-      console.log('🚀 Initializing intelligent step tracking');
+      console.log('🚀 Initializing intelligent step tracking', {
+        motionSupported,
+        hasLoadFunction: !!loadStepsFromDatabase,
+        hasSetFunction: !!setSteps
+      });
       
       if (!motionSupported) {
+        console.log('❌ Motion not supported, aborting step tracking initialization');
         toast({
           title: "Motion Detection Unavailable",
           description: "Step tracking requires motion sensors. You can still manually add steps.",
@@ -75,22 +80,40 @@ export const useIntelligentStepTracking = () => {
         return;
       }
 
-      // Load existing steps from database
-      const existingSteps = await loadStepsFromDatabase();
-      if (existingSteps > 0) {
-        setSteps(existingSteps);
-        console.log('📊 Loaded existing steps:', existingSteps);
-      }
+      try {
+        // Load existing steps from database
+        console.log('📊 Loading existing steps from database...');
+        const existingSteps = await loadStepsFromDatabase();
+        if (existingSteps > 0) {
+          setSteps(existingSteps);
+          console.log('📊 Loaded existing steps:', existingSteps);
+        } else {
+          console.log('📊 No existing steps found in database');
+        }
 
-      setTrackingState(prev => ({ ...prev, isActive: true }));
-      
-      toast({
-        title: "Step Tracking Active",
-        description: "Intelligent background step tracking is now running",
-      });
+        console.log('✅ Setting tracking state to active');
+        setTrackingState(prev => ({ ...prev, isActive: true }));
+        
+        console.log('✅ Step tracking initialization completed successfully');
+        toast({
+          title: "Step Tracking Active",
+          description: "Intelligent background step tracking is now running",
+        });
+      } catch (error) {
+        console.error('❌ Step tracking initialization failed:', error);
+        toast({
+          title: "Step Tracking Error", 
+          description: "Failed to initialize step tracking",
+          variant: "destructive"
+        });
+      }
     };
 
-    initializeTracking();
+    if (motionSupported !== undefined) {
+      initializeTracking();
+    } else {
+      console.log('⏳ Waiting for motion support detection...');
+    }
   }, [motionSupported, loadStepsFromDatabase, setSteps, toast]);
 
   // Process motion data when user is moving
