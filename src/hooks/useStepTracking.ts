@@ -61,21 +61,19 @@ export const useStepTracking = () => {
 
 
   const startNativeMotionTracking = async () => {
-    console.log('🔬 Starting native motion sensor tracking (Google Fit-like)');
+    console.log('🔬 Starting Android/iOS optimized motion tracking');
     
     let stepCount = stepData.steps;
     let lastStepTime = 0;
     let accelerationHistory: { x: number, y: number, z: number, timestamp: number }[] = [];
     let magnitudeHistory: number[] = [];
-    let peakHistory: { magnitude: number, timestamp: number }[] = [];
     
-    // Google Fit parameters optimized for maximum sensitivity - background operation
-    const minStepThreshold = 3.5;  // Very low threshold for maximum sensitivity
-    const maxStepThreshold = 30;
-    const minTimeBetweenSteps = 120;  // 500 steps/min max - higher sensitivity
-    const maxTimeBetweenSteps = 2500; // 24 steps/min min - capture slow walking
-    const windowSize = 6; // Smaller window for faster response
-    const peakWindowSize = 3;
+    // Ultra-sensitive parameters for Android devices
+    const minStepThreshold = 2.5;  // Extremely low threshold
+    const maxStepThreshold = 40;
+    const minTimeBetweenSteps = 80;   // Allow very fast steps
+    const maxTimeBetweenSteps = 3000; // Allow very slow walking
+    const windowSize = 4; // Smaller window for instant response
 
     const calculateMagnitude = (acc: { x: number, y: number, z: number }) => {
       return Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
@@ -110,11 +108,12 @@ export const useStepTracking = () => {
     };
 
     try {
-      // Start motion tracking with native APIs
-      const accelHandler = await Motion.addListener('accel', (event) => {
-        const acceleration = event.accelerationIncludingGravity || event.acceleration;
-        if (!acceleration) return;
-        const { x, y, z } = acceleration;
+      // For Android/iOS, use direct DeviceMotionEvent for better compatibility
+      const handleDeviceMotion = (event: DeviceMotionEvent) => {
+        if (!event.accelerationIncludingGravity) return;
+        const { x, y, z } = event.accelerationIncludingGravity;
+        if (x === null || y === null || z === null) return;
+        
         const currentTime = Date.now();
         
         // Add to acceleration history
@@ -124,96 +123,77 @@ export const useStepTracking = () => {
         }
 
         // Wait for enough data
-        if (accelerationHistory.length < windowSize) return;
+        if (accelerationHistory.length < 3) return;
 
-        // Smooth the acceleration data
-        const smoothed = smoothAcceleration(accelerationHistory);
-        const magnitude = calculateMagnitude(smoothed);
-        
-        // Add to magnitude history
+        // Calculate magnitude with smoothing
+        const magnitude = calculateMagnitude({ x, y, z });
         magnitudeHistory.push(magnitude);
         if (magnitudeHistory.length > windowSize) {
           magnitudeHistory.shift();
         }
 
-        // Detect peaks in magnitude
-        const peaks = detectPeaks(magnitudeHistory, minStepThreshold);
-        
-        if (peaks.length > 0) {
-          const latestPeak = peaks[peaks.length - 1];
-          const peakMagnitude = magnitudeHistory[latestPeak];
+        // Simple but effective step detection for Android
+        if (magnitudeHistory.length >= 3) {
+          const latest = magnitudeHistory[magnitudeHistory.length - 1];
+          const previous = magnitudeHistory[magnitudeHistory.length - 2];
+          const beforePrevious = magnitudeHistory[magnitudeHistory.length - 3];
           
-          // Check if this is a valid step
-          if (peakMagnitude >= minStepThreshold && 
-              peakMagnitude <= maxStepThreshold &&
-              currentTime - lastStepTime >= minTimeBetweenSteps &&
-              currentTime - lastStepTime <= maxTimeBetweenSteps) {
+          // Detect peak: current value is higher than previous and next
+          const isPeak = latest > previous && previous > beforePrevious && latest > minStepThreshold;
+          
+          if (isPeak && currentTime - lastStepTime >= minTimeBetweenSteps) {
+            stepCount++;
+            lastStepTime = currentTime;
+            console.log('👣 Android step detected! Total steps:', stepCount, 'Magnitude:', latest.toFixed(2));
+            updateStepData(stepCount);
             
-            // Add to peak history for pattern validation
-            peakHistory.push({ magnitude: peakMagnitude, timestamp: currentTime });
-            if (peakHistory.length > peakWindowSize) {
-              peakHistory.shift();
-            }
-            
-            // Validate step pattern (Google Fit-like rhythm detection)
-            if (peakHistory.length >= 3) {
-              const intervals = [];
-              for (let i = 1; i < peakHistory.length; i++) {
-                intervals.push(peakHistory[i].timestamp - peakHistory[i-1].timestamp);
-              }
-              
-              // Check for consistent rhythm
-              const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
-              const variance = intervals.reduce((acc, interval) => 
-                acc + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
-              const stdDev = Math.sqrt(variance);
-              
-              // Accept step if rhythm is consistent (very permissive for high sensitivity)
-              if (stdDev < avgInterval * 0.7 && avgInterval > minTimeBetweenSteps) {
-                stepCount++;
-                lastStepTime = currentTime;
-                console.log('👣 Native step detected! Total steps:', stepCount, 
-                           'Peak magnitude:', peakMagnitude.toFixed(2),
-                           'Platform:', Capacitor.getPlatform());
-                updateStepData(stepCount);
-                
-                // Save to database every 3 steps for better performance
-                if (stepCount % 3 === 0) {
-                  saveStepsToDatabase(stepCount);
-                }
-              }
-            } else {
-              // For first few steps, use basic validation
-              stepCount++;
-              lastStepTime = currentTime;
-              console.log('👣 Native initial step detected! Total steps:', stepCount);
-              updateStepData(stepCount);
+            // Save to database every 2 steps for Android
+            if (stepCount % 2 === 0) {
+              saveStepsToDatabase(stepCount);
             }
           }
         }
-      });
+      };
 
-      // Start motion detection with high frequency for accuracy
-      setIsTracking(true);
-      console.log('✅ Native motion tracking started successfully');
+      // Start motion detection
+      if (typeof DeviceMotionEvent !== 'undefined') {
+        // Request permission for iOS 13+
+        if (Capacitor.getPlatform() === 'ios' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+          const permission = await (DeviceMotionEvent as any).requestPermission();
+          if (permission === 'granted') {
+            window.addEventListener('devicemotion', handleDeviceMotion);
+            setIsTracking(true);
+            console.log('✅ iOS motion permission granted');
+          } else {
+            throw new Error('Motion permission denied');
+          }
+        } else {
+          // Android and older iOS
+          window.addEventListener('devicemotion', handleDeviceMotion);
+          setIsTracking(true);
+          console.log('✅ Android motion tracking started');
+        }
+      } else {
+        throw new Error('DeviceMotionEvent not supported');
+      }
 
-      // Auto-save interval every 15 seconds
+      // Auto-save interval every 10 seconds for Android
       const autoSaveInterval = setInterval(() => {
         if (stepCount > 0) {
           saveStepsToDatabase(stepCount);
         }
-      }, 15000);
+      }, 10000);
 
       return () => {
-        accelHandler.remove();
+        window.removeEventListener('devicemotion', handleDeviceMotion);
         clearInterval(autoSaveInterval);
         setIsTracking(false);
-        console.log('🛑 Native motion tracking stopped');
+        console.log('🛑 Android motion tracking stopped');
       };
     } catch (error) {
-      console.error('❌ Native motion tracking failed:', error);
-      // Fallback to enhanced web tracking
-      startEnhancedWebStepTracking();
+      console.error('❌ Android motion tracking failed:', error);
+      // Fallback to basic web tracking
+      startWebStepTracking();
     }
   };
 
