@@ -20,7 +20,7 @@ const MOTION_CONFIG = {
 };
 
 const STEP_CONFIG = {
-  stepThreshold: 3.5, // Lower threshold for sensitivity
+  stepThreshold: 2.5, // More sensitive threshold for step detection
   minStepInterval: 200, // Min 200ms between steps
   maxStepInterval: 2000, // Max 2s between steps
   filterWindowSize: 5
@@ -90,8 +90,24 @@ export const useIntelligentStepTracking = () => {
         console.log('📊 Loading existing steps from database...');
         const existingSteps = await loadStepsFromDatabase();
         if (existingSteps > 0) {
+          console.log('📊 Loaded existing steps from database:', existingSteps);
           setSteps(existingSteps);
-          console.log('📊 Loaded existing steps:', existingSteps);
+          
+          // Update tracking state with loaded steps
+          setTrackingState(prev => ({
+            ...prev,
+            steps: existingSteps,
+            lastUpdated: new Date()
+          }));
+          
+          // Dispatch event with loaded steps
+          window.dispatchEvent(new CustomEvent('stepsUpdated', {
+            detail: { 
+              steps: existingSteps, 
+              lastUpdated: new Date(),
+              confidence: 1.0
+            }
+          }));
         } else {
           console.log('📊 No existing steps found in database');
         }
