@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Motion } from '@capacitor/motion';
@@ -67,48 +66,22 @@ export const useStepTracking = () => {
     let lastStepTime = 0;
     let accelerationHistory: { x: number, y: number, z: number, timestamp: number }[] = [];
     let magnitudeHistory: number[] = [];
+
+    // --- NEW: State to ensure a valley is detected before a peak ---
+    let isPeakPhase = false;
     
-    // Ultra-sensitive parameters for Android devices
-    const minStepThreshold = 2.5;  // Extremely low threshold
+    // --- Tuned for realistic step detection, preventing hand-tremor counts ---
+    const minStepThreshold = 12.5;
     const maxStepThreshold = 40;
-    const minTimeBetweenSteps = 80;   // Allow very fast steps
-    const maxTimeBetweenSteps = 3000; // Allow very slow walking
-    const windowSize = 4; // Smaller window for instant response
+    const minTimeBetweenSteps = 300;
+    const maxTimeBetweenSteps = 2500;
+    const windowSize = 10;
 
     const calculateMagnitude = (acc: { x: number, y: number, z: number }) => {
       return Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
     };
 
-    const smoothAcceleration = (history: { x: number, y: number, z: number, timestamp: number }[]) => {
-      if (history.length === 0) return { x: 0, y: 0, z: 0 };
-      
-      const sum = history.reduce((acc, curr) => ({
-        x: acc.x + curr.x,
-        y: acc.y + curr.y,
-        z: acc.z + curr.z
-      }), { x: 0, y: 0, z: 0 });
-      
-      return {
-        x: sum.x / history.length,
-        y: sum.y / history.length,
-        z: sum.z / history.length
-      };
-    };
-
-    const detectPeaks = (magnitudes: number[], threshold: number) => {
-      const peaks: number[] = [];
-      for (let i = 1; i < magnitudes.length - 1; i++) {
-        if (magnitudes[i] > magnitudes[i - 1] && 
-            magnitudes[i] > magnitudes[i + 1] && 
-            magnitudes[i] > threshold) {
-          peaks.push(i);
-        }
-      }
-      return peaks;
-    };
-
     try {
-      // For Android/iOS, use direct DeviceMotionEvent for better compatibility
       const handleDeviceMotion = (event: DeviceMotionEvent) => {
         if (!event.accelerationIncludingGravity) return;
         const { x, y, z } = event.accelerationIncludingGravity;
@@ -116,48 +89,50 @@ export const useStepTracking = () => {
         
         const currentTime = Date.now();
         
-        // Add to acceleration history
         accelerationHistory.push({ x, y, z, timestamp: currentTime });
         if (accelerationHistory.length > windowSize) {
           accelerationHistory.shift();
         }
 
-        // Wait for enough data
         if (accelerationHistory.length < 3) return;
 
-        // Calculate magnitude with smoothing
         const magnitude = calculateMagnitude({ x, y, z });
         magnitudeHistory.push(magnitude);
         if (magnitudeHistory.length > windowSize) {
           magnitudeHistory.shift();
         }
 
-        // Simple but effective step detection for Android
+        // --- IMPROVED "VALLEY-THEN-PEAK" STEP DETECTION LOGIC ---
         if (magnitudeHistory.length >= 3) {
           const latest = magnitudeHistory[magnitudeHistory.length - 1];
           const previous = magnitudeHistory[magnitudeHistory.length - 2];
-          const beforePrevious = magnitudeHistory[magnitudeHistory.length - 3];
           
-          // Detect peak: current value is higher than previous and next
-          const isPeak = latest > previous && previous > beforePrevious && latest > minStepThreshold;
+          // Phase 1: Look for a "valley" (a dip in acceleration before the step's main impact).
+          if (!isPeakPhase && previous < latest) {
+              isPeakPhase = true; // Valley found, now we can look for a peak.
+          }
           
-          if (isPeak && currentTime - lastStepTime >= minTimeBetweenSteps) {
-            stepCount++;
-            lastStepTime = currentTime;
-            console.log('👣 Android step detected! Total steps:', stepCount, 'Magnitude:', latest.toFixed(2));
-            updateStepData(stepCount);
-            
-            // Save to database every 2 steps for Android
-            if (stepCount % 2 === 0) {
-              saveStepsToDatabase(stepCount);
+          // Phase 2: If we are in the peak phase, look for an actual peak.
+          if (isPeakPhase && previous > latest) {
+            // Check if the detected peak is strong enough and well-timed.
+            if (previous > minStepThreshold && currentTime - lastStepTime > minTimeBetweenSteps) {
+                stepCount++;
+                lastStepTime = currentTime;
+                console.log('👣 Step detected! Total:', stepCount);
+                updateStepData(stepCount);
+
+                if (stepCount % 2 === 0) {
+                    saveStepsToDatabase(stepCount);
+                }
             }
+            // Reset to look for the next valley, completing the step cycle.
+            isPeakPhase = false;
           }
         }
       };
 
       // Start motion detection
       if (typeof DeviceMotionEvent !== 'undefined') {
-        // Request permission for iOS 13+
         if (Capacitor.getPlatform() === 'ios' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
           const permission = await (DeviceMotionEvent as any).requestPermission();
           if (permission === 'granted') {
@@ -177,7 +152,7 @@ export const useStepTracking = () => {
         throw new Error('DeviceMotionEvent not supported');
       }
 
-      // Auto-save interval every 10 seconds for Android
+      // Auto-save interval
       const autoSaveInterval = setInterval(() => {
         if (stepCount > 0) {
           saveStepsToDatabase(stepCount);
@@ -192,7 +167,6 @@ export const useStepTracking = () => {
       };
     } catch (error) {
       console.error('❌ Android motion tracking failed:', error);
-      // Fallback to basic web tracking
       startWebStepTracking();
     }
   };
@@ -204,130 +178,64 @@ export const useStepTracking = () => {
     let lastStepTime = 0;
     let accelerationHistory: { x: number, y: number, z: number, timestamp: number }[] = [];
     let magnitudeHistory: number[] = [];
-    let peakHistory: { magnitude: number, timestamp: number }[] = [];
+
+    // --- NEW: State for valley-then-peak detection ---
+    let isPeakPhase = false;
     
-    // Google Fit-like parameters optimized for maximum sensitivity - background operation
-    const minStepThreshold = 4.0;   // Very low threshold for maximum sensitivity
+    // --- Tuned for reliable web-based tracking ---
+    const minStepThreshold = 12.0;
     const maxStepThreshold = 35;
-    const minTimeBetweenSteps = 100;  // 600 steps/min max - ultra sensitive
-    const maxTimeBetweenSteps = 2800; // 21 steps/min min - capture very slow walking
-    const windowSize = 8; // Balanced window for responsiveness
-    const peakWindowSize = 4; // for peak detection
+    const minTimeBetweenSteps = 300;
+    const maxTimeBetweenSteps = 2800;
+    const windowSize = 10;
 
     const calculateMagnitude = (acc: { x: number, y: number, z: number }) => {
       return Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
     };
 
-    const smoothAcceleration = (history: { x: number, y: number, z: number, timestamp: number }[]) => {
-      if (history.length === 0) return { x: 0, y: 0, z: 0 };
-      
-      const sum = history.reduce((acc, curr) => ({
-        x: acc.x + curr.x,
-        y: acc.y + curr.y,
-        z: acc.z + curr.z
-      }), { x: 0, y: 0, z: 0 });
-      
-      return {
-        x: sum.x / history.length,
-        y: sum.y / history.length,
-        z: sum.z / history.length
-      };
-    };
-
-    const detectPeaks = (magnitudes: number[], threshold: number) => {
-      const peaks: number[] = [];
-      for (let i = 1; i < magnitudes.length - 1; i++) {
-        if (magnitudes[i] > magnitudes[i - 1] && 
-            magnitudes[i] > magnitudes[i + 1] && 
-            magnitudes[i] > threshold) {
-          peaks.push(i);
-        }
-      }
-      return peaks;
-    };
-
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
-      if (!event.accelerationIncludingGravity) return;
-
-      const { x, y, z } = event.accelerationIncludingGravity;
-      if (x === null || y === null || z === null) return;
-
-      const currentTime = Date.now();
-      
-      // Add to acceleration history
-      accelerationHistory.push({ x, y, z, timestamp: currentTime });
-      if (accelerationHistory.length > windowSize) {
-        accelerationHistory.shift();
-      }
-
-      // Wait for enough data
-      if (accelerationHistory.length < windowSize) return;
-
-      // Smooth the acceleration data
-      const smoothed = smoothAcceleration(accelerationHistory);
-      const magnitude = calculateMagnitude(smoothed);
-      
-      // Add to magnitude history
-      magnitudeHistory.push(magnitude);
-      if (magnitudeHistory.length > windowSize) {
-        magnitudeHistory.shift();
-      }
-
-      // Detect peaks in magnitude
-      const peaks = detectPeaks(magnitudeHistory, minStepThreshold);
-      
-      if (peaks.length > 0) {
-        const latestPeak = peaks[peaks.length - 1];
-        const peakMagnitude = magnitudeHistory[latestPeak];
+        if (!event.accelerationIncludingGravity) return;
+        const { x, y, z } = event.accelerationIncludingGravity;
+        if (x === null || y === null || z === null) return;
         
-        // Check if this is a valid step
-        if (peakMagnitude >= minStepThreshold && 
-            peakMagnitude <= maxStepThreshold &&
-            currentTime - lastStepTime >= minTimeBetweenSteps &&
-            currentTime - lastStepTime <= maxTimeBetweenSteps) {
+        const currentTime = Date.now();
+        
+        accelerationHistory.push({ x, y, z, timestamp: currentTime });
+        if (accelerationHistory.length > windowSize) {
+          accelerationHistory.shift();
+        }
+
+        if (accelerationHistory.length < 3) return;
+
+        const magnitude = calculateMagnitude({ x, y, z });
+        magnitudeHistory.push(magnitude);
+        if (magnitudeHistory.length > windowSize) {
+          magnitudeHistory.shift();
+        }
+
+        // --- IMPROVED "VALLEY-THEN-PEAK" STEP DETECTION LOGIC ---
+        if (magnitudeHistory.length >= 3) {
+          const latest = magnitudeHistory[magnitudeHistory.length - 1];
+          const previous = magnitudeHistory[magnitudeHistory.length - 2];
           
-          // Add to peak history for pattern validation
-          peakHistory.push({ magnitude: peakMagnitude, timestamp: currentTime });
-          if (peakHistory.length > peakWindowSize) {
-            peakHistory.shift();
+          if (!isPeakPhase && previous < latest) {
+              isPeakPhase = true;
           }
           
-          // Validate step pattern (Google Fit-like rhythm detection)
-          if (peakHistory.length >= 3) {
-            const intervals = [];
-            for (let i = 1; i < peakHistory.length; i++) {
-              intervals.push(peakHistory[i].timestamp - peakHistory[i-1].timestamp);
+          if (isPeakPhase && previous > latest) {
+            if (previous > minStepThreshold && currentTime - lastStepTime > minTimeBetweenSteps) {
+                stepCount++;
+                lastStepTime = currentTime;
+                console.log('👣 Web step detected! Total:', stepCount);
+                updateStepData(stepCount);
+
+                if (stepCount % 5 === 0) {
+                    saveStepsToDatabase(stepCount);
+                }
             }
-            
-            // Check for consistent rhythm
-            const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
-            const variance = intervals.reduce((acc, interval) => 
-              acc + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
-            const stdDev = Math.sqrt(variance);
-            
-            // Accept step if rhythm is consistent (very permissive for maximum sensitivity)
-            if (stdDev < avgInterval * 0.6 && avgInterval > minTimeBetweenSteps) {
-              stepCount++;
-              lastStepTime = currentTime;
-              console.log('👣 Google Fit-like step detected! Total steps:', stepCount, 
-                         'Peak magnitude:', peakMagnitude.toFixed(2),
-                         'Rhythm consistency:', (100 - (stdDev / avgInterval * 100)).toFixed(1) + '%');
-              updateStepData(stepCount);
-              
-              // Save to database every 5 steps
-              if (stepCount % 5 === 0) {
-                saveStepsToDatabase(stepCount);
-              }
-            }
-          } else {
-            // For first few steps, use basic validation
-            stepCount++;
-            lastStepTime = currentTime;
-            console.log('👣 Initial step detected! Total steps:', stepCount);
-            updateStepData(stepCount);
+            isPeakPhase = false;
           }
         }
-      }
     };
 
     // Request motion permissions and start tracking
@@ -354,7 +262,7 @@ export const useStepTracking = () => {
       console.log('✅ Enhanced motion tracking started');
     }
 
-    // Auto-save interval every 20 seconds
+    // Auto-save interval
     const autoSaveInterval = setInterval(() => {
       if (stepCount > 0) {
         saveStepsToDatabase(stepCount);
@@ -370,17 +278,17 @@ export const useStepTracking = () => {
   };
 
   const startWebStepTracking = () => {
+    // This basic fallback remains unchanged.
     console.log('🌐 Starting basic web step tracking (compatibility mode)');
     
     let lastAcceleration = { x: 0, y: 0, z: 0 };
     let stepCount = stepData.steps;
     let lastStepTime = 0;
-    const stepThreshold = 8;    // Lower threshold for better sensitivity
-    const timeThreshold = 300;  // Shorter time threshold
+    const stepThreshold = 8;
+    const timeThreshold = 300;
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
       if (!event.accelerationIncludingGravity) return;
-
       const { x, y, z } = event.accelerationIncludingGravity;
       if (x === null || y === null || z === null) return;
 
@@ -397,7 +305,6 @@ export const useStepTracking = () => {
         console.log('👣 Step detected! Total steps:', stepCount);
         updateStepData(stepCount);
         
-        // Save to database every 10 steps
         if (stepCount % 10 === 0) {
           saveStepsToDatabase(stepCount);
         }
@@ -405,36 +312,27 @@ export const useStepTracking = () => {
 
       lastAcceleration = { x, y, z };
     };
-
-    // Request permission for iOS 13+ devices
+    
     if (Capacitor.getPlatform() === 'ios' && typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
-      (DeviceMotionEvent as any).requestPermission()
-        .then((permission: string) => {
-          if (permission === 'granted') {
-            window.addEventListener('devicemotion', handleDeviceMotion);
-            setIsTracking(true);
-            console.log('✅ iOS motion permission granted');
-          } else {
-            console.log('❌ iOS motion permission denied');
-            setIsTracking(true); // Still allow manual tracking
-          }
-        })
-        .catch((error: any) => {
-          console.log('iOS motion permission error:', error);
-          setIsTracking(true);
-        });
-    } else {
-      // For Android and older iOS, start listening immediately
-      window.addEventListener('devicemotion', handleDeviceMotion);
-      setIsTracking(true);
-      console.log('✅ Motion tracking started');
-    }
-
-    // Auto-save interval every 30 seconds
-    const autoSaveInterval = setInterval(() => {
-      if (stepCount > 0) {
-        saveStepsToDatabase(stepCount);
+        (DeviceMotionEvent as any).requestPermission()
+          .then((permission: string) => {
+            if (permission === 'granted') {
+              window.addEventListener('devicemotion', handleDeviceMotion);
+              setIsTracking(true);
+            } else {
+              setIsTracking(true);
+            }
+          })
+          .catch(() => setIsTracking(true));
+      } else {
+        window.addEventListener('devicemotion', handleDeviceMotion);
+        setIsTracking(true);
       }
+      
+    const autoSaveInterval = setInterval(() => {
+        if (stepCount > 0) {
+          saveStepsToDatabase(stepCount);
+        }
     }, 30000);
 
     return () => {
