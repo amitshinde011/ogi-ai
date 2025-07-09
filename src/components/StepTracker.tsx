@@ -5,13 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Footprints, Plus } from 'lucide-react';
 import { useStepTracking } from '@/hooks/useStepTracking';
 import { GoalCompletionMessage } from './wellness/GoalCompletionMessage';
-import { Capacitor } from '@capacitor/core';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
 const StepTracker = () => {
   console.log('👟 StepTracker: Component initialized');
   
-  const { stepData, isTracking, manuallyAddSteps } = useStepTracking();
+  const { stepData, manuallyAddSteps } = useStepTracking();
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [goalAchievedToday, setGoalAchievedToday] = useState(false);
   const { trackEvent } = useAnalytics();
@@ -52,21 +51,6 @@ const StepTracker = () => {
     }
   }, [stepData.steps, goal, trackEvent]);
 
-  // Listen for external step updates and sync with parent components
-  useEffect(() => {
-    const handleStepsUpdated = (event: CustomEvent) => {
-      console.log('📢 StepTracker: External steps update received:', event.detail);
-      trackEvent('steps_sync_external', 'Data Management', 'External Update');
-    };
-
-    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
-    
-    return () => {
-      console.log('🧹 StepTracker: Cleaning up external steps listener');
-      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
-    };
-  }, [trackEvent]);
-
   const getRandomMessage = () => {
     const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
     console.log('🎉 StepTracker: Selected goal completion message:', message);
@@ -77,28 +61,6 @@ const StepTracker = () => {
     console.log(`➕ StepTracker: Adding ${stepsToAdd} steps manually`);
     trackEvent('manual_steps_add', 'Fitness', `${stepsToAdd} Steps`);
     manuallyAddSteps(stepsToAdd);
-    
-    // Immediately dispatch the updated step count
-    const newStepCount = stepData.steps + stepsToAdd;
-    console.log('📢 StepTracker: Dispatching immediate step update:', newStepCount);
-    window.dispatchEvent(new CustomEvent('stepsUpdated', { 
-      detail: { steps: newStepCount, lastUpdated: new Date() } 
-    }));
-  };
-
-  const getPlatformInfo = () => {
-    const platform = Capacitor.getPlatform();
-    console.log('📱 StepTracker: Getting platform info for:', platform);
-    
-    if (Capacitor.isNativePlatform()) {
-      if (platform === 'android') {
-        return isTracking ? "Background step tracking active (Android Health)" : "Initializing Android step tracking...";
-      } else if (platform === 'ios') {
-        return isTracking ? "Background step tracking active (iOS HealthKit)" : "Initializing iOS step tracking...";
-      }
-    }
-    
-    return "Web step tracking (foreground only)";
   };
 
   const kmWalked = (stepData.steps / 1000).toFixed(1);
@@ -108,14 +70,13 @@ const StepTracker = () => {
   useEffect(() => {
     console.log('🎨 StepTracker: Component rendered with state:', {
       steps: stepData.steps,
-      isTracking,
       goal,
       progress: Math.round(progressPercentage),
       kmWalked,
       goalAchievedToday
     });
     trackEvent('step_tracker_view', 'UI', 'Component Render');
-  }, [stepData.steps, isTracking, goal, progressPercentage, kmWalked, goalAchievedToday, trackEvent]);
+  }, [stepData.steps, goal, progressPercentage, kmWalked, goalAchievedToday, trackEvent]);
 
   return (
     <Card className="bg-white border border-gray-200 relative">
@@ -123,20 +84,13 @@ const StepTracker = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Footprints className="text-blue-500 mr-2" size={20} />
-            <span className="font-medium text-gray-800">Step Tracker</span>
+            <span className="font-medium text-gray-800">Manual Step Tracker</span>
           </div>
           <div className="flex items-center">
-            {isTracking ? (
-              <div className="flex items-center text-green-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                <span className="text-sm">Active</span>
-              </div>
-            ) : (
-              <div className="flex items-center text-orange-500">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
-                <span className="text-sm">Starting...</span>
-              </div>
-            )}
+            <div className="flex items-center text-blue-600">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+              <span className="text-sm">Manual Entry</span>
+            </div>
           </div>
         </div>
 
@@ -164,7 +118,7 @@ const StepTracker = () => {
         </div>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-center text-gray-700">Manually add steps:</p>
+          <p className="text-sm font-medium text-center text-gray-700">Add steps manually:</p>
           <div className="flex gap-2">
             <Button 
               size="sm" 
@@ -201,7 +155,7 @@ const StepTracker = () => {
         </div>
 
         <div className="mt-2 text-xs text-blue-600 text-center">
-          {getPlatformInfo()}
+          Manual entry only - add your steps above
         </div>
 
         <GoalCompletionMessage
