@@ -95,10 +95,30 @@ export const useIntelligentStepTracking = () => {
 
   // Process motion data when user is moving
   useEffect(() => {
-    if (!trackingState.isActive || !motionState.isMoving) return;
+    console.log('🔄 Motion processing check:', {
+      isActive: trackingState.isActive,
+      isMoving: motionState.isMoving,
+      intensity: motionState.motionIntensity,
+      lastMotionTime: motionState.lastMotionTime
+    });
+    
+    if (!trackingState.isActive || !motionState.isMoving) {
+      console.log('⏸️ Motion processing skipped - not active or not moving');
+      return;
+    }
 
-    if (isValidMovementPattern(motionState.motionIntensity)) {
+    const isValidPattern = isValidMovementPattern(motionState.motionIntensity);
+    console.log('✅ Movement pattern check:', {
+      intensity: motionState.motionIntensity,
+      isValid: isValidPattern,
+      threshold: 'between 1 and 50'
+    });
+
+    if (isValidPattern) {
+      console.log('🎯 Processing motion sample for step counting...');
       processMotionSample(motionState.motionIntensity, motionState.lastMotionTime);
+    } else {
+      console.log('❌ Motion pattern rejected - too intense or too gentle');
     }
   }, [
     trackingState.isActive, 
