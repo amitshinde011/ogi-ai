@@ -177,8 +177,8 @@ class BackgroundStepTracker {
             detail: { steps: this.stepCount, lastUpdated: new Date() } 
           }));
           
-          // Auto-save every 10 steps or every 30 seconds
-          if (this.stepCount % 10 === 0 || currentTime - this.lastSaveTime > this.saveInterval) {
+          // Auto-save every 200 steps or every 30 seconds
+          if (this.stepCount % 200 === 0 || currentTime - this.lastSaveTime > this.saveInterval) {
             this.syncToDatabase();
           }
         }
