@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Motion } from '@capacitor/motion';
-import { StepCounter } from '@/plugins/step-counter';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,97 +29,36 @@ export const useStepTracking = () => {
   useEffect(() => {
     initializeStepTracking();
     fetchTodaySteps();
+    
+    // Add background operation support
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('📱 App backgrounded - maintaining step tracking');
+      } else {
+        console.log('📱 App foregrounded - continuing step tracking');
+        // Sync data when app comes back to foreground
+        fetchTodaySteps();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const initializeStepTracking = async () => {
-    console.log('🚀 Initializing step tracking for platform:', Capacitor.getPlatform());
+    console.log('🚀 Initializing enhanced software step tracking for platform:', Capacitor.getPlatform());
     
     if (Capacitor.isNativePlatform()) {
-      await startNativeHardwareStepTracking();
-    } else {
-      // For web, use device motion as fallback
-      startWebStepTracking();
-    }
-  };
-
-  const startNativeHardwareStepTracking = async () => {
-    console.log('📱 Starting native hardware step tracking for platform:', Capacitor.getPlatform());
-    
-    try {
-      // Check if step counting is supported
-      const { supported } = await StepCounter.isSupported();
-      if (!supported) {
-        console.log('❌ Hardware step counting not supported, falling back to motion sensors');
-        await startNativeMotionTracking();
-        return;
-      }
-
-      // Request permissions
-      const { granted } = await StepCounter.requestPermissions();
-      if (!granted) {
-        console.log('❌ Step counting permissions not granted, falling back to motion sensors');
-        await startNativeMotionTracking();
-        return;
-      }
-
-      // Initialize the step counter
-      const { success } = await StepCounter.initialize();
-      if (!success) {
-        console.log('❌ Failed to initialize step counter, falling back to motion sensors');
-        await startNativeMotionTracking();
-        return;
-      }
-
-      // Get initial step count
-      const { steps } = await StepCounter.getTodaySteps();
-      updateStepData(steps);
-      console.log('📊 Initial hardware step count:', steps);
-
-      // Start listening for updates
-      const { success: startSuccess } = await StepCounter.startListening();
-      if (!startSuccess) {
-        console.log('❌ Failed to start step listener, falling back to motion sensors');
-        await startNativeMotionTracking();
-        return;
-      }
-
-      // Add listener for step updates
-      await StepCounter.addListener('stepUpdate', (data) => {
-        console.log('👣 Hardware step update received:', data.steps);
-        updateStepData(data.steps);
-        
-        // Save to database every 5 steps for efficiency
-        if (data.steps % 5 === 0) {
-          saveStepsToDatabase(data.steps);
-        }
-      });
-
-      setIsTracking(true);
-      console.log('✅ Native hardware step tracking started successfully');
-
-      // Auto-save interval every 30 seconds
-      const autoSaveInterval = setInterval(() => {
-        StepCounter.getTodaySteps().then(({ steps }) => {
-          if (steps > 0) {
-            saveStepsToDatabase(steps);
-          }
-        });
-      }, 30000);
-
-      return () => {
-        StepCounter.stopListening();
-        StepCounter.removeAllListeners();
-        clearInterval(autoSaveInterval);
-        setIsTracking(false);
-        console.log('🛑 Native hardware step tracking stopped');
-      };
-      
-    } catch (error) {
-      console.error('❌ Hardware step tracking failed:', error);
-      // Fallback to motion sensor tracking
       await startNativeMotionTracking();
+    } else {
+      // For web, use enhanced motion tracking
+      startEnhancedWebStepTracking();
     }
   };
+
 
   const startNativeMotionTracking = async () => {
     console.log('🔬 Starting native motion sensor tracking (Google Fit-like)');
@@ -131,13 +69,13 @@ export const useStepTracking = () => {
     let magnitudeHistory: number[] = [];
     let peakHistory: { magnitude: number, timestamp: number }[] = [];
     
-    // Google Fit parameters optimized for native sensors - increased sensitivity
-    const minStepThreshold = 5.5;  // Lower threshold for better sensitivity
-    const maxStepThreshold = 25;
-    const minTimeBetweenSteps = 150;  // 400 steps/min max
-    const maxTimeBetweenSteps = 2000; // 30 steps/min min
-    const windowSize = 8;
-    const peakWindowSize = 4;
+    // Google Fit parameters optimized for maximum sensitivity - background operation
+    const minStepThreshold = 3.5;  // Very low threshold for maximum sensitivity
+    const maxStepThreshold = 30;
+    const minTimeBetweenSteps = 120;  // 500 steps/min max - higher sensitivity
+    const maxTimeBetweenSteps = 2500; // 24 steps/min min - capture slow walking
+    const windowSize = 6; // Smaller window for faster response
+    const peakWindowSize = 3;
 
     const calculateMagnitude = (acc: { x: number, y: number, z: number }) => {
       return Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
@@ -230,8 +168,8 @@ export const useStepTracking = () => {
                 acc + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
               const stdDev = Math.sqrt(variance);
               
-              // Accept step if rhythm is consistent (more permissive variance)
-              if (stdDev < avgInterval * 0.5 && avgInterval > minTimeBetweenSteps) {
+              // Accept step if rhythm is consistent (very permissive for high sensitivity)
+              if (stdDev < avgInterval * 0.7 && avgInterval > minTimeBetweenSteps) {
                 stepCount++;
                 lastStepTime = currentTime;
                 console.log('👣 Native step detected! Total steps:', stepCount, 
@@ -288,13 +226,13 @@ export const useStepTracking = () => {
     let magnitudeHistory: number[] = [];
     let peakHistory: { magnitude: number, timestamp: number }[] = [];
     
-    // Google Fit-like parameters optimized for higher sensitivity
-    const minStepThreshold = 6.5;   // Lower threshold for better sensitivity
-    const maxStepThreshold = 30;
-    const minTimeBetweenSteps = 180;  // 333 steps/min max
-    const maxTimeBetweenSteps = 2200; // 27 steps/min min
-    const windowSize = 10; // samples for smoothing
-    const peakWindowSize = 5; // for peak detection
+    // Google Fit-like parameters optimized for maximum sensitivity - background operation
+    const minStepThreshold = 4.0;   // Very low threshold for maximum sensitivity
+    const maxStepThreshold = 35;
+    const minTimeBetweenSteps = 100;  // 600 steps/min max - ultra sensitive
+    const maxTimeBetweenSteps = 2800; // 21 steps/min min - capture very slow walking
+    const windowSize = 8; // Balanced window for responsiveness
+    const peakWindowSize = 4; // for peak detection
 
     const calculateMagnitude = (acc: { x: number, y: number, z: number }) => {
       return Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
@@ -387,8 +325,8 @@ export const useStepTracking = () => {
               acc + Math.pow(interval - avgInterval, 2), 0) / intervals.length;
             const stdDev = Math.sqrt(variance);
             
-            // Accept step if rhythm is consistent (more permissive variance)
-            if (stdDev < avgInterval * 0.4 && avgInterval > minTimeBetweenSteps) {
+            // Accept step if rhythm is consistent (very permissive for maximum sensitivity)
+            if (stdDev < avgInterval * 0.6 && avgInterval > minTimeBetweenSteps) {
               stepCount++;
               lastStepTime = currentTime;
               console.log('👣 Google Fit-like step detected! Total steps:', stepCount, 
