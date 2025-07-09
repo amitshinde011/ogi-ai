@@ -95,15 +95,21 @@ export const useIntelligentStepTracking = () => {
 
   // Process motion data when user is moving
   useEffect(() => {
-    console.log('🔄 Motion processing check:', {
+    console.log('🔄 Motion processing useEffect triggered with:', {
       isActive: trackingState.isActive,
       isMoving: motionState.isMoving,
       intensity: motionState.motionIntensity,
-      lastMotionTime: motionState.lastMotionTime
+      lastMotionTime: motionState.lastMotionTime,
+      hasMotionState: !!motionState,
+      hasTrackingState: !!trackingState
     });
     
     if (!trackingState.isActive || !motionState.isMoving) {
-      console.log('⏸️ Motion processing skipped - not active or not moving');
+      console.log('⏸️ Motion processing skipped:', {
+        isActive: trackingState.isActive,
+        isMoving: motionState.isMoving,
+        reason: !trackingState.isActive ? 'not active' : 'not moving'
+      });
       return;
     }
 
