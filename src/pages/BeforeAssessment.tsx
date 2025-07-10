@@ -52,6 +52,12 @@ const BeforeAssessment = () => {
     checkSubscriptionAndAssessment();
   }, []);
 
+  useEffect(() => {
+    if (showDateSelection && assessmentCompleted) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showDateSelection, assessmentCompleted]);
+
   const checkSubscriptionAndAssessment = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
