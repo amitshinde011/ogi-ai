@@ -1,86 +1,135 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
-export interface WellnessData {
-  meditation_completed?: boolean;
-  meditation_minutes?: number;
-  surya_namaskar_count?: number;
-  water_litres?: number;
+interface WellnessData {
+  id?: string;
+  date: string;
+  water_litres: number;
+  surya_namaskar_count: number;
+  meditation_minutes: number;
+  meditation_completed: boolean;
 }
 
-export const useWellnessTracking = (date: string = new Date().toISOString().split('T')[0]) => {
-  const [wellnessData, setWellnessData] = useState<WellnessData>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+export const useWellnessTracking = () => {
+  const [wellnessData, setWellnessData] = useState<WellnessData>({
+    date: new Date().toISOString().split('T')[0],
+    water_litres: 0,
+    surya_namaskar_count: 0,
+    meditation_minutes: 0,
+    meditation_completed: false
+  });
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const lastFetchRef = useRef<string>('');
 
-  const fetchWellnessData = async () => {
-    if (!user?.id) return;
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    // Only fetch if date changed or first load
+    if (lastFetchRef.current !== today) {
+      fetchTodayWellness();
+      lastFetchRef.current = today;
+    }
+  }, []);
 
+  const fetchTodayWellness = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('daily_wellness')
         .select('*')
         .eq('user_id', user.id)
-        .eq('date', date)
-        .single();
+        .eq('date', today)
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (error) throw error;
+
+      if (data) {
+        setWellnessData({
+          id: data.id,
+          date: data.date,
+          water_litres: data.water_litres || 0,
+          surya_namaskar_count: data.surya_namaskar_count || 0,
+          meditation_minutes: data.meditation_minutes || 0,
+          meditation_completed: data.meditation_completed || false
+        });
       }
-
-      setWellnessData(data || {});
     } catch (error) {
       console.error('Error fetching wellness data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load wellness data",
-        variant: "destructive",
-      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   const updateWellnessData = async (updates: Partial<WellnessData>) => {
-    if (!user?.id) return;
-
     try {
-      const { data, error } = await supabase
-        .from('daily_wellness')
-        .upsert({
-          user_id: user.id,
-          date: date,
-          ...updates,
-        })
-        .select()
-        .single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-      if (error) throw error;
+      const updatedData = { ...wellnessData, ...updates };
+      const today = new Date().toISOString().split('T')[0];
 
-      setWellnessData(data);
-      return data;
+      // Optimistic update
+      setWellnessData(updatedData);
+
+      if (wellnessData.id) {
+        // Update existing record
+        const { error } = await supabase
+          .from('daily_wellness')
+          .update({
+            water_litres: updatedData.water_litres,
+            surya_namaskar_count: updatedData.surya_namaskar_count,
+            meditation_minutes: updatedData.meditation_minutes,
+            meditation_completed: updatedData.meditation_completed
+          })
+          .eq('id', wellnessData.id);
+
+        if (error) throw error;
+      } else {
+        // Create new record
+        const { data, error } = await supabase
+          .from('daily_wellness')
+          .upsert(
+            {
+              user_id: user.id,
+              date: today,
+              water_litres: updatedData.water_litres,
+              surya_namaskar_count: updatedData.surya_namaskar_count,
+              meditation_minutes: updatedData.meditation_minutes,
+              meditation_completed: updatedData.meditation_completed
+            },
+            { 
+              onConflict: 'user_id,date',
+              ignoreDuplicates: false 
+            }
+          )
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setWellnessData(prev => ({ ...prev, id: data.id }));
+        }
+      }
     } catch (error) {
       console.error('Error updating wellness data:', error);
+      // Revert optimistic update on error
+      setWellnessData(wellnessData);
       toast({
         title: "Error",
-        description: "Failed to update wellness data",
+        description: "Failed to update wellness data.",
         variant: "destructive",
       });
-      throw error;
     }
   };
 
-  useEffect(() => {
-    fetchWellnessData();
-  }, [user?.id, date]);
-
   return {
     wellnessData,
-    isLoading,
-    updateWellnessData,
-    refetch: fetchWellnessData,
+    loading,
+    updateWellnessData
   };
 };

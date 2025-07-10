@@ -28,8 +28,6 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
     videoRef,
     containerRef,
     videoSources,
-    sourcesLoading,
-    sourcesError,
     handlePlayPause,
     handleShowVideo,
     handleVideoEnd,
@@ -68,71 +66,48 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
           <VideoIntro onShowVideo={handleShowVideo} />
         ) : (
           <div className="w-full h-full relative bg-black rounded-2xl sm:rounded-3xl">
-            {sourcesLoading ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-800/50 rounded-2xl sm:rounded-3xl">
-                <div className="text-center text-white px-4">
-                  <div className="text-base sm:text-lg mb-2">Loading video sources...</div>
-                </div>
-              </div>
-            ) : sourcesError ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-red-500/50 rounded-2xl sm:rounded-3xl">
-                <div className="text-white text-base sm:text-lg text-center px-4">
-                  <p className="mb-2">Failed to load video sources</p>
-                  <p className="text-sm opacity-75">{sourcesError}</p>
-                  <button 
-                    className="mt-2 px-4 py-2 bg-white text-red-600 rounded text-sm sm:text-base"
-                    onClick={handleRetry}
-                  >
-                    Retry
-                  </button>
-                </div>
-              </div>
-            ) : videoSources ? (
-              <>
-                <VideoPlayerCore
-                  videoRef={videoRef}
-                  videoSources={videoSources}
-                  currentQuality={currentQuality}
-                  currentVideoIndex={currentVideoIndex}
-                  onEnded={handleVideoEnd}
-                  onPlay={() => {
-                    console.log('Video started playing');
-                    setIsPlaying(true);
-                  }}
-                  onPause={() => {
-                    console.log('Video paused');
-                    setIsPlaying(false);
-                  }}
-                  onLoadedData={handleVideoLoadedData}
-                  onLoadStart={handleVideoLoadStart}
-                  onCanPlay={handleVideoCanPlay}
-                  onError={handleVideoError}
-                />
-                
-                <VideoPlayerControls
-                  isPlaying={isPlaying}
-                  videoLoaded={videoLoaded}
-                  currentTime={currentTime}
-                  duration={duration}
-                  isFullscreen={isFullscreen}
-                  currentQuality={currentQuality}
-                  onPlayPause={handlePlayPause}
-                  onSeek={handleSeek}
-                  onSeekBack={handleSeekBack}
-                  onSeekForward={handleSeekForward}
-                  onToggleFullscreen={handleToggleFullscreen}
-                  onQualityChange={handleQualityChange}
-                />
+            <VideoPlayerCore
+              videoRef={videoRef}
+              videoSources={videoSources}
+              currentQuality={currentQuality}
+              currentVideoIndex={currentVideoIndex}
+              onEnded={handleVideoEnd}
+              onPlay={() => {
+                console.log('Video started playing');
+                setIsPlaying(true);
+              }}
+              onPause={() => {
+                console.log('Video paused');
+                setIsPlaying(false);
+              }}
+              onLoadedData={handleVideoLoadedData}
+              onLoadStart={handleVideoLoadStart}
+              onCanPlay={handleVideoCanPlay}
+              onError={handleVideoError}
+            />
+            
+            <VideoPlayerControls
+              isPlaying={isPlaying}
+              videoLoaded={videoLoaded}
+              currentTime={currentTime}
+              duration={duration}
+              isFullscreen={isFullscreen}
+              currentQuality={currentQuality}
+              onPlayPause={handlePlayPause}
+              onSeek={handleSeek}
+              onSeekBack={handleSeekBack}
+              onSeekForward={handleSeekForward}
+              onToggleFullscreen={handleToggleFullscreen}
+              onQualityChange={handleQualityChange}
+            />
 
-                <VideoPlayerStates
-                  videoLoaded={videoLoaded}
-                  videoError={videoError}
-                  videoWatched={videoWatchedStates[currentVideoIndex]}
-                  currentQuality={currentQuality}
-                  onRetry={handleRetry}
-                />
-              </>
-            ) : null}
+            <VideoPlayerStates
+              videoLoaded={videoLoaded}
+              videoError={videoError}
+              videoWatched={videoWatchedStates[currentVideoIndex]}
+              currentQuality={currentQuality}
+              onRetry={handleRetry}
+            />
           </div>
         )}
       </div>

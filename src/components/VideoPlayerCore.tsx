@@ -36,6 +36,7 @@ const VideoPlayerCore = ({
 }: VideoPlayerCoreProps) => {
   const hlsRef = useRef<Hls | null>(null);
   const currentSourceRef = useRef<string>('');
+  const [useMP4Fallback, setUseMP4Fallback] = useState(false);
   const [useIframeFallback, setUseIframeFallback] = useState(false);
 
   const handleContextMenu = (e: React.MouseEvent) => {
@@ -47,7 +48,9 @@ const VideoPlayerCore = ({
     const video = videoRef.current;
     if (!video || useIframeFallback) return;
 
-    const currentSource = videoSources[currentQuality];
+    const currentSource = useMP4Fallback 
+      ? MP4_SOURCES_SEQUENCE[currentVideoIndex][currentQuality]
+      : videoSources[currentQuality];
     
     // Prevent unnecessary reloads if source hasn't changed
     if (currentSourceRef.current === currentSource) {
@@ -57,6 +60,7 @@ const VideoPlayerCore = ({
     currentSourceRef.current = currentSource;
     
     console.log('VideoPlayerCore: Setting video source to:', currentSource);
+    console.log('VideoPlayerCore: Using MP4 fallback:', useMP4Fallback);
 
     // Cleanup previous HLS instance
     if (hlsRef.current) {
@@ -64,7 +68,7 @@ const VideoPlayerCore = ({
       hlsRef.current = null;
     }
 
-    if (currentSource.includes('.m3u8')) {
+    if (!useMP4Fallback && currentSource.includes('.m3u8')) {
       // Try HLS first
       if (Hls.isSupported()) {
         console.log('VideoPlayerCore: Using HLS.js for M3U8');
@@ -81,8 +85,8 @@ const VideoPlayerCore = ({
         hls.on(Hls.Events.ERROR, (event, data) => {
           console.error('VideoPlayerCore: HLS error:', data);
           if (data.fatal) {
-            console.log('VideoPlayerCore: Fatal HLS error, trying iframe fallback');
-            setUseIframeFallback(true);
+            console.log('VideoPlayerCore: Fatal HLS error, trying MP4 fallback');
+            setUseMP4Fallback(true);
           }
         });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -90,14 +94,14 @@ const VideoPlayerCore = ({
         console.log('VideoPlayerCore: Using native HLS support');
         video.src = currentSource;
       } else {
-        // No HLS support, use iframe fallback
-        console.log('VideoPlayerCore: No HLS support, using iframe fallback');
-        setUseIframeFallback(true);
+        // No HLS support, use MP4 fallback
+        console.log('VideoPlayerCore: No HLS support, using MP4 fallback');
+        setUseMP4Fallback(true);
         return;
       }
     } else {
-      // Use direct source (shouldn't happen with HLS streams)
-      console.log('VideoPlayerCore: Using direct source');
+      // Use MP4 directly
+      console.log('VideoPlayerCore: Using MP4 source');
       video.src = currentSource;
     }
     
@@ -107,8 +111,14 @@ const VideoPlayerCore = ({
     const handleVideoError = (e: Event) => {
       const target = e.target as HTMLVideoElement;
       console.error('VideoPlayerCore: Video error:', target.error);
-      console.log('VideoPlayerCore: HLS failed, trying iframe fallback');
-      setUseIframeFallback(true);
+      
+      if (!useMP4Fallback) {
+        console.log('VideoPlayerCore: HLS failed, trying MP4 fallback');
+        setUseMP4Fallback(true);
+      } else {
+        console.log('VideoPlayerCore: MP4 failed, trying iframe fallback');
+        setUseIframeFallback(true);
+      }
     };
     
     video.addEventListener('error', handleVideoError, { once: true });
@@ -120,10 +130,11 @@ const VideoPlayerCore = ({
         hlsRef.current = null;
       }
     };
-  }, [videoSources, currentQuality, currentVideoIndex, useIframeFallback]);
+  }, [videoSources, currentQuality, currentVideoIndex, useMP4Fallback, useIframeFallback]);
 
   // Reset fallback states when video index changes
   useEffect(() => {
+    setUseMP4Fallback(false);
     setUseIframeFallback(false);
   }, [currentVideoIndex]);
 
