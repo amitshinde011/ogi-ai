@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
-import { Camera, User } from 'lucide-react';
+import { Camera, User, Upload } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import ProfileForm from '@/components/ProfileForm';
@@ -151,15 +151,30 @@ const ProfileEdit = () => {
                 alt="Profile"
                 className="w-28 h-28 rounded-3xl shadow-xl object-cover border-4 border-white"
               />
-              <label className="absolute -bottom-2 -right-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-3 cursor-pointer hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                <Camera size={20} className="text-white" />
+              <div className="absolute -bottom-2 -right-2 flex gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="profile-camera"
+                />
+                <label htmlFor="profile-camera" className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-3 cursor-pointer hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                  <Camera size={16} className="text-white" />
+                </label>
+                
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
                   className="hidden"
+                  id="profile-gallery"
                 />
-              </label>
+                <label htmlFor="profile-gallery" className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-3 cursor-pointer hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                  <Upload size={16} className="text-white" />
+                </label>
+              </div>
             </div>
             <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
               <User className="w-6 h-6 inline mr-2" />
