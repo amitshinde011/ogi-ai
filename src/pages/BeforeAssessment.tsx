@@ -410,8 +410,7 @@ const BeforeAssessment = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-gray-600">
-                Your assessment is complete! Now select when you'd like to begin your 
-                {currentSubscription?.programs?.duration_days}-day {currentSubscription?.programs?.name} journey.
+                Your assessment is complete! Now select when you'd like to begin your {currentSubscription?.programs?.name} journey.
               </p>
 
               {/* Week restriction message */}
