@@ -3,7 +3,7 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useUserProgram } from '@/hooks/useUserProgram';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
-import { Loader2 } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 import SubscriptionBlurOverlay from './SubscriptionBlurOverlay';
 
 interface ProtectedRouteProps {
@@ -38,7 +38,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             />
           </div>
           <div className="mt-6">
-            <Loader2 size={32} strokeWidth={1.5} className="text-sage mx-auto animate-spin" />
+            <Loader size="lg" />
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Send } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import Loader from '@/components/ui/loader';
 import { Input } from '@/components/ui/input';
 import { useComments } from '@/hooks/useComments';
 import { useAuth } from '@/hooks/useAuth';
@@ -49,7 +50,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, currentU
       {/* Comments List */}
       {loading ? (
         <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-sage"></div>
+          <Loader size="md" />
         </div>
       ) : (
         <div className="space-y-3 mb-3">

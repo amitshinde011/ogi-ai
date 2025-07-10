@@ -2,6 +2,7 @@
 import React from 'react';
 import { Calendar, CreditCard, CheckCircle, Clock, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Loader from '@/components/ui/loader';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useNavigate } from 'react-router-dom';
@@ -75,7 +76,7 @@ const SubscriptionHistoryCard = ({ subscriptionHistory, loadingHistory }: Subscr
         <CardContent>
           {loadingHistory ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+              <Loader size="md" />
             </div>
           ) : subscriptionHistory.length === 0 ? (
             <div className="text-center py-8 text-slate-500">

@@ -8,6 +8,7 @@ import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
+import Loader from '@/components/ui/loader';
 import PhotoUpload from '@/components/PhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -461,7 +462,7 @@ const BeforeAssessment = () => {
                 >
                   {loading ? (
                     <>
-                      <div className="w-4 h-4 mr-2 animate-spin rounded-full border-b-2 border-white" />
+                      <Loader size="sm" className="border-white border-t-transparent mr-2" />
                       Setting Date...
                     </>
                   ) : (

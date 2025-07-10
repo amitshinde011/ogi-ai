@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Shield, HelpCircle, LogOut, FileText, Scale, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
+import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import ProfileCard from '@/components/settings/ProfileCard';
 import SubscriptionHistoryCard from '@/components/settings/SubscriptionHistoryCard';
@@ -207,7 +208,7 @@ const Settings = () => {
       <Layout>
         <Header title="Settings" />
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <Loader size="lg" />
         </div>
       </Layout>
     );

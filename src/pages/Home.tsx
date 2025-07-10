@@ -20,6 +20,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useOptimizedHomeData } from '@/hooks/useOptimizedHomeData';
 import { useOptimizedWellness } from '@/hooks/useOptimizedWellness';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import Loader from '@/components/ui/loader';
 
 const Home = () => {
   console.log('🏠 Home: Component initialized');
@@ -114,7 +115,7 @@ const Home = () => {
     console.log('⏳ Home: Showing loading state');
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+        <Loader size="lg" />
       </div>
     );
   }

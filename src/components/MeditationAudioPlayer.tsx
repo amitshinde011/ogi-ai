@@ -5,6 +5,7 @@ import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { audioCacheManager } from '@/utils/audioCacheManager';
+import Loader from '@/components/ui/loader';
 
 const MeditationAudioPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -235,7 +236,7 @@ const MeditationAudioPlayer = () => {
             className="w-10 h-10 rounded-full"
           >
             {isLoading ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <Loader size="sm" className="border-white border-t-transparent" />
             ) : isPlaying ? (
               <Pause className="w-4 h-4" />
             ) : (

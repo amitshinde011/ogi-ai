@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Target, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Loader from '@/components/ui/loader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
@@ -116,7 +117,7 @@ const JourneyStart = () => {
       <Layout>
         <Header title="Journey Start" />
         <div className="min-h-screen bg-light-gray flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <Loader size="lg" />
         </div>
       </Layout>
     );
@@ -245,7 +246,7 @@ const JourneyStart = () => {
             >
               {loading ? (
                 <>
-                  <div className="w-5 h-5 mr-2 animate-spin rounded-full border-b-2 border-white" />
+                  <Loader size="sm" className="border-white border-t-transparent mr-2" />
                   Starting Journey...
                 </>
               ) : (

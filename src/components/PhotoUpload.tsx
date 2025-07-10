@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Camera, Upload, X, Image } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import Loader from '@/components/ui/loader';
 
 interface PhotoUploadProps {
   selectedImage: string;
@@ -158,7 +159,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
         {uploading && (
           <div className="absolute inset-0 bg-white/90 rounded-xl flex items-center justify-center backdrop-blur-sm">
             <div className="text-center space-y-3 animate-pulse">
-              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <Loader size="lg" />
               <div className="space-y-1">
                 <p className="text-lg font-medium text-blue-600">Uploading...</p>
                 <p className="text-sm text-gray-600">Please wait</p>

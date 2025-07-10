@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Tag, Loader2 } from 'lucide-react';
+import { X, Tag } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 
 interface CouponCodeInputProps {
   onApplyCoupon: (code: string) => Promise<boolean>;
@@ -77,7 +78,7 @@ export const CouponCodeInput: React.FC<CouponCodeInputProps> = ({
           variant="outline"
         >
           {isValidating ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader size="sm" />
           ) : (
             'Apply'
           )}

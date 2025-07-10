@@ -1,6 +1,7 @@
 
 import React from 'react';
 import Layout from '@/components/Layout';
+import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { useCommunityFeed } from '@/hooks/useCommunityFeed';
 
@@ -14,7 +15,7 @@ const Discover = () => {
       <div className="p-4 max-w-md mx-auto">
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+            <Loader size="lg" />
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-12">

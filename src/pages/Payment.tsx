@@ -4,6 +4,7 @@ import { ArrowLeft, Shield, CreditCard } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Loader from '@/components/ui/loader';
 import { useToast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -81,7 +82,7 @@ const Payment = () => {
   if (loading || !program || !pricing || !user) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+        <Loader size="lg" />
       </div>
     );
   }
@@ -337,7 +338,7 @@ const Payment = () => {
               >
                 {loading ? (
                   <>
-                    <div className="w-4 h-4 mr-2 animate-spin rounded-full border-b-2 border-white" />
+                    <Loader size="sm" className="border-white border-t-transparent mr-2" />
                     Processing...
                   </>
                 ) : (

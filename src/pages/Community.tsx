@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import Layout from '@/components/Layout';
+import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { PostCard } from '@/components/community/PostCard';
@@ -116,7 +117,7 @@ const Community = () => {
         {/* Posts Feed */}
         {loading && !isRefreshing ? (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+            <Loader size="lg" />
           </div>
         ) : localPosts.length === 0 ? (
           <div className="text-center py-12">
