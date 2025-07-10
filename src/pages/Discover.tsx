@@ -9,7 +9,7 @@ const Discover = () => {
 
   return (
     <Layout>
-      <Header title="Discover" />
+      <Header title="Discover" showBack />
       
       <div className="p-4 max-w-md mx-auto">
         {loading ? (
