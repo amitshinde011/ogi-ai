@@ -18,7 +18,7 @@ const VideoSequenceManager = ({
   return (
     <div className="bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 shadow-lg">
       <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-2 sm:mb-3">Video Sequence</h3>
-      <div className="flex items-center justify-center sm:justify-start space-x-2 sm:space-x-3 overflow-x-auto pb-2">
+      <div className="flex items-center justify-start space-x-2 sm:space-x-3 overflow-x-auto pb-2 px-2">
         {Array.from({ length: totalVideos }, (_, index) => (
           <React.Fragment key={index}>
             <button
@@ -41,7 +41,7 @@ const VideoSequenceManager = ({
               )}
             </button>
             {index < totalVideos - 1 && (
-              <div className={`h-0.5 w-6 sm:w-8 flex-shrink-0 ${
+              <div className={`h-0.5 w-4 sm:w-6 md:w-8 flex-shrink-0 ${
                 videoWatched[index] ? 'bg-green-600' : 'bg-slate-300'
               }`} />
             )}
