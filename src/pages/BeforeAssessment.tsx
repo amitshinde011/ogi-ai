@@ -415,12 +415,12 @@ const BeforeAssessment = () => {
 
               {/* Week restriction message */}
               <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                <div className="flex items-start gap-2 text-orange-800">
-                  <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-medium mb-1">Important:</p>
-                    <p>You must start your journey within the next 7 days to maintain your subscription. Please select a date from today to next week.</p>
-                  </div>
+                <div className="text-orange-800 text-sm">
+                  <p className="font-medium mb-1 flex items-center gap-1">
+                    <Info className="w-4 h-4" />
+                    Important:
+                  </p>
+                  <p>You must start your journey within the next 7 days to maintain your subscription. Please select a date from today to next week.</p>
                 </div>
               </div>
 
@@ -474,12 +474,12 @@ const BeforeAssessment = () => {
               </div>
 
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                <div className="flex items-start gap-2 text-yellow-800">
-                  <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-medium mb-1">Important:</p>
-                    <p>You can change your start date anytime before it arrives. Once your journey begins, the date cannot be modified. The end date is inclusive - your program runs through the final day.</p>
-                  </div>
+                <div className="text-yellow-800 text-sm">
+                  <p className="font-medium mb-1 flex items-center gap-1">
+                    <Info className="w-4 h-4" />
+                    Important:
+                  </p>
+                  <p>You can change your start date anytime before it arrives. Once your journey begins, the date cannot be modified. The end date is inclusive - your program runs through the final day.</p>
                 </div>
               </div>
             </CardContent>
