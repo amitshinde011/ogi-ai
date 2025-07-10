@@ -19,12 +19,14 @@ serve(async (req) => {
     // --- Get Cloudflare credentials from environment variables ---
     const CLOUDFLARE_ACCOUNT_ID = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
     const CLOUDFLARE_API_TOKEN = Deno.env.get('CLOUDFLARE_API_TOKEN');
-    const VIDEO_ID = '8d8f8b1aca7d0f8224683acc56a26c4f'; // Your video ID
+    
+    // --- UPDATED: Using the correct Video ID from your logs ---
+    const VIDEO_ID = '9a47db5c27ea07a0648ee96f16d02'; 
     const CUSTOMER_ID = 'customer-cnj15s4to2idzsi'; // Your Cloudflare customer ID
 
     // --- Fallback for local development or missing credentials ---
     if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      console.warn('Cloudflare credentials not found. Returning direct URLs.');
+      console.warn('Cloudflare credentials not found. Returning direct HLS URL.');
       const baseUrl = `https://${CUSTOMER_ID}.cloudflarestream.com/${VIDEO_ID}`;
       return new Response(JSON.stringify({
         high: `${baseUrl}/manifest/video.m3u8`,
@@ -74,33 +76,30 @@ serve(async (req) => {
       const tokenData = await tokenResponse.json();
       const token = tokenData.result.token;
 
-      // 3. Construct signed URLs for ALL necessary formats.
-      const baseUrl = `https://${CUSTOMER_ID}.cloudflarestream.com/${token}`;
+      // 3. Construct signed HLS manifest URL.
+      const signedUrl = `https://${CUSTOMER_ID}.cloudflarestream.com/${token}/manifest/video.m3u8`;
+      
       const response = {
-        high: `${baseUrl}/manifest/video.m3u8`,
-        medium: `${baseUrl}/manifest/video.m3u8`,
-        low: `${baseUrl}/manifest/video.m3u8`,
-        // Also include signed URLs for direct file access and iframe
-        mp4: `${baseUrl}/downloads/default.mp4`,
-        iframe: `${baseUrl}/iframe`
+        high: signedUrl,
+        medium: signedUrl,
+        low: signedUrl
       };
       
-      console.log('Successfully generated multiple signed URLs.');
+      console.log('Successfully generated streaming-only signed URLs.');
       
       return new Response(JSON.stringify(response), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
 
     } else {
-      // If the video is public, return the direct URLs.
-      console.log('Video does not require signed URLs. Returning direct URLs.');
+      // If the video is public, return the direct HLS URL.
+      console.log('Video does not require signed URLs. Returning direct HLS URL.');
       const baseUrl = `https://${CUSTOMER_ID}.cloudflarestream.com/${VIDEO_ID}`;
+      
       const response = {
         high: `${baseUrl}/manifest/video.m3u8`,
         medium: `${baseUrl}/manifest/video.m3u8`,
-        low: `${baseUrl}/manifest/video.m3u8`,
-        mp4: `${baseUrl}/downloads/default.mp4`,
-        iframe: `${baseUrl}/iframe`
+        low: `${baseUrl}/manifest/video.m3u8`
       };
       return new Response(JSON.stringify(response), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -110,7 +109,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in edge function:', error.message);
     // Fallback to a working URL in case of any unexpected error.
-    const fallbackUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${'8d8f8b1aca7d0f8224683acc56a26c4f'}/manifest/video.m3u8`;
+    const fallbackUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${'9a47db5c27ea07a0648ee96f16d02'}/manifest/video.m3u8`;
     const response = { high: fallbackUrl, medium: fallbackUrl, low: fallbackUrl };
     return new Response(JSON.stringify(response), {
       status: 500, // Internal Server Error
