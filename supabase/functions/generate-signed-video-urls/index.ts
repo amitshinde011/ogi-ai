@@ -25,7 +25,7 @@ serve(async (req) => {
     // If credentials aren't set, return the direct, unsigned URL.
     if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
       console.warn('Cloudflare credentials not found. Returning direct HLS URL.');
-      const directUrl = `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`;
+      const directUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`;
       return new Response(JSON.stringify({ high: directUrl, medium: directUrl, low: directUrl }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -50,9 +50,6 @@ serve(async (req) => {
     if (videoDetails.result?.requireSignedURLs) {
       console.log('Video requires signed URLs. Generating token...');
 
-      // --- *** UPDATED AND CORRECTED PART *** ---
-      // The request body should only contain parameters for the one-time token,
-      // like 'exp' (expiration). 'id' and 'pem' are not used here.
       const tokenResponse = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/stream/${VIDEO_ID}/token`, {
         method: 'POST',
         headers: {
@@ -74,8 +71,8 @@ serve(async (req) => {
       const tokenData = await tokenResponse.json();
       const token = tokenData.result.token;
 
-      // 3. Construct the signed URL with the new token.
-      const signedUrl = `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${token}/manifest/video.m3u8`;
+      // 3. Construct the signed URL with the new token and the CORRECT customer ID.
+      const signedUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${token}/manifest/video.m3u8`;
       
       console.log('Successfully generated signed URL.');
       
@@ -87,7 +84,7 @@ serve(async (req) => {
     } else {
       // If the video is public, return the direct URL.
       console.log('Video does not require signed URLs. Returning direct URL.');
-      const directUrl = `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`;
+      const directUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`;
       const response = { high: directUrl, medium: directUrl, low: directUrl };
       return new Response(JSON.stringify(response), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -97,7 +94,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in edge function:', error.message);
     // Fallback to a working URL in case of any unexpected error.
-    const fallbackUrl = `https://customer-5491c5fc7c145a8cd12ae3c66d6bb24b.cloudflarestream.com/${'8d8f8b1aca7d0f8224683acc56a26c4f'}/manifest/video.m3u8`;
+    const fallbackUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${'8d8f8b1aca7d0f8224683acc56a26c4f'}/manifest/video.m3u8`;
     const response = { high: fallbackUrl, medium: fallbackUrl, low: fallbackUrl };
     return new Response(JSON.stringify(response), {
       status: 500, // Internal Server Error
