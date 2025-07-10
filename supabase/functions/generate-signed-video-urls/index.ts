@@ -14,30 +14,26 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Edge function invoked to get video URL.');
+    console.log('Edge function invoked.');
 
     // --- Get Cloudflare credentials from environment variables ---
     const CLOUDFLARE_ACCOUNT_ID = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
     const CLOUDFLARE_API_TOKEN = Deno.env.get('CLOUDFLARE_API_TOKEN');
-    const VIDEO_ID = '9a47db5c27ea07a0648ee96f16d02'; 
+    
+    // --- *** UPDATED: Using the correct Video ID from your Cloudflare dashboard *** ---
+    const VIDEO_ID = '1229a47db5c27ea07a0648ee96f16d02'; 
     const CUSTOMER_ID = 'customer-cnj15s4to2idzsi';
 
-    // --- Fallback for local development or missing credentials ---
+    // --- Strict check for secrets ---
     if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      console.warn('Cloudflare credentials not found. Returning direct, unsigned HLS URL as a fallback.');
-      const baseUrl = `https://${CUSTOMER_ID}.cloudflarestream.com/${VIDEO_ID}`;
-      return new Response(JSON.stringify({
-        high: `${baseUrl}/manifest/video.m3u8`,
-        medium: `${baseUrl}/manifest/video.m3u8`,
-        low: `${baseUrl}/manifest/video.m3u8`
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      console.error('CRITICAL: Cloudflare secrets are not available in the function environment.');
+      throw new Error('Missing Cloudflare credentials. Please ensure secrets are set and the function is redeployed.');
     }
+    
+    console.log('Successfully loaded Cloudflare credentials.');
 
     // --- Always Generate a Signed URL ---
-    // This simplifies the logic and avoids potential issues with checking video settings.
-    console.log('Always generating a signed URL for video:', VIDEO_ID);
+    console.log('Attempting to generate a signed URL for video:', VIDEO_ID);
 
     const tokenResponse = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/stream/${VIDEO_ID}/token`, {
       method: 'POST',
@@ -52,8 +48,8 @@ serve(async (req) => {
 
     if (!tokenResponse.ok) {
       const errorBody = await tokenResponse.text();
-      console.error('Failed to generate token:', tokenResponse.status, errorBody);
-      throw new Error(`Failed to generate token: ${tokenResponse.statusText}`);
+      console.error('Cloudflare API Error:', tokenResponse.status, errorBody);
+      throw new Error(`Failed to generate token from Cloudflare: ${tokenResponse.statusText}`);
     }
 
     const tokenData = await tokenResponse.json();
@@ -68,19 +64,17 @@ serve(async (req) => {
       low: signedUrl
     };
     
-    console.log('Successfully generated streaming-only signed URLs.');
+    console.log('Successfully generated signed URL.');
     
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    console.error('Error in edge function:', error.message);
-    // Fallback to a working URL in case of any unexpected error.
-    const fallbackUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${'9a47db5c27ea07a0648ee96f16d02'}/manifest/video.m3u8`;
-    const response = { high: fallbackUrl, medium: fallbackUrl, low: fallbackUrl };
-    return new Response(JSON.stringify(response), {
-      status: 500, // Internal Server Error
+    console.error('An error occurred in the edge function:', error.message);
+    // Return a clear error message in the response for easier debugging.
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
