@@ -2,7 +2,6 @@
 import { useRef } from 'react';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { VideoPlayerState } from '@/types/videoPlayer';
-import { VIDEO_SOURCES_SEQUENCE } from '@/constants/videoSources';
 import { toggleFullscreen } from '@/utils/fullscreenHandler';
 import { seekToTime, seekBackward, seekForward } from '@/utils/videoTimeManager';
 
@@ -113,8 +112,8 @@ export const useVideoPlayerHandlers = ({
 
     setState(prev => ({ ...prev, isPlaying: false }));
 
-    // Check if this is the last video
-    if (state.currentVideoIndex === VIDEO_SOURCES_SEQUENCE.length - 1) {
+    // Check if this is the last video (total of 7 videos, so index 6 is the last)
+    if (state.currentVideoIndex === 6) {
       // All videos completed
       onVideoComplete();
     } else {

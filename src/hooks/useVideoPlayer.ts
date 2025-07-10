@@ -1,21 +1,21 @@
 
 import { useRef, useEffect } from 'react';
 import { VideoPlayerHookProps } from '@/types/videoPlayer';
-import { VIDEO_SOURCES_SEQUENCE } from '@/constants/videoSources';
 import { detectNetworkSpeed, shouldReduceQuality } from '@/utils/videoQualityDetector';
 import { setupFullscreenListener } from '@/utils/fullscreenHandler';
 import { setupVideoTimeListeners } from '@/utils/videoTimeManager';
 import { useVideoPlayerState } from '@/hooks/useVideoPlayerState';
 import { useVideoPlayerHandlers } from '@/hooks/useVideoPlayerHandlers';
 import { useVideoPlayerEvents } from '@/hooks/useVideoPlayerEvents';
+import { useSignedVideoUrls } from '@/hooks/useSignedVideoUrls';
 
 export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHookProps) => {
   const { state, setState, videoWatchedStates, setVideoWatchedStates } = useVideoPlayerState();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Get current video sources
-  const currentVideoSources = VIDEO_SOURCES_SEQUENCE[state.currentVideoIndex];
+  // Get signed video sources
+  const { videoSources: currentVideoSources, loading: sourcesLoading, error: sourcesError } = useSignedVideoUrls(state.currentVideoIndex);
 
   const handlers = useVideoPlayerHandlers({
     state,
@@ -83,7 +83,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     isPlaying: state.isPlaying,
     showVideo: state.showVideo,
     videoLoaded: state.videoLoaded,
-    videoError: state.videoError,
+    videoError: state.videoError || !!sourcesError,
     currentQuality: state.currentQuality,
     currentTime: state.currentTime,
     duration: state.duration,
@@ -95,6 +95,8 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     videoRef,
     containerRef,
     videoSources: currentVideoSources,
+    sourcesLoading,
+    sourcesError,
     
     // Handlers from useVideoPlayerHandlers
     ...handlers,
