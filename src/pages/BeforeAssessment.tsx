@@ -358,11 +358,10 @@ const BeforeAssessment = () => {
               <div className="w-24 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 mx-auto rounded-full"></div>
             </div>
             
-            <div className="space-y-6">
-              <div className="p-6 bg-white/70 rounded-xl border border-emerald-100/80 backdrop-blur-sm">
-                <div className="flex items-start gap-5">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Compass className="w-5 h-5 text-emerald-600" />
+              <div className="space-y-6">
+                <div className="p-6 bg-white/70 rounded-xl border border-emerald-100/80 backdrop-blur-sm text-center">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Compass className="w-6 h-6 text-emerald-600" />
                   </div>
                   <p className="text-base leading-relaxed text-emerald-800 font-medium">
                     Before you begin this journey, take a moment. Stand at the threshold and quiet your mind. 
@@ -370,12 +369,10 @@ const BeforeAssessment = () => {
                     clarify your mind, and restore a youthful energy you may have thought was lost.
                   </p>
                 </div>
-              </div>
-              
-              <div className="p-6 bg-white/70 rounded-xl border border-emerald-100/80 backdrop-blur-sm">
-                <div className="flex items-start gap-5">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Heart className="w-5 h-5 text-emerald-600" />
+                
+                <div className="p-6 bg-white/70 rounded-xl border border-emerald-100/80 backdrop-blur-sm text-center">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Heart className="w-6 h-6 text-emerald-600" />
                   </div>
                   <p className="text-base leading-relaxed text-emerald-800 font-medium">
                     We ask for your patience and your persistence, but more than that, we ask for your commitment. 
@@ -383,28 +380,23 @@ const BeforeAssessment = () => {
                     contract with yourself: to see this through to completion, without looking back.
                   </p>
                 </div>
-              </div>
-              
-              <div className="p-6 bg-white/70 rounded-xl border border-emerald-100/80 backdrop-blur-sm">
-                <div className="flex items-start gap-5">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Sparkles className="w-5 h-5 text-emerald-600" />
+                
+                <div className="p-6 bg-white/70 rounded-xl border border-emerald-100/80 backdrop-blur-sm text-center">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="w-6 h-6 text-emerald-600" />
                   </div>
                   <p className="text-base leading-relaxed text-emerald-800 font-medium">
                     A new world of vibrant health, energy, and joy is waiting for you on the other side.
                   </p>
                 </div>
-              </div>
               
-              <div className="p-6 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-xl border border-emerald-200">
-                <div className="flex items-start gap-5">
-                  <div className="w-10 h-10 bg-emerald-200 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Hammer className="w-5 h-5 text-emerald-700" />
-                  </div>
-                  <p className="text-lg font-bold text-emerald-900 leading-relaxed tracking-wide">
-                    You have the power to build it.
-                  </p>
+              <div className="p-6 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-xl border border-emerald-200 text-center">
+                <div className="w-12 h-12 bg-emerald-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Hammer className="w-6 h-6 text-emerald-700" />
                 </div>
+                <p className="text-lg font-bold text-emerald-900 leading-relaxed tracking-wide">
+                  You have the power to build it.
+                </p>
               </div>
             </div>
           </div>
