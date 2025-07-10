@@ -20,13 +20,17 @@ serve(async (req) => {
     const CLOUDFLARE_ACCOUNT_ID = Deno.env.get('CLOUDFLARE_ACCOUNT_ID');
     const CLOUDFLARE_API_TOKEN = Deno.env.get('CLOUDFLARE_API_TOKEN');
     const VIDEO_ID = '8d8f8b1aca7d0f8224683acc56a26c4f'; // Your video ID
+    const CUSTOMER_ID = 'customer-cnj15s4to2idzsi'; // Your Cloudflare customer ID
 
     // --- Fallback for local development or missing credentials ---
-    // If credentials aren't set, return the direct, unsigned URL.
     if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      console.warn('Cloudflare credentials not found. Returning direct HLS URL.');
-      const directUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`;
-      return new Response(JSON.stringify({ high: directUrl, medium: directUrl, low: directUrl }), {
+      console.warn('Cloudflare credentials not found. Returning direct URLs.');
+      const baseUrl = `https://${CUSTOMER_ID}.cloudflarestream.com/${VIDEO_ID}`;
+      return new Response(JSON.stringify({
+        high: `${baseUrl}/manifest/video.m3u8`,
+        medium: `${baseUrl}/manifest/video.m3u8`,
+        low: `${baseUrl}/manifest/video.m3u8`
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -34,7 +38,7 @@ serve(async (req) => {
     // --- Generate Signed URL if Required ---
     console.log('Attempting to generate signed URL for video:', VIDEO_ID);
 
-    // 1. Check if the video requires signed URLs by fetching its details.
+    // 1. Check if the video requires signed URLs.
     const videoDetailsResponse = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/stream/${VIDEO_ID}`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}` }
@@ -57,8 +61,7 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          // Set the token to expire in 1 hour (3600 seconds).
-          exp: Math.floor(Date.now() / 1000) + 3600
+          exp: Math.floor(Date.now() / 1000) + 3600 // Token expires in 1 hour
         })
       });
 
@@ -71,21 +74,34 @@ serve(async (req) => {
       const tokenData = await tokenResponse.json();
       const token = tokenData.result.token;
 
-      // 3. Construct the signed URL with the new token and the CORRECT customer ID.
-      const signedUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${token}/manifest/video.m3u8`;
+      // 3. Construct signed URLs for ALL necessary formats.
+      const baseUrl = `https://${CUSTOMER_ID}.cloudflarestream.com/${token}`;
+      const response = {
+        high: `${baseUrl}/manifest/video.m3u8`,
+        medium: `${baseUrl}/manifest/video.m3u8`,
+        low: `${baseUrl}/manifest/video.m3u8`,
+        // Also include signed URLs for direct file access and iframe
+        mp4: `${baseUrl}/downloads/default.mp4`,
+        iframe: `${baseUrl}/iframe`
+      };
       
-      console.log('Successfully generated signed URL.');
+      console.log('Successfully generated multiple signed URLs.');
       
-      const response = { high: signedUrl, medium: signedUrl, low: signedUrl };
       return new Response(JSON.stringify(response), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
 
     } else {
-      // If the video is public, return the direct URL.
-      console.log('Video does not require signed URLs. Returning direct URL.');
-      const directUrl = `https://customer-cnj15s4to2idzsi.cloudflarestream.com/${VIDEO_ID}/manifest/video.m3u8`;
-      const response = { high: directUrl, medium: directUrl, low: directUrl };
+      // If the video is public, return the direct URLs.
+      console.log('Video does not require signed URLs. Returning direct URLs.');
+      const baseUrl = `https://${CUSTOMER_ID}.cloudflarestream.com/${VIDEO_ID}`;
+      const response = {
+        high: `${baseUrl}/manifest/video.m3u8`,
+        medium: `${baseUrl}/manifest/video.m3u8`,
+        low: `${baseUrl}/manifest/video.m3u8`,
+        mp4: `${baseUrl}/downloads/default.mp4`,
+        iframe: `${baseUrl}/iframe`
+      };
       return new Response(JSON.stringify(response), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
