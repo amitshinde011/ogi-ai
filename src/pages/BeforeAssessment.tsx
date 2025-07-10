@@ -280,7 +280,7 @@ const BeforeAssessment = () => {
 
       // Calculate end date (inclusive - so duration_days from start date)
       const endDate = new Date(selectedDate);
-      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days - 1);
+      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days);
 
       const { error } = await supabase
         .from('user_subscriptions')
