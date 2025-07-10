@@ -123,13 +123,26 @@ const JourneyStart = () => {
   }
 
   const getDaysRemaining = () => {
-    const today = new Date();
-    const endDate = new Date(subscription.end_date);
-    // Add 1 day since end date is inclusive
-    endDate.setDate(endDate.getDate() + 1);
-    const diffTime = endDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(0, diffDays);
+    const today = new Date().toISOString().split('T')[0];
+    const endDate = subscription.end_date;
+    const start = new Date(subscription.start_date);
+    const end = new Date(endDate);
+    const todayDate = new Date(today);
+    
+    // If today is before start, return full duration
+    if (todayDate < start) {
+      return subscription.programs?.duration_days || 0;
+    }
+    
+    // If today is after end, return 0
+    if (todayDate > end) {
+      return 0;
+    }
+    
+    // Calculate remaining days (inclusive of end date)
+    const diffTime = end.getTime() - todayDate.getTime();
+    const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include today
+    return Math.max(0, remainingDays);
   };
 
   return (
