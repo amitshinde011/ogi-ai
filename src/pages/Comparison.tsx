@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Share2, Users, ExternalLink, ArrowRight, Trophy, TrendingUp } from 'lucide-react';
 import Layout from '@/components/Layout';
+import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -345,7 +346,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
       <Layout>
         <Header title="Your Transformation" />
         <div className="min-h-screen bg-light-gray flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+          <Loader size="lg" />
         </div>
       </Layout>
     );

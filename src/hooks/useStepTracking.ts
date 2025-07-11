@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -8,144 +7,67 @@ interface StepData {
   lastUpdated: Date;
 }
 
-// Extend the DeviceMotionEvent interface for iOS permission
-declare global {
-  interface DeviceMotionEvent {
-    requestPermission?: () => Promise<'granted' | 'denied'>;
+// Simple step tracker for manual entry only
+class ManualStepTracker {
+  private static instance: ManualStepTracker;
+  private stepCount = 0;
+  private syncInterval: NodeJS.Timeout | null = null;
+
+  private constructor() {
+    this.loadPersistedData();
+    this.setupSync();
   }
-}
 
-export const useStepTracking = () => {
-  const [stepData, setStepData] = useState<StepData>({ steps: 0, lastUpdated: new Date() });
-  const [isTracking, setIsTracking] = useState(false);
-  const [permission, setPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
-  const { toast } = useToast();
-
-  // Callback to update step data and sync with parent components
-  const updateStepData = useCallback((newSteps: number) => {
-    const newData = { steps: newSteps, lastUpdated: new Date() };
-    setStepData(newData);
-    
-    // Trigger a custom event to notify other components
-    window.dispatchEvent(new CustomEvent('stepsUpdated', { 
-      detail: { steps: newSteps, lastUpdated: new Date() } 
-    }));
-  }, []);
-
-  useEffect(() => {
-    checkPermissionAndStartTracking();
-    fetchTodaySteps();
-  }, []);
-
-  const checkPermissionAndStartTracking = async () => {
-    // Check if device motion is available and requires permission (iOS)
-    if (typeof DeviceMotionEvent !== 'undefined' && typeof (DeviceMotionEvent as any).requestPermission === 'function') {
-      try {
-        const permission = await (DeviceMotionEvent as any).requestPermission();
-        setPermission(permission);
-        if (permission === 'granted') {
-          startStepTracking();
-        }
-      } catch (error) {
-        console.log('Device motion permission error:', error);
-        setPermission('denied');
-        // Fallback for browsers that don't support permission request
-        startStepTracking();
-      }
-    } else {
-      // For browsers that don't require permission (Android)
-      setPermission('granted');
-      startStepTracking();
+  public static getInstance(): ManualStepTracker {
+    if (!ManualStepTracker.instance) {
+      ManualStepTracker.instance = new ManualStepTracker();
     }
-  };
+    return ManualStepTracker.instance;
+  }
 
-  const startStepTracking = () => {
-    if ('DeviceMotionEvent' in window) {
-      let lastAcceleration = { x: 0, y: 0, z: 0 };
-      let stepCount = stepData.steps;
-      let lastStepTime = 0;
-      const stepThreshold = 15; // Increased threshold for better accuracy
-      const timeThreshold = 400; // Minimum time between steps (ms)
-
-      const handleDeviceMotion = (event: DeviceMotionEvent) => {
-        if (!event.accelerationIncludingGravity) return;
-
-        const { x, y, z } = event.accelerationIncludingGravity;
-        if (x === null || y === null || z === null) return;
-
-        // Calculate magnitude of acceleration change
-        const deltaX = Math.abs(x - lastAcceleration.x);
-        const deltaY = Math.abs(y - lastAcceleration.y);
-        const deltaZ = Math.abs(z - lastAcceleration.z);
-        const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
-
-        const currentTime = Date.now();
-        
-        // Detect step if magnitude exceeds threshold and enough time has passed
-        if (magnitude > stepThreshold && currentTime - lastStepTime > timeThreshold) {
-          stepCount++;
-          lastStepTime = currentTime;
-          updateStepData(stepCount);
-          
-          // Save to database every 5 steps to reduce API calls but maintain sync
-          if (stepCount % 5 === 0) {
-            saveStepsToDatabase(stepCount);
-          }
-        }
-
-        lastAcceleration = { x, y, z };
-      };
-
-      window.addEventListener('devicemotion', handleDeviceMotion);
-      setIsTracking(true);
-
-      // Auto-save every 30 seconds to ensure data persistence
-      const autoSaveInterval = setInterval(() => {
-        if (stepCount > 0) {
-          saveStepsToDatabase(stepCount);
-        }
-      }, 30000);
-
-      // Cleanup function
-      return () => {
-        window.removeEventListener('devicemotion', handleDeviceMotion);
-        clearInterval(autoSaveInterval);
-        setIsTracking(false);
-      };
-    } else {
-      console.log('Device motion not supported');
-      toast({
-        title: "Step tracking not available",
-        description: "Your device doesn't support step tracking.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchTodaySteps = async () => {
+  private loadPersistedData() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
-        .from('steps_tracking')
-        .select('steps_count')
-        .eq('user_id', user.id)
-        .eq('date', today)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        updateStepData(data.steps_count);
+      const savedData = localStorage.getItem(`steps_${today}`);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        this.stepCount = parsed.steps || 0;
+        console.log('📁 Loaded persisted step data:', this.stepCount);
       }
     } catch (error) {
-      console.error('Error fetching today steps:', error);
+      console.error('Error loading persisted data:', error);
     }
-  };
+  }
 
-  const saveStepsToDatabase = async (steps: number) => {
+  private persistData() {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const dataToSave = {
+        steps: this.stepCount,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(`steps_${today}`, JSON.stringify(dataToSave));
+    } catch (error) {
+      console.error('Error persisting data:', error);
+    }
+  }
+
+  private setupSync() {
+    // Sync when app visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        console.log('📱 App foregrounded - syncing step data');
+        this.syncToDatabase();
+      }
+    });
+
+    // Sync before page unload
+    window.addEventListener('beforeunload', () => {
+      this.syncToDatabase();
+    });
+  }
+
+  private async syncToDatabase() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -157,33 +79,136 @@ export const useStepTracking = () => {
         .upsert({
           user_id: user.id,
           date: today,
-          steps_count: steps
+          steps_count: this.stepCount
         }, {
           onConflict: 'user_id,date'
         });
 
       if (error) throw error;
+      
+      console.log('🔄 Steps saved to database:', this.stepCount);
+      
+      // Persist to localStorage as backup
+      this.persistData();
+    } catch (error) {
+      console.error('Error syncing to database:', error);
+    }
+  }
+
+  public getCurrentSteps(): number {
+    return this.stepCount;
+  }
+
+  public addManualSteps(steps: number) {
+    this.stepCount += steps;
+    this.syncToDatabase();
+    
+    // Notify components
+    window.dispatchEvent(new CustomEvent('stepsUpdated', { 
+      detail: { steps: this.stepCount, lastUpdated: new Date() } 
+    }));
+  }
+
+  public async fetchTodaySteps() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('steps_tracking')
+        .select('steps_count')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data && data.steps_count > this.stepCount) {
+        console.log('📊 Fetched higher step count from database:', data.steps_count);
+        this.stepCount = data.steps_count;
+        this.persistData();
+      }
+      
+      return this.stepCount;
+    } catch (error) {
+      console.error('Error fetching today steps:', error);
+      return this.stepCount;
+    }
+  }
+}
+
+export const useStepTracking = () => {
+  const [stepData, setStepData] = useState<StepData>({ steps: 0, lastUpdated: new Date() });
+  const manualTracker = ManualStepTracker.getInstance();
+
+  // Update step data and sync with parent components
+  const updateStepData = useCallback((newSteps: number) => {
+    const newData = { steps: newSteps, lastUpdated: new Date() };
+    setStepData(newData);
+  }, []);
+
+  useEffect(() => {
+    const initializeTracking = async () => {
+      // Fetch initial data
+      const initialSteps = await manualTracker.fetchTodaySteps();
+      updateStepData(initialSteps);
+      console.log('🎯 Manual step tracking initialized');
+    };
+
+    initializeTracking();
+
+    // Listen for step updates
+    const handleStepsUpdate = (event: CustomEvent) => {
+      updateStepData(event.detail.steps);
+    };
+
+    window.addEventListener('stepsUpdated', handleStepsUpdate as EventListener);
+    
+    // Cleanup function
+    return () => {
+      window.removeEventListener('stepsUpdated', handleStepsUpdate as EventListener);
+    };
+  }, [updateStepData]);
+
+  // Manual step addition
+  const manuallyAddSteps = useCallback(async (additionalSteps: number) => {
+    manualTracker.addManualSteps(additionalSteps);
+    const newSteps = manualTracker.getCurrentSteps();
+    updateStepData(newSteps);
+    console.log('➕ Adding manual steps:', additionalSteps, 'New total:', newSteps);
+  }, [updateStepData]);
+
+  // Force sync with database
+  const saveStepsToDatabase = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const today = new Date().toISOString().split('T')[0];
+      const currentSteps = manualTracker.getCurrentSteps();
+      
+      const { error } = await supabase
+        .from('steps_tracking')
+        .upsert({
+          user_id: user.id,
+          date: today,
+          steps_count: currentSteps
+        }, {
+          onConflict: 'user_id,date'
+        });
+
+      if (error) throw error;
+      console.log('💾 Manual sync - Steps saved to database:', currentSteps);
     } catch (error) {
       console.error('Error saving steps:', error);
     }
-  };
-
-  const manuallyAddSteps = async (additionalSteps: number) => {
-    const newStepCount = stepData.steps + additionalSteps;
-    updateStepData(newStepCount);
-    await saveStepsToDatabase(newStepCount);
-  };
-
-  const requestPermission = async () => {
-    await checkPermissionAndStartTracking();
-  };
+  }, []);
 
   return {
     stepData,
-    isTracking,
-    permission,
+    isTracking: false, // Manual only, no automatic tracking
     manuallyAddSteps,
-    requestPermission,
-    saveStepsToDatabase: () => saveStepsToDatabase(stepData.steps)
+    saveStepsToDatabase
   };
 };

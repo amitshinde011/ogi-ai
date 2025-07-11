@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Target, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Loader from '@/components/ui/loader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
@@ -116,20 +117,33 @@ const JourneyStart = () => {
       <Layout>
         <Header title="Journey Start" />
         <div className="min-h-screen bg-light-gray flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <Loader size="lg" />
         </div>
       </Layout>
     );
   }
 
   const getDaysRemaining = () => {
-    const today = new Date();
-    const endDate = new Date(subscription.end_date);
-    // Add 1 day since end date is inclusive
-    endDate.setDate(endDate.getDate() + 1);
-    const diffTime = endDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(0, diffDays);
+    const today = new Date().toISOString().split('T')[0];
+    const endDate = subscription.end_date;
+    const start = new Date(subscription.start_date);
+    const end = new Date(endDate);
+    const todayDate = new Date(today);
+    
+    // If today is before start, return full duration
+    if (todayDate < start) {
+      return subscription.programs?.duration_days || 0;
+    }
+    
+    // If today is after end, return 0
+    if (todayDate > end) {
+      return 0;
+    }
+    
+    // Calculate remaining days (inclusive of end date)
+    const diffTime = end.getTime() - todayDate.getTime();
+    const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include today
+    return Math.max(0, remainingDays);
   };
 
   return (
@@ -232,7 +246,7 @@ const JourneyStart = () => {
             >
               {loading ? (
                 <>
-                  <div className="w-5 h-5 mr-2 animate-spin rounded-full border-b-2 border-white" />
+                  <Loader size="sm" className="border-white border-t-transparent mr-2" />
                   Starting Journey...
                 </>
               ) : (

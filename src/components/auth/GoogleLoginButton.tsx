@@ -1,40 +1,41 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+// Import the new utility functions
+import { isNativePlatform, signInWithNativeGoogle, signInWithWebGoogle } from '@/utils/googleAuth';
 
 interface GoogleLoginButtonProps {
   isLoading: boolean;
+  // This function allows the button to control the loading state in the parent component
+  setIsLoading: (loading: boolean) => void;
 }
 
-const GoogleLoginButton = ({ isLoading }: GoogleLoginButtonProps) => {
+const GoogleLoginButton = ({ isLoading, setIsLoading }: GoogleLoginButtonProps) => {
   const { toast } = useToast();
 
   const handleGoogleLogin = async () => {
+    setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`
-        }
-      });
-      
-      if (error) {
-        console.error('Google login error:', error);
-        toast({
-          title: "Google login failed",
-          description: error.message,
-          variant: "destructive"
-        });
+      console.log(`Is native platform? ==> ${isNativePlatform()}`);
+      if (isNativePlatform()) {
+        // Call the native function
+        await signInWithNativeGoogle();
+        // The onAuthStateChange listener in Login.tsx will handle navigation
+        // We can set loading to false here as there is no page redirect
+        setIsLoading(false);
+      } else {
+        // Call the web function
+        await signInWithWebGoogle();
+        // The browser will redirect; no need to set loading state here.
       }
     } catch (error) {
-      console.error('Google login catch error:', error);
+      console.error('Google login failed:', error);
       toast({
-        title: "An error occurred",
-        description: "Google login failed. Please try again.",
-        variant: "destructive"
+        title: "Login failed",
+        description: error.message || "An unknown error occurred.",
+        variant: "destructive",
       });
+      setIsLoading(false); // Stop loading only if there's an error
     }
   };
 
@@ -46,6 +47,7 @@ const GoogleLoginButton = ({ isLoading }: GoogleLoginButtonProps) => {
       disabled={isLoading}
     >
       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+        {/* SVG paths remain unchanged */}
         <path
           fill="#4285F4"
           d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

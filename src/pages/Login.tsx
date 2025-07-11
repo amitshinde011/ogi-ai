@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -14,11 +13,21 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check for verification message from signup
   const showVerificationMessage = searchParams.get('message') === 'verify';
 
-  // Check if user is already logged in
+  // Listen for authentication changes to handle navigation after login
   useEffect(() => {
+    // This listener will fire when the user successfully signs in via native or web.
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          console.log("User signed in, navigating...");
+          navigate('/');
+        }
+      }
+    );
+
+    // Also check for an existing session when the component first loads
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
@@ -27,6 +36,11 @@ const Login = () => {
     };
     
     checkUser();
+
+    // Clean up the listener when the component unmounts
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleLoginSuccess = () => {
@@ -70,7 +84,8 @@ const Login = () => {
                     </div>
                   </div>
 
-                  <GoogleLoginButton isLoading={isLoading} />
+                  {/* Pass both isLoading and setIsLoading to the button */}
+                  <GoogleLoginButton isLoading={isLoading} setIsLoading={setIsLoading} />
 
                   <div className="text-center text-xs text-gray-600 space-y-2">
                     <p>
@@ -82,7 +97,6 @@ const Login = () => {
                       <Link to="/terms-and-conditions" className="text-sage hover:underline">
                         Terms and Conditions
                       </Link>
-                      
                     </p>
                     <p>
                       Need help? Contact us at{' '}

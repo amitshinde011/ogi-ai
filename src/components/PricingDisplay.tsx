@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { MapPin, CreditCard } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 
 interface PricingDisplayProps {
   isIndiaUser: boolean;
@@ -14,7 +15,7 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
   if (!userLocation) {
     return (
       <div className="flex items-center justify-center space-x-3 py-2">
-        <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <Loader size="sm" />
         <span className="text-gray-600 font-medium text-sm sm:text-base">Detecting your location...</span>
       </div>
     );

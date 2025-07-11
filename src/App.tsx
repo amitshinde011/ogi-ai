@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { initializeCapacitorPlugins } from "@/utils/capacitorConfig";
+import Loader from "@/components/ui/loader";
 
 // Import all pages
 import Index from "./pages/Index";
@@ -56,6 +57,9 @@ const App = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Initialize Capacitor plugins
+    initializeCapacitorPlugins().catch(console.error);
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -76,7 +80,7 @@ const App = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader size="lg" />
       </div>
     );
   }

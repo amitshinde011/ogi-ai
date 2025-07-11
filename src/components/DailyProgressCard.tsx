@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, Target, Footprints } from 'lucide-react';
@@ -10,8 +10,65 @@ interface DailyProgressCardProps {
   walkScore: number;
 }
 
-const DailyProgressCard = ({ mealsLogged, steps, walkScore }: DailyProgressCardProps) => {
-  const stepsProgress = Math.min((steps / 5000) * 100, 100);
+const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initialWalkScore }: DailyProgressCardProps) => {
+  console.log('📊 DailyProgressCard: Component rendered with props:', { mealsLogged, initialSteps, initialWalkScore });
+  
+  const [currentSteps, setCurrentSteps] = useState(initialSteps);
+  const [currentWalkScore, setCurrentWalkScore] = useState(initialWalkScore);
+
+  // Listen for step updates from StepTracker
+  useEffect(() => {
+    const handleStepsUpdated = (event: CustomEvent) => {
+      console.log('📢 DailyProgressCard: Steps updated event received:', event.detail);
+      const newSteps = event.detail.steps;
+      setCurrentSteps(newSteps);
+      
+      // Calculate walk score: 1000 steps = 1km, so 5km = 5,000 steps
+      // Score out of 5: each 1000 steps = 1 point
+      const newWalkScore = Math.min(Math.floor(newSteps / 1000), 5);
+      setCurrentWalkScore(newWalkScore);
+      
+      console.log('📊 DailyProgressCard: Updated steps and walk score:', { 
+        steps: newSteps, 
+        walkScore: newWalkScore,
+        kmWalked: (newSteps / 1000).toFixed(1)
+      });
+    };
+
+    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    
+    return () => {
+      console.log('🧹 DailyProgressCard: Cleaning up steps listener');
+      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    };
+  }, []);
+
+  // Sync with props when they change
+  useEffect(() => {
+    console.log('🔄 DailyProgressCard: Props updated, syncing:', { 
+      initialSteps, 
+      initialWalkScore,
+      currentSteps,
+      currentWalkScore
+    });
+    
+    if (initialSteps !== currentSteps) {
+      setCurrentSteps(initialSteps);
+    }
+    if (initialWalkScore !== currentWalkScore) {
+      setCurrentWalkScore(initialWalkScore);
+    }
+  }, [initialSteps, initialWalkScore, currentSteps, currentWalkScore]);
+
+  const stepsProgress = Math.min((currentSteps / 5000) * 100, 100); // 5,000 steps = 100%
+  const kmWalked = (currentSteps / 1000).toFixed(1); // 1000 steps ≈ 1km
+
+  console.log('📈 DailyProgressCard: Current state:', {
+    currentSteps,
+    currentWalkScore,
+    stepsProgress: stepsProgress.toFixed(1),
+    kmWalked
+  });
 
   return (
     <Card className="gradient-primary text-white shadow-xl border-0 animate-slide-up interactive">
@@ -39,22 +96,25 @@ const DailyProgressCard = ({ mealsLogged, steps, walkScore }: DailyProgressCardP
                 <Footprints className="text-white/80 mr-2" size={18} />
                 <span className="text-white font-medium">Steps Walked</span>
               </div>
-              <span className="font-bold text-white text-lg">{steps.toLocaleString()}</span>
+              <span className="font-bold text-white text-lg">{currentSteps.toLocaleString()}</span>
             </div>
             <Progress value={stepsProgress} className="bg-white/20 h-2" />
+            <div className="text-white/80 text-sm mt-1">
+              {kmWalked} km walked
+            </div>
           </div>
           
           <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
             <div className="flex justify-between items-center">
-              <span className="text-white font-medium">10km Walk Score</span>
+              <span className="text-white font-medium">5km Walk Score</span>
               <div className="flex items-center">
-                <span className="font-bold mr-2 text-white text-lg">{walkScore}/5</span>
+                <span className="font-bold mr-2 text-white text-lg">{currentWalkScore}/5</span>
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
                     <span 
                       key={i} 
                       className={`text-lg transition-all ${
-                        i < walkScore ? 'text-amber-300 scale-110' : 'text-white/40'
+                        i < currentWalkScore ? 'text-amber-300 scale-110' : 'text-white/40'
                       }`}
                     >
                       ⭐
@@ -62,6 +122,9 @@ const DailyProgressCard = ({ mealsLogged, steps, walkScore }: DailyProgressCardP
                   ))}
                 </div>
               </div>
+            </div>
+            <div className="text-white/80 text-sm mt-1">
+              {(currentWalkScore * 1000).toLocaleString()} / 5,000 steps to 5km
             </div>
           </div>
         </div>

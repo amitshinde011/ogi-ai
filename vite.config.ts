@@ -28,4 +28,12 @@ export default defineConfig(({ mode }) => ({
   define: {
     global: 'globalThis',
   },
+  optimizeDeps: {
+    include: ['firebase/auth', 'firebase/app']
+  },
+  build: {
+    rollupOptions: {
+      external: [],
+    },
+  },
 }));

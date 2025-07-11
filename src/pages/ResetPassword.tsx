@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import Loader from '@/components/ui/loader';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ const ResetPassword = () => {
         <Card className="w-full max-w-md animate-fade-in shadow-lg border-gray-200 bg-white">
           <CardContent className="flex items-center justify-center py-8">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage mx-auto mb-4"></div>
+              <Loader size="lg" className="mx-auto mb-4" />
               <p className="text-black/70">Verifying reset link...</p>
             </div>
           </CardContent>

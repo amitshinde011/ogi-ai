@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Camera, X, Upload } from 'lucide-react';
+import { Camera, X, Upload, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface PhotoUploadSectionProps {
@@ -50,21 +50,41 @@ const PhotoUploadSection = ({ formData, setFormData }: PhotoUploadSectionProps) 
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
             <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500 mb-4">Upload a full body photo</p>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-              id="photo-upload"
-            />
-            <label htmlFor="photo-upload">
-              <Button type="button" variant="outline" className="cursor-pointer" asChild>
-                <span>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Choose Photo
-                </span>
-              </Button>
-            </label>
+            
+            <div className="flex gap-3 justify-center">
+              <input
+                type="file"
+                accept="image/*"
+                capture="user"
+                onChange={handleFileChange}
+                className="hidden"
+                id="photo-camera"
+              />
+              <label htmlFor="photo-camera">
+                <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                  <span>
+                    <Camera className="w-4 h-4 mr-2" />
+                    Take Photo
+                  </span>
+                </Button>
+              </label>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+                id="photo-gallery"
+              />
+              <label htmlFor="photo-gallery">
+                <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                  <span>
+                    <Image className="w-4 h-4 mr-2" />
+                    Choose from Gallery
+                  </span>
+                </Button>
+              </label>
+            </div>
           </div>
         ) : (
           <div className="relative">

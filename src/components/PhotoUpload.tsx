@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Camera, Upload, X, Image } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import Loader from '@/components/ui/loader';
 
 interface PhotoUploadProps {
   selectedImage: string;
@@ -117,17 +118,40 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
               <p className="text-sm text-gray-500">
                 Drag & drop or click to browse
               </p>
-              <Button
-                type="button"
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClick();
-                }}
-              >
-                <Upload className="w-5 h-5 mr-2" />
-                Choose Photo
-              </Button>
+              <div className="flex gap-3 justify-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="photo-camera-upload"
+                />
+                <label htmlFor="photo-camera-upload">
+                  <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                    <span>
+                      <Camera className="w-4 h-4 mr-2" />
+                      Take Photo
+                    </span>
+                  </Button>
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="photo-gallery-upload"
+                />
+                <label htmlFor="photo-gallery-upload">
+                  <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                    <span>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Choose from Gallery
+                    </span>
+                  </Button>
+                </label>
+              </div>
             </div>
           </div>
         )}
@@ -135,7 +159,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
         {uploading && (
           <div className="absolute inset-0 bg-white/90 rounded-xl flex items-center justify-center backdrop-blur-sm">
             <div className="text-center space-y-3 animate-pulse">
-              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <Loader size="lg" />
               <div className="space-y-1">
                 <p className="text-lg font-medium text-blue-600">Uploading...</p>
                 <p className="text-sm text-gray-600">Please wait</p>
@@ -144,13 +168,6 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
           </div>
         )}
         
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-        />
       </div>
       <p className="text-xs text-gray-500 text-center">
         For best results, use good lighting and stand against a plain background

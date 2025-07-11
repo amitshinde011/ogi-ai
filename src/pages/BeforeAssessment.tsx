@@ -8,6 +8,7 @@ import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
+import Loader from '@/components/ui/loader';
 import PhotoUpload from '@/components/PhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -50,6 +51,12 @@ const BeforeAssessment = () => {
   useEffect(() => {
     checkSubscriptionAndAssessment();
   }, []);
+
+  useEffect(() => {
+    if (showDateSelection && assessmentCompleted) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [showDateSelection, assessmentCompleted]);
 
   const checkSubscriptionAndAssessment = async () => {
     try {
@@ -280,7 +287,7 @@ const BeforeAssessment = () => {
 
       // Calculate end date (inclusive - so duration_days from start date)
       const endDate = new Date(selectedDate);
-      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days - 1);
+      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days);
 
       const { error } = await supabase
         .from('user_subscriptions')
@@ -349,52 +356,52 @@ const BeforeAssessment = () => {
         
         <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
           {/* Sacred Journey Message */}
-          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-xl p-6 shadow-xl">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Compass className="w-8 h-8 text-amber-700" />
+          <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200/60 rounded-2xl p-8 shadow-lg backdrop-blur-sm">
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+                <Compass className="w-10 h-10 text-emerald-700" />
               </div>
-              <h3 className="text-xl font-bold text-amber-900 mb-2">A Sacred Threshold</h3>
-              <div className="w-20 h-1 bg-gradient-to-r from-amber-400 to-orange-400 mx-auto rounded-full"></div>
+              <h2 className="text-3xl font-bold text-emerald-900 mb-4 tracking-tight">A Sacred Threshold</h2>
+              <div className="w-24 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 mx-auto rounded-full"></div>
             </div>
             
-            <div className="space-y-5 text-amber-800">
-              <div className="flex items-start gap-4 p-4 bg-white/50 rounded-lg backdrop-blur-sm">
-                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <Compass className="w-4 h-4 text-amber-600" />
+              <div className="space-y-6">
+                <div className="p-6 bg-white/70 rounded-xl border border-emerald-100/80 backdrop-blur-sm text-center">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Compass className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <p className="text-base leading-relaxed text-emerald-800 font-medium">
+                    Before you begin this journey, take a moment. Stand at the threshold and quiet your mind. 
+                    The path you are about to walk is powerful—it holds the potential to rejuvenate your body, 
+                    clarify your mind, and restore a youthful energy you may have thought was lost.
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed">
-                  Before you begin this journey, take a moment. Stand at the threshold and quiet your mind. 
-                  The path you are about to walk is powerful—it holds the potential to rejuvenate your body, 
-                  clarify your mind, and restore a youthful energy you may have thought was lost.
-                </p>
-              </div>
+                
+                <div className="p-6 bg-white/70 rounded-xl border border-emerald-100/80 backdrop-blur-sm text-center">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Heart className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <p className="text-base leading-relaxed text-emerald-800 font-medium">
+                    We ask for your patience and your persistence, but more than that, we ask for your commitment. 
+                    It is perfectly okay to take your time before you say 'yes.' But once you begin, make a sacred 
+                    contract with yourself: to see this through to completion, without looking back.
+                  </p>
+                </div>
+                
+                <div className="p-6 bg-white/70 rounded-xl border border-emerald-100/80 backdrop-blur-sm text-center">
+                  <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <p className="text-base leading-relaxed text-emerald-800 font-medium">
+                    A new world of vibrant health, energy, and joy is waiting for you on the other side.
+                  </p>
+                </div>
               
-              <div className="flex items-start gap-4 p-4 bg-white/50 rounded-lg backdrop-blur-sm">
-                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <Heart className="w-4 h-4 text-amber-600" />
+              <div className="p-6 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-xl border border-emerald-200 text-center">
+                <div className="w-12 h-12 bg-emerald-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Hammer className="w-6 h-6 text-emerald-700" />
                 </div>
-                <p className="text-sm leading-relaxed">
-                  We ask for your patience and your persistence, but more than that, we ask for your commitment. 
-                  It is perfectly okay to take your time before you say 'yes.' But once you begin, make a sacred 
-                  contract with yourself: to see this through to completion, without looking back.
-                </p>
-              </div>
-              
-              <div className="flex items-start gap-4 p-4 bg-white/50 rounded-lg backdrop-blur-sm">
-                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
-                </div>
-                <p className="text-sm leading-relaxed">
-                  A new world of vibrant health, energy, and joy is waiting for you on the other side.
-                </p>
-              </div>
-              
-              <div className="flex items-start gap-4 p-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg border border-amber-200">
-                <div className="w-8 h-8 bg-amber-200 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                  <Hammer className="w-4 h-4 text-amber-700" />
-                </div>
-                <p className="text-sm font-semibold text-amber-900 leading-relaxed">
+                <p className="text-lg font-bold text-emerald-900 leading-relaxed tracking-wide">
                   You have the power to build it.
                 </p>
               </div>
@@ -410,18 +417,17 @@ const BeforeAssessment = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-gray-600">
-                Your assessment is complete! Now select when you'd like to begin your 
-                {currentSubscription?.programs?.duration_days}-day {currentSubscription?.programs?.name} journey.
+                Your assessment is complete! Now select when you'd like to begin your {currentSubscription?.programs?.name} journey.
               </p>
 
               {/* Week restriction message */}
               <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                <div className="flex items-start gap-2 text-orange-800">
-                  <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-medium mb-1">Important:</p>
-                    <p>You must start your journey within the next 7 days to maintain your subscription. Please select a date from today to next week.</p>
-                  </div>
+                <div className="text-orange-800 text-sm">
+                  <p className="font-medium mb-1 flex items-center gap-1">
+                    <Info className="w-4 h-4" />
+                    Important:
+                  </p>
+                  <p>You must start your journey within the next 7 days to maintain your subscription. Please select a date from today to next week.</p>
                 </div>
               </div>
 
@@ -462,7 +468,7 @@ const BeforeAssessment = () => {
                 >
                   {loading ? (
                     <>
-                      <div className="w-4 h-4 mr-2 animate-spin rounded-full border-b-2 border-white" />
+                      <Loader size="sm" className="border-white border-t-transparent mr-2" />
                       Setting Date...
                     </>
                   ) : (
@@ -475,12 +481,12 @@ const BeforeAssessment = () => {
               </div>
 
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                <div className="flex items-start gap-2 text-yellow-800">
-                  <Info className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-medium mb-1">Important:</p>
-                    <p>You can change your start date anytime before it arrives. Once your journey begins, the date cannot be modified. The end date is inclusive - your program runs through the final day.</p>
-                  </div>
+                <div className="text-yellow-800 text-sm">
+                  <p className="font-medium mb-1 flex items-center gap-1">
+                    <Info className="w-4 h-4" />
+                    Important:
+                  </p>
+                  <p>You can change your start date anytime before it arrives. Once your journey begins, the date cannot be modified. The end date is inclusive - your program runs through the final day.</p>
                 </div>
               </div>
             </CardContent>

@@ -11,6 +11,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import VideoInstructions from '@/components/VideoInstructions';
 import ContinueSection from '@/components/ContinueSection';
 import SacredNote from '@/components/SacredNote';
+import Loader from '@/components/ui/loader';
 
 const IntroVideo = () => {
   const navigate = useNavigate();
@@ -73,7 +74,7 @@ const IntroVideo = () => {
   if (onboardingState === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <Loader size="lg" />
       </div>
     );
   }

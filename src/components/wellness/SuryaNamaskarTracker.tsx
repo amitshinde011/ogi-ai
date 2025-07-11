@@ -6,6 +6,7 @@ import { Plus, Minus, Sun } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import SuryaNamaskarVideoPlayer from '../SuryaNamaskarVideoPlayer';
 import { GoalCompletionMessage } from './GoalCompletionMessage';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface SuryaNamaskarTrackerProps {
   suryaNamaskarCount: number;
@@ -18,10 +19,13 @@ export const SuryaNamaskarTracker: React.FC<SuryaNamaskarTrackerProps> = ({
   onSuryaNamaskarChange,
   loading
 }) => {
+  console.log('🧘 SuryaNamaskarTracker: Component rendered with:', { suryaNamaskarCount, loading });
+  
   const goal = 12; // 12 rounds goal
   const progressPercentage = Math.min((suryaNamaskarCount / goal) * 100, 100);
   const [showGoalMessage, setShowGoalMessage] = useState(false);
-  const [previousCount, setPreviousCount] = useState(suryaNamaskarCount);
+  const [goalAchievedToday, setGoalAchievedToday] = useState(false);
+  const { trackEvent } = useAnalytics();
 
   const goalMessages = [
     "🌅 Brilliant! You've completed your Surya Namaskar practice!",
@@ -31,17 +35,69 @@ export const SuryaNamaskarTracker: React.FC<SuryaNamaskarTrackerProps> = ({
     "🕉️ Perfect! You've achieved your daily yoga goal!"
   ];
 
+  // Check if goal was achieved today and store in localStorage
   useEffect(() => {
-    // Check if goal was just completed
-    if (suryaNamaskarCount >= goal && previousCount < goal && previousCount >= 0) {
+    const today = new Date().toISOString().split('T')[0];
+    const storageKey = `surya_namaskar_goal_achieved_${today}`;
+    const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
+    
+    setGoalAchievedToday(wasAchievedToday);
+    
+    console.log('🧘 SuryaNamaskarTracker: Goal status check:', {
+      today,
+      suryaNamaskarCount,
+      goal,
+      wasAchievedToday,
+      currentlyAtGoal: suryaNamaskarCount >= goal
+    });
+
+    // Only show message if goal is reached and hasn't been achieved today yet
+    if (suryaNamaskarCount >= goal && !wasAchievedToday) {
+      console.log('🎯 SuryaNamaskarTracker: Yoga goal completed for the first time today!');
       setShowGoalMessage(true);
+      setGoalAchievedToday(true);
+      localStorage.setItem(storageKey, 'true');
+      trackEvent('surya_namaskar_goal_achieved', 'Wellness', 'Daily Goal', suryaNamaskarCount);
     }
-    setPreviousCount(suryaNamaskarCount);
-  }, [suryaNamaskarCount, goal, previousCount]);
+  }, [suryaNamaskarCount, goal, trackEvent]);
 
   const getRandomMessage = () => {
-    return goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    console.log('🎉 SuryaNamaskarTracker: Selected goal completion message:', message);
+    return message;
   };
+
+  const handleCountDecrease = () => {
+    if (loading || suryaNamaskarCount <= 0) {
+      console.log('⚠️ SuryaNamaskarTracker: Count decrease blocked - loading or already at minimum');
+      return;
+    }
+    console.log('➖ SuryaNamaskarTracker: Decreasing count by 1');
+    trackEvent('surya_namaskar_decrease', 'Wellness', 'Manual Adjustment', 1);
+    onSuryaNamaskarChange(-1);
+  };
+
+  const handleCountIncrease = () => {
+    if (loading) {
+      console.log('⚠️ SuryaNamaskarTracker: Count increase blocked - loading');
+      return;
+    }
+    console.log('➕ SuryaNamaskarTracker: Increasing count by 1');
+    trackEvent('surya_namaskar_increase', 'Wellness', 'Manual Adjustment', 1);
+    onSuryaNamaskarChange(1);
+  };
+
+  // Track component interactions
+  useEffect(() => {
+    console.log('🎨 SuryaNamaskarTracker: Component state updated:', {
+      suryaNamaskarCount,
+      progressPercentage,
+      loading,
+      goalReached: suryaNamaskarCount >= goal,
+      goalAchievedToday
+    });
+    trackEvent('surya_namaskar_tracker_view', 'UI', 'Component Update', Math.round(progressPercentage));
+  }, [suryaNamaskarCount, progressPercentage, loading, goal, goalAchievedToday, trackEvent]);
 
   return (
     <div className="space-y-3 relative">
@@ -60,7 +116,7 @@ export const SuryaNamaskarTracker: React.FC<SuryaNamaskarTrackerProps> = ({
           <Button 
             size="sm" 
             variant="outline" 
-            onClick={() => onSuryaNamaskarChange(-1)}
+            onClick={handleCountDecrease}
             disabled={loading || suryaNamaskarCount <= 0}
             className="h-8 w-8 p-0 sm:h-9 sm:w-9"
           >
@@ -69,7 +125,7 @@ export const SuryaNamaskarTracker: React.FC<SuryaNamaskarTrackerProps> = ({
           <Button 
             size="sm" 
             variant="outline" 
-            onClick={() => onSuryaNamaskarChange(1)}
+            onClick={handleCountIncrease}
             disabled={loading}
             className="h-8 w-8 p-0 sm:h-9 sm:w-9"
           >
@@ -82,7 +138,11 @@ export const SuryaNamaskarTracker: React.FC<SuryaNamaskarTrackerProps> = ({
       <GoalCompletionMessage
         show={showGoalMessage}
         message={getRandomMessage()}
-        onComplete={() => setShowGoalMessage(false)}
+        onComplete={() => {
+          console.log('🧘 SuryaNamaskarTracker: Goal completion message dismissed');
+          setShowGoalMessage(false);
+          trackEvent('surya_namaskar_goal_message_dismissed', 'UI', 'Goal Celebration');
+        }}
         duration={8000}
       />
     </div>

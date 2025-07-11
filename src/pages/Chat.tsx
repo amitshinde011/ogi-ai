@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -58,7 +59,7 @@ const Chat = () => {
       <Layout>
         <Header title="Chat" showBack />
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+          <Loader size="lg" />
         </div>
       </Layout>
     );

@@ -2,61 +2,81 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Footprints, Plus, Play, Pause } from 'lucide-react';
+import { Footprints, Plus } from 'lucide-react';
 import { useStepTracking } from '@/hooks/useStepTracking';
 import { GoalCompletionMessage } from './wellness/GoalCompletionMessage';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const StepTracker = () => {
-  const { stepData, isTracking, permission, manuallyAddSteps, requestPermission } = useStepTracking();
+  console.log('👟 StepTracker: Component initialized');
+  
+  const { stepData, manuallyAddSteps } = useStepTracking();
   const [showGoalMessage, setShowGoalMessage] = useState(false);
-  const [previousSteps, setPreviousSteps] = useState(stepData.steps);
+  const [goalAchievedToday, setGoalAchievedToday] = useState(false);
+  const { trackEvent } = useAnalytics();
 
-  const goal = 5000; // 5,000 steps goal
+  const goal = 5000; // 5,000 steps goal for 5km
 
   const goalMessages = [
-    "🚶‍♀️ Amazing! You've walked 5,000 steps today!",
-    "👟 Fantastic! Your fitness goal is achieved!",
-    "🎯 Outstanding! You've hit your daily step target!",
-    "💪 Incredible! Your dedication to walking is inspiring!",
-    "⭐ Perfect! You've mastered your daily movement goal!"
+    "🚶‍♀️ Amazing! You've walked 5,000 steps today - that's 5km!",
+    "👟 Fantastic! Your 5km fitness goal is achieved!",
+    "🎯 Outstanding! You've hit your daily 5,000 step target!",
+    "💪 Incredible! You've walked 5km today - your dedication is inspiring!",
+    "⭐ Perfect! You've mastered your daily 5km movement goal!"
   ];
 
+  // Check if goal was achieved today and store in localStorage
   useEffect(() => {
-    // Check if goal was just completed
-    if (stepData.steps >= goal && previousSteps < goal && previousSteps > 0) {
-      setShowGoalMessage(true);
-    }
-    setPreviousSteps(stepData.steps);
-  }, [stepData.steps, goal, previousSteps]);
-
-  // Listen for external step updates and sync with parent components
-  useEffect(() => {
-    const handleStepsUpdated = (event: CustomEvent) => {
-      // This ensures the step tracker stays in sync with other components
-    };
-
-    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    const today = new Date().toISOString().split('T')[0];
+    const storageKey = `step_goal_achieved_${today}`;
+    const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
     
-    return () => {
-      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
-    };
-  }, []);
+    setGoalAchievedToday(wasAchievedToday);
+    
+    console.log('👟 StepTracker: Goal status check:', {
+      today,
+      currentSteps: stepData.steps,
+      goal,
+      wasAchievedToday,
+      currentlyAtGoal: stepData.steps >= goal
+    });
+
+    // Only show message if goal is reached and hasn't been achieved today yet
+    if (stepData.steps >= goal && !wasAchievedToday) {
+      console.log('🎯 StepTracker: 5km goal completed for the first time today!');
+      setShowGoalMessage(true);
+      setGoalAchievedToday(true);
+      localStorage.setItem(storageKey, 'true');
+      trackEvent('step_goal_achieved', 'Fitness', '5km Goal', stepData.steps);
+    }
+  }, [stepData.steps, goal, trackEvent]);
 
   const getRandomMessage = () => {
-    return goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    console.log('🎉 StepTracker: Selected goal completion message:', message);
+    return message;
   };
 
-  const handleAdd100Steps = () => {
-    manuallyAddSteps(100);
+  const handleAddSteps = (stepsToAdd: number) => {
+    console.log(`➕ StepTracker: Adding ${stepsToAdd} steps manually`);
+    trackEvent('manual_steps_add', 'Fitness', `${stepsToAdd} Steps`);
+    manuallyAddSteps(stepsToAdd);
   };
 
-  const handleAdd500Steps = () => {
-    manuallyAddSteps(500);
-  };
+  const kmWalked = (stepData.steps / 1000).toFixed(1);
+  const progressPercentage = Math.min((stepData.steps / goal) * 100, 100);
 
-  const handleAdd1000Steps = () => {
-    manuallyAddSteps(1000);
-  };
+  // Track component render
+  useEffect(() => {
+    console.log('🎨 StepTracker: Component rendered with state:', {
+      steps: stepData.steps,
+      goal,
+      progress: Math.round(progressPercentage),
+      kmWalked,
+      goalAchievedToday
+    });
+    trackEvent('step_tracker_view', 'UI', 'Component Render');
+  }, [stepData.steps, goal, progressPercentage, kmWalked, goalAchievedToday, trackEvent]);
 
   return (
     <Card className="bg-white border border-gray-200 relative">
@@ -64,57 +84,46 @@ const StepTracker = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Footprints className="text-blue-500 mr-2" size={20} />
-            <span className="font-medium text-gray-800">Step Tracker</span>
+            <span className="font-medium text-gray-800">Manual Step Tracker</span>
           </div>
           <div className="flex items-center">
-            {isTracking ? (
-              <div className="flex items-center text-green-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-                <span className="text-sm">Tracking</span>
-              </div>
-            ) : (
-              <div className="flex items-center text-gray-500">
-                <Pause size={16} className="mr-1" />
-                <span className="text-sm">Not tracking</span>
-              </div>
-            )}
+            <div className="flex items-center text-blue-600">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+              <span className="text-sm">Manual Entry</span>
+            </div>
           </div>
         </div>
 
         <div className="text-center mb-4">
           <div className="text-3xl font-bold text-gray-800">{stepData.steps.toLocaleString()}</div>
           <div className="text-sm text-gray-600">steps today</div>
+          <div className="text-sm text-blue-600 font-medium">{kmWalked} km walked</div>
           <div className="text-xs text-gray-500 mt-1">
             Last updated: {stepData.lastUpdated.toLocaleTimeString()}
           </div>
         </div>
 
-        {permission === 'prompt' && (
-          <Button 
-            onClick={requestPermission}
-            className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
-            variant="outline"
-          >
-            <Play size={16} className="mr-2" />
-            Enable Step Tracking
-          </Button>
-        )}
-
-        {permission === 'denied' && (
-          <div className="text-center mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              Step tracking permission denied. You can still manually add steps below.
-            </p>
+        {/* Progress bar */}
+        <div className="mb-4">
+          <div className="flex justify-between text-sm text-gray-600 mb-1">
+            <span>Progress to 5km</span>
+            <span>{progressPercentage.toFixed(0)}%</span>
           </div>
-        )}
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+        </div>
 
         <div className="space-y-2">
-          <p className="text-sm font-medium text-center text-gray-700">Manually add steps:</p>
+          <p className="text-sm font-medium text-center text-gray-700">Add steps manually:</p>
           <div className="flex gap-2">
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={handleAdd100Steps}
+              onClick={() => handleAddSteps(100)}
               className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-300"
             >
               <Plus size={14} className="mr-1" />
@@ -123,7 +132,7 @@ const StepTracker = () => {
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={handleAdd500Steps}
+              onClick={() => handleAddSteps(500)}
               className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-300"
             >
               <Plus size={14} className="mr-1" />
@@ -132,7 +141,7 @@ const StepTracker = () => {
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={handleAdd1000Steps}
+              onClick={() => handleAddSteps(1000)}
               className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-800 border-gray-300"
             >
               <Plus size={14} className="mr-1" />
@@ -142,13 +151,21 @@ const StepTracker = () => {
         </div>
 
         <div className="mt-4 text-xs text-gray-500 text-center">
-        Goal: {goal.toLocaleString()} steps per day
+          Goal: {goal.toLocaleString()} steps per day (5km)
+        </div>
+
+        <div className="mt-2 text-xs text-blue-600 text-center">
+          Manual entry only - add your steps above
         </div>
 
         <GoalCompletionMessage
           show={showGoalMessage}
           message={getRandomMessage()}
-          onComplete={() => setShowGoalMessage(false)}
+          onComplete={() => {
+            console.log('🎉 StepTracker: Goal completion message dismissed');
+            setShowGoalMessage(false);
+            trackEvent('step_goal_message_dismissed', 'UI', 'Goal Celebration');
+          }}
           duration={8000}
         />
       </CardContent>

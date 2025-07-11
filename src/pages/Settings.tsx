@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { User, Shield, HelpCircle, LogOut, FileText, Scale, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
+import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import ProfileCard from '@/components/settings/ProfileCard';
 import SubscriptionHistoryCard from '@/components/settings/SubscriptionHistoryCard';
 import SettingsSection from '@/components/settings/SettingsSection';
-import NotificationSettings from '@/components/settings/NotificationSettings';
+
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -28,12 +29,6 @@ const Settings = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [subscriptionHistory, setSubscriptionHistory] = useState<SubscriptionHistory[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
-  const [notifications, setNotifications] = useState({
-    mealReminders: true,
-    communityActivity: true,
-    weeklyProgress: false,
-    newRecipes: true
-  });
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -148,8 +143,6 @@ const Settings = () => {
     }
   };
 
-  const notificationItems = NotificationSettings({ notifications, setNotifications });
-
   const settingsSections = [
     {
       title: 'Account',
@@ -173,10 +166,6 @@ const Settings = () => {
           hasArrow: true
         }
       ]
-    },
-    {
-      title: 'Notifications',
-      items: notificationItems
     },
     {
       title: 'Legal',
@@ -219,7 +208,7 @@ const Settings = () => {
       <Layout>
         <Header title="Settings" />
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <Loader size="lg" />
         </div>
       </Layout>
     );

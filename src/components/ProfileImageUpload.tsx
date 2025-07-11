@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Camera, Upload, X, User } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import Loader from '@/components/ui/loader';
 
 interface ProfileImageUploadProps {
   selectedImage: string;
@@ -109,17 +110,40 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
               <p className="text-xs text-gray-500">
                 Drag & drop or click to browse
               </p>
-              <Button
-                type="button"
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClick();
-                }}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Choose Photo
-              </Button>
+              <div className="flex gap-3 justify-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="photo-camera"
+                />
+                <label htmlFor="photo-camera">
+                  <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                    <span>
+                      <Camera className="w-4 h-4 mr-2" />
+                      Take Photo
+                    </span>
+                  </Button>
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="photo-gallery"
+                />
+                <label htmlFor="photo-gallery">
+                  <Button type="button" variant="outline" className="cursor-pointer" asChild>
+                    <span>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Choose from Gallery
+                    </span>
+                  </Button>
+                </label>
+              </div>
             </div>
           </div>
         )}
@@ -127,19 +151,12 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
         {uploading && (
           <div className="absolute inset-0 bg-white/80 rounded-2xl flex items-center justify-center">
             <div className="text-center space-y-2">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <Loader size="lg" />
               <p className="text-sm text-gray-600">Uploading...</p>
             </div>
           </div>
         )}
         
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-        />
       </div>
       <p className="text-xs text-gray-500 text-center">
         Recommended: Square image, at least 400x400px

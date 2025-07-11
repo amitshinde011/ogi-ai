@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Camera, Upload as UploadIcon, Check, Loader2, Sun, Salad, Moon, Apple } from 'lucide-react';
+import { Camera, Upload as UploadIcon, Check, Loader2, Sun, Salad, Moon, Apple, Image } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -174,17 +173,43 @@ const Upload = () => {
           <CardContent className="p-4">
             <h3 className="font-semibold text-stone mb-4">Upload Photo</h3>
             {!imagePreview ? (
-              <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-sage rounded-xl cursor-pointer hover:bg-sage/5 transition-colors">
+              <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-sage rounded-xl">
                 <Camera size={32} strokeWidth={1.5} className="text-sage mb-2" />
-                <span className="text-sage font-medium">Tap to take photo</span>
-                <span className="text-sm text-stone/60 mt-1">or select from gallery</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </label>
+                <span className="text-sage font-medium mb-4">Select photo</span>
+                
+                <div className="flex gap-3">
+                  <label className="cursor-pointer">
+                    <Button variant="outline" size="sm" className="cursor-pointer" asChild>
+                      <span>
+                        <Camera size={16} className="mr-2" />
+                        Take Photo
+                      </span>
+                    </Button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+
+                  <label className="cursor-pointer">
+                    <Button variant="outline" size="sm" className="cursor-pointer" asChild>
+                      <span>
+                        <Image size={16} className="mr-2" />
+                        Gallery
+                      </span>
+                    </Button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
             ) : (
               <div className="relative">
                 <img

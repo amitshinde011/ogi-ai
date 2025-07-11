@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
@@ -11,198 +12,134 @@ import StepTracker from '@/components/StepTracker';
 import DailySpecialTracking from '@/components/DailySpecialTracking';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/hooks/useAuth';
-import { useWellnessTracking } from '@/hooks/useWellnessTracking';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useOptimizedHomeData } from '@/hooks/useOptimizedHomeData';
+import { useOptimizedWellness } from '@/hooks/useOptimizedWellness';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import Loader from '@/components/ui/loader';
 
 const Home = () => {
-  const navigate = useNavigate();
-  const { user, userProfile, loading: authLoading, isAuthenticated } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [todayProgress, setTodayProgress] = useState({
-    breakfast: false,
-    lunch: false,
-    dinner: false,
-    steps: 0,
-    walkScore: 0,
-    saladBowl: false,
-    kanji: false
-  });
-  const [weeklyStreak, setWeeklyStreak] = useState<boolean[]>([]);
-  const { isCompleted, completedSubscription } = useProgramCompletion();
+  console.log('🏠 Home: Component initialized');
   
-  // Use wellness tracking hook
-  const { wellnessData, loading: wellnessLoading, updateWellnessData } = useWellnessTracking();
+  const navigate = useNavigate();
+  
+  // Always call all hooks in the same order - never conditionally
+  const { user, userProfile, loading: authLoading, isAuthenticated } = useAuth();
+  const { isCompleted, completedSubscription } = useProgramCompletion();
+  const { showBanner } = useSubscriptionBanner();
+  const { trackEvent, trackUserEngagement } = useAnalytics();
+  
+  // Use optimized data fetching
+  const { data: homeData, loading: homeLoading } = useOptimizedHomeData();
+  
+  // Use optimized wellness updates
+  const {
+    wellnessData,
+    isUpdating: wellnessUpdating,
+    updateWater,
+    updateSuryaNamaskar,
+    toggleMeditation
+  } = useOptimizedWellness(homeData.wellnessData);
 
-  // Listen for step updates from step tracker
+  // Calculate meals logged once
+  const mealsLogged = [
+    homeData.todayProgress.breakfast, 
+    homeData.todayProgress.lunch, 
+    homeData.todayProgress.dinner
+  ].filter(Boolean).length;
+
+  // Always call useEffect hooks in the same order
+  // Listen for step updates from step tracker (only once)
   useEffect(() => {
     const handleStepsUpdated = (event: CustomEvent) => {
-      const { steps } = event.detail;
-      setTodayProgress(prev => ({
-        ...prev,
-        steps: steps,
-        walkScore: Math.min(Math.floor(steps / 1000), 5)
-      }));
+      console.log('📢 Home: Steps updated event received:', event.detail);
+      trackEvent('steps_updated_home', 'Data Sync', 'Step Tracker Update', event.detail.steps);
     };
 
     window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
     
     return () => {
+      console.log('🧹 Home: Cleaning up steps updated listener');
       window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
     };
-  }, []);
+  }, []); // Remove trackEvent from dependencies to prevent loops
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning!';
-    if (hour < 17) return 'Good afternoon!';
-    return 'Good evening!';
-  };
-
+  // Auth check effect - always called, but logic is conditional
   useEffect(() => {
-    const checkAuthAndLoadData = async () => {
-      if (authLoading) return;
-      
+    console.log('🔐 Home: Auth state check:', { authLoading, isAuthenticated, hasUser: !!user });
+    
+    // Only redirect if we're sure about auth state
+    if (!authLoading) {
       if (!isAuthenticated || !user) {
-        console.log('No authenticated user found, redirecting to login');
+        console.log('🚪 Home: No authenticated user found, redirecting to login');
+        trackEvent('home_access_denied', 'Security', 'Unauthenticated');
         navigate('/login');
         return;
       }
 
-      console.log('Authenticated user found:', user.id);
-      
-      try {
-        await fetchTodayProgress(user.id);
-        await fetchWeeklyStreak(user.id);
-      } catch (error) {
-        console.error('Error loading user data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuthAndLoadData();
-  }, [navigate, user, isAuthenticated, authLoading]);
-
-  const fetchTodayProgress = async (userId: string) => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { data: meals } = await supabase
-        .from('meal_tracking')
-        .select('meal_type, food_item')
-        .eq('user_id', userId)
-        .eq('date', today);
-
-      const { data: steps } = await supabase
-        .from('steps_tracking')
-        .select('steps_count')
-        .eq('user_id', userId)
-        .eq('date', today)
-        .maybeSingle();
-
-      const mealTypes = meals?.map(m => m.meal_type) || [];
-      const mealItems = meals?.map(m => m.food_item.toLowerCase()) || [];
-      const todaySteps = steps?.steps_count || 0;
-      
-      // Check for special items
-      const hasSaladBowl = mealItems.some(item => 
-        item.includes('salad') && item.includes('bowl')
-      );
-      const hasKanji = mealItems.some(item => 
-        item.includes('kanji') || item.includes('millet') || item.includes('porridge')
-      );
-      
-      setTodayProgress({
-        breakfast: mealTypes.includes('breakfast'),
-        lunch: mealTypes.includes('lunch'),
-        dinner: mealTypes.includes('dinner'),
-        steps: todaySteps,
-        walkScore: Math.min(Math.floor(todaySteps / 1000), 5),
-        saladBowl: hasSaladBowl,
-        kanji: hasKanji
-      });
-
-      // Dispatch initial step count to synchronize components
-      window.dispatchEvent(new CustomEvent('stepsUpdated', { 
-        detail: { steps: todaySteps, lastUpdated: new Date() } 
-      }));
-    } catch (error) {
-      console.error('Error fetching today progress:', error);
+      console.log('✅ Home: User authenticated successfully:', user.id);
+      trackEvent('home_page_view', 'Navigation', 'Authenticated Access');
     }
-  };
+  }, [navigate, user, isAuthenticated, authLoading]); // Remove trackEvent from dependencies
 
-  const fetchWeeklyStreak = async (userId: string) => {
-    try {
-      const today = new Date();
-      const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      const monday = new Date(today);
+  // Track user engagement on home page - always called
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      console.log('📊 Home: Tracking user engagement on home page');
+      trackUserEngagement('home_page_visit');
       
-      // Calculate Monday of current week (adjust for Sunday = 0)
-      const daysToMonday = currentDay === 0 ? -6 : 1 - currentDay;
-      monday.setDate(today.getDate() + daysToMonday);
-      
-      const weekDates = [];
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        weekDates.push(date.toISOString().split('T')[0]);
-      }
+      const engagementTimer = setTimeout(() => {
+        console.log('⏰ Home: User engaged for 5+ seconds');
+        trackUserEngagement('home_page_engaged_5s');
+      }, 5000);
 
-      const { data: wellness } = await supabase
-        .from('daily_wellness')
-        .select('date, meditation_completed, water_litres, surya_namaskar_count')
-        .eq('user_id', userId)
-        .in('date', weekDates);
-
-      const streak = weekDates.map(date => {
-        const dayData = wellness?.find(w => w.date === date);
-        return !!(dayData?.meditation_completed || (dayData?.water_litres && dayData.water_litres > 0) || (dayData?.surya_namaskar_count && dayData.surya_namaskar_count > 0));
-      });
-
-      setWeeklyStreak(streak);
-    } catch (error) {
-      console.error('Error fetching weekly streak:', error);
+      return () => {
+        clearTimeout(engagementTimer);
+      };
     }
-  };
+  }, [authLoading, isAuthenticated]); // Remove trackUserEngagement from dependencies
 
-  // Wellness tracker handlers
-  const handleWaterChange = async (delta: number) => {
-    const newValue = Math.max(0, wellnessData.water_litres + delta);
-    await updateWellnessData({ water_litres: newValue });
-  };
+  // Track meals completion - always called
+  useEffect(() => {
+    if (mealsLogged > 0) {
+      trackEvent('daily_meals_count', 'Nutrition', `${mealsLogged} meals logged`);
+    }
+  }, [mealsLogged]); // Remove trackEvent from dependencies
 
-  const handleSuryaNamaskarChange = async (delta: number) => {
-    const newValue = Math.max(0, wellnessData.surya_namaskar_count + delta);
-    await updateWellnessData({ surya_namaskar_count: newValue });
-  };
-
-  const handleMeditationToggle = async () => {
-    await updateWellnessData({ meditation_completed: !wellnessData.meditation_completed });
-  };
-
-  const { showBanner } = useSubscriptionBanner();
-
-  if (authLoading || loading) {
+  // Show loading screen while checking auth or fetching data
+  if (authLoading || homeLoading) {
+    console.log('⏳ Home: Showing loading state');
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage"></div>
+        <Loader size="lg" />
       </div>
     );
   }
 
-  if (!user || !userProfile) return null;
+  // Early return for missing auth - but hooks have already been called
+  if (!user || !userProfile) {
+    console.log('❌ Home: Missing user or profile data');
+    return null;
+  }
 
-  const mealsLogged = [todayProgress.breakfast, todayProgress.lunch, todayProgress.dinner].filter(Boolean).length;
+  console.log('🍽️ Home: Meals logged today:', mealsLogged);
+  console.log('📊 Home: Current wellness data:', wellnessData);
+  console.log('🏃 Home: Today\'s progress:', homeData.todayProgress);
 
   // Profile menu component for the header
   const profileElement = (
     <ProfileMenu>
-      <button className="hover:bg-slate-100 rounded-xl transition-all duration-200 interactive">
+      <button 
+        className="hover:bg-slate-100 rounded-xl transition-all duration-200 interactive"
+        onClick={() => {
+          console.log('👤 Home: Profile menu clicked');
+          trackEvent('profile_menu_click', 'UI', 'Header Navigation');
+        }}
+      >
         <Avatar className="h-12 w-12 border-2 border-slate-300">
           <AvatarImage 
             src={userProfile.profile_photo_url || undefined} 
@@ -216,20 +153,30 @@ const Home = () => {
     </ProfileMenu>
   );
 
+  console.log('🎨 Home: Rendering home page with all components');
+
   return (
     <Layout>
       <Header title="Home" rightElement={profileElement} />
-      {showBanner && <SubscriptionBanner />}
+      {showBanner && (
+        <>
+          <SubscriptionBanner />
+          {console.log('📢 Home: Subscription banner displayed')}
+        </>
+      )}
       
       <div className="p-4 space-y-6 max-w-md mx-auto">
         {isCompleted && completedSubscription && (
-          <ProgramCompletionBanner completedSubscription={completedSubscription} />
+          <>
+            <ProgramCompletionBanner completedSubscription={completedSubscription} />
+            {console.log('🎉 Home: Program completion banner displayed')}
+          </>
         )}
 
         <DailyProgressCard 
           mealsLogged={mealsLogged}
-          steps={todayProgress.steps}
-          walkScore={todayProgress.walkScore}
+          steps={homeData.todayProgress.steps}
+          walkScore={homeData.todayProgress.walkScore}
         />
 
         <StepTracker />
@@ -238,26 +185,35 @@ const Home = () => {
           waterLitres={wellnessData.water_litres}
           suryaNamaskarCount={wellnessData.surya_namaskar_count}
           meditationCompleted={wellnessData.meditation_completed}
-          onWaterChange={handleWaterChange}
-          onSuryaNamaskarChange={handleSuryaNamaskarChange}
-          onMeditationToggle={handleMeditationToggle}
-          loading={wellnessLoading}
+          onWaterChange={(delta) => {
+            console.log('💧 Home: Water change requested:', delta);
+            updateWater(delta);
+          }}
+          onSuryaNamaskarChange={(delta) => {
+            console.log('🧘 Home: Surya Namaskar change requested:', delta);
+            updateSuryaNamaskar(delta);
+          }}
+          onMeditationToggle={() => {
+            console.log('🧘‍♀️ Home: Meditation toggle requested');
+            toggleMeditation();
+          }}
+          loading={wellnessUpdating}
         />
 
         <QuickActions />
 
         <TodayMeals 
-          breakfast={todayProgress.breakfast}
-          lunch={todayProgress.lunch}
-          dinner={todayProgress.dinner}
+          breakfast={homeData.todayProgress.breakfast}
+          lunch={homeData.todayProgress.lunch}
+          dinner={homeData.todayProgress.dinner}
         />
 
         <DailySpecialTracking 
-          saladBowlCompleted={todayProgress.saladBowl}
-          kanjiCompleted={todayProgress.kanji}
+          saladBowlCompleted={homeData.todayProgress.saladBowl}
+          kanjiCompleted={homeData.todayProgress.kanji}
         />
 
-        <WeeklyStreak streak={weeklyStreak} />
+        <WeeklyStreak streak={homeData.weeklyStreak} />
       </div>
     </Layout>
   );

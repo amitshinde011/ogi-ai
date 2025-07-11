@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Brain } from 'lucide-react';
 import MeditationAudioPlayer from '../MeditationAudioPlayer';
 import { GoalCompletionMessage } from './GoalCompletionMessage';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface MeditationTrackerProps {
   meditationCompleted: boolean;
@@ -17,8 +18,11 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
   onMeditationToggle,
   loading
 }) => {
+  console.log('🧘‍♀️ MeditationTracker: Component rendered with:', { meditationCompleted, loading });
+  
   const [showGoalMessage, setShowGoalMessage] = useState(false);
-  const [previousCompleted, setPreviousCompleted] = useState(meditationCompleted);
+  const [goalAchievedToday, setGoalAchievedToday] = useState(false);
+  const { trackEvent } = useAnalytics();
 
   const goalMessages = [
     "🧘‍♀️ Peaceful! You've found your inner calm today!",
@@ -28,17 +32,54 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
     "🕯️ Centered! Your soul is at peace!"
   ];
 
+  // Check if goal was achieved today and store in localStorage
   useEffect(() => {
-    // Check if meditation was just completed
-    if (meditationCompleted && !previousCompleted) {
+    const today = new Date().toISOString().split('T')[0];
+    const storageKey = `meditation_goal_achieved_${today}`;
+    const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
+    
+    setGoalAchievedToday(wasAchievedToday);
+    
+    console.log('🧘‍♀️ MeditationTracker: Goal status check:', {
+      today,
+      meditationCompleted,
+      wasAchievedToday
+    });
+
+    // Only show message if meditation is completed and hasn't been achieved today yet
+    if (meditationCompleted && !wasAchievedToday) {
+      console.log('🎯 MeditationTracker: Meditation completed for the first time today!');
       setShowGoalMessage(true);
+      setGoalAchievedToday(true);
+      localStorage.setItem(storageKey, 'true');
+      trackEvent('meditation_completed', 'Wellness', 'Daily Goal');
     }
-    setPreviousCompleted(meditationCompleted);
-  }, [meditationCompleted, previousCompleted]);
+  }, [meditationCompleted, trackEvent]);
 
   const getRandomMessage = () => {
-    return goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
+    console.log('🎉 MeditationTracker: Selected completion message:', message);
+    return message;
   };
+
+  const handleMeditationToggle = () => {
+    console.log('🔄 MeditationTracker: Meditation toggle clicked:', { 
+      currentState: meditationCompleted,
+      willBecome: !meditationCompleted 
+    });
+    trackEvent('meditation_toggle_click', 'UI', meditationCompleted ? 'Uncheck' : 'Check');
+    onMeditationToggle();
+  };
+
+  // Track component state
+  useEffect(() => {
+    console.log('🎨 MeditationTracker: Component state updated:', {
+      meditationCompleted,
+      loading,
+      goalAchievedToday
+    });
+    trackEvent('meditation_tracker_view', 'UI', 'Component Update', meditationCompleted ? 1 : 0);
+  }, [meditationCompleted, loading, goalAchievedToday, trackEvent]);
 
   return (
     <div className="space-y-3 relative">
@@ -49,7 +90,7 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
         </Label>
         <Checkbox 
           checked={meditationCompleted}
-          onCheckedChange={onMeditationToggle}
+          onCheckedChange={handleMeditationToggle}
           disabled={loading}
           className="data-[state=checked]:bg-white data-[state=checked]:border-gray-600 border-gray-400 h-5 w-5 sm:h-6 sm:w-6"
         />
@@ -60,7 +101,11 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
       <GoalCompletionMessage
         show={showGoalMessage}
         message={getRandomMessage()}
-        onComplete={() => setShowGoalMessage(false)}
+        onComplete={() => {
+          console.log('🧘‍♀️ MeditationTracker: Goal completion message dismissed');
+          setShowGoalMessage(false);
+          trackEvent('meditation_goal_message_dismissed', 'UI', 'Goal Celebration');
+        }}
         duration={8000}
       />
     </div>
