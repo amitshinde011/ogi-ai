@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 import { determineLandingPage } from '@/utils/landingPageRouter';
 
 const Index = () => {
@@ -33,8 +33,8 @@ const Index = () => {
             className="w-full h-full object-contain"
           />
         </div>
-        <div className="mt-6">
-          <Loader2 size={32} strokeWidth={1.5} className="text-sage mx-auto animate-spin" />
+        <div className="mt-6 flex justify-center">
+          <Loader size="lg" />
         </div>
       </div>
     </div>
