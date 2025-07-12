@@ -22,7 +22,7 @@ interface ProgramCardProps {
 
 const ProgramCard = ({ program }: ProgramCardProps) => {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
@@ -30,8 +30,8 @@ const ProgramCard = ({ program }: ProgramCardProps) => {
   };
 
   const getStatusBadge = (status: string, endDate: string) => {
-    const today = new Date().toISOString().split('T')[0];
-    const isCompleted = new Date(endDate) < new Date(today);
+    const today = new Date();
+    const isCompleted = new Date(endDate + 'T00:00:00') < today;
     
     if (isCompleted) {
       return <Badge className="bg-green-500">Completed</Badge>;

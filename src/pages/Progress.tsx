@@ -12,7 +12,7 @@ import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Calendar, TrendingUp, Activity, Target } from 'lucide-react';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
-import { calculateProgramProgress } from '@/utils/dateUtils';
+import { calculateProgramProgress, getLocalDateString } from '@/utils/dateUtils';
 import { useTodayActivity } from '@/hooks/useTodayActivity';
 import { useProgressData } from '@/hooks/useProgressData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,7 +50,7 @@ const ProgressPage = () => {
         return;
       }
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
 
       // Fetch all user subscriptions with program details
       const { data: subscriptions } = await supabase
@@ -89,8 +89,8 @@ const ProgressPage = () => {
       // Separate current and historical programs
       const current = programsData.find(p => {
         if (p.status !== 'active') return false;
-        const endDate = new Date(p.end_date);
-        const todayDate = new Date(today);
+        const endDate = new Date(p.end_date + 'T00:00:00');
+        const todayDate = new Date(today + 'T00:00:00');
         return todayDate <= endDate; // Program is current until end date (inclusive)
       });
       

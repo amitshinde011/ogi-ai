@@ -53,7 +53,7 @@ const SubscriptionHistoryCard = ({ subscriptionHistory, loadingHistory }: Subscr
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'

@@ -37,7 +37,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
   const progressPercentage = (data.completedDays / data.totalDays) * 100;
   
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric'
     });

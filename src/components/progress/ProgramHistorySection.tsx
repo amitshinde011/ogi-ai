@@ -26,7 +26,7 @@ const ProgramHistorySection = ({ programs, onItemClick }: ProgramHistorySectionP
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
@@ -35,7 +35,7 @@ const ProgramHistorySection = ({ programs, onItemClick }: ProgramHistorySectionP
 
   const getStatusBadge = (program: ProgramData) => {
     const today = new Date();
-    const endDate = new Date(program.end_date);
+    const endDate = new Date(program.end_date + 'T00:00:00');
     
     if (program.status === 'completed') {
       return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
