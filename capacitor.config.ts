@@ -14,23 +14,11 @@ const config: CapacitorConfig = {
       interval: 100
     }
   },
-  android: {
-    permissions: [
-      'android.permission.ACTIVITY_RECOGNITION',
-      'android.permission.BODY_SENSORS',
-      'android.permission.HIGH_SAMPLING_RATE_SENSORS'
-    ]
-  },
-  ios: {
-    entitlements: {
-      'com.apple.developer.motion': true,
-      'com.apple.developer.healthkit': true
-    },
-    infoPlist: {
-      'NSMotionUsageDescription': 'This app uses motion sensors to track your steps and physical activity.',
-      'NSHealthShareUsageDescription': 'This app uses HealthKit to provide accurate step counting.',
-      'NSHealthUpdateUsageDescription': 'This app uses HealthKit to track your fitness activities.'
-    }
+  // --- ADD THIS SERVER CONFIGURATION ---
+  server: {
+    hostname: 'yogi.capacitor.app', // A unique hostname for both Android and iOS
+    androidScheme: 'https', // Use a standard scheme like https
+    iosScheme: 'https'
   }
 };
 
