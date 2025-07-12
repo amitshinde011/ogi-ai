@@ -33,8 +33,8 @@ const Index = () => {
             className="w-full h-full object-contain"
           />
         </div>
-        <div className="mt-6 flex justify-center">
-          <Loader size="lg" />
+        <div className="mt-6 flex justify-center items-center">
+          <Loader size="lg" className="mx-auto" />
         </div>
       </div>
     </div>
