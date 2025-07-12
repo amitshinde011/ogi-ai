@@ -43,7 +43,7 @@ const PhotoUploadSection = ({ formData, setFormData }: PhotoUploadSectionProps) 
           Full Body Photo (Optional)
         </label>
         <p className="text-xs text-gray-600 mb-4">
-          Take a photo to track your transformation journey
+          Take a full body photo to track your transformation journey
         </p>
         
         {!imagePreview ? (
