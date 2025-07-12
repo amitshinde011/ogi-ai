@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Heart, Clock, Users, Star, Loader2 } from 'lucide-react';
+import { Heart, Clock, Users, Star } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
@@ -50,7 +51,7 @@ const SavedRecipes = () => {
       <Layout>
         <Header title="Saved Recipes" showBack />
         <div className="flex items-center justify-center h-64">
-          <Loader2 size={32} strokeWidth={1.5} className="text-indigo-600 animate-spin" />
+          <Loader size="lg" className="mx-auto" />
         </div>
       </Layout>
     );

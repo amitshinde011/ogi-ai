@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 
 interface RefreshSpinnerProps {
   isVisible: boolean;
@@ -31,9 +31,9 @@ export const RefreshSpinner: React.FC<RefreshSpinnerProps> = ({
       }}
     >
       <div className="bg-white rounded-full p-2 shadow-lg">
-        <Loader2 
-          className={`w-6 h-6 text-sage ${isRefreshing ? 'animate-spin' : ''}`}
-          strokeWidth={2}
+        <Loader 
+          size="md"
+          className={`text-sage ${isRefreshing ? '' : 'opacity-60'}`}
         />
       </div>
     </div>

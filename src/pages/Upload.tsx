@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Camera, Upload as UploadIcon, Check, Loader2, Sun, Salad, Moon, Apple, Image } from 'lucide-react';
+import { Camera, Upload as UploadIcon, Check, Sun, Salad, Moon, Apple, Image } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -254,7 +255,7 @@ const Upload = () => {
         >
           {uploading ? (
             <div className="flex items-center">
-              <Loader2 size={16} strokeWidth={1.5} className="animate-spin mr-2" />
+              <Loader size="sm" className="mr-2" />
               Uploading...
             </div>
           ) : (

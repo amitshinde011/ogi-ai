@@ -10,7 +10,8 @@ import WeeklyProgress from '@/components/progress/WeeklyProgress';
 import JourneyProgress from '@/components/progress/JourneyProgress';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Calendar, TrendingUp, Activity, Target } from 'lucide-react';
+import { Calendar, TrendingUp, Activity, Target } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { calculateProgramProgress, getLocalDateString } from '@/utils/dateUtils';
 import { useTodayActivity } from '@/hooks/useTodayActivity';
@@ -116,7 +117,7 @@ const ProgressPage = () => {
         {showBanner && <SubscriptionBanner />}
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
           <div className="text-center">
-            <Loader2 size={40} strokeWidth={1.5} className="text-sage animate-spin mx-auto mb-4" />
+            <Loader size="lg" className="mx-auto mb-4" />
             <p className="text-gray-600">Loading your progress...</p>
           </div>
         </div>

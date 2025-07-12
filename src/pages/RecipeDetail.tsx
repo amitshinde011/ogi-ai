@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Clock, Users, Star, Heart, Share, ChefHat, Utensils, Lightbulb, Loader2 } from 'lucide-react';
+import { Clock, Users, Star, Heart, Share, ChefHat, Utensils, Lightbulb } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
@@ -53,7 +54,7 @@ const RecipeDetail = () => {
       <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10">
         <Header title="Recipe" showBack />
         <div className="flex items-center justify-center h-64">
-          <Loader2 size={32} strokeWidth={1.5} className="text-indigo-600 animate-spin" />
+          <Loader size="lg" className="mx-auto" />
         </div>
       </div>
     );
