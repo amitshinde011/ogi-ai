@@ -5,6 +5,7 @@ import { useUserProgram } from '@/hooks/useUserProgram';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import Loader from '@/components/ui/loader';
 import SubscriptionBlurOverlay from './SubscriptionBlurOverlay';
+import { IMAGES } from '@/constants/images';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -32,7 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <div className="text-center">
           <div className="w-32 h-32 mx-auto flex items-center justify-center mb-6 animate-scale-in">
             <img 
-              src="/lovable-uploads/6cf2c839-5326-4219-9033-549deb1fb03c.png" 
+              src={IMAGES.LOGO_VARIANT} 
               alt="Yogi Logo" 
               className="w-full h-full object-contain"
             />

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Loader from '@/components/ui/loader';
 import { determineLandingPage } from '@/utils/landingPageRouter';
+import { IMAGES } from '@/constants/images';
 
 const Index = () => {
   const location = useLocation();
@@ -28,7 +29,7 @@ const Index = () => {
       <div className="text-center">
         <div className="w-32 h-32 mx-auto flex items-center justify-center mb-6 animate-scale-in">
           <img 
-            src="/lovable-uploads/6cf2c839-5326-4219-9033-549deb1fb03c.png" 
+            src={IMAGES.LOGO_VARIANT} 
             alt="Yogi Logo" 
             className="w-full h-full object-contain"
           />

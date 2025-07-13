@@ -6,6 +6,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import PostCompletionBanner from './PostCompletionBanner';
 import Footer from './Footer';
+import { IMAGES } from '@/constants/images';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -99,7 +100,7 @@ const Layout = ({ children }: LayoutProps) => {
         <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-40 flex-col">
           <div className="p-6 flex justify-center">
             <img 
-              src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
+              src={IMAGES.LOGO_MAIN} 
               alt="Yogi Logo" 
               className="h-12 w-auto"
             />

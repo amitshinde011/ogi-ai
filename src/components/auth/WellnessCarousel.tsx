@@ -7,23 +7,11 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import { IMAGES } from '@/constants/images';
 
 
 const WellnessCarousel = () => {
-  const imageIds = [
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    '10',
-    '11',
-    '12'
-  ];
-
-  // Use local webp images from public folder
-  const images = imageIds.map(id => `/lovable-uploads/${id}.webp`);
-
+  const images = IMAGES.WELLNESS_CAROUSEL;
   const [api, setApi] = useState<any>(null);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
@@ -55,7 +43,7 @@ const WellnessCarousel = () => {
       >
         <CarouselContent>
           {images.map((image, index) => (
-            <CarouselItem key={imageIds[index]} className="basis-full">
+            <CarouselItem key={index} className="basis-full">
               <div className="relative w-full aspect-square overflow-hidden rounded-xl sm:rounded-2xl bg-gray-100">
                 {!imageErrors.has(image) ? (
                   <img

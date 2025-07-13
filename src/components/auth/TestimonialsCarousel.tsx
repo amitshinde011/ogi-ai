@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/carousel';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Star } from 'lucide-react';
+import { IMAGES } from '@/constants/images';
 
 interface Testimonial {
   id: number;
@@ -30,7 +31,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     headline: "The ultimate antidote to my chaotic corporate life.",
     testimonial: "Working in finance in London, my mind was always 'on,' and my stress levels were through the roof. Yogi has been a complete game-changer. The 10-minute guided Pranayama (breathwork) before my morning meetings is now my non-negotiable secret weapon. Learning the science of how specific foods impact my Agni (digestive fire) has given me more sustained energy than three espressos ever did. It's practical, profound, and designed for the realities of a busy modern life. I feel calmer, more focused, and more in control.",
-    image: "/lovable-uploads/62e63369-d2c5-43eb-80c8-2c98e4b1040b.png"
+    image: IMAGES.TESTIMONIAL_SARAH
   },
   {
     id: 2,

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { IMAGES } from '@/constants/images';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface LoginHeaderProps {
@@ -12,7 +13,7 @@ const LoginHeader = ({ showVerificationMessage }: LoginHeaderProps) => {
       <div className="mb-4">
         <div className="w-28 h-28 mx-auto flex items-center justify-center mb-4">
           <img 
-            src="/lovable-uploads/6cf2c839-5326-4219-9033-549deb1fb03c.png" 
+            src={IMAGES.LOGO_VARIANT} 
             alt="Yogi Logo" 
             className="w-full h-full object-contain"
           />
