@@ -10,8 +10,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { CouponCodeInput } from '@/components/CouponCodeInput';
-import { useCouponCode } from '@/hooks/useCouponCode';
 import { Link } from 'react-router-dom';
 import { createPaymentSession, handleRazorpayPayment } from '@/utils/paymentGateway';
 
@@ -26,13 +24,6 @@ const Payment = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
-  const {
-    appliedCoupon,
-    isValidating,
-    validateCoupon,
-    removeCoupon,
-    getDiscountPercentage
-  } = useCouponCode();
 
   // Get data from location state
   const program = location.state?.program;
@@ -89,7 +80,8 @@ const Payment = () => {
 
   const currencySymbol = isIndiaUser ? '₹' : '$';
   const finalPrice = Math.round(pricing.finalPrice || program.finalPrice || program.displayPrice);
-  const couponDiscountPercentage = getDiscountPercentage();
+  // Use the coupon discount from the subscription page, not the local state
+  const couponDiscountPercentage = pricing.couponDiscountPercentage || 0;
 
   const handlePaymentSuccess = async (orderId: string, transactionId: string) => {
     try {
@@ -282,18 +274,26 @@ const Payment = () => {
               </div>
             </div>
 
-            {/* Coupon Code Section */}
-            <div>
-              <h3 className="font-semibold text-lg mb-3">Coupon Code</h3>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <CouponCodeInput
-                  onApplyCoupon={validateCoupon}
-                  appliedCoupon={appliedCoupon}
-                  onRemoveCoupon={removeCoupon}
-                  isValidating={isValidating}
-                />
+            {/* Applied Coupon Display Section */}
+            {couponDiscountPercentage > 0 && (
+              <div>
+                <h3 className="font-semibold text-lg mb-3">Applied Coupon</h3>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="font-medium text-green-800">Coupon Applied</span>
+                    </div>
+                    <span className="text-green-700 font-semibold">
+                      {couponDiscountPercentage}% OFF
+                    </span>
+                  </div>
+                  <p className="text-sm text-green-600 mt-2">
+                    You're saving {currencySymbol}{Math.round((program.displayPrice * couponDiscountPercentage) / 100)} with this coupon!
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Payment Summary Section */}
             <div>
