@@ -3,7 +3,7 @@ import { VideoSources } from '@/types/videoPlayer';
 
 // Video IDs from Cloudflare Stream
 const VIDEO_IDS = [
-  '1229a47db5c27ea07a0648ee96f16d02',
+  '42646821b17f12df70ac458a447a1efb',
   '584bf0778a5f896ddbce993ab259ef79', 
   '337f864ee97f2e104e2c1c496d90a27a',
   '48b834a7cdab0565972f9886ad4e811e',
