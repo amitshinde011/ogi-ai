@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Loader2 } from 'lucide-react';
+import { Heart } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
@@ -50,7 +51,7 @@ const Recipes = () => {
       <Layout>
         <Header title="Recipes" />
         <div className="flex items-center justify-center h-64">
-          <Loader2 size={32} strokeWidth={1.5} className="text-indigo-600 animate-spin" />
+          <Loader size="lg" className="mx-auto" />
         </div>
       </Layout>
     );

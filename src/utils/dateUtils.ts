@@ -1,4 +1,19 @@
 
+// Helper function to get local date string in YYYY-MM-DD format
+export const getLocalDateString = (date?: Date): string => {
+  const targetDate = date || new Date();
+  const year = targetDate.getFullYear();
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const day = String(targetDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper function to create a local date from YYYY-MM-DD string
+export const createLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day); // month is 0-indexed
+};
+
 export const getRelativeTime = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
@@ -31,12 +46,12 @@ export const getRelativeTime = (dateString: string): string => {
   return date.toLocaleDateString();
 };
 
-// Helper function to calculate program completion with inclusive end date
+// Helper function to calculate program completion with inclusive end date using local time
 export const calculateProgramProgress = (startDate: string, endDate: string) => {
-  const today = new Date().toISOString().split('T')[0];
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const todayDate = new Date(today);
+  const today = getLocalDateString();
+  const start = createLocalDate(startDate);
+  const end = createLocalDate(endDate);
+  const todayDate = createLocalDate(today);
   
   // Calculate total days from start to end (inclusive)
   const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;

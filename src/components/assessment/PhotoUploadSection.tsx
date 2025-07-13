@@ -43,7 +43,7 @@ const PhotoUploadSection = ({ formData, setFormData }: PhotoUploadSectionProps) 
           Full Body Photo (Optional)
         </label>
         <p className="text-xs text-gray-600 mb-4">
-          Take a photo to track your transformation journey
+          Take a full body photo to track your transformation journey
         </p>
         
         {!imagePreview ? (
@@ -64,7 +64,7 @@ const PhotoUploadSection = ({ formData, setFormData }: PhotoUploadSectionProps) 
                 <Button type="button" variant="outline" className="cursor-pointer" asChild>
                   <span>
                     <Camera className="w-4 h-4 mr-2" />
-                    Take Photo
+                    Camera
                   </span>
                 </Button>
               </label>
@@ -80,7 +80,7 @@ const PhotoUploadSection = ({ formData, setFormData }: PhotoUploadSectionProps) 
                 <Button type="button" variant="outline" className="cursor-pointer" asChild>
                   <span>
                     <Image className="w-4 h-4 mr-2" />
-                    Choose from Gallery
+                    Gallery
                   </span>
                 </Button>
               </label>

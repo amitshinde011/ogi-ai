@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface HomeData {
   todayProgress: {
@@ -107,9 +108,9 @@ export const useOptimizedHomeData = () => {
       }
 
       console.log('👤 useOptimizedHomeData: User authenticated:', user.id);
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       
-      // Calculate week dates once
+      // Calculate week dates once using local time
       const currentDay = new Date().getDay();
       const monday = new Date();
       const daysToMonday = currentDay === 0 ? -6 : 1 - currentDay;
@@ -119,7 +120,7 @@ export const useOptimizedHomeData = () => {
       for (let i = 0; i < 7; i++) {
         const date = new Date(monday);
         date.setDate(monday.getDate() + i);
-        weekDates.push(date.toISOString().split('T')[0]);
+        weekDates.push(getLocalDateString(date));
       }
 
       console.log('📅 useOptimizedHomeData: Calculated week dates:', { today, weekDates });

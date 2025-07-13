@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { IMAGES } from '@/constants/images';
 
 const Footer = () => {
   return (
@@ -10,7 +11,7 @@ const Footer = () => {
           {/* Logo/Brand */}
           <div className="flex items-center space-x-2">
             <img 
-              src="/lovable-uploads/5a8e66be-fe3c-4a0b-a827-6a2e891e4d04.png" 
+              src={IMAGES.LOGO_MAIN} 
               alt="Yogi Logo" 
               className="h-6 w-auto"
             />

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Loader from '@/components/ui/loader';
+import { IMAGES } from '@/constants/images';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -147,7 +148,7 @@ const ResetPassword = () => {
           <div className="mb-4">
             <div className="w-28 h-28 mx-auto flex items-center justify-center mb-4">
               <img 
-                src="/lovable-uploads/6cf2c839-5326-4219-9033-549deb1fb03c.png" 
+                src={IMAGES.LOGO_VARIANT} 
                 alt="Yogi Logo" 
                 className="w-full h-full object-contain"
               />

@@ -10,9 +10,10 @@ import WeeklyProgress from '@/components/progress/WeeklyProgress';
 import JourneyProgress from '@/components/progress/JourneyProgress';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Calendar, TrendingUp, Activity, Target } from 'lucide-react';
+import { Calendar, TrendingUp, Activity, Target } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
-import { calculateProgramProgress } from '@/utils/dateUtils';
+import { calculateProgramProgress, getLocalDateString } from '@/utils/dateUtils';
 import { useTodayActivity } from '@/hooks/useTodayActivity';
 import { useProgressData } from '@/hooks/useProgressData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,7 +51,7 @@ const ProgressPage = () => {
         return;
       }
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
 
       // Fetch all user subscriptions with program details
       const { data: subscriptions } = await supabase
@@ -89,8 +90,8 @@ const ProgressPage = () => {
       // Separate current and historical programs
       const current = programsData.find(p => {
         if (p.status !== 'active') return false;
-        const endDate = new Date(p.end_date);
-        const todayDate = new Date(today);
+        const endDate = new Date(p.end_date + 'T00:00:00');
+        const todayDate = new Date(today + 'T00:00:00');
         return todayDate <= endDate; // Program is current until end date (inclusive)
       });
       
@@ -116,7 +117,7 @@ const ProgressPage = () => {
         {showBanner && <SubscriptionBanner />}
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
           <div className="text-center">
-            <Loader2 size={40} strokeWidth={1.5} className="text-sage animate-spin mx-auto mb-4" />
+            <Loader size="lg" className="mx-auto mb-4" />
             <p className="text-gray-600">Loading your progress...</p>
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +21,6 @@ export const isNativePlatform = () => {
 export const initializeGoogleAuth = async () => {
   if (isNativePlatform()) {
     try {
-      // Firebase Authentication doesn't require explicit initialization on native
       console.log('Firebase Authentication ready for native platform');
       return true;
     } catch (error) {
@@ -30,16 +28,14 @@ export const initializeGoogleAuth = async () => {
       return false;
     }
   } else {
-    // Initialize Firebase for web if not already initialized
     try {
       if (getApps().length === 0) {
-        // Firebase config would be needed here for web, but we're using Supabase OAuth for web
         console.log('Web platform - using Supabase OAuth instead of Firebase');
       }
       return true;
     } catch (error) {
       console.error('Firebase web initialization error:', error);
-      return true; // Continue anyway since we're using Supabase for web
+      return true;
     }
   }
 };
@@ -47,12 +43,15 @@ export const initializeGoogleAuth = async () => {
 export const signInWithGoogleNative = async (): Promise<{ user: GoogleAuthUser | null; error: string | null }> => {
   try {
     console.log('Starting native Google sign in with Firebase...');
-    
-    // Check if Firebase Auth is available
+
     if (!isNativePlatform()) {
       return { user: null, error: 'Native Firebase Auth is only available on mobile devices' };
     }
 
+    // The plugin should automatically use the Web Client ID from your google-services.json.
+    // By not passing `serverClientId`, we rely on this automatic configuration.
+    // If you get a "bad id token" error, it points to an issue in your native project's
+    // configuration, and you may need to hardcode the `serverClientId` again as a workaround.
     const result = await FirebaseAuthentication.signInWithGoogle();
     console.log('Native Firebase Google sign in result:', result);
 
@@ -60,12 +59,13 @@ export const signInWithGoogleNative = async (): Promise<{ user: GoogleAuthUser |
       return { user: null, error: 'Google sign in was cancelled or failed' };
     }
 
-    // Get the ID token from Firebase
-    const { token } = await FirebaseAuthentication.getIdToken();
-    console.log('Firebase ID token retrieved');
+    // --- IMPROVEMENT: Get the ID token directly from the sign-in result ---
+    // This is more efficient than calling getIdToken() separately.
+    const idToken = result.credential?.idToken;
+    console.log('Firebase ID token retrieved from sign-in result.');
 
-    if (!token) {
-      console.error('No ID token received from Firebase');
+    if (!idToken) {
+      console.error('No ID token returned from Firebase sign-in result');
       return { user: null, error: 'Failed to get authentication token from Firebase' };
     }
 
@@ -79,24 +79,21 @@ export const signInWithGoogleNative = async (): Promise<{ user: GoogleAuthUser |
       email: result.user.email,
       name: result.user.displayName || result.user.email.split('@')[0],
       imageUrl: result.user.photoUrl || '',
-      idToken: token
+      idToken: idToken, // Use the token from the sign-in result
     };
 
     // Sign in to Supabase using the Firebase ID token
     console.log('Signing in to Supabase with Firebase ID token...');
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
-      token: token,
+      token: idToken,
     });
 
     if (error) {
       console.error('Supabase auth error:', error);
       
-      // Provide more specific error messages
-      if (error.message.includes('Invalid login credentials')) {
-        return { user: null, error: 'Google account not recognized. Please ensure Google OAuth is configured in Supabase.' };
-      } else if (error.message.includes('Invalid token')) {
-        return { user: null, error: 'Authentication token expired or invalid. Please try again.' };
+      if (error.message.includes('Invalid login credentials') || error.message.includes('bad id token')) {
+        return { user: null, error: 'Authentication failed. Please check your Supabase Google Auth configuration.' };
       }
       
       return { user: null, error: `Authentication failed: ${error.message}` };
@@ -112,13 +109,10 @@ export const signInWithGoogleNative = async (): Promise<{ user: GoogleAuthUser |
   } catch (error: any) {
     console.error('Native Firebase Google sign in error:', error);
     
-    // Handle specific Firebase error codes
     if (error.code === 'auth/user-cancelled') {
       return { user: null, error: 'Google sign in was cancelled by user' };
     } else if (error.code === 'auth/network-error') {
       return { user: null, error: 'Network error. Please check your connection and try again.' };
-    } else if (error.code === 'auth/configuration-not-found') {
-      return { user: null, error: 'Firebase configuration not found. Please check your setup.' };
     }
     
     return { user: null, error: error.message || 'Failed to sign in with Google' };
@@ -132,7 +126,6 @@ export const signOutGoogleNative = async (): Promise<{ error: string | null }> =
       console.log('Successfully signed out from Firebase (native)');
     }
     
-    // Also sign out from Supabase
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out from Supabase:', error);
@@ -150,8 +143,7 @@ export const signOutGoogleNative = async (): Promise<{ error: string | null }> =
 export const validateGoogleAuthConfiguration = async (): Promise<{ isValid: boolean; message: string }> => {
   if (isNativePlatform()) {
     try {
-      // Try to get current user to check configuration
-      const result = await FirebaseAuthentication.getCurrentUser();
+      await FirebaseAuthentication.getCurrentUser();
       return {
         isValid: true,
         message: 'Native Firebase Auth is properly configured'
@@ -163,7 +155,6 @@ export const validateGoogleAuthConfiguration = async (): Promise<{ isValid: bool
       };
     }
   } else {
-    // For web, we can't easily validate without attempting auth
     return {
       isValid: true,
       message: 'Web Google OAuth will be validated during sign-in attempt'

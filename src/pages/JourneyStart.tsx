@@ -10,6 +10,7 @@ import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { getLocalDateString, createLocalDate } from '@/utils/dateUtils';
 
 const JourneyStart = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const JourneyStart = () => {
         return;
       }
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       console.log('Today ', today);
       const { data: planData, error: planError } = await supabase
         .from('user_subscriptions')
@@ -68,8 +69,8 @@ const JourneyStart = () => {
 
       // Check if start date is today or has passed (only if dates exist)
       if (currentSub && currentSub.start_date && currentSub.end_date) {
-        const startDate = new Date(currentSub.start_date);
-        const todayDate = new Date(today);
+        const startDate = createLocalDate(currentSub.start_date);
+        const todayDate = createLocalDate(today);
 
         if (todayDate < startDate) {
           // Start date hasn't arrived yet
@@ -124,11 +125,11 @@ const JourneyStart = () => {
   }
 
   const getDaysRemaining = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const endDate = subscription.end_date;
-    const start = new Date(subscription.start_date);
-    const end = new Date(endDate);
-    const todayDate = new Date(today);
+    const start = createLocalDate(subscription.start_date);
+    const end = createLocalDate(endDate);
+    const todayDate = createLocalDate(today);
     
     // If today is before start, return full duration
     if (todayDate < start) {
@@ -200,7 +201,7 @@ const JourneyStart = () => {
                 Journey End Date:
               </span>
               <span className="text-blue-700 font-semibold">
-                {new Date(subscription.end_date).toLocaleDateString()} (Inclusive)
+                {createLocalDate(subscription.end_date).toLocaleDateString()} (Inclusive)
               </span>
             </div>
           </CardContent>

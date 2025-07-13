@@ -7,7 +7,7 @@ import { SubscriptionHeader } from '@/components/subscription/SubscriptionHeader
 import { SubscriptionGrid } from '@/components/subscription/SubscriptionGrid';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
 import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
-import { Loader2 } from 'lucide-react';
+import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 
 const Subscriptions = () => {
@@ -30,7 +30,7 @@ const Subscriptions = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 flex items-center justify-center px-4">
         <div className="text-center space-y-4">
-          <Loader2 size={64} strokeWidth={1.5} className="text-blue-500 animate-spin mx-auto" />
+          <Loader size="lg" className="mx-auto" />
           <p className="text-gray-600 font-medium">Loading your wellness programs...</p>
         </div>
       </div>

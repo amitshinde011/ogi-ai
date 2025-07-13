@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/carousel';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Star } from 'lucide-react';
+import { IMAGES } from '@/constants/images';
 
 interface Testimonial {
   id: number;
@@ -30,7 +31,7 @@ const testimonials: Testimonial[] = [
     rating: 5,
     headline: "The ultimate antidote to my chaotic corporate life.",
     testimonial: "Working in finance in London, my mind was always 'on,' and my stress levels were through the roof. Yogi has been a complete game-changer. The 10-minute guided Pranayama (breathwork) before my morning meetings is now my non-negotiable secret weapon. Learning the science of how specific foods impact my Agni (digestive fire) has given me more sustained energy than three espressos ever did. It's practical, profound, and designed for the realities of a busy modern life. I feel calmer, more focused, and more in control.",
-    image: "/lovable-uploads/62e63369-d2c5-43eb-80c8-2c98e4b1040b.png"
+    image: IMAGES.TESTIMONIAL_SARAH
   },
   {
     id: 2,
@@ -54,9 +55,9 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 4,
-    name: "Lars B.",
+    name: "Gurmit B.",
     age: 41,
-    location: "Berlin, Germany",
+    location: "Delhi, India",
     rating: 5,
     headline: "I'm an engineer. I was skeptical, but the results are logical and undeniable.",
     testimonial: "I'm not typically into 'spirituality,' but I was suffering from burnout and nothing else was working. The 'science-based' approach of the Yogi app appealed to me. It didn't just tell me to 'relax'; it explained the mechanics of calming a Rajasic (restless) mind. It didn't just say 'detox'; it taught me how specific foods and poses reduce Ama (toxins). The process was systematic, the instructions were clear, and the results were undeniable. I have more mental clarity, my focus has improved, and I feel fundamentally grounded. This isn't magic; it's a practical science for the human system.",

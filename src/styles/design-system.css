@@ -1,0 +1,100 @@
+/* Design System - Consolidated styles for better maintainability */
+
+@layer utilities {
+  /* Brand color utilities */
+  .brand-primary {
+    background: linear-gradient(135deg, hsl(239, 68%, 68%) 0%, hsl(251, 83%, 68%) 100%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .brand-sage {
+    background-color: hsl(160, 65%, 55%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  /* Logo and brand styling */
+  .logo {
+    transition: all 0.3s ease;
+  }
+
+  .logo:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+
+  /* Card system */
+  .card-elevated {
+    background: hsl(0, 0%, 100%);
+    border: 1px solid hsl(220, 13%, 91%);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px hsla(220, 39%, 11%, 0.1);
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+  }
+
+  .card-elevated:hover {
+    box-shadow: 0 10px 25px -3px hsla(220, 39%, 11%, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Navigation system */
+  .nav-item-styled {
+    color: hsl(215, 25%, 27%);
+    transition: all 0.2s ease;
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+  }
+  
+  .nav-item-styled.active {
+    color: hsl(239, 68%, 68%);
+    background: hsla(239, 68%, 68%, 0.1);
+    transform: scale(1.05);
+  }
+  
+  .nav-item-styled:hover {
+    color: hsl(239, 68%, 68%);
+    background: hsla(239, 68%, 68%, 0.05);
+    transform: translateY(-2px);
+  }
+
+  /* Loading states */
+  .loading-skeleton {
+    background: linear-gradient(90deg, 
+      hsl(0, 0%, 96%) 0%, 
+      hsl(0, 0%, 93%) 50%, 
+      hsl(0, 0%, 96%) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Consistent spacing system */
+  .section-padding {
+    padding: 2rem 1rem;
+  }
+
+  .container-max {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Interactive elements */
+  .interactive-element {
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .interactive-element:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px hsla(220, 39%, 11%, 0.15);
+  }
+
+  .interactive-element:active {
+    transform: translateY(0);
+  }
+}

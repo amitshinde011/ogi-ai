@@ -1,8 +1,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-// Import the new utility functions
-import { isNativePlatform, signInWithNativeGoogle, signInWithWebGoogle } from '@/utils/googleAuth';
+// Import the native Google auth functions
+import { isNativePlatform, signInWithGoogleNative } from '@/utils/nativeGoogleAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface GoogleLoginButtonProps {
   isLoading: boolean;
@@ -19,16 +20,26 @@ const GoogleLoginButton = ({ isLoading, setIsLoading }: GoogleLoginButtonProps) 
       console.log(`Is native platform? ==> ${isNativePlatform()}`);
       if (isNativePlatform()) {
         // Call the native function
-        await signInWithNativeGoogle();
+        const { user, error } = await signInWithGoogleNative();
+        if (error) {
+          throw new Error(error);
+        }
         // The onAuthStateChange listener in Login.tsx will handle navigation
-        // We can set loading to false here as there is no page redirect
         setIsLoading(false);
       } else {
-        // Call the web function
-        await signInWithWebGoogle();
+        // For web, use Supabase OAuth
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin
+          }
+        });
+        if (error) {
+          throw new Error(error.message);
+        }
         // The browser will redirect; no need to set loading state here.
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google login failed:', error);
       toast({
         title: "Login failed",

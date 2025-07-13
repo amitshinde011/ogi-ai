@@ -7,23 +7,11 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
+import { IMAGES } from '@/constants/images';
+
 
 const WellnessCarousel = () => {
-  const imageIds = [
-    'bc37fb04-6356-4903-f35b-b28b2e891300',
-    'bfc0c878-5985-4af9-685c-51a970a6a200',
-    'e505f2f8-50b4-4b3a-4704-0636a265ac00',
-    '5b9282e0-5d2e-463c-6f5d-8c2819a75500',
-    'fb24fed9-1885-412a-b077-500fe5ee8200',
-    'c94586bb-93dc-4216-ce83-509faac19a00',
-    '5031a597-6156-49f8-8171-40399facba00',
-    'dc5473c1-f6a0-4e4e-1a86-bc5253d57300'
-  ];
-
-  // Use the utility function to generate proper Cloudflare URLs
-  const images = imageIds.map(id => getCloudflareImageUrl(id));
-
+  const images = IMAGES.WELLNESS_CAROUSEL;
   const [api, setApi] = useState<any>(null);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
 
@@ -55,7 +43,7 @@ const WellnessCarousel = () => {
       >
         <CarouselContent>
           {images.map((image, index) => (
-            <CarouselItem key={imageIds[index]} className="basis-full">
+            <CarouselItem key={index} className="basis-full">
               <div className="relative w-full aspect-square overflow-hidden rounded-xl sm:rounded-2xl bg-gray-100">
                 {!imageErrors.has(image) ? (
                   <img
