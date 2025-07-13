@@ -7,7 +7,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
+
 
 const WellnessCarousel = () => {
   const imageIds = [
@@ -21,8 +21,8 @@ const WellnessCarousel = () => {
     '12'
   ];
 
-  // Use the utility function to generate proper Cloudflare URLs
-  const images = imageIds.map(id => getCloudflareImageUrl(id));
+  // Use local webp images from public folder
+  const images = imageIds.map(id => `/lovable-uploads/${id}.webp`);
 
   const [api, setApi] = useState<any>(null);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
