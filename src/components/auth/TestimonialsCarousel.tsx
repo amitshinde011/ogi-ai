@@ -54,9 +54,9 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 4,
-    name: "Lars B.",
+    name: "Gurmit B.",
     age: 41,
-    location: "Berlin, Germany",
+    location: "Delhi, India",
     rating: 5,
     headline: "I'm an engineer. I was skeptical, but the results are logical and undeniable.",
     testimonial: "I'm not typically into 'spirituality,' but I was suffering from burnout and nothing else was working. The 'science-based' approach of the Yogi app appealed to me. It didn't just tell me to 'relax'; it explained the mechanics of calming a Rajasic (restless) mind. It didn't just say 'detox'; it taught me how specific foods and poses reduce Ama (toxins). The process was systematic, the instructions were clear, and the results were undeniable. I have more mental clarity, my focus has improved, and I feel fundamentally grounded. This isn't magic; it's a practical science for the human system.",
