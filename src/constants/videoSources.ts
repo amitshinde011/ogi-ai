@@ -9,7 +9,7 @@ const VIDEO_IDS = [
   '48b834a7cdab0565972f9886ad4e811e',
   'bd08fce7148e40231cb7456067ce60a8', 
   '8bc4e9c8fe29682da551cc800fec904b',
-  '441f91db738ffead3c5700763b4600aa'
+  '64055d2b28e3dac4ad8be6ec3abda478'
 ];
 
 // Surya Namaskar instructional video ID
