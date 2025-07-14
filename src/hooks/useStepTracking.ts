@@ -157,7 +157,7 @@ export const useStepTracking = () => {
     };
 
     initializeTracking();
-  }, [user, fetchTodaySteps, persistData, clearUserCache]);
+  }, [user]);
 
   // Setup sync on app visibility change and before unload
   useEffect(() => {

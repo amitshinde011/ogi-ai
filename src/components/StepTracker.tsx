@@ -53,7 +53,7 @@ const StepTracker = () => {
       localStorage.setItem(storageKey, 'true');
       trackEvent('step_goal_achieved', 'Fitness', '5km Goal', stepData.steps);
     }
-  }, [stepData.steps, goal, trackEvent, user]);
+  }, [stepData.steps, goal, user]);
 
   const getRandomMessage = () => {
     const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
@@ -80,7 +80,7 @@ const StepTracker = () => {
       goalAchievedToday
     });
     trackEvent('step_tracker_view', 'UI', 'Component Render');
-  }, [stepData.steps, goal, progressPercentage, kmWalked, goalAchievedToday, trackEvent]);
+  }, [stepData.steps, goal, progressPercentage, kmWalked, goalAchievedToday]);
 
   return (
     <Card className="bg-white border border-gray-200 relative">
