@@ -84,8 +84,8 @@ export const useOptimizedProgressData = () => {
         return;
       }
 
-      // Fallback to direct queries since materialized views are new
-      await fetchProgressDataFallback(user.id, cacheKey);
+      // Use optimized database functions
+      await fetchProgressDataOptimized(user.id, cacheKey);
     } catch (error) {
       console.error('Error fetching progress data:', error);
     } finally {
@@ -93,8 +93,8 @@ export const useOptimizedProgressData = () => {
     }
   };
 
-  const fetchProgressDataFallback = async (userId: string, cacheKey: string) => {
-    // Use optimized database functions
+  const fetchProgressDataOptimized = async (userId: string, cacheKey: string) => {
+    // Use optimized database functions in parallel
     const [weeklyResult, journeyResult, streaksResult] = await Promise.all([
       fetchOptimizedWeeklyData(userId),
       fetchOptimizedJourneyData(userId),
@@ -112,55 +112,63 @@ export const useOptimizedProgressData = () => {
 
   const fetchOptimizedWeeklyData = async (userId: string): Promise<Omit<WeeklyProgressData, 'streak' | 'activeDays'>> => {
     try {
-      const { data: weeklyData, error } = await supabase.rpc('get_user_weekly_progress', {
+      // Use optimized database function for weekly data
+      const { data: weeklyResult, error } = await supabase.rpc('get_optimized_weekly_data', {
         p_user_id: userId,
-        p_weeks_back: 1
+        p_weeks_back: 4
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching optimized weekly data:', error);
+        throw error;
+      }
 
-      if (weeklyData && weeklyData.length > 0) {
-        const currentWeek = weeklyData[0];
-        
-        // Calculate daily scores based on weekly performance
-        const totalActivities = Number(currentWeek.meditation_days) + Number(currentWeek.yoga_days) + 
-                               Number(currentWeek.days_with_meals) + (Number(currentWeek.avg_water) >= 3 ? 7 : 0);
-        const maxActivities = 7 * 4; // 7 days * 4 activities
-        const weeklyScore = Math.round((totalActivities / maxActivities) * 100);
-        
-        // Generate realistic daily scores based on weekly data
-        const dailyScores = [];
-        const activeDaysCount = Number(currentWeek.days_tracked);
-        for (let i = 0; i < 7; i++) {
-          if (i < activeDaysCount) {
-            let score = 0;
-            if (Number(currentWeek.meditation_days) > 0) score += 25;
-            if (Number(currentWeek.yoga_days) > 0) score += 25;
-            if (Number(currentWeek.avg_water) >= 3) score += 25;
-            if (Number(currentWeek.days_with_meals) > 0) score += 25;
-            dailyScores.push(score);
-          } else {
-            dailyScores.push(0);
-          }
-        }
-
+      const result = weeklyResult?.[0];
+      if (!result) {
         return {
-          totalScore: weeklyScore,
-          averageScore: weeklyScore,
-          dailyScores,
-          suggestions: [
-            'Keep up the consistency in daily activities',
-            'Focus on completing all wellness activities each day',
-            'Great progress this week!'
-          ]
+          totalScore: 0,
+          averageScore: 0,
+          dailyScores: [0, 0, 0, 0, 0, 0, 0],
+          suggestions: ['Start tracking your daily activities']
         };
       }
 
+      // Parse the weekly data JSON
+      const weeklyData = result.week_data && typeof result.week_data === 'string' ? 
+        JSON.parse(result.week_data) : 
+        (Array.isArray(result.week_data) ? result.week_data : []);
+      
+      // Calculate totals and scores from the weekly data
+      const totalScore = weeklyData.reduce((sum: number, week: any) => sum + (week.weekly_score || 0), 0);
+      const averageScore = weeklyData.length > 0 ? Math.round(totalScore / weeklyData.length) : 0;
+      
+      // Get daily scores for the current week (last 7 days)
+      const dailyScores = Array(7).fill(0); // Default to 0 for all days
+      
+      if (weeklyData.length > 0) {
+        const currentWeek = weeklyData[0];
+        // Distribute weekly score evenly across tracked days
+        const dailyAverage = currentWeek.days_tracked > 0 ? 
+          Math.round(currentWeek.weekly_score / currentWeek.days_tracked) : 0;
+        
+        for (let i = 0; i < Math.min(currentWeek.days_tracked, 7); i++) {
+          dailyScores[i] = dailyAverage;
+        }
+      }
+
       return {
-        totalScore: 0,
-        averageScore: 0,
-        dailyScores: [0, 0, 0, 0, 0, 0, 0],
-        suggestions: ['Let\'s focus on consistency this week!']
+        totalScore,
+        averageScore,
+        dailyScores,
+        suggestions: weeklyData.length > 0 ? [
+          'Great consistency this week!',
+          'Keep tracking your daily activities',
+          'You\'re building healthy habits!'
+        ] : [
+          'Start tracking your daily activities',
+          'Consistency is key to progress',
+          'Every small step counts!'
+        ]
       };
     } catch (error) {
       console.error('Error fetching optimized weekly data:', error);
@@ -168,7 +176,7 @@ export const useOptimizedProgressData = () => {
         totalScore: 0,
         averageScore: 0,
         dailyScores: [0, 0, 0, 0, 0, 0, 0],
-        suggestions: []
+        suggestions: ['Let\'s focus on consistency this week!']
       };
     }
   };
@@ -199,53 +207,30 @@ export const useOptimizedProgressData = () => {
         };
       }
 
+      // Use optimized database function for journey data
+      const { data: journeyData, error } = await supabase.rpc('get_journey_progress_data', {
+        p_user_id: userId,
+        p_start_date: subscription.start_date,
+        p_end_date: subscription.end_date
+      });
+
+      if (error) {
+        console.error('Error fetching journey data:', error);
+        throw error;
+      }
+
+      const result = journeyData?.[0];
+      if (!result) {
+        throw new Error('No journey data returned');
+      }
+
       const { calculateProgramProgress } = await import('@/utils/dateUtils');
       const progress = calculateProgramProgress(subscription.start_date, subscription.end_date);
 
-      // Get daily activity data for the current program
-      const { data: dailyData, error: dailyError } = await supabase
-        .from('daily_activity_summary')
-        .select('*')
-        .eq('user_id', userId)
-        .gte('date', subscription.start_date)
-        .lte('date', subscription.end_date)
-        .order('date', { ascending: true });
-
-      if (dailyError) console.error('Error fetching daily data:', dailyError);
-
-      // Calculate daily points and create milestones array
-      const milestones = [];
-      let cumulativePoints = 0;
-      
-      if (dailyData) {
-        for (let i = 0; i < progress.daysCompleted; i++) {
-          const currentDate = new Date(subscription.start_date);
-          currentDate.setDate(currentDate.getDate() + i);
-          const dateStr = currentDate.toISOString().split('T')[0];
-          
-          const dayData = dailyData.find(d => d.date === dateStr);
-          
-          // Calculate daily points (same logic as weekly but for individual days)
-          const dailyPoints = (dayData?.meditation_completed ? 20 : 0) + 
-                             (dayData?.surya_namaskar_count > 0 ? 20 : 0) + 
-                             (dayData?.meals_logged > 0 ? 10 : 0) + 
-                             (Math.min(dayData?.water_litres || 0, 4) * 5); // 5 points per liter, max 20
-          
-          cumulativePoints += dailyPoints;
-          
-          milestones.push({
-            day: i + 1,
-            score: dailyPoints,
-            cumulativeScore: cumulativePoints,
-            date: dateStr
-          });
-        }
-      }
-
-      // Calculate total and average scores
-      const totalPoints = cumulativePoints;
-      const maxPossiblePoints = progress.daysCompleted * 70; // Max 70 points per day
-      const averageScore = maxPossiblePoints > 0 ? Math.round((totalPoints / maxPossiblePoints) * 100) : 0;
+      // Parse the daily points JSON into milestones array
+      const milestones = result.daily_points && typeof result.daily_points === 'string' ? 
+        JSON.parse(result.daily_points) : 
+        (Array.isArray(result.daily_points) ? result.daily_points : []);
 
       // Get program name
       const programName = (subscription.programs as any)?.name || 'Wellness Program';
@@ -253,8 +238,8 @@ export const useOptimizedProgressData = () => {
       return {
         totalDays: progress.totalDays,
         completedDays: progress.daysCompleted,
-        averageScore,
-        totalScore: totalPoints,
+        averageScore: Number(result.average_score) || 0,
+        totalScore: Number(result.total_points) || 0,
         programName,
         startDate: subscription.start_date,
         endDate: subscription.end_date,
@@ -281,271 +266,34 @@ export const useOptimizedProgressData = () => {
     }
   };
 
-  const fetchOptimizedStreaks = async (userId: string): Promise<{ streak: number; activeDays: number; currentStreak: number; bestStreak: number }> => {
+  const fetchOptimizedStreaks = async (userId: string): Promise<{ currentStreak: number; bestStreak: number; activeDays: number; streak: number }> => {
     try {
-      const { data: streakData, error } = await supabase.rpc('calculate_user_streaks', {
-        p_user_id: userId
+      // Use optimized database function which already includes streak calculation
+      const { data: weeklyResult, error } = await supabase.rpc('get_optimized_weekly_data', {
+        p_user_id: userId,
+        p_weeks_back: 1
       });
 
       if (error) throw error;
 
-      if (streakData && streakData.length > 0) {
-        const { current_streak, best_streak, active_days } = streakData[0];
-        return {
-          streak: current_streak,
-          activeDays: active_days,
-          currentStreak: current_streak,
-          bestStreak: best_streak
-        };
+      const result = weeklyResult?.[0];
+      if (!result?.streak_data) {
+        return { currentStreak: 0, bestStreak: 0, activeDays: 0, streak: 0 };
       }
 
-      return { streak: 0, activeDays: 0, currentStreak: 0, bestStreak: 0 };
+      const streakData = result.streak_data && typeof result.streak_data === 'string' ? 
+        JSON.parse(result.streak_data) : 
+        (typeof result.streak_data === 'object' ? result.streak_data : {});
+      return {
+        currentStreak: streakData.current_streak || 0,
+        bestStreak: streakData.best_streak || 0,
+        activeDays: streakData.active_days || 0,
+        streak: streakData.current_streak || 0
+      };
     } catch (error) {
       console.error('Error fetching optimized streaks:', error);
-      return { streak: 0, activeDays: 0, currentStreak: 0, bestStreak: 0 };
+      return { currentStreak: 0, bestStreak: 0, activeDays: 0, streak: 0 };
     }
-  };
-
-  const fetchWeeklyDataFallback = async (userId: string): Promise<WeeklyProgressData> => {
-    try {
-      // Get last 8 weeks of data
-      const eightWeeksAgo = new Date();
-      eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56);
-
-      const [wellness, meals, steps] = await Promise.all([
-        supabase
-          .from('daily_wellness')
-          .select('date, meditation_completed, surya_namaskar_count, water_litres')
-          .eq('user_id', userId)
-          .gte('date', eightWeeksAgo.toISOString().split('T')[0]),
-        
-        supabase
-          .from('meal_tracking')
-          .select('date, meal_type')
-          .eq('user_id', userId)
-          .gte('date', eightWeeksAgo.toISOString().split('T')[0]),
-        
-        supabase
-          .from('steps_tracking')
-          .select('date, steps_count')
-          .eq('user_id', userId)
-          .gte('date', eightWeeksAgo.toISOString().split('T')[0])
-      ]);
-
-      // Skip old weekly aggregation logic since we're focusing on daily scores
-
-      // Calculate daily scores for last 7 days
-      const dailyScores = [];
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-        
-        // Calculate score based on activities
-        let score = 0;
-        const dayWellness = wellness.data?.find(w => w.date === dateStr);
-        const dayMeals = meals.data?.filter(m => m.date === dateStr).length || 0;
-        const daySteps = steps.data?.find(s => s.date === dateStr)?.steps_count || 0;
-        
-        if (dayWellness?.meditation_completed) score += 25;
-        if ((dayWellness?.surya_namaskar_count || 0) > 0) score += 25;
-        if ((dayWellness?.water_litres || 0) >= 3) score += 25;
-        if (dayMeals >= 3) score += 25;
-        
-        dailyScores.push(score);
-      }
-
-      const activeDays = dailyScores.filter(score => score > 0).length;
-      const averageScore = dailyScores.reduce((sum, score) => sum + score, 0) / 7;
-      const totalScore = dailyScores.reduce((sum, score) => sum + score, 0);
-      
-      // Calculate streak
-      let streak = 0;
-      for (let i = dailyScores.length - 1; i >= 0; i--) {
-        if (dailyScores[i] > 50) {
-          streak++;
-        } else {
-          break;
-        }
-      }
-
-      return {
-        totalScore,
-        averageScore,
-        streak,
-        activeDays,
-        dailyScores,
-        suggestions: [
-          'Try to maintain consistency in daily activities',
-          'Focus on completing all wellness activities each day',
-          'Keep up the great work!'
-        ]
-      };
-    } catch (error) {
-      console.error('Error fetching weekly data fallback:', error);
-      return {
-        totalScore: 0,
-        averageScore: 0,
-        streak: 0,
-        activeDays: 0,
-        dailyScores: [],
-        suggestions: []
-      };
-    }
-  };
-
-  const fetchJourneyDataFallback = async (userId: string): Promise<JourneyProgressData> => {
-    try {
-      // Get user's program start date
-      const { data: subscription } = await supabase
-        .from('user_subscriptions')
-        .select('start_date, end_date')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!subscription?.start_date || !subscription?.end_date) {
-        const today = new Date().toISOString().split('T')[0];
-        return {
-          totalDays: 0,
-          completedDays: 0,
-          activeDays: 0,
-          averageScore: 0,
-          totalScore: 0,
-          programName: 'Wellness Program',
-          startDate: today,
-          endDate: today,
-          currentStreak: 0,
-          bestStreak: 0,
-          milestones: [],
-          suggestions: ['Start your wellness journey by subscribing to a program']
-        };
-      }
-
-      const { calculateProgramProgress } = await import('@/utils/dateUtils');
-      const progress = calculateProgramProgress(subscription.start_date, subscription.end_date);
-
-      // Get aggregated data since start
-      const [wellness, meals, steps] = await Promise.all([
-        supabase
-          .from('daily_wellness')
-          .select('date, meditation_completed, surya_namaskar_count, water_litres')
-          .eq('user_id', userId)
-          .gte('date', subscription.start_date),
-        
-        supabase
-          .from('meal_tracking')
-          .select('date')
-          .eq('user_id', userId)
-          .gte('date', subscription.start_date),
-        
-        supabase
-          .from('steps_tracking')
-          .select('steps_count')
-          .eq('user_id', userId)
-          .gte('date', subscription.start_date)
-      ]);
-
-      const activeDays = new Set([
-        ...(wellness.data?.map(w => w.date) || []),
-        ...(meals.data?.map(m => m.date) || []),
-      ]).size;
-
-      // Calculate streaks - get all unique dates with activity
-      const activityDates = Array.from(new Set([
-        ...(wellness.data?.map(w => w.date) || []),
-        ...(meals.data?.map(m => m.date) || []),
-      ])).sort();
-
-      // Calculate current and best streak
-      let currentStreak = 0;
-      let bestStreak = 0;
-      let tempStreak = 0;
-      
-      const today = new Date().toISOString().split('T')[0];
-      let checkingCurrent = true;
-      
-      // Generate all dates from start to today
-      const startDate = new Date(subscription.start_date);
-      const endDate = new Date(today);
-      const allDates = [];
-      
-      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        allDates.push(d.toISOString().split('T')[0]);
-      }
-      
-      // Check streaks from most recent to oldest
-      for (let i = allDates.length - 1; i >= 0; i--) {
-        const dateStr = allDates[i];
-        const hasActivity = activityDates.includes(dateStr);
-        
-        if (hasActivity) {
-          tempStreak++;
-          bestStreak = Math.max(bestStreak, tempStreak);
-          if (checkingCurrent) {
-            currentStreak = tempStreak;
-          }
-        } else {
-          if (checkingCurrent) {
-            checkingCurrent = false;
-            currentStreak = tempStreak;
-          }
-          tempStreak = 0;
-        }
-      }
-
-      const totalWater = wellness.data?.reduce((sum, w) => sum + (w.water_litres || 0), 0) || 0;
-      const totalSteps = steps.data?.reduce((sum, s) => sum + (s.steps_count || 0), 0) || 0;
-      const meditationSessions = wellness.data?.filter(w => w.meditation_completed).length || 0;
-      const yogaSessions = wellness.data?.filter(w => (w.surya_namaskar_count || 0) > 0).length || 0;
-
-      const calculatedTotalScore = wellness.data?.length * 25 + (meals.data?.length * 10) || 0;
-      const averageScore = activeDays > 0 ? (calculatedTotalScore / activeDays) : 0;
-
-      return {
-        totalDays: progress.totalDays,
-        completedDays: progress.daysCompleted,
-        activeDays,
-        averageScore,
-        totalScore: calculatedTotalScore,
-        programName: 'Wellness Program',
-        startDate: subscription.start_date,
-        endDate: subscription.end_date,
-        currentStreak,
-        bestStreak,
-        milestones: [],
-        suggestions: [
-          'Keep up the consistency in your wellness journey',
-          'Focus on completing all daily activities',
-          'You\'re making great progress!'
-        ]
-      };
-    } catch (error) {
-      console.error('Error fetching journey data fallback:', error);
-      return {
-        totalDays: 0,
-        completedDays: 0,
-        activeDays: 0,
-        averageScore: 0,
-        totalScore: 0,
-        programName: '',
-        startDate: '',
-        endDate: '',
-        currentStreak: 0,
-        bestStreak: 0,
-        milestones: [],
-        suggestions: []
-      };
-    }
-  };
-
-  const getWeekKey = (dateString: string): string => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const week = Math.ceil(((date.getTime() - new Date(year, 0, 1).getTime()) / 86400000 + new Date(year, 0, 1).getDay() + 1) / 7);
-    return `${year}-W${week.toString().padStart(2, '0')}`;
   };
 
   return { data, loading, refetch: fetchProgressData };

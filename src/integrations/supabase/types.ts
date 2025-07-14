@@ -999,6 +999,22 @@ export type Database = {
           has_kanji: boolean
         }[]
       }
+      get_journey_progress_data: {
+        Args: { p_user_id: string; p_start_date: string; p_end_date: string }
+        Returns: {
+          daily_points: Json
+          total_points: number
+          max_possible_points: number
+          average_score: number
+        }[]
+      }
+      get_optimized_weekly_data: {
+        Args: { p_user_id: string; p_weeks_back?: number }
+        Returns: {
+          week_data: Json
+          streak_data: Json
+        }[]
+      }
       get_progress_data: {
         Args: { p_user_id: string }
         Returns: Json
