@@ -111,6 +111,14 @@ export const useOptimizedHomeData = () => {
       // Try optimized query first, fallback to original if needed
       console.log('🔄 useOptimizedHomeData: Trying optimized materialized view query');
       
+      // First refresh materialized views to get latest data
+      try {
+        await supabase.rpc('refresh_materialized_views');
+        console.log('✅ useOptimizedHomeData: Materialized views refreshed');
+      } catch (refreshError) {
+        console.warn('⚠️ useOptimizedHomeData: Failed to refresh materialized views:', refreshError);
+      }
+
       const { data: optimizedData, error: rpcError } = await supabase.rpc('get_home_data', {
         p_user_id: user.id,
         p_date: today

@@ -45,13 +45,8 @@ export const useTodayActivity = () => {
       const today = getLocalDateString();
       const cacheKey = `${user.id}-${today}`;
       
-      // Check cache first
-      const cached = cache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        setActivityData(cached.data);
-        setLoading(false);
-        return;
-      }
+      // Clear cache to ensure fresh data
+      cache.delete(cacheKey);
 
       // Fetch all data in parallel
       const [mealsResult, wellnessResult, stepsResult] = await Promise.all([

@@ -37,13 +37,44 @@ const ProgressPage = () => {
   const [historicalPrograms, setHistoricalPrograms] = useState<ProgramData[]>([]);
   const [loading, setLoading] = useState(true);
   const { showBanner } = useSubscriptionBanner();
-  const { activityData, loading: activityLoading } = useTodayActivity();
-  const { data: progressData, loading: progressLoading } = useOptimizedProgressData();
+  const { activityData, loading: activityLoading, refetch: refetchActivityData } = useTodayActivity();
+  const { data: progressData, loading: progressLoading, refetch: refetchProgressData } = useOptimizedProgressData();
   const { user } = useAuth();
 
   useEffect(() => {
     fetchProgressData();
   }, [user]);
+
+  // Listen for activity updates to refresh progress data
+  useEffect(() => {
+    const handleActivityUpdate = () => {
+      console.log('📈 Progress: Activity updated, refreshing data');
+      refetchActivityData();
+      refetchProgressData();
+    };
+
+    const handleStepsUpdated = () => {
+      console.log('👟 Progress: Steps updated, refreshing data');
+      refetchActivityData();
+      refetchProgressData();
+    };
+
+    const handleMealLogged = () => {
+      console.log('🍽️ Progress: Meal logged, refreshing data');
+      refetchActivityData();
+      refetchProgressData();
+    };
+
+    window.addEventListener('wellnessUpdated', handleActivityUpdate);
+    window.addEventListener('stepsUpdated', handleStepsUpdated);
+    window.addEventListener('mealLogged', handleMealLogged);
+
+    return () => {
+      window.removeEventListener('wellnessUpdated', handleActivityUpdate);
+      window.removeEventListener('stepsUpdated', handleStepsUpdated);
+      window.removeEventListener('mealLogged', handleMealLogged);
+    };
+  }, [refetchActivityData, refetchProgressData]);
 
   const fetchProgressData = async () => {
     try {

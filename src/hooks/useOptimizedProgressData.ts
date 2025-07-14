@@ -78,14 +78,9 @@ export const useOptimizedProgressData = () => {
 
       const cacheKey = `progress-${user.id}`;
       
-      // Check cache first
-      const cached = cache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        setData(cached.data);
-        setLoading(false);
-        return;
-      }
-
+      // Clear cache to ensure fresh data with today's activities
+      cache.delete(cacheKey);
+      
       // Use optimized database functions
       await fetchProgressDataOptimized(user.id, cacheKey);
     } catch (error) {
@@ -122,6 +117,14 @@ export const useOptimizedProgressData = () => {
 
   const fetchOptimizedWeeklyData = async (userId: string): Promise<WeeklyProgressData> => {
     try {
+      // First refresh materialized views to get latest data including today
+      try {
+        await supabase.rpc('refresh_materialized_views');
+        console.log('✅ Progress Weekly: Materialized views refreshed');
+      } catch (refreshError) {
+        console.warn('⚠️ Progress Weekly: Failed to refresh materialized views:', refreshError);
+      }
+
       // Get daily activity data for the current week (last 7 days)
       const today = new Date();
       const startDate = new Date(today);
