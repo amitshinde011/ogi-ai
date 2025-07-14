@@ -959,6 +959,26 @@ export type Database = {
       }
     }
     Functions: {
+      get_home_data: {
+        Args: { p_user_id: string; p_date: string }
+        Returns: {
+          meals_logged: number
+          water_litres: number
+          surya_namaskar_count: number
+          meditation_completed: boolean
+          steps_count: number
+          walk_score: number
+          has_breakfast: boolean
+          has_lunch: boolean
+          has_dinner: boolean
+          has_salad_bowl: boolean
+          has_kanji: boolean
+        }[]
+      }
+      get_progress_data: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       refresh_activity_views: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -1,32 +1,34 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface WeeklyData {
-  week: string;
-  daysTracked: number;
-  daysWithMeals: number;
-  meditationDays: number;
-  yogaDays: number;
-  stepGoalDays: number;
-  avgWater: number;
-  avgSteps: number;
-  totalSteps: number;
+interface WeeklyProgressData {
+  totalScore: number;
+  averageScore: number;
+  streak: number;
+  activeDays: number;
+  dailyScores: number[];
+  suggestions: string[];
 }
 
-interface JourneyData {
+interface JourneyProgressData {
   totalDays: number;
-  activeDays: number;
-  totalMeals: number;
-  totalWater: number;
-  totalSteps: number;
-  meditationSessions: number;
-  yogaSessions: number;
-  progressPercentage: number;
+  completedDays: number;
+  averageScore: number;
+  totalScore: number;
+  programName: string;
+  startDate: string;
+  endDate: string;
+  milestones: Array<{
+    day: number;
+    score: number;
+    date: string;
+  }>;
+  suggestions: string[];
 }
 
 interface ProgressData {
-  weeklyData: WeeklyData[];
-  journeyData: JourneyData;
+  weeklyData: WeeklyProgressData;
+  journeyData: JourneyProgressData;
 }
 
 const cache = new Map<string, { data: ProgressData; timestamp: number }>();
@@ -34,16 +36,24 @@ const CACHE_DURATION = 300000; // 5 minutes
 
 export const useOptimizedProgressData = () => {
   const [data, setData] = useState<ProgressData>({
-    weeklyData: [],
+    weeklyData: {
+      totalScore: 0,
+      averageScore: 0,
+      streak: 0,
+      activeDays: 0,
+      dailyScores: [],
+      suggestions: [],
+    },
     journeyData: {
       totalDays: 0,
-      activeDays: 0,
-      totalMeals: 0,
-      totalWater: 0,
-      totalSteps: 0,
-      meditationSessions: 0,
-      yogaSessions: 0,
-      progressPercentage: 0,
+      completedDays: 0,
+      averageScore: 0,
+      totalScore: 0,
+      programName: '',
+      startDate: '',
+      endDate: '',
+      milestones: [],
+      suggestions: [],
     },
   });
   const [loading, setLoading] = useState(true);
@@ -67,36 +77,8 @@ export const useOptimizedProgressData = () => {
         return;
       }
 
-      // Try to use materialized views with RPC
-      const { data: rpcData, error } = await supabase.rpc('get_progress_data', {
-        p_user_id: user.id
-      });
-
-      if (error) {
-        console.error('Error calling get_progress_data RPC:', error);
-        
-        // Fallback to direct queries
-        await fetchProgressDataFallback(user.id, cacheKey);
-        return;
-      }
-
-      const progressData: ProgressData = {
-        weeklyData: rpcData?.weekly_data || [],
-        journeyData: rpcData?.journey_data || {
-          totalDays: 0,
-          activeDays: 0,
-          totalMeals: 0,
-          totalWater: 0,
-          totalSteps: 0,
-          meditationSessions: 0,
-          yogaSessions: 0,
-          progressPercentage: 0,
-        },
-      };
-
-      // Cache the result
-      cache.set(cacheKey, { data: progressData, timestamp: Date.now() });
-      setData(progressData);
+      // Fallback to direct queries since materialized views are new
+      await fetchProgressDataFallback(user.id, cacheKey);
     } catch (error) {
       console.error('Error fetching progress data:', error);
     } finally {
@@ -120,7 +102,7 @@ export const useOptimizedProgressData = () => {
     setData(progressData);
   };
 
-  const fetchWeeklyDataFallback = async (userId: string): Promise<WeeklyData[]> => {
+  const fetchWeeklyDataFallback = async (userId: string): Promise<WeeklyProgressData> => {
     try {
       // Get last 8 weeks of data
       const eightWeeksAgo = new Date();
@@ -146,32 +128,69 @@ export const useOptimizedProgressData = () => {
           .gte('date', eightWeeksAgo.toISOString().split('T')[0])
       ]);
 
-      // Process weekly aggregation (simplified)
-      const weeklyMap = new Map<string, Partial<WeeklyData>>();
-      
-      // Process wellness data
-      wellness.data?.forEach(item => {
-        const weekKey = getWeekKey(item.date);
-        if (!weeklyMap.has(weekKey)) {
-          weeklyMap.set(weekKey, { week: weekKey, daysTracked: 0, daysWithMeals: 0, meditationDays: 0, yogaDays: 0, stepGoalDays: 0, avgWater: 0, avgSteps: 0, totalSteps: 0 });
-        }
-        const week = weeklyMap.get(weekKey)!;
-        week.daysTracked = (week.daysTracked || 0) + 1;
-        if (item.meditation_completed) week.meditationDays = (week.meditationDays || 0) + 1;
-        if ((item.surya_namaskar_count || 0) > 0) week.yogaDays = (week.yogaDays || 0) + 1;
-      });
+      // Skip old weekly aggregation logic since we're focusing on daily scores
 
-      return Array.from(weeklyMap.values())
-        .filter((week): week is WeeklyData => week.week !== undefined)
-        .sort((a, b) => b.week.localeCompare(a.week))
-        .slice(0, 8);
+      // Calculate daily scores for last 7 days
+      const dailyScores = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Calculate score based on activities
+        let score = 0;
+        const dayWellness = wellness.data?.find(w => w.date === dateStr);
+        const dayMeals = meals.data?.filter(m => m.date === dateStr).length || 0;
+        const daySteps = steps.data?.find(s => s.date === dateStr)?.steps_count || 0;
+        
+        if (dayWellness?.meditation_completed) score += 25;
+        if ((dayWellness?.surya_namaskar_count || 0) > 0) score += 25;
+        if ((dayWellness?.water_litres || 0) >= 3) score += 25;
+        if (dayMeals >= 3) score += 25;
+        
+        dailyScores.push(score);
+      }
+
+      const activeDays = dailyScores.filter(score => score > 0).length;
+      const averageScore = dailyScores.reduce((sum, score) => sum + score, 0) / 7;
+      const totalScore = dailyScores.reduce((sum, score) => sum + score, 0);
+      
+      // Calculate streak
+      let streak = 0;
+      for (let i = dailyScores.length - 1; i >= 0; i--) {
+        if (dailyScores[i] > 50) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+
+      return {
+        totalScore,
+        averageScore,
+        streak,
+        activeDays,
+        dailyScores,
+        suggestions: [
+          'Try to maintain consistency in daily activities',
+          'Focus on completing all wellness activities each day',
+          'Keep up the great work!'
+        ]
+      };
     } catch (error) {
       console.error('Error fetching weekly data fallback:', error);
-      return [];
+      return {
+        totalScore: 0,
+        averageScore: 0,
+        streak: 0,
+        activeDays: 0,
+        dailyScores: [],
+        suggestions: []
+      };
     }
   };
 
-  const fetchJourneyDataFallback = async (userId: string): Promise<JourneyData> => {
+  const fetchJourneyDataFallback = async (userId: string): Promise<JourneyProgressData> => {
     try {
       // Get user's program start date
       const { data: subscription } = await supabase
@@ -220,27 +239,37 @@ export const useOptimizedProgressData = () => {
       const meditationSessions = wellness.data?.filter(w => w.meditation_completed).length || 0;
       const yogaSessions = wellness.data?.filter(w => (w.surya_namaskar_count || 0) > 0).length || 0;
 
+      const completedDays = activeDays;
+      const calculatedTotalScore = wellness.data?.length * 25 + (meals.data?.length * 10) || 0;
+      const averageScore = activeDays > 0 ? (calculatedTotalScore / activeDays) : 0;
+
       return {
         totalDays,
-        activeDays,
-        totalMeals: meals.data?.length || 0,
-        totalWater,
-        totalSteps,
-        meditationSessions,
-        yogaSessions,
-        progressPercentage: totalDays > 0 ? Math.round((activeDays / totalDays) * 100) : 0,
+        completedDays,
+        averageScore,
+        totalScore: calculatedTotalScore,
+        programName: 'Wellness Program',
+        startDate,
+        endDate: subscription?.end_date || new Date().toISOString().split('T')[0],
+        milestones: [],
+        suggestions: [
+          'Keep up the consistency in your wellness journey',
+          'Focus on completing all daily activities',
+          'You\'re making great progress!'
+        ]
       };
     } catch (error) {
       console.error('Error fetching journey data fallback:', error);
       return {
         totalDays: 0,
-        activeDays: 0,
-        totalMeals: 0,
-        totalWater: 0,
-        totalSteps: 0,
-        meditationSessions: 0,
-        yogaSessions: 0,
-        progressPercentage: 0,
+        completedDays: 0,
+        averageScore: 0,
+        totalScore: 0,
+        programName: '',
+        startDate: '',
+        endDate: '',
+        milestones: [],
+        suggestions: []
       };
     }
   };

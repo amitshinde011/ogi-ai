@@ -15,7 +15,7 @@ import Loader from '@/components/ui/loader';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { calculateProgramProgress, getLocalDateString } from '@/utils/dateUtils';
 import { useTodayActivity } from '@/hooks/useTodayActivity';
-import { useProgressData } from '@/hooks/useProgressData';
+import { useOptimizedProgressData } from '@/hooks/useOptimizedProgressData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -37,7 +37,7 @@ const ProgressPage = () => {
   const [loading, setLoading] = useState(true);
   const { showBanner } = useSubscriptionBanner();
   const { activityData, loading: activityLoading } = useTodayActivity();
-  const { weeklyData, journeyData, loading: progressLoading } = useProgressData();
+  const { data: progressData, loading: progressLoading } = useOptimizedProgressData();
 
   useEffect(() => {
     fetchProgressData();
@@ -157,11 +157,11 @@ const ProgressPage = () => {
             </TabsContent>
 
             <TabsContent value="weekly" className="space-y-6">
-              <WeeklyProgress data={weeklyData} />
+              <WeeklyProgress data={progressData.weeklyData} />
             </TabsContent>
 
             <TabsContent value="journey" className="space-y-6">
-              <JourneyProgress data={journeyData} />
+              <JourneyProgress data={progressData.journeyData} />
             </TabsContent>
 
             <TabsContent value="program" className="space-y-6">

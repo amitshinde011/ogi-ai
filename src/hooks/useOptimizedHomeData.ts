@@ -125,8 +125,68 @@ export const useOptimizedHomeData = () => {
 
       console.log('📅 useOptimizedHomeData: Calculated week dates:', { today, weekDates });
 
-      // Execute all queries in parallel - single batch request
-      console.log('🔄 useOptimizedHomeData: Executing single batch query');
+      // Try optimized query first, fallback to original if needed
+      console.log('🔄 useOptimizedHomeData: Trying optimized materialized view query');
+      
+      const { data: optimizedData, error: rpcError } = await supabase.rpc('get_home_data', {
+        p_user_id: user.id,
+        p_date: today
+      });
+
+      if (!rpcError && optimizedData && optimizedData.length > 0) {
+        console.log('✅ useOptimizedHomeData: Using optimized materialized view data');
+        const data = optimizedData[0];
+        
+        // Get weekly wellness for streak calculation
+        const { data: weeklyWellnessResult } = await supabase
+          .from('daily_wellness')
+          .select('date, meditation_completed, water_litres, surya_namaskar_count')
+          .eq('user_id', user.id)
+          .in('date', weekDates);
+
+        // Process streak data
+        const weeklyWellness = weeklyWellnessResult || [];
+        const streak = weekDates.map(date => {
+          const dayData = weeklyWellness.find(w => w.date === date);
+          return !!(dayData?.meditation_completed || 
+                   (dayData?.water_litres && dayData.water_litres > 0) || 
+                   (dayData?.surya_namaskar_count && dayData.surya_namaskar_count > 0));
+        });
+
+        const finalData = {
+          todayProgress: {
+            breakfast: data.has_breakfast,
+            lunch: data.has_lunch,
+            dinner: data.has_dinner,
+            steps: data.steps_count,
+            walkScore: data.walk_score,
+            saladBowl: data.has_salad_bowl,
+            kanji: data.has_kanji
+          },
+          weeklyStreak: streak,
+          wellnessData: {
+            water_litres: data.water_litres || 0,
+            surya_namaskar_count: data.surya_namaskar_count || 0,
+            meditation_completed: data.meditation_completed || false
+          }
+        };
+
+        setData(finalData);
+        
+        // Dispatch step count update event
+        window.dispatchEvent(new CustomEvent('stepsUpdated', { 
+          detail: { steps: data.steps_count, lastUpdated: new Date() } 
+        }));
+
+        const endTime = performance.now();
+        const loadTime = endTime - startTime;
+        console.log(`✅ useOptimizedHomeData: Data fetch completed in ${loadTime.toFixed(2)}ms (optimized)`);
+        trackEvent('home_data_loaded_optimized', 'Performance', `Load Time: ${Math.round(loadTime)}ms`);
+        return;
+      }
+
+      // Fallback to original queries
+      console.log('🔄 useOptimizedHomeData: Falling back to original queries');
       const [mealsResult, stepsResult, wellnessResult, weeklyWellnessResult] = await Promise.all([
         supabase
           .from('meal_tracking')
