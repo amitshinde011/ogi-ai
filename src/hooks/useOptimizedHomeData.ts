@@ -188,10 +188,8 @@ export const useOptimizedHomeData = () => {
 
         setData(finalData);
         
-        // Dispatch step count update event
-        window.dispatchEvent(new CustomEvent('stepsUpdated', { 
-          detail: { steps: data.steps_count, lastUpdated: new Date() } 
-        }));
+        // Don't dispatch stepsUpdated events to prevent page reload loops
+        console.log('✅ useOptimizedHomeData: Data updated (no stepsUpdated event dispatched to prevent loops)');
 
         const endTime = performance.now();
         const loadTime = endTime - startTime;
@@ -288,7 +286,7 @@ export const useOptimizedHomeData = () => {
         totalDays: streak.length
       });
 
-      const finalData = {
+      const fetchedData = {
         todayProgress: {
           breakfast: mealTypes.includes('breakfast'),
           lunch: mealTypes.includes('lunch'),
@@ -302,13 +300,10 @@ export const useOptimizedHomeData = () => {
         wellnessData
       };
 
-      setData(finalData);
+      setData(fetchedData);
 
-      // Dispatch step count update event
-      console.log('📢 useOptimizedHomeData: Dispatching steps update event');
-      window.dispatchEvent(new CustomEvent('stepsUpdated', { 
-        detail: { steps: todaySteps, lastUpdated: new Date() } 
-      }));
+      // Don't dispatch stepsUpdated events to prevent page reload loops
+      console.log('✅ useOptimizedHomeData: Data updated (no stepsUpdated event dispatched to prevent loops)');
 
       const endTime = performance.now();
       const loadTime = endTime - startTime;
