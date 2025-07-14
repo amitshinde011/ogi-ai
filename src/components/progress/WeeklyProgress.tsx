@@ -9,7 +9,8 @@ import {
   TrendingUp, 
   Target,
   Flame,
-  Star
+  Star,
+  Activity
 } from 'lucide-react';
 
 interface WeeklyProgressData {
@@ -95,7 +96,10 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Active Days</span>
+              <span className="text-sm text-gray-600 flex items-center gap-1">
+                <Activity size={16} className="text-green-500" />
+                Active Days
+              </span>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-800">{data.activeDays}/7</span>
                 <div className="w-16">
