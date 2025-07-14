@@ -121,70 +121,74 @@ export const useOptimizedProgressData = () => {
 
   const fetchOptimizedWeeklyData = async (userId: string): Promise<WeeklyProgressData> => {
     try {
-      // Use optimized database function for weekly data
-      const { data: weeklyResult, error } = await supabase.rpc('get_optimized_weekly_data', {
-        p_user_id: userId,
-        p_weeks_back: 4
-      });
+      // Get daily activity data for the current week (last 7 days)
+      const today = new Date();
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - 6); // Last 7 days including today
+      
+      const { data: dailyData, error } = await supabase
+        .from('daily_activity_summary')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('date', startDate.toISOString().split('T')[0])
+        .lte('date', today.toISOString().split('T')[0])
+        .order('date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching optimized weekly data:', error);
+        console.error('Error fetching daily activity data:', error);
         throw error;
       }
 
-      const result = weeklyResult?.[0];
-      if (!result) {
-        return {
-          totalScore: 0,
-          averageScore: 0,
-          dailyScores: [0, 0, 0, 0, 0, 0, 0],
-          activeDays: 0,
-          streak: 0,
-          suggestions: ['Start tracking your daily activities']
-        };
-      }
-
-      // Parse the weekly data JSON
-      const weeklyData = result.week_data && typeof result.week_data === 'string' ? 
-        JSON.parse(result.week_data) : 
-        (Array.isArray(result.week_data) ? result.week_data : []);
+      // Create daily scores array for the last 7 days
+      const dailyScores = Array(7).fill(0);
+      let totalScore = 0;
+      let activeDays = 0;
       
-      // Calculate totals and scores from the weekly data
-      const totalScore = weeklyData.reduce((sum: number, week: any) => sum + (week.weekly_score || 0), 0);
-      const averageScore = weeklyData.length > 0 ? Math.round(totalScore / weeklyData.length) : 0;
-      
-      // Get daily scores for the current week (last 7 days)
-      const dailyScores = Array(7).fill(0); // Default to 0 for all days
-      
-      if (weeklyData.length > 0) {
-        const currentWeek = weeklyData[0];
-        // Distribute weekly score evenly across tracked days
-        const dailyAverage = currentWeek.days_tracked > 0 ? 
-          Math.round(currentWeek.weekly_score / currentWeek.days_tracked) : 0;
+      // Process each day's data
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
         
-        for (let i = 0; i < Math.min(currentWeek.days_tracked, 7); i++) {
-          dailyScores[i] = dailyAverage;
+        const dayData = dailyData?.find(d => d.date === dateStr);
+        
+        if (dayData) {
+          // Calculate daily score based on activities
+          const meditationScore = dayData.meditation_completed ? 20 : 0;
+          const yogaScore = dayData.surya_namaskar_count > 0 ? 20 : 0;
+          const mealScore = dayData.meals_logged > 0 ? 10 : 0;
+          const waterScore = Math.min((dayData.water_litres || 0) * 5, 20);
+          
+          const dayScore = meditationScore + yogaScore + mealScore + waterScore;
+          dailyScores[i] = Math.round(dayScore);
+          totalScore += dayScore;
+          
+          if (dayScore > 0) {
+            activeDays++;
+          }
         }
       }
 
+      const averageScore = activeDays > 0 ? Math.round(totalScore / 7) : 0;
+
       return {
-        totalScore,
+        totalScore: Math.round(totalScore),
         averageScore,
         dailyScores,
-        activeDays: 0, // Will be set by streak data
+        activeDays,
         streak: 0, // Will be set by streak data
-        suggestions: weeklyData.length > 0 ? [
+        suggestions: averageScore >= 60 ? [
           'Great consistency this week!',
           'Keep tracking your daily activities',
           'You\'re building healthy habits!'
         ] : [
           'Start tracking your daily activities',
-          'Consistency is key to progress',
-          'Every small step counts!'
+          'Focus on completing more activities each day',
+          'Consistency is key to progress!'
         ]
       };
     } catch (error) {
-      console.error('Error fetching optimized weekly data:', error);
+      console.error('Error fetching weekly data:', error);
       return {
         totalScore: 0,
         averageScore: 0,
