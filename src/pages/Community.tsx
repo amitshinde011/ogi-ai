@@ -9,7 +9,7 @@ import { PostCard } from '@/components/community/PostCard';
 import { CreatePostModal } from '@/components/community/CreatePostModal';
 import { RefreshSpinner } from '@/components/community/RefreshSpinner';
 import { useOptimizedCommunityFeed, CommunityPost } from '@/hooks/useOptimizedCommunityFeed';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { useUserProgram } from '@/hooks/useUserProgram';

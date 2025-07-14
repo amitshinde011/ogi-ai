@@ -14,7 +14,7 @@ import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { useNavigate } from 'react-router-dom';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import ProfileMenu from '@/components/ProfileMenu';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useOptimizedHomeData } from '@/hooks/useOptimizedHomeData';

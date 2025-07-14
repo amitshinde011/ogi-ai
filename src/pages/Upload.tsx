@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useR2Upload } from '@/hooks/useR2Upload';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useUserProgram } from '@/hooks/useUserProgram';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 
