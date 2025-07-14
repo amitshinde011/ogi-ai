@@ -203,15 +203,15 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-80 pb-4">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
+                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
                   <XAxis 
                     dataKey="day" 
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: '#6B7280' }}
-                    label={{ value: 'Day', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: '12px', fill: '#6B7280' } }}
+                    label={{ value: 'Day', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fontSize: '12px', fill: '#6B7280' } }}
                   />
                   <YAxis 
                     axisLine={false}

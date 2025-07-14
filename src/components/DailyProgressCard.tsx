@@ -13,8 +13,11 @@ interface DailyProgressCardProps {
 const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initialWalkScore }: DailyProgressCardProps) => {
   console.log('📊 DailyProgressCard: Component rendered with props:', { mealsLogged, initialSteps, initialWalkScore });
   
+  // Calculate walk score from steps on initial load
+  const calculatedWalkScore = Math.min(Math.floor((initialSteps / 5000) * 5), 5);
+  
   const [currentSteps, setCurrentSteps] = useState(initialSteps);
-  const [currentWalkScore, setCurrentWalkScore] = useState(initialWalkScore);
+  const [currentWalkScore, setCurrentWalkScore] = useState(calculatedWalkScore);
 
   // Listen for step updates from StepTracker
   useEffect(() => {

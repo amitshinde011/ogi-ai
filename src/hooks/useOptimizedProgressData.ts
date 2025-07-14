@@ -252,9 +252,30 @@ export const useOptimizedProgressData = () => {
       const progress = calculateProgramProgress(subscription.start_date, subscription.end_date);
 
       // Parse the daily points JSON into milestones array
-      const milestones = result.daily_points && typeof result.daily_points === 'string' ? 
+      let milestones = result.daily_points && typeof result.daily_points === 'string' ? 
         JSON.parse(result.daily_points) : 
         (Array.isArray(result.daily_points) ? result.daily_points : []);
+
+      // Ensure we have today's data included in milestones
+      const today = new Date();
+      const startDate = new Date(subscription.start_date);
+      const daysDiff = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      
+      if (daysDiff > 0 && daysDiff <= progress.totalDays) {
+        const todayExists = milestones.some((m: any) => m.day === daysDiff);
+        if (!todayExists) {
+          // Add today's milestone with 0 points if not exists
+          milestones.push({
+            day: daysDiff,
+            score: 0,
+            cumulativeScore: milestones.length > 0 ? milestones[milestones.length - 1].cumulativeScore : 0,
+            date: getLocalDateString(today)
+          });
+        }
+      }
+
+      // Sort milestones by day to ensure proper order
+      milestones.sort((a: any, b: any) => a.day - b.day);
 
       // Get program name
       const programName = (subscription.programs as any)?.name || 'Wellness Program';
