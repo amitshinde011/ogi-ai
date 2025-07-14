@@ -21,11 +21,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { currentSubscription, hasActiveSubscription, loading: userDataLoading } = useUserData();
   const { isCompleted, loading: completionLoading } = useProgramCompletion();
 
-  console.log('ProtectedRoute - currentSubscription:', currentSubscription);
-  console.log('ProtectedRoute - hasActiveSubscription:', hasActiveSubscription);
-  console.log('ProtectedRoute - isCompleted:', isCompleted);
-  console.log('ProtectedRoute - requiresActiveSubscription:', requiresActiveSubscription);
-  console.log('ProtectedRoute - showBlurOverlay:', showBlurOverlay);
+  // Reduce console logging to prevent performance issues
+  if (process.env.NODE_ENV === 'development') {
+    console.log('ProtectedRoute - currentSubscription:', currentSubscription?.id);
+    console.log('ProtectedRoute - hasActiveSubscription:', hasActiveSubscription);
+    console.log('ProtectedRoute - isCompleted:', isCompleted);
+    console.log('ProtectedRoute - requiresActiveSubscription:', requiresActiveSubscription);
+    console.log('ProtectedRoute - showBlurOverlay:', showBlurOverlay);
+  }
 
   // Show loading while checking subscription status
   if (userDataLoading || completionLoading) {

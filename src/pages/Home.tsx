@@ -182,9 +182,9 @@ const Home = () => {
         <StepTracker />
 
         <WellnessTracker 
-          waterLitres={homeData.wellnessData.water_litres}
-          suryaNamaskarCount={homeData.wellnessData.surya_namaskar_count}
-          meditationCompleted={homeData.wellnessData.meditation_completed}
+          waterLitres={wellnessData.water_litres}
+          suryaNamaskarCount={wellnessData.surya_namaskar_count}
+          meditationCompleted={wellnessData.meditation_completed}
           onWaterChange={(delta) => {
             console.log('💧 Home: Water change requested:', delta);
             updateWater(delta);

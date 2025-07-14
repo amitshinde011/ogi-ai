@@ -123,7 +123,10 @@ export const useOptimizedHomeData = () => {
       }
 
       console.log('👤 useOptimizedHomeData: User authenticated:', user.id);
+      
+      // Use local date ensuring consistency with step tracker
       const today = getLocalDateString();
+      console.log('📅 useOptimizedHomeData: Using date:', today);
       
       // Calculate week dates once using local time
       const currentDay = new Date().getDay();
@@ -320,7 +323,7 @@ export const useOptimizedHomeData = () => {
       fetchingRef.current = false;
       console.log('🏁 useOptimizedHomeData: Loading state updated to false');
     }
-  }, [user]); // Remove trackEvent to prevent refetch loops
+  }, [user, trackEvent]); // Fixed dependencies
 
   useEffect(() => {
     console.log('🔄 useOptimizedHomeData: useEffect triggered, user:', !!user);
@@ -329,7 +332,7 @@ export const useOptimizedHomeData = () => {
     } else {
       setLoading(false); // Don't keep loading if no user
     }
-  }, [fetchAllData, user]);
+  }, [user]); // Removed fetchAllData dependency to prevent loops
 
   console.log('📊 useOptimizedHomeData: Current state:', { 
     loading, 
