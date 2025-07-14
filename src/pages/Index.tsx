@@ -12,6 +12,8 @@ const Index = () => {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     // Only run redirect logic if we're actually on the root path
     if (location.pathname !== '/') {
       console.log('Not on root path, skipping redirect logic');
@@ -25,14 +27,30 @@ const Index = () => {
     }
 
     const handleRedirect = async () => {
-      // Use cached auth state to avoid additional API calls
-      const redirectPath = await determineLandingPage(user?.id, isAuthenticated);
-      console.log('Redirecting to:', redirectPath);
-      navigate(redirectPath, { replace: true });
+      try {
+        // Use cached auth state to avoid additional API calls
+        const redirectPath = await determineLandingPage(user?.id, isAuthenticated);
+        console.log('Redirecting to:', redirectPath);
+        
+        // Add a small delay to prevent rapid redirects
+        timeoutId = setTimeout(() => {
+          navigate(redirectPath, { replace: true });
+        }, 100);
+      } catch (error) {
+        console.error('Error during redirect:', error);
+        // Fallback redirect
+        navigate('/login', { replace: true });
+      }
     };
 
     handleRedirect();
-  }, [location.pathname, user, authLoading, isAuthenticated, navigate]);
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [location.pathname, user?.id, authLoading, isAuthenticated, navigate]);
 
   // Show loading screen while checking
   return (

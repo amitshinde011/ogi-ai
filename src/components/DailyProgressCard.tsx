@@ -124,7 +124,7 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
               </div>
             </div>
             <div className="text-white/80 text-sm mt-1">
-              {(currentWalkScore * 1000).toLocaleString()} / 5,000 steps to 5km
+              {currentSteps.toLocaleString()} / 5,000 steps to 5km
             </div>
           </div>
         </div>
