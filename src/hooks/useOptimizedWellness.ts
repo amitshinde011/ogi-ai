@@ -112,57 +112,33 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
           hasId: !!updatedData.id 
         });
 
-        if (updatedData.id) {
-          // Update existing record
-          console.log('🔄 useOptimizedWellness: Updating existing record with ID:', updatedData.id);
-          const { error } = await supabase
-            .from('daily_wellness')
-            .update({
-              water_litres: updatedData.water_litres,
-              surya_namaskar_count: updatedData.surya_namaskar_count,
-              meditation_completed: updatedData.meditation_completed
-            })
-            .eq('id', updatedData.id);
+        // Use optimized upsert function
+        console.log('🚀 useOptimizedWellness: Using optimized upsert function');
+        const { data, error } = await supabase.rpc('upsert_wellness_data', {
+          p_user_id: user.id,
+          p_date: today,
+          p_water_litres: allPendingUpdates.water_litres !== undefined ? updatedData.water_litres : null,
+          p_surya_namaskar_count: allPendingUpdates.surya_namaskar_count !== undefined ? updatedData.surya_namaskar_count : null,
+          p_meditation_completed: allPendingUpdates.meditation_completed !== undefined ? updatedData.meditation_completed : null,
+          p_meditation_minutes: 0
+        });
 
-          if (error) {
-            console.error('❌ useOptimizedWellness: Error updating record:', error);
-            throw error;
-          }
+        if (error) {
+          console.error('❌ useOptimizedWellness: Error with upsert function:', error);
+          throw error;
+        }
 
-          console.log('✅ useOptimizedWellness: Successfully updated existing record');
-          trackEvent('wellness_update_success', 'Wellness', 'Update Existing');
-        } else {
-          // Create new record
-          console.log('➕ useOptimizedWellness: Creating new wellness record');
-          const { data, error } = await supabase
-            .from('daily_wellness')
-            .upsert(
-              {
-                user_id: user.id,
-                date: today,
-                water_litres: updatedData.water_litres,
-                surya_namaskar_count: updatedData.surya_namaskar_count,
-                meditation_completed: updatedData.meditation_completed,
-                meditation_minutes: 0
-              },
-              { 
-                onConflict: 'user_id,date',
-                ignoreDuplicates: false 
-              }
-            )
-            .select()
-            .single();
-
-          if (error) {
-            console.error('❌ useOptimizedWellness: Error creating record:', error);
-            throw error;
-          }
-
-          if (data) {
-            console.log('✅ useOptimizedWellness: Successfully created new record with ID:', data.id);
-            setWellnessData(prev => ({ ...prev, id: data.id }));
-            trackEvent('wellness_create_success', 'Wellness', 'Create New');
-          }
+        if (data && data.length > 0) {
+          const result = data[0];
+          console.log('✅ useOptimizedWellness: Successfully upserted wellness data:', result);
+          setWellnessData(prev => ({ 
+            ...prev, 
+            id: result.id,
+            water_litres: result.water_litres,
+            surya_namaskar_count: result.surya_namaskar_count,
+            meditation_completed: result.meditation_completed
+          }));
+          trackEvent('wellness_upsert_success', 'Wellness', 'Optimized Upsert');
         }
 
         // Track specific wellness actions

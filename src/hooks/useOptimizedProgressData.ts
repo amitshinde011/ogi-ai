@@ -93,19 +93,172 @@ export const useOptimizedProgressData = () => {
   };
 
   const fetchProgressDataFallback = async (userId: string, cacheKey: string) => {
-    // Fallback to original complex queries
-    const [weeklyResult, journeyResult] = await Promise.all([
-      fetchWeeklyDataFallback(userId),
-      fetchJourneyDataFallback(userId)
+    // Use optimized database functions
+    const [weeklyResult, journeyResult, streaksResult] = await Promise.all([
+      fetchOptimizedWeeklyData(userId),
+      fetchOptimizedJourneyData(userId),
+      fetchOptimizedStreaks(userId)
     ]);
 
     const progressData: ProgressData = {
-      weeklyData: weeklyResult,
-      journeyData: journeyResult,
+      weeklyData: { ...weeklyResult, ...streaksResult },
+      journeyData: { ...journeyResult, ...streaksResult },
     };
 
     cache.set(cacheKey, { data: progressData, timestamp: Date.now() });
     setData(progressData);
+  };
+
+  const fetchOptimizedWeeklyData = async (userId: string): Promise<Omit<WeeklyProgressData, 'streak' | 'activeDays'>> => {
+    try {
+      const { data: weeklyData, error } = await supabase.rpc('get_user_weekly_progress', {
+        p_user_id: userId,
+        p_weeks_back: 1
+      });
+
+      if (error) throw error;
+
+      if (weeklyData && weeklyData.length > 0) {
+        const currentWeek = weeklyData[0];
+        
+        // Calculate daily scores for the week
+        const dailyScores = [];
+        for (let i = 6; i >= 0; i--) {
+          let score = 0;
+          if (currentWeek.meditation_days > i) score += 25;
+          if (currentWeek.yoga_days > i) score += 25;
+          if (currentWeek.avg_water >= 3) score += 25;
+          if (currentWeek.days_with_meals > i) score += 25;
+          dailyScores.push(score);
+        }
+
+        return {
+          totalScore: Math.round((currentWeek.avg_water * 25 + currentWeek.meditation_days * 25 + 
+                                currentWeek.yoga_days * 25 + currentWeek.days_with_meals * 25) / 7),
+          averageScore: Math.round((currentWeek.avg_water * 25 + currentWeek.meditation_days * 25 + 
+                                 currentWeek.yoga_days * 25 + currentWeek.days_with_meals * 25) / 7),
+          dailyScores,
+          suggestions: [
+            'Keep up the consistency in daily activities',
+            'Focus on completing all wellness activities each day',
+            'Great progress this week!'
+          ]
+        };
+      }
+
+      return {
+        totalScore: 0,
+        averageScore: 0,
+        dailyScores: [0, 0, 0, 0, 0, 0, 0],
+        suggestions: ['Start tracking your daily activities']
+      };
+    } catch (error) {
+      console.error('Error fetching optimized weekly data:', error);
+      return {
+        totalScore: 0,
+        averageScore: 0,
+        dailyScores: [0, 0, 0, 0, 0, 0, 0],
+        suggestions: []
+      };
+    }
+  };
+
+  const fetchOptimizedJourneyData = async (userId: string): Promise<Omit<JourneyProgressData, 'currentStreak' | 'bestStreak' | 'activeDays'>> => {
+    try {
+      // Get user's program info
+      const { data: subscription } = await supabase
+        .from('user_subscriptions')
+        .select('start_date, end_date')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!subscription?.start_date || !subscription?.end_date) {
+        return {
+          totalDays: 0,
+          completedDays: 0,
+          averageScore: 0,
+          totalScore: 0,
+          programName: 'Wellness Program',
+          startDate: '',
+          endDate: '',
+          milestones: [],
+          suggestions: ['Start your wellness journey by subscribing to a program']
+        };
+      }
+
+      const { calculateProgramProgress } = await import('@/utils/dateUtils');
+      const progress = calculateProgramProgress(subscription.start_date, subscription.end_date);
+
+      // Get aggregated progress data
+      const { data: weeklyData, error } = await supabase.rpc('get_user_weekly_progress', {
+        p_user_id: userId,
+        p_weeks_back: 12 // Get more weeks for journey data
+      });
+
+      if (error) throw error;
+
+      const totalScore = weeklyData?.reduce((sum: number, week: any) => 
+        sum + (week.avg_water * 7 + week.meditation_days + week.yoga_days + week.days_with_meals), 0) || 0;
+      
+      const averageScore = weeklyData?.length > 0 ? totalScore / weeklyData.length : 0;
+
+      return {
+        totalDays: progress.totalDays,
+        completedDays: progress.daysCompleted,
+        averageScore: Math.round(averageScore),
+        totalScore: Math.round(totalScore),
+        programName: 'Wellness Program',
+        startDate: subscription.start_date,
+        endDate: subscription.end_date,
+        milestones: [],
+        suggestions: [
+          'Keep up the consistency in your wellness journey',
+          'Focus on completing all daily activities',
+          'You\'re making great progress!'
+        ]
+      };
+    } catch (error) {
+      console.error('Error fetching optimized journey data:', error);
+      return {
+        totalDays: 0,
+        completedDays: 0,
+        averageScore: 0,
+        totalScore: 0,
+        programName: '',
+        startDate: '',
+        endDate: '',
+        milestones: [],
+        suggestions: []
+      };
+    }
+  };
+
+  const fetchOptimizedStreaks = async (userId: string): Promise<{ streak: number; activeDays: number; currentStreak: number; bestStreak: number }> => {
+    try {
+      const { data: streakData, error } = await supabase.rpc('calculate_user_streaks', {
+        p_user_id: userId
+      });
+
+      if (error) throw error;
+
+      if (streakData && streakData.length > 0) {
+        const { current_streak, best_streak, active_days } = streakData[0];
+        return {
+          streak: current_streak,
+          activeDays: active_days,
+          currentStreak: current_streak,
+          bestStreak: best_streak
+        };
+      }
+
+      return { streak: 0, activeDays: 0, currentStreak: 0, bestStreak: 0 };
+    } catch (error) {
+      console.error('Error fetching optimized streaks:', error);
+      return { streak: 0, activeDays: 0, currentStreak: 0, bestStreak: 0 };
+    }
   };
 
   const fetchWeeklyDataFallback = async (userId: string): Promise<WeeklyProgressData> => {

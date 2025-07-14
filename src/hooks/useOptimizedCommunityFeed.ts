@@ -52,7 +52,7 @@ export const useOptimizedCommunityFeed = () => {
     }
   }, []);
 
-  // Optimized query with join for posts, profiles, and likes
+  // Optimized query using new database function
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {
     try {
       if (reset) {
@@ -62,12 +62,19 @@ export const useOptimizedCommunityFeed = () => {
         setLoadingMore(true);
       }
 
-      // Fetch posts first
-      const { data: postsData, error: postsError } = await supabase
-        .from('posts')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .range(offset, offset + PAGE_SIZE - 1);
+      if (!currentUser) {
+        console.warn('No current user found for community feed');
+        if (reset) setPosts([]);
+        setHasMore(false);
+        return;
+      }
+
+      // Use optimized database function for single query
+      const { data: postsData, error: postsError } = await supabase.rpc('get_community_feed', {
+        p_user_id: currentUser.id,
+        p_limit: PAGE_SIZE,
+        p_offset: offset
+      });
 
       if (postsError) throw postsError;
 
@@ -77,35 +84,7 @@ export const useOptimizedCommunityFeed = () => {
         return;
       }
 
-      // Get author profiles
-      const authorIds = [...new Set(postsData.map(post => post.author_id))];
-      const { data: profiles } = await supabase
-        .from('user_profiles')
-        .select('user_id, name, profile_photo_url')
-        .in('user_id', authorIds);
-
-      // Get likes for current user
-      let userLikes: any[] = [];
-      if (currentUser) {
-        const postIds = postsData.map(post => post.id);
-        const { data: likesData } = await supabase
-          .from('likes')
-          .select('post_id')
-          .eq('user_id', currentUser.id)
-          .in('post_id', postIds);
-        userLikes = likesData || [];
-      }
-
-      const profileMap = new Map(
-        profiles?.map(profile => [
-          profile.user_id,
-          { name: profile.name, profile_photo_url: profile.profile_photo_url }
-        ]) || []
-      );
-
-      const likedPostIds = new Set(userLikes.map(like => like.post_id));
-
-      // Process posts with author info and like status
+      // Process posts - data comes optimized from database function
       const processedPosts = postsData.map(post => ({
         id: post.id,
         author_id: post.author_id,
@@ -115,11 +94,11 @@ export const useOptimizedCommunityFeed = () => {
         like_count: post.like_count,
         comment_count: post.comment_count,
         created_at: post.created_at,
-        author: profileMap.get(post.author_id) || {
-          name: 'Anonymous User',
-          profile_photo_url: null
+        author: {
+          name: post.author_name,
+          profile_photo_url: post.author_avatar
         },
-        is_liked: likedPostIds.has(post.id)
+        is_liked: post.user_has_liked
       }));
 
       if (reset) {
