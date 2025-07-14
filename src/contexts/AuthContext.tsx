@@ -63,26 +63,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const initializeAuth = async () => {
       try {
-        // Try to load cached user data first
-        const cachedUser = localStorage.getItem(AUTH_CACHE_KEY);
-        const cachedProfile = localStorage.getItem(PROFILE_CACHE_KEY);
-        
-        if (cachedUser && cachedProfile) {
-          try {
-            const parsedUser = JSON.parse(cachedUser);
-            const parsedProfile = JSON.parse(cachedProfile);
-            if (mounted) {
-              setUser(parsedUser);
-              setUserProfile(parsedProfile);
-              setLoading(false);
-            }
-          } catch (e) {
-            // Invalid cache, proceed with fresh auth check
-            localStorage.removeItem(AUTH_CACHE_KEY);
-            localStorage.removeItem(PROFILE_CACHE_KEY);
-          }
-        }
-
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
@@ -91,23 +71,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           console.error('Session retrieval error:', error);
           localStorage.removeItem(AUTH_CACHE_KEY);
           localStorage.removeItem(PROFILE_CACHE_KEY);
-          await supabase.auth.signOut();
           setUser(null);
           setSession(null);
           setUserProfile(null);
-          setLoading(false);
           return;
         }
 
         if (session?.user) {
-          const profile = await fetchUserProfile(session.user.id);
-          if (mounted) {
-            setUser(session.user);
-            setSession(session);
-            setUserProfile(profile);
-            // Cache the user and profile data
-            localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-            localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+          try {
+            const profile = await fetchUserProfile(session.user.id);
+            if (mounted) {
+              setUser(session.user);
+              setSession(session);
+              setUserProfile(profile);
+              // Cache the user and profile data
+              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+              localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+            }
+          } catch (profileError) {
+            console.error('Profile fetch error:', profileError);
+            // Still set user even if profile fails
+            if (mounted) {
+              setUser(session.user);
+              setSession(session);
+              setUserProfile({
+                name: 'User',
+                profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
+              });
+            }
           }
         } else {
           setUser(null);

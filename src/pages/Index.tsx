@@ -13,6 +13,7 @@ const Index = () => {
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
+    let fallbackTimeoutId: NodeJS.Timeout;
     
     // Only run redirect logic if we're actually on the root path
     if (location.pathname !== '/') {
@@ -23,7 +24,18 @@ const Index = () => {
     // Wait for auth to be resolved
     if (authLoading) {
       console.log('Still loading auth state...');
-      return;
+      
+      // Fallback timeout to prevent infinite loading
+      fallbackTimeoutId = setTimeout(() => {
+        console.log('Auth loading timeout reached, redirecting to login');
+        navigate('/login', { replace: true });
+      }, 10000); // 10 second timeout
+      
+      return () => {
+        if (fallbackTimeoutId) {
+          clearTimeout(fallbackTimeoutId);
+        }
+      };
     }
 
     const handleRedirect = async () => {
@@ -48,6 +60,9 @@ const Index = () => {
     return () => {
       if (timeoutId) {
         clearTimeout(timeoutId);
+      }
+      if (fallbackTimeoutId) {
+        clearTimeout(fallbackTimeoutId);
       }
     };
   }, [location.pathname, user?.id, authLoading, isAuthenticated, navigate]);
