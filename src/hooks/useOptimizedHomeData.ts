@@ -89,19 +89,27 @@ export const useOptimizedHomeData = () => {
   const fetchAllData = useCallback(async () => {
     if (!user) {
       console.log('👤 useOptimizedHomeData: Waiting for user authentication');
+      setLoading(false);
       return;
     }
 
     const now = Date.now();
     
-    // Prevent duplicate fetches within 5 seconds
-    if (fetchingRef.current || (now - lastFetchRef.current < 5000)) {
+    // Reset stuck fetching flag if it's been too long (30 seconds)
+    if (fetchingRef.current && (now - lastFetchRef.current > 30000)) {
+      console.log('🔄 useOptimizedHomeData: Resetting stuck fetching flag');
+      fetchingRef.current = false;
+    }
+    
+    // Prevent duplicate fetches within 2 seconds (reduced from 5)
+    if (fetchingRef.current || (now - lastFetchRef.current < 2000)) {
       console.log('🚫 useOptimizedHomeData: Preventing duplicate fetch');
       return;
     }
 
     fetchingRef.current = true;
     lastFetchRef.current = now;
+    setLoading(true);
     
     console.log('📡 useOptimizedHomeData: Starting data fetch');
     const startTime = performance.now();
