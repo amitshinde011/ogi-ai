@@ -331,7 +331,7 @@ export const useOptimizedHomeData = () => {
       window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
       window.removeEventListener('mealLogged', handleMealLogged as EventListener);
     };
-  }, [fetchAllData]);
+  }, []); // Removed fetchAllData dependency to prevent circular dependency
 
   useEffect(() => {
     console.log('🔄 useOptimizedHomeData: useEffect triggered, user:', !!user);
