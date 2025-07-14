@@ -168,6 +168,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             localStorage.removeItem(AUTH_CACHE_KEY);
             localStorage.removeItem(PROFILE_CACHE_KEY);
             localStorage.removeItem('user-preferences');
+            
+            // Clear all step-related localStorage entries
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.startsWith('steps_') || key.startsWith('step_goal_achieved_'))) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+            
             sessionStorage.clear();
           }
           break;
