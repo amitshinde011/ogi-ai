@@ -12,6 +12,7 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { Link } from 'react-router-dom';
 import { createPaymentSession, handleRazorpayPayment } from '@/utils/paymentGateway';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -22,7 +23,8 @@ const Payment = () => {
   const { trackPayment, trackEvent } = useAnalytics();
   
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
+  const [userWithProfile, setUserWithProfile] = useState<any>(null);
 
 
   // Get data from location state
@@ -32,23 +34,22 @@ const Payment = () => {
   const userLocation = location.state?.userLocation || '';
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (!authUser) {
-          navigate('/login');
-          return;
-        }
+    const fetchUserProfile = async () => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
 
+      try {
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('*')
-          .eq('user_id', authUser.id)
+          .eq('user_id', user.id)
           .single();
 
-        setUser({ ...authUser, profile });
+        setUserWithProfile({ ...user, profile });
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error('Error fetching user profile:', error);
         toast({
           title: "Error",
           description: "Failed to load user information",
@@ -58,8 +59,8 @@ const Payment = () => {
       }
     };
 
-    fetchUser();
-  }, [navigate, toast]);
+    fetchUserProfile();
+  }, [user, navigate, toast]);
 
   // Redirect if no program data
   useEffect(() => {
@@ -70,7 +71,7 @@ const Payment = () => {
     }
   }, [program, pricing, navigate]);
 
-  if (loading || !program || !pricing || !user) {
+  if (loading || !program || !pricing || !userWithProfile) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <Loader size="lg" />
@@ -158,7 +159,7 @@ const Payment = () => {
         const { error: subscriptionError } = await supabase
           .from('user_subscriptions')
           .insert({
-            user_id: user.id,
+            user_id: userWithProfile.id,
             program_id: program.id,
             start_date: null,
             end_date: null,
@@ -190,7 +191,7 @@ const Payment = () => {
       }
 
       // Create payment session
-      const sessionData = await createPaymentSession(program, 'razorpay');
+      const sessionData = await createPaymentSession(program, userWithProfile, 'razorpay');
       
       console.log('Payment session created:', sessionData);
 

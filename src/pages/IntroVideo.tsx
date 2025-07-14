@@ -12,6 +12,7 @@ import VideoInstructions from '@/components/VideoInstructions';
 import ContinueSection from '@/components/ContinueSection';
 import SacredNote from '@/components/SacredNote';
 import Loader from '@/components/ui/loader';
+import { useAuth } from '@/contexts/AuthContext';
 
 const IntroVideo = () => {
   const navigate = useNavigate();
@@ -19,11 +20,11 @@ const IntroVideo = () => {
   const { toast } = useToast();
   const { trackVideoComplete, trackButtonClick } = useAnalytics();
   const [videoWatched, setVideoWatched] = useState(false);
+  const { user } = useAuth();
   
   useEffect(() => {
     const checkAuthAndRedirect = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           navigate('/login');
           return;
@@ -41,9 +42,9 @@ const IntroVideo = () => {
     };
 
     if (onboardingState !== null) {
-      checkAuthAndRedirect();
+    checkAuthAndRedirect();
     }
-  }, [onboardingState, navigate]);
+  }, [onboardingState, navigate, user]);
 
   const handleVideoComplete = () => {
     setVideoWatched(true);

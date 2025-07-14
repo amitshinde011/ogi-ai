@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { useR2Upload } from '@/hooks/useR2Upload';
 import html2canvas from 'html2canvas';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AssessmentData {
   id?: string;
@@ -35,11 +36,11 @@ const Comparison = () => {
   const [finalAssessment, setFinalAssessment] = useState<AssessmentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const checkAccessAndFetchAssessments = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           navigate('/login');
           return;
@@ -85,11 +86,10 @@ const Comparison = () => {
     };
 
     checkAccessAndFetchAssessments();
-  }, [navigate]);
+  }, [navigate, user]);
 
   const fetchAssessments = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/login');
         return;
@@ -160,7 +160,6 @@ const Comparison = () => {
 
   const createCommunityPost = async (imageUrl: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
       const programName = completedSubscription?.programs?.name || 'Wellness Program';
@@ -221,7 +220,6 @@ Before vs After Progress - Your dedication and consistency can create amazing re
     try {
       setSharing(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // Capture the before/after photos comparison

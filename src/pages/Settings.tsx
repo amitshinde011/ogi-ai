@@ -12,6 +12,7 @@ import SettingsSection from '@/components/settings/SettingsSection';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SubscriptionHistory {
   id: string;
@@ -29,11 +30,11 @@ const Settings = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [subscriptionHistory, setSubscriptionHistory] = useState<SubscriptionHistory[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: profile } = await supabase
             .from('user_profiles')
@@ -63,7 +64,6 @@ const Settings = () => {
 
     const fetchSubscriptionHistory = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: subscriptions, error } = await supabase
             .from('user_subscriptions')
@@ -109,7 +109,7 @@ const Settings = () => {
 
     fetchUserProfile();
     fetchSubscriptionHistory();
-  }, [toast]);
+  }, [toast, user]);
 
   const handleLogout = async () => {
     try {

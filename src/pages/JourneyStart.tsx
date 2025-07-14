@@ -11,6 +11,7 @@ import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { getLocalDateString, createLocalDate } from '@/utils/dateUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const JourneyStart = () => {
   const navigate = useNavigate();
@@ -18,14 +19,14 @@ const JourneyStart = () => {
   const { updateOnboardingState } = useOnboarding();
   const [loading, setLoading] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     checkJourneyStart();
-  }, []);
+  }, [user]);
 
   const checkJourneyStart = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/login');
         return;

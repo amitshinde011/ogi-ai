@@ -7,15 +7,16 @@ import { Trophy, Star, Sparkles, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ProgramComplete = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     // Check if final assessment is already completed
     const checkFinalAssessmentStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           navigate('/login');
           return;
@@ -59,7 +60,7 @@ const ProgramComplete = () => {
     };
 
     checkFinalAssessmentStatus();
-  }, [navigate]);
+  }, [navigate, user]);
 
   return (
     <Layout>

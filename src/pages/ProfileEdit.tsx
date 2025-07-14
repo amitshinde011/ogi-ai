@@ -8,6 +8,7 @@ import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import ProfileForm from '@/components/ProfileForm';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileFormData {
   name: string;
@@ -24,6 +25,7 @@ const ProfileEdit = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileImage, setProfileImage] = useState<string>('');
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
+  const { user } = useAuth();
   
   const form = useForm<ProfileFormData>({
     defaultValues: {
@@ -39,7 +41,6 @@ const ProfileEdit = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: profile } = await supabase
             .from('user_profiles')
@@ -73,7 +74,7 @@ const ProfileEdit = () => {
     };
 
     fetchUserProfile();
-  }, [form]);
+  }, [form, user]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -89,7 +90,6 @@ const ProfileEdit = () => {
   const onSubmit = async (data: ProfileFormData) => {
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
       const profileData = {

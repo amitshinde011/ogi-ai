@@ -18,6 +18,7 @@ import { useTodayActivity } from '@/hooks/useTodayActivity';
 import { useOptimizedProgressData } from '@/hooks/useOptimizedProgressData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProgramData {
   id: string;
@@ -38,14 +39,14 @@ const ProgressPage = () => {
   const { showBanner } = useSubscriptionBanner();
   const { activityData, loading: activityLoading } = useTodayActivity();
   const { data: progressData, loading: progressLoading } = useOptimizedProgressData();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchProgressData();
-  }, []);
+  }, [user]);
 
   const fetchProgressData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/login');
         return;

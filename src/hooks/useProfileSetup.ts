@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useR2Upload } from '@/hooks/useR2Upload';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileFormData {
   name: string;
@@ -26,6 +27,7 @@ export const useProfileSetup = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const { uploadToR2, uploading } = useR2Upload();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState<ProfileFormData>({
     name: '',
@@ -70,7 +72,6 @@ export const useProfileSetup = () => {
 
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
       let profilePhotoUrl = null;

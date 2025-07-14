@@ -10,9 +10,11 @@ import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SavedRecipes = () => {
   const { savedRecipeIds, isLoading: savedRecipesLoading } = useSavedRecipes();
+  const { user } = useAuth();
 
   // Fetch the actual recipe data for saved recipes
   const { data: savedRecipes = [], isLoading: recipesLoading } = useQuery({
@@ -35,14 +37,7 @@ const SavedRecipes = () => {
     enabled: savedRecipeIds.length > 0,
   });
 
-  // Check if user is authenticated
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // User is available from useAuth hook
 
   const isLoading = savedRecipesLoading || recipesLoading;
 
