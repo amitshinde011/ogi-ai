@@ -28,7 +28,7 @@ interface SubscriptionHistory {
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { userProfile, userSubscriptions, loading } = useUserData();
   
   // Transform user data for the profile card
@@ -60,20 +60,17 @@ const Settings = () => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      const success = await signOut();
       
-      if (error) {
-        console.error('Error signing out:', error);
+      if (!success) {
         toast({
           title: "Error signing out",
-          description: error.message,
+          description: "Failed to sign out. Please try again.",
           variant: "destructive"
         });
         return;
       }
 
-      localStorage.removeItem('user');
-      
       toast({
         title: "Signed out successfully",
         description: "You have been logged out of your account."
