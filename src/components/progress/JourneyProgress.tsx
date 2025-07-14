@@ -71,8 +71,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
 
   const chartData = data.milestones.map((milestone) => ({
     day: milestone.day,
-    points: milestone.cumulativeScore,
-    dailyPoints: milestone.score,
+    points: milestone.score, // Daily points, not cumulative
     date: milestone.date
   }));
 
@@ -200,7 +199,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <TrendingUp size={20} />
-              Daily Points Progress
+              Daily Points Earned
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -218,7 +217,8 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: '#6B7280' }}
-                    label={{ value: 'Cumulative Points', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '12px', fill: '#6B7280' } }}
+                    label={{ value: 'Points Earned', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '12px', fill: '#6B7280' } }}
+                    domain={[0, 70]}
                   />
                   <Line 
                     type="monotone" 
