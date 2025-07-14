@@ -40,9 +40,14 @@ const Index = () => {
 
     const handleRedirect = async () => {
       try {
-        // Use cached auth state to avoid additional API calls
+        console.log('Index: Checking redirect with auth state:', { 
+          userId: user?.id, 
+          isAuthenticated, 
+          userExists: !!user 
+        });
+        
         const redirectPath = await determineLandingPage(user?.id, isAuthenticated);
-        console.log('Redirecting to:', redirectPath);
+        console.log('Index: Redirecting to:', redirectPath);
         
         // Add a small delay to prevent rapid redirects
         timeoutId = setTimeout(() => {

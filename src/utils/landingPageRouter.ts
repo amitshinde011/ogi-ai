@@ -16,17 +16,17 @@ export interface ProgramCompletionState {
 
 export const determineLandingPage = async (userId?: string, isAuthenticated?: boolean): Promise<string> => {
   try {
-    console.log('Landing page router: Starting redirect logic');
+    console.log('Landing page router: Starting redirect logic', { userId, isAuthenticated });
     
-    // If auth state is passed, use it; otherwise fall back to auth check
-    if (isAuthenticated === false || !userId) {
-      console.log('No authenticated user, redirecting to login');
+    // If explicitly not authenticated, go to login
+    if (isAuthenticated === false) {
+      console.log('Not authenticated, redirecting to login');
       return '/login';
     }
     
-    // Only make auth call if not provided
+    // If we have a userId, use it; otherwise check session
     let user_id = userId;
-    if (!user_id) {
+    if (!user_id && isAuthenticated !== true) {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
@@ -34,13 +34,20 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
         return '/login';
       }
 
-      if (!session || !session.user) {
+      if (!session?.user) {
         console.log('No session found, redirecting to login');
         return '/login';
       }
       
       user_id = session.user.id;
     }
+    
+    // If still no user_id and not explicitly authenticated, redirect to login
+    if (!user_id && isAuthenticated !== true) {
+      console.log('No user ID found, redirecting to login');
+      return '/login';
+    }
+    
     console.log('User found:', user_id);
 
     // Get onboarding state
