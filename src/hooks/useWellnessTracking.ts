@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface WellnessData {
   id?: string;
@@ -22,6 +23,7 @@ export const useWellnessTracking = () => {
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
   const lastFetchRef = useRef<string>('');
 
   useEffect(() => {
@@ -35,7 +37,6 @@ export const useWellnessTracking = () => {
 
   const fetchTodayWellness = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const today = new Date().toISOString().split('T')[0];
@@ -67,7 +68,6 @@ export const useWellnessTracking = () => {
 
   const updateWellnessData = async (updates: Partial<WellnessData>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const updatedData = { ...wellnessData, ...updates };

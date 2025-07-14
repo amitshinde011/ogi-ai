@@ -1,119 +1,54 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StepData {
   steps: number;
   lastUpdated: Date;
 }
 
-// Simple step tracker for manual entry only
-class ManualStepTracker {
-  private static instance: ManualStepTracker;
-  private stepCount = 0;
-  private syncInterval: NodeJS.Timeout | null = null;
+export const useStepTracking = () => {
+  const [stepData, setStepData] = useState<StepData>({ steps: 0, lastUpdated: new Date() });
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  private constructor() {
-    this.loadPersistedData();
-    this.setupSync();
-  }
-
-  public static getInstance(): ManualStepTracker {
-    if (!ManualStepTracker.instance) {
-      ManualStepTracker.instance = new ManualStepTracker();
-    }
-    return ManualStepTracker.instance;
-  }
-
-  private loadPersistedData() {
+  // Load persisted data from localStorage
+  const loadPersistedData = useCallback(() => {
     try {
       const today = new Date().toISOString().split('T')[0];
       const savedData = localStorage.getItem(`steps_${today}`);
       if (savedData) {
         const parsed = JSON.parse(savedData);
-        this.stepCount = parsed.steps || 0;
-        console.log('📁 Loaded persisted step data:', this.stepCount);
+        return parsed.steps || 0;
       }
+      return 0;
     } catch (error) {
       console.error('Error loading persisted data:', error);
+      return 0;
     }
-  }
+  }, []);
 
-  private persistData() {
+  // Persist data to localStorage
+  const persistData = useCallback((steps: number) => {
     try {
       const today = new Date().toISOString().split('T')[0];
       const dataToSave = {
-        steps: this.stepCount,
+        steps,
         timestamp: Date.now()
       };
       localStorage.setItem(`steps_${today}`, JSON.stringify(dataToSave));
     } catch (error) {
       console.error('Error persisting data:', error);
     }
-  }
+  }, []);
 
-  private setupSync() {
-    // Sync when app visibility changes
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        console.log('📱 App foregrounded - syncing step data');
-        this.syncToDatabase();
-      }
-    });
+  // Fetch today's steps from database
+  const fetchTodaySteps = useCallback(async () => {
+    if (!user) return 0;
 
-    // Sync before page unload
-    window.addEventListener('beforeunload', () => {
-      this.syncToDatabase();
-    });
-  }
-
-  private async syncToDatabase() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { error } = await supabase
-        .from('steps_tracking')
-        .upsert({
-          user_id: user.id,
-          date: today,
-          steps_count: this.stepCount
-        }, {
-          onConflict: 'user_id,date'
-        });
-
-      if (error) throw error;
-      
-      console.log('🔄 Steps saved to database:', this.stepCount);
-      
-      // Persist to localStorage as backup
-      this.persistData();
-    } catch (error) {
-      console.error('Error syncing to database:', error);
-    }
-  }
-
-  public getCurrentSteps(): number {
-    return this.stepCount;
-  }
-
-  public addManualSteps(steps: number) {
-    this.stepCount += steps;
-    this.syncToDatabase();
-    
-    // Notify components
-    window.dispatchEvent(new CustomEvent('stepsUpdated', { 
-      detail: { steps: this.stepCount, lastUpdated: new Date() } 
-    }));
-  }
-
-  public async fetchTodaySteps() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return 0;
-
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('steps_tracking')
@@ -123,90 +58,148 @@ class ManualStepTracker {
         .maybeSingle();
 
       if (error) throw error;
-
-      if (data && data.steps_count > this.stepCount) {
-        console.log('📊 Fetched higher step count from database:', data.steps_count);
-        this.stepCount = data.steps_count;
-        this.persistData();
-      }
-      
-      return this.stepCount;
+      return data?.steps_count || 0;
     } catch (error) {
       console.error('Error fetching today steps:', error);
-      return this.stepCount;
+      return loadPersistedData();
     }
-  }
-}
+  }, [user, loadPersistedData]);
 
-export const useStepTracking = () => {
-  const [stepData, setStepData] = useState<StepData>({ steps: 0, lastUpdated: new Date() });
-  const manualTracker = ManualStepTracker.getInstance();
+  // Sync steps to database
+  const syncToDatabase = useCallback(async (steps: number) => {
+    if (!user) return;
 
-  // Update step data and sync with parent components
-  const updateStepData = useCallback((newSteps: number) => {
-    const newData = { steps: newSteps, lastUpdated: new Date() };
-    setStepData(newData);
-  }, []);
-
-  useEffect(() => {
-    const initializeTracking = async () => {
-      // Fetch initial data
-      const initialSteps = await manualTracker.fetchTodaySteps();
-      updateStepData(initialSteps);
-      console.log('🎯 Manual step tracking initialized');
-    };
-
-    initializeTracking();
-
-    // Listen for step updates
-    const handleStepsUpdate = (event: CustomEvent) => {
-      updateStepData(event.detail.steps);
-    };
-
-    window.addEventListener('stepsUpdated', handleStepsUpdate as EventListener);
-    
-    // Cleanup function
-    return () => {
-      window.removeEventListener('stepsUpdated', handleStepsUpdate as EventListener);
-    };
-  }, [updateStepData]);
-
-  // Manual step addition
-  const manuallyAddSteps = useCallback(async (additionalSteps: number) => {
-    manualTracker.addManualSteps(additionalSteps);
-    const newSteps = manualTracker.getCurrentSteps();
-    updateStepData(newSteps);
-    console.log('➕ Adding manual steps:', additionalSteps, 'New total:', newSteps);
-  }, [updateStepData]);
-
-  // Force sync with database
-  const saveStepsToDatabase = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const today = new Date().toISOString().split('T')[0];
-      const currentSteps = manualTracker.getCurrentSteps();
       
       const { error } = await supabase
         .from('steps_tracking')
         .upsert({
           user_id: user.id,
           date: today,
-          steps_count: currentSteps
+          steps_count: steps
         }, {
           onConflict: 'user_id,date'
         });
 
       if (error) throw error;
-      console.log('💾 Manual sync - Steps saved to database:', currentSteps);
+      
+      console.log('🔄 Steps saved to database:', steps);
+      persistData(steps);
+    } catch (error) {
+      console.error('Error syncing to database:', error);
+      // Still persist locally even if sync fails
+      persistData(steps);
+    }
+  }, [user, persistData]);
+
+  // Initialize step tracking
+  useEffect(() => {
+    const initializeTracking = async () => {
+      if (!user) return;
+
+      setIsLoading(true);
+      try {
+        // Try to fetch from database first, fallback to localStorage
+        const dbSteps = await fetchTodaySteps();
+        const localSteps = loadPersistedData();
+        
+        // Use the higher value (in case of offline changes)
+        const initialSteps = Math.max(dbSteps, localSteps);
+        
+        setStepData({ steps: initialSteps, lastUpdated: new Date() });
+        
+        // If local data is higher, sync to database
+        if (localSteps > dbSteps) {
+          await syncToDatabase(localSteps);
+        }
+        
+        console.log('🎯 Step tracking initialized with', initialSteps, 'steps');
+      } catch (error) {
+        console.error('Error initializing step tracking:', error);
+        // Fallback to localStorage data
+        const localSteps = loadPersistedData();
+        setStepData({ steps: localSteps, lastUpdated: new Date() });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeTracking();
+  }, [user, fetchTodaySteps, loadPersistedData, syncToDatabase]);
+
+  // Setup sync on app visibility change and before unload
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && stepData.steps > 0) {
+        console.log('📱 App foregrounded - syncing step data');
+        syncToDatabase(stepData.steps);
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      if (stepData.steps > 0) {
+        syncToDatabase(stepData.steps);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [stepData.steps, syncToDatabase]);
+
+  // Manual step addition
+  const manuallyAddSteps = useCallback(async (additionalSteps: number) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to track steps",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newTotal = stepData.steps + additionalSteps;
+    const newStepData = { steps: newTotal, lastUpdated: new Date() };
+    
+    setStepData(newStepData);
+    await syncToDatabase(newTotal);
+    
+    console.log('➕ Adding manual steps:', additionalSteps, 'New total:', newTotal);
+    
+    toast({
+      title: "Steps added!",
+      description: `Added ${additionalSteps} steps. Total: ${newTotal}`,
+    });
+  }, [user, stepData.steps, syncToDatabase, toast]);
+
+  // Force sync with database
+  const saveStepsToDatabase = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      await syncToDatabase(stepData.steps);
+      toast({
+        title: "Steps synced!",
+        description: "Your step data has been saved successfully.",
+      });
     } catch (error) {
       console.error('Error saving steps:', error);
+      toast({
+        title: "Sync failed",
+        description: "Failed to sync steps. Data saved locally.",
+        variant: "destructive"
+      });
     }
-  }, []);
+  }, [user, stepData.steps, syncToDatabase, toast]);
 
   return {
     stepData,
+    isLoading,
     isTracking: false, // Manual only, no automatic tracking
     manuallyAddSteps,
     saveStepsToDatabase

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useR2Upload } from '@/hooks/useR2Upload';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FinalAssessmentForm {
   walk_10km_comfort: number;
@@ -17,6 +18,7 @@ interface FinalAssessmentForm {
 export const useFinalAssessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -26,7 +28,6 @@ export const useFinalAssessment = () => {
     // Check if program is completed and final assessment is appropriate
     const checkProgramStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           navigate('/login');
           return;
@@ -123,7 +124,6 @@ export const useFinalAssessment = () => {
   const onSubmit = async (data: FinalAssessmentForm) => {
     try {
       setIsSubmitting(true);
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
       // Get current subscription (should be completed by now)

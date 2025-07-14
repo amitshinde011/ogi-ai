@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useR2Upload } from '@/hooks/useR2Upload';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BeforeAssessmentForm {
   walk_10km_comfort: number;
@@ -18,6 +19,7 @@ interface BeforeAssessmentForm {
 export const useBeforeAssessment = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { onboardingState, updateOnboardingState } = useOnboarding();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -28,7 +30,6 @@ export const useBeforeAssessment = () => {
     // Check if before assessment was already completed for current subscription
     const checkAssessmentStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         // If onboarding shows assessment is completed, redirect to journey start
@@ -109,7 +110,6 @@ export const useBeforeAssessment = () => {
   const onSubmit = async (data: BeforeAssessmentForm) => {
     try {
       setIsSubmitting(true);
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
 
       // Get current active subscription

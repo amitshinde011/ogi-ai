@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface OnboardingState {
   id?: string;
@@ -16,6 +17,7 @@ export const useOnboarding = () => {
   const [onboardingState, setOnboardingState] = useState<OnboardingState | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchOnboardingState();
@@ -23,7 +25,6 @@ export const useOnboarding = () => {
 
   const fetchOnboardingState = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // Get onboarding state
@@ -88,7 +89,6 @@ export const useOnboarding = () => {
 
   const updateOnboardingState = async (updates: Partial<OnboardingState>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user || !onboardingState) return;
 
       const { error } = await supabase
