@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface StepData {
   steps: number;
@@ -19,7 +20,7 @@ export const useStepTracking = () => {
     if (!user) return 0;
     
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       const savedData = localStorage.getItem(`steps_${user.id}_${today}`);
       if (savedData) {
         const parsed = JSON.parse(savedData);
@@ -37,7 +38,7 @@ export const useStepTracking = () => {
     if (!user) return;
     
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       const dataToSave = {
         steps,
         timestamp: Date.now()
@@ -52,7 +53,7 @@ export const useStepTracking = () => {
   const clearUserCache = useCallback(() => {
     if (!user) return;
     
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const keysToRemove = [];
     
     // Clear ALL step-related localStorage entries, not just today's
@@ -78,7 +79,7 @@ export const useStepTracking = () => {
     if (!user) return 0;
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       const { data, error } = await supabase
         .from('steps_tracking')
         .select('steps_count')
@@ -99,7 +100,7 @@ export const useStepTracking = () => {
     if (!user) return;
 
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       
       const { error } = await supabase
         .from('steps_tracking')
