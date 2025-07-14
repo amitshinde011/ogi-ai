@@ -50,42 +50,6 @@ export const useOptimizedHomeData = () => {
   const fetchingRef = useRef(false);
   const lastFetchRef = useRef<number>(0);
 
-  // Listen for step updates and sync with data
-  useEffect(() => {
-    const handleStepsUpdated = (event: CustomEvent) => {
-      console.log('📢 useOptimizedHomeData: External steps update received:', event.detail);
-      const newSteps = event.detail.steps;
-      
-      setData(prev => {
-        const newWalkScore = Math.min(Math.floor(newSteps / 1000), 5);
-        const updatedData = {
-          ...prev,
-          todayProgress: {
-            ...prev.todayProgress,
-            steps: newSteps,
-            walkScore: newWalkScore
-          }
-        };
-        
-        console.log('📊 useOptimizedHomeData: Data updated with new steps:', {
-          oldSteps: prev.todayProgress.steps,
-          newSteps,
-          oldWalkScore: prev.todayProgress.walkScore,
-          newWalkScore
-        });
-        
-        return updatedData;
-      });
-    };
-
-    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
-    
-    return () => {
-      console.log('🧹 useOptimizedHomeData: Cleaning up steps listener');
-      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
-    };
-  }, []);
-
   const fetchAllData = useCallback(async () => {
     if (!user) {
       console.log('👤 useOptimizedHomeData: Waiting for user authentication');
@@ -324,6 +288,50 @@ export const useOptimizedHomeData = () => {
       console.log('🏁 useOptimizedHomeData: Loading state updated to false');
     }
   }, [user, trackEvent]); // Fixed dependencies
+
+  // Listen for step updates and meal logging events
+  useEffect(() => {
+    const handleStepsUpdated = (event: CustomEvent) => {
+      console.log('📢 useOptimizedHomeData: External steps update received:', event.detail);
+      const newSteps = event.detail.steps;
+      
+      setData(prev => {
+        const newWalkScore = Math.min(Math.floor(newSteps / 1000), 5);
+        const updatedData = {
+          ...prev,
+          todayProgress: {
+            ...prev.todayProgress,
+            steps: newSteps,
+            walkScore: newWalkScore
+          }
+        };
+        
+        console.log('📊 useOptimizedHomeData: Data updated with new steps:', {
+          oldSteps: prev.todayProgress.steps,
+          newSteps,
+          oldWalkScore: prev.todayProgress.walkScore,
+          newWalkScore
+        });
+        
+        return updatedData;
+      });
+    };
+
+    const handleMealLogged = (event: CustomEvent) => {
+      console.log('📢 useOptimizedHomeData: Meal logged event received:', event.detail);
+      // Refetch data to get updated meal counts
+      fetchAllData();
+    };
+
+    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    window.addEventListener('mealLogged', handleMealLogged as EventListener);
+    
+    return () => {
+      console.log('🧹 useOptimizedHomeData: Cleaning up listeners');
+      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+      window.removeEventListener('mealLogged', handleMealLogged as EventListener);
+    };
+  }, [fetchAllData]);
 
   useEffect(() => {
     console.log('🔄 useOptimizedHomeData: useEffect triggered, user:', !!user);

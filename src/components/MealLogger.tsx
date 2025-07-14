@@ -17,6 +17,13 @@ const MealLogger = () => {
     const success = await createPost(imageUrl, caption, mealType);
     if (success) {
       fetchDiscoverFeed(); // Refresh feeds
+      
+      // Dispatch event to notify home page to refresh meal data
+      const event = new CustomEvent('mealLogged', {
+        detail: { mealType }
+      });
+      window.dispatchEvent(event);
+      console.log('📢 MealLogger: mealLogged event dispatched for:', mealType);
     }
     return success;
   };

@@ -203,6 +203,13 @@ export const useStepTracking = () => {
     
     console.log('➕ Adding manual steps:', additionalSteps, 'New total:', newTotal);
     
+    // Dispatch event to notify other components
+    const event = new CustomEvent('stepsUpdated', {
+      detail: { steps: newTotal }
+    });
+    window.dispatchEvent(event);
+    console.log('📢 StepTracker: stepsUpdated event dispatched with:', newTotal);
+    
     toast({
       title: "Steps added!",
       description: `Added ${additionalSteps} steps. Total: ${newTotal}`,
