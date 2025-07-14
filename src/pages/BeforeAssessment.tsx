@@ -313,10 +313,8 @@ const BeforeAssessment = () => {
       const todayStr = getLocalDateString();
       if (selectedStartDate === todayStr) {
         navigate('/journey-start');
-      } else {
-        // Stay on this page until start date arrives
-        window.location.reload();
       }
+      // If start date is not today, stay on this page - no reload needed
     } catch (error) {
       console.error('Error setting start date:', error);
       toast({
