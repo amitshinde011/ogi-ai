@@ -176,14 +176,15 @@ export const useOptimizedProgressData = () => {
         .maybeSingle();
 
       if (!subscription?.start_date || !subscription?.end_date) {
+        const today = new Date().toISOString().split('T')[0];
         return {
           totalDays: 0,
           completedDays: 0,
           averageScore: 0,
           totalScore: 0,
           programName: 'Wellness Program',
-          startDate: '',
-          endDate: '',
+          startDate: today,
+          endDate: today,
           milestones: [],
           suggestions: ['Start your wellness journey by subscribing to a program']
         };
@@ -362,6 +363,7 @@ export const useOptimizedProgressData = () => {
         .maybeSingle();
 
       if (!subscription?.start_date || !subscription?.end_date) {
+        const today = new Date().toISOString().split('T')[0];
         return {
           totalDays: 0,
           completedDays: 0,
@@ -369,12 +371,12 @@ export const useOptimizedProgressData = () => {
           averageScore: 0,
           totalScore: 0,
           programName: 'Wellness Program',
-          startDate: '',
-          endDate: '',
+          startDate: today,
+          endDate: today,
           currentStreak: 0,
           bestStreak: 0,
           milestones: [],
-          suggestions: []
+          suggestions: ['Start your wellness journey by subscribing to a program']
         };
       }
 
