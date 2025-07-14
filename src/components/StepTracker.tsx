@@ -7,6 +7,7 @@ import { useStepTracking } from '@/hooks/useStepTracking';
 import { GoalCompletionMessage } from './wellness/GoalCompletionMessage';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 const StepTracker = () => {
   console.log('👟 StepTracker: Component initialized');
@@ -31,7 +32,7 @@ const StepTracker = () => {
   useEffect(() => {
     if (!user) return;
     
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const storageKey = `step_goal_achieved_${user.id}_${today}`;
     const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
     
