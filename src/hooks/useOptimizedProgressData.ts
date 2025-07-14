@@ -202,11 +202,22 @@ export const useOptimizedProgressData = () => {
         .limit(1)
         .maybeSingle();
 
-      const startDate = subscription?.start_date || new Date().toISOString().split('T')[0];
-      const currentDate = new Date().toISOString().split('T')[0];
+      if (!subscription?.start_date || !subscription?.end_date) {
+        return {
+          totalDays: 0,
+          completedDays: 0,
+          averageScore: 0,
+          totalScore: 0,
+          programName: 'Wellness Program',
+          startDate: '',
+          endDate: '',
+          milestones: [],
+          suggestions: []
+        };
+      }
 
-      // Calculate total days since start
-      const totalDays = Math.floor((new Date(currentDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const { calculateProgramProgress } = await import('@/utils/dateUtils');
+      const progress = calculateProgramProgress(subscription.start_date, subscription.end_date);
 
       // Get aggregated data since start
       const [wellness, meals, steps] = await Promise.all([
@@ -214,19 +225,19 @@ export const useOptimizedProgressData = () => {
           .from('daily_wellness')
           .select('date, meditation_completed, surya_namaskar_count, water_litres')
           .eq('user_id', userId)
-          .gte('date', startDate),
+          .gte('date', subscription.start_date),
         
         supabase
           .from('meal_tracking')
           .select('date')
           .eq('user_id', userId)
-          .gte('date', startDate),
+          .gte('date', subscription.start_date),
         
         supabase
           .from('steps_tracking')
           .select('steps_count')
           .eq('user_id', userId)
-          .gte('date', startDate)
+          .gte('date', subscription.start_date)
       ]);
 
       const activeDays = new Set([
@@ -239,18 +250,17 @@ export const useOptimizedProgressData = () => {
       const meditationSessions = wellness.data?.filter(w => w.meditation_completed).length || 0;
       const yogaSessions = wellness.data?.filter(w => (w.surya_namaskar_count || 0) > 0).length || 0;
 
-      const completedDays = activeDays;
       const calculatedTotalScore = wellness.data?.length * 25 + (meals.data?.length * 10) || 0;
       const averageScore = activeDays > 0 ? (calculatedTotalScore / activeDays) : 0;
 
       return {
-        totalDays,
-        completedDays,
+        totalDays: progress.totalDays,
+        completedDays: progress.daysCompleted,
         averageScore,
         totalScore: calculatedTotalScore,
         programName: 'Wellness Program',
-        startDate,
-        endDate: subscription?.end_date || new Date().toISOString().split('T')[0],
+        startDate: subscription.start_date,
+        endDate: subscription.end_date,
         milestones: [],
         suggestions: [
           'Keep up the consistency in your wellness journey',
