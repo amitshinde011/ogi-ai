@@ -1,22 +1,24 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useSubscriptionBanner = () => {
   const [showBanner, setShowBanner] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     checkSubscriptionStatus();
   }, []);
 
   const checkSubscriptionStatus = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
 
       const today = new Date().toISOString().split('T')[0];
 

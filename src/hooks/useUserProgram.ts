@@ -1,12 +1,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useUserProgram = () => {
+  const { user } = useAuth();
+  
   return useQuery({
-    queryKey: ['user-current-program'],
+    queryKey: ['user-current-program', user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
       const today = new Date().toISOString().split('T')[0];

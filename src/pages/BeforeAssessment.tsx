@@ -15,6 +15,7 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
 import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
 import { useR2Upload } from '@/hooks/useR2Upload';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AssessmentFormData {
   walk_10km_comfort: number;
@@ -37,6 +38,7 @@ const BeforeAssessment = () => {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [fieldMessages, setFieldMessages] = useState<{[key: string]: string}>({});
   const { uploadToR2, uploading } = useR2Upload();
+  const { user } = useAuth();
 
   const form = useForm<AssessmentFormData>({
     defaultValues: {
@@ -59,12 +61,12 @@ const BeforeAssessment = () => {
   }, [showDateSelection, assessmentCompleted]);
 
   const checkSubscriptionAndAssessment = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/login');
-        return;
-      }
       console.log('In BA page');
       const today = new Date().toISOString().split('T')[0];
       console.log('In BA pager: ',today);
@@ -193,10 +195,10 @@ const BeforeAssessment = () => {
   };
 
   const handleSubmitAssessment = async (data: AssessmentFormData) => {
+    if (!user || !currentSubscription) return;
+    
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !currentSubscription) return;
 
       let imageUrl = null;
       if (selectedImage) {
@@ -282,7 +284,6 @@ const BeforeAssessment = () => {
 
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user || !currentSubscription) return;
 
       // Calculate end date (inclusive - so duration_days from start date)
