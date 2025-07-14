@@ -133,18 +133,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       console.log('Auth state changed:', event);
       
+      // Always set loading to false when auth state changes
+      setLoading(false);
+      
       switch (event) {
         case 'SIGNED_IN':
           if (session?.user) {
-            const profile = await fetchUserProfile(session.user.id);
-            if (mounted) {
-              setUser(session.user);
-              setSession(session);
-              setUserProfile(profile);
-              setLoading(false);
-              // Cache the user and profile data
-              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-              localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+            try {
+              const profile = await fetchUserProfile(session.user.id);
+              if (mounted) {
+                setUser(session.user);
+                setSession(session);
+                setUserProfile(profile);
+                localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+                localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+              }
+            } catch (error) {
+              console.error('Profile fetch error on sign in:', error);
+              if (mounted) {
+                setUser(session.user);
+                setSession(session);
+                setUserProfile({
+                  name: 'User',
+                  profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
+                });
+              }
             }
           }
           break;
@@ -154,30 +167,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setUser(null);
             setSession(null);
             setUserProfile(null);
-            setLoading(false);
-            // Clear cached data
             localStorage.removeItem(AUTH_CACHE_KEY);
             localStorage.removeItem(PROFILE_CACHE_KEY);
             localStorage.removeItem('user-preferences');
-            // Clear ALL step-related localStorage entries comprehensively
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i);
-              if (key && (
-                key.startsWith('steps_') || 
-                key.startsWith('step_goal_achieved_') || 
-                key.startsWith('meditation_goal_achieved') ||
-                key.includes('step') ||
-                key.includes('Step')
-              )) {
-                keysToRemove.push(key);
-              }
-            }
-            keysToRemove.forEach(key => {
-              console.log('🧹 Clearing localStorage key:', key);
-              localStorage.removeItem(key);
-            });
-            
             sessionStorage.clear();
           }
           break;
@@ -192,33 +184,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
           break;
           
-        case 'USER_UPDATED':
-          if (mounted) {
-            setUser(session?.user ?? null);
-            setSession(session);
-            if (session?.user) {
-              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-            }
-          }
-          break;
-          
         default:
           if (session?.user) {
-            const profile = await fetchUserProfile(session.user.id);
-            if (mounted) {
-              setUser(session.user);
-              setSession(session);
-              setUserProfile(profile);
-              setLoading(false);
-              // Cache the user and profile data
-              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-              localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+            try {
+              const profile = await fetchUserProfile(session.user.id);
+              if (mounted) {
+                setUser(session.user);
+                setSession(session);
+                setUserProfile(profile);
+                localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+                localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+              }
+            } catch (error) {
+              console.error('Profile fetch error:', error);
+              if (mounted) {
+                setUser(session.user);
+                setSession(session);
+                setUserProfile({
+                  name: 'User',
+                  profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
+                });
+              }
             }
           } else if (mounted) {
-            setUser(session?.user ?? null);
-            setSession(session);
+            setUser(null);
+            setSession(null);
             setUserProfile(null);
-            setLoading(false);
             localStorage.removeItem(AUTH_CACHE_KEY);
             localStorage.removeItem(PROFILE_CACHE_KEY);
           }
