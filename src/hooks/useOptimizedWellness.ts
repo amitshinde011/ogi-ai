@@ -1,6 +1,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
@@ -12,6 +13,7 @@ interface WellnessData {
 }
 
 export const useOptimizedWellness = (initialData: WellnessData) => {
+  const { user } = useAuth();
   console.log('🌟 useOptimizedWellness: Hook initialized with data:', initialData);
   
   const [wellnessData, setWellnessData] = useState<WellnessData>(initialData);
@@ -97,7 +99,6 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
       console.log('📦 useOptimizedWellness: Processing accumulated updates:', allPendingUpdates);
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           console.error('❌ useOptimizedWellness: No authenticated user found');
           trackEvent('wellness_update_error', 'Error', 'No User');

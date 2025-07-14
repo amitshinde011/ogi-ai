@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ActivityData {
   mealsLogged: number;
@@ -14,6 +15,7 @@ const cache = new Map<string, { data: ActivityData; timestamp: number }>();
 const CACHE_DURATION = 30000; // 30 seconds
 
 export const useTodayActivity = () => {
+  const { user } = useAuth();
   const [activityData, setActivityData] = useState<ActivityData>({
     mealsLogged: 0,
     suryaNamaskarCount: 0,
@@ -37,7 +39,6 @@ export const useTodayActivity = () => {
 
   const fetchTodayActivity = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const today = new Date().toISOString().split('T')[0];

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 export interface CommunityPost {
@@ -21,6 +22,7 @@ export interface CommunityPost {
 const PAGE_SIZE = 10;
 
 export const useOptimizedCommunityFeed = () => {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -30,27 +32,24 @@ export const useOptimizedCommunityFeed = () => {
   // Fetch current user once
   const fetchCurrentUser = useCallback(async () => {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
+      if (!user) return;
       
-      if (user) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('name, profile_photo_url')
-          .eq('user_id', user.id)
-          .single();
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('name, profile_photo_url')
+        .eq('user_id', user.id)
+        .single();
 
-        setCurrentUser({
-          id: user.id,
-          email: user.email,
-          name: profile?.name || user.email?.split('@')[0] || 'Anonymous',
-          profile_photo_url: profile?.profile_photo_url
-        });
-      }
+      setCurrentUser({
+        id: user.id,
+        email: user.email,
+        name: profile?.name || user.email?.split('@')[0] || 'Anonymous',
+        profile_photo_url: profile?.profile_photo_url
+      });
     } catch (error) {
       console.error('Error fetching current user:', error);
     }
-  }, []);
+  }, [user]);
 
   // Optimized query using new database function
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {

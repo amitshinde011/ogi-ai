@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { getLocalDateString } from '@/utils/dateUtils';
 
@@ -24,6 +25,7 @@ interface HomeData {
 }
 
 export const useOptimizedHomeData = () => {
+  const { user } = useAuth();
   console.log('🏠 useOptimizedHomeData: Hook initialized');
   
   const [data, setData] = useState<HomeData>({
@@ -100,7 +102,6 @@ export const useOptimizedHomeData = () => {
     const startTime = performance.now();
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.warn('⚠️ useOptimizedHomeData: No authenticated user found');
         trackEvent('home_data_error', 'Error', 'No User');

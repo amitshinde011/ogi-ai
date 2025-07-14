@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface WeeklyProgressData {
   totalScore: number;
@@ -39,6 +40,7 @@ const cache = new Map<string, { data: ProgressData; timestamp: number }>();
 const CACHE_DURATION = 300000; // 5 minutes
 
 export const useOptimizedProgressData = () => {
+  const { user } = useAuth();
   const [data, setData] = useState<ProgressData>({
     weeklyData: {
       totalScore: 0,
@@ -71,7 +73,6 @@ export const useOptimizedProgressData = () => {
 
   const fetchProgressData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const cacheKey = `progress-${user.id}`;

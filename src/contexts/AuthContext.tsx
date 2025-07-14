@@ -19,6 +19,9 @@ interface AuthContextType {
   requireAuth: () => boolean;
 }
 
+const AUTH_CACHE_KEY = 'auth_user_cache';
+const PROFILE_CACHE_KEY = 'auth_profile_cache';
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
@@ -60,12 +63,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const initializeAuth = async () => {
       try {
+        // Try to load cached user data first
+        const cachedUser = localStorage.getItem(AUTH_CACHE_KEY);
+        const cachedProfile = localStorage.getItem(PROFILE_CACHE_KEY);
+        
+        if (cachedUser && cachedProfile) {
+          try {
+            const parsedUser = JSON.parse(cachedUser);
+            const parsedProfile = JSON.parse(cachedProfile);
+            if (mounted) {
+              setUser(parsedUser);
+              setUserProfile(parsedProfile);
+              setLoading(false);
+            }
+          } catch (e) {
+            // Invalid cache, proceed with fresh auth check
+            localStorage.removeItem(AUTH_CACHE_KEY);
+            localStorage.removeItem(PROFILE_CACHE_KEY);
+          }
+        }
+
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
 
         if (error) {
           console.error('Session retrieval error:', error);
+          localStorage.removeItem(AUTH_CACHE_KEY);
+          localStorage.removeItem(PROFILE_CACHE_KEY);
           await supabase.auth.signOut();
           setUser(null);
           setSession(null);
@@ -80,11 +105,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setUser(session.user);
             setSession(session);
             setUserProfile(profile);
+            // Cache the user and profile data
+            localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+            localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
           }
         } else {
           setUser(null);
           setSession(null);
           setUserProfile(null);
+          localStorage.removeItem(AUTH_CACHE_KEY);
+          localStorage.removeItem(PROFILE_CACHE_KEY);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -92,6 +122,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setUser(null);
           setSession(null);
           setUserProfile(null);
+          localStorage.removeItem(AUTH_CACHE_KEY);
+          localStorage.removeItem(PROFILE_CACHE_KEY);
         }
       } finally {
         if (mounted) {
@@ -119,6 +151,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               setSession(session);
               setUserProfile(profile);
               setLoading(false);
+              // Cache the user and profile data
+              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+              localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
             }
           }
           break;
@@ -130,6 +165,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setUserProfile(null);
             setLoading(false);
             // Clear cached data
+            localStorage.removeItem(AUTH_CACHE_KEY);
+            localStorage.removeItem(PROFILE_CACHE_KEY);
             localStorage.removeItem('user-preferences');
             sessionStorage.clear();
           }
@@ -139,6 +176,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           if (mounted) {
             setSession(session);
             setUser(session?.user ?? null);
+            if (session?.user) {
+              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+            }
           }
           break;
           
@@ -146,6 +186,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           if (mounted) {
             setUser(session?.user ?? null);
             setSession(session);
+            if (session?.user) {
+              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+            }
           }
           break;
           
@@ -157,12 +200,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               setSession(session);
               setUserProfile(profile);
               setLoading(false);
+              // Cache the user and profile data
+              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+              localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
             }
           } else if (mounted) {
             setUser(session?.user ?? null);
             setSession(session);
             setUserProfile(null);
             setLoading(false);
+            localStorage.removeItem(AUTH_CACHE_KEY);
+            localStorage.removeItem(PROFILE_CACHE_KEY);
           }
       }
     });
