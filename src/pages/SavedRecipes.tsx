@@ -98,7 +98,7 @@ const SavedRecipes = () => {
             </p>
             
             {savedRecipes.map((recipe) => (
-              <Link key={recipe.id} to={`/recipes/${recipe.id}`}>
+              <Link key={recipe.id} to={`/recipe/${recipe.id}`}>
                 <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex space-x-4">

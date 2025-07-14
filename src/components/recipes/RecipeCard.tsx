@@ -13,7 +13,7 @@ interface RecipeCardProps {
 
 const RecipeCard = ({ recipe, isSaved }: RecipeCardProps) => {
   return (
-    <Link to={`/recipes/${recipe.id}`}>
+    <Link to={`/recipe/${recipe.id}`}>
       <Card className="hover:shadow-md transition-shadow">
         <CardContent className="p-0">
           <div className="relative">
