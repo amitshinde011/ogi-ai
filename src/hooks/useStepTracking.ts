@@ -48,19 +48,30 @@ export const useStepTracking = () => {
     }
   }, [user]);
 
-  // Clear cache when user changes
+  // Clear cache when user changes - comprehensive cleanup
   const clearUserCache = useCallback(() => {
+    if (!user) return;
+    
     const today = new Date().toISOString().split('T')[0];
-    // Clear all step cache entries for today (from previous users)
     const keysToRemove = [];
+    
+    // Clear ALL step-related localStorage entries, not just today's
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('steps_') && key.endsWith(`_${today}`)) {
+      if (key && (
+        key.startsWith('steps_') ||
+        key.startsWith('step_goal_achieved_') ||
+        (key.includes('step') && key !== `steps_${user.id}_${today}`)
+      )) {
         keysToRemove.push(key);
       }
     }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-  }, []);
+    
+    keysToRemove.forEach(key => {
+      console.log('🧹 Clearing stale step cache:', key);
+      localStorage.removeItem(key);
+    });
+  }, [user]);
 
   // Fetch today's steps from database
   const fetchTodaySteps = useCallback(async () => {
@@ -116,38 +127,37 @@ export const useStepTracking = () => {
     const initializeTracking = async () => {
       if (!user) return;
 
+      console.log('🎯 Initializing step tracking for user:', user.id);
+      
       // Clear any cached step data from other users first
       clearUserCache();
 
       setIsLoading(true);
       try {
-        // Try to fetch from database first, fallback to localStorage
+        // Always prioritize database data over localStorage
         const dbSteps = await fetchTodaySteps();
-        const localSteps = loadPersistedData();
         
-        // Use the higher value (in case of offline changes)
-        const initialSteps = Math.max(dbSteps, localSteps);
+        console.log('📊 Database steps:', dbSteps);
         
-        setStepData({ steps: initialSteps, lastUpdated: new Date() });
+        // Start fresh with database data only
+        setStepData({ steps: dbSteps, lastUpdated: new Date() });
         
-        // If local data is higher, sync to database
-        if (localSteps > dbSteps) {
-          await syncToDatabase(localSteps);
-        }
+        // Update localStorage with fresh database data
+        persistData(dbSteps);
         
-        console.log('🎯 Step tracking initialized with', initialSteps, 'steps');
+        console.log('🎯 Step tracking initialized with', dbSteps, 'steps from database');
       } catch (error) {
         console.error('Error initializing step tracking:', error);
-        // Fallback to localStorage data
-        const localSteps = loadPersistedData();
-        setStepData({ steps: localSteps, lastUpdated: new Date() });
+        // Only fallback to 0 if database fails completely
+        setStepData({ steps: 0, lastUpdated: new Date() });
+        persistData(0);
       } finally {
         setIsLoading(false);
       }
     };
 
     initializeTracking();
-  }, [user, fetchTodaySteps, loadPersistedData, syncToDatabase, clearUserCache]);
+  }, [user, fetchTodaySteps, persistData, clearUserCache]);
 
   // Setup sync on app visibility change and before unload
   useEffect(() => {
