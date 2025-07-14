@@ -1,0 +1,337 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+
+export interface CommunityPost {
+  id: number;
+  author_id: string;
+  image_url: string;
+  caption: string | null;
+  category: string | null;
+  like_count: number;
+  comment_count: number;
+  created_at: string;
+  author?: {
+    name: string | null;
+    profile_photo_url: string | null;
+  };
+  is_liked?: boolean;
+}
+
+const PAGE_SIZE = 10;
+
+export const useOptimizedCommunityFeed = () => {
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Fetch current user once
+  const fetchCurrentUser = useCallback(async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('name, profile_photo_url')
+          .eq('user_id', user.id)
+          .single();
+
+        setCurrentUser({
+          id: user.id,
+          email: user.email,
+          name: profile?.name || user.email?.split('@')[0] || 'Anonymous',
+          profile_photo_url: profile?.profile_photo_url
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  }, []);
+
+  // Optimized query with join for posts, profiles, and likes
+  const fetchPosts = useCallback(async (offset = 0, reset = false) => {
+    try {
+      if (reset) {
+        setLoading(true);
+        setHasMore(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      // Fetch posts first
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (postsError) throw postsError;
+
+      if (!postsData?.length) {
+        if (reset) setPosts([]);
+        setHasMore(false);
+        return;
+      }
+
+      // Get author profiles
+      const authorIds = [...new Set(postsData.map(post => post.author_id))];
+      const { data: profiles } = await supabase
+        .from('user_profiles')
+        .select('user_id, name, profile_photo_url')
+        .in('user_id', authorIds);
+
+      // Get likes for current user
+      let userLikes: any[] = [];
+      if (currentUser) {
+        const postIds = postsData.map(post => post.id);
+        const { data: likesData } = await supabase
+          .from('likes')
+          .select('post_id')
+          .eq('user_id', currentUser.id)
+          .in('post_id', postIds);
+        userLikes = likesData || [];
+      }
+
+      const profileMap = new Map(
+        profiles?.map(profile => [
+          profile.user_id,
+          { name: profile.name, profile_photo_url: profile.profile_photo_url }
+        ]) || []
+      );
+
+      const likedPostIds = new Set(userLikes.map(like => like.post_id));
+
+      // Process posts with author info and like status
+      const processedPosts = postsData.map(post => ({
+        id: post.id,
+        author_id: post.author_id,
+        image_url: post.image_url,
+        caption: post.caption,
+        category: post.category,
+        like_count: post.like_count,
+        comment_count: post.comment_count,
+        created_at: post.created_at,
+        author: profileMap.get(post.author_id) || {
+          name: 'Anonymous User',
+          profile_photo_url: null
+        },
+        is_liked: likedPostIds.has(post.id)
+      }));
+
+      if (reset) {
+        setPosts(processedPosts);
+      } else {
+        setPosts(prev => [...prev, ...processedPosts]);
+      }
+
+      setHasMore(processedPosts.length === PAGE_SIZE);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+      toast({ title: "Failed to load community feed", variant: "destructive" });
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [currentUser]);
+
+  // Load more posts
+  const loadMore = useCallback(() => {
+    if (!loadingMore && hasMore) {
+      fetchPosts(posts.length, false);
+    }
+  }, [posts.length, loadingMore, hasMore, fetchPosts]);
+
+  // Refresh posts
+  const refreshPosts = useCallback(() => {
+    fetchPosts(0, true);
+  }, [fetchPosts]);
+
+  // Create post
+  const createPost = useCallback(async (imageUrl: string, caption: string, category?: string) => {
+    if (!currentUser) {
+      toast({ title: "Please log in to create posts", variant: "destructive" });
+      return false;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .insert({
+          author_id: currentUser.id,
+          image_url: imageUrl,
+          caption: caption || null,
+          category: category || null
+        })
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      // Add new post to the beginning of the list
+      const newPost: CommunityPost = {
+        ...data,
+        author: {
+          name: currentUser.name,
+          profile_photo_url: currentUser.profile_photo_url
+        },
+        is_liked: false
+      };
+
+      setPosts(prev => [newPost, ...prev]);
+      toast({ title: "Post created successfully!" });
+      return true;
+    } catch (error) {
+      console.error('Error creating post:', error);
+      toast({ title: "Failed to create post", variant: "destructive" });
+      return false;
+    }
+  }, [currentUser]);
+
+  // Toggle like with optimistic updates
+  const toggleLike = useCallback(async (postId: number) => {
+    if (!currentUser) {
+      toast({ title: "Please log in to like posts", variant: "destructive" });
+      return;
+    }
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    // Optimistic update
+    setPosts(prev =>
+      prev.map(p =>
+        p.id === postId
+          ? {
+              ...p,
+              is_liked: !p.is_liked,
+              like_count: p.is_liked ? p.like_count - 1 : p.like_count + 1
+            }
+          : p
+      )
+    );
+
+    try {
+      if (post.is_liked) {
+        await supabase
+          .from('likes')
+          .delete()
+          .eq('user_id', currentUser.id)
+          .eq('post_id', postId);
+      } else {
+        await supabase
+          .from('likes')
+          .insert({
+            user_id: currentUser.id,
+            post_id: postId
+          });
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      setPosts(prev =>
+        prev.map(p =>
+          p.id === postId
+            ? {
+                ...p,
+                is_liked: post.is_liked,
+                like_count: post.like_count
+              }
+            : p
+        )
+      );
+      console.error('Error toggling like:', error);
+      toast({ title: "Failed to update like", variant: "destructive" });
+    }
+  }, [currentUser, posts]);
+
+  // Initialize
+  useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
+
+  useEffect(() => {
+    if (currentUser !== null) {
+      fetchPosts(0, true);
+    }
+  }, [currentUser, fetchPosts]);
+
+  // Real-time updates - optimized to only add new posts
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:posts')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'posts' 
+      }, async (payload) => {
+        if (payload.new.author_id !== currentUser?.id) {
+          // Fetch the new post with author info
+          const { data: postData } = await supabase
+            .from('posts')
+            .select('*')
+            .eq('id', payload.new.id)
+            .single();
+
+          if (postData) {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('name, profile_photo_url')
+              .eq('user_id', postData.author_id)
+              .single();
+
+            const newPost: CommunityPost = {
+              ...postData,
+              author: {
+                name: profile?.name || 'Anonymous User',
+                profile_photo_url: profile?.profile_photo_url || null
+              },
+              is_liked: false
+            };
+            setPosts(prev => [newPost, ...prev]);
+          }
+        }
+      })
+      .on('postgres_changes', { 
+        event: 'UPDATE', 
+        schema: 'public', 
+        table: 'posts' 
+      }, (payload) => {
+        setPosts(prev =>
+          prev.map(post =>
+            post.id === payload.new.id
+              ? { ...post, ...payload.new }
+              : post
+          )
+        );
+      })
+      .on('postgres_changes', { 
+        event: 'DELETE', 
+        schema: 'public', 
+        table: 'posts' 
+      }, (payload) => {
+        setPosts(prev =>
+          prev.filter(post => post.id !== payload.old.id)
+        );
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUser]);
+
+  return {
+    posts,
+    loading,
+    loadingMore,
+    hasMore,
+    currentUser,
+    createPost,
+    toggleLike,
+    refreshPosts,
+    loadMore
+  };
+};
