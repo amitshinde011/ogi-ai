@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
 
       console.log('Auth state changed:', event);
@@ -139,26 +139,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       switch (event) {
         case 'SIGNED_IN':
           if (session?.user) {
-            try {
-              const profile = await fetchUserProfile(session.user.id);
-              if (mounted) {
-                setUser(session.user);
-                setSession(session);
-                setUserProfile(profile);
-                localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-                localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
-              }
-            } catch (error) {
-              console.error('Profile fetch error on sign in:', error);
-              if (mounted) {
-                setUser(session.user);
-                setSession(session);
-                setUserProfile({
-                  name: 'User',
-                  profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
-                });
-              }
-            }
+            // Immediately set user data to prevent race condition
+            setUser(session.user);
+            setSession(session);
+            localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+            
+            // Fetch profile asynchronously without blocking
+            fetchUserProfile(session.user.id)
+              .then(profile => {
+                if (mounted) {
+                  setUserProfile(profile);
+                  localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+                }
+              })
+              .catch(error => {
+                console.error('Profile fetch error on sign in:', error);
+                if (mounted) {
+                  setUserProfile({
+                    name: 'User',
+                    profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
+                  });
+                }
+              });
           }
           break;
           
@@ -186,26 +188,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           
         default:
           if (session?.user) {
-            try {
-              const profile = await fetchUserProfile(session.user.id);
-              if (mounted) {
-                setUser(session.user);
-                setSession(session);
-                setUserProfile(profile);
-                localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-                localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
-              }
-            } catch (error) {
-              console.error('Profile fetch error:', error);
-              if (mounted) {
-                setUser(session.user);
-                setSession(session);
-                setUserProfile({
-                  name: 'User',
-                  profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
-                });
-              }
-            }
+            // Immediately set user data to prevent race condition
+            setUser(session.user);
+            setSession(session);
+            localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+            
+            // Fetch profile asynchronously without blocking
+            fetchUserProfile(session.user.id)
+              .then(profile => {
+                if (mounted) {
+                  setUserProfile(profile);
+                  localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+                }
+              })
+              .catch(error => {
+                console.error('Profile fetch error:', error);
+                if (mounted) {
+                  setUserProfile({
+                    name: 'User',
+                    profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
+                  });
+                }
+              });
           } else if (mounted) {
             setUser(null);
             setSession(null);
