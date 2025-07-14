@@ -24,6 +24,7 @@ interface JourneyProgressData {
   milestones: Array<{
     day: number;
     score: number;
+    cumulativeScore: number;
     date: string;
   }>;
   suggestions: string[];
@@ -201,29 +202,50 @@ export const useOptimizedProgressData = () => {
       const { calculateProgramProgress } = await import('@/utils/dateUtils');
       const progress = calculateProgramProgress(subscription.start_date, subscription.end_date);
 
-      // Get all weekly data since program start
-      const startDate = new Date(subscription.start_date);
-      const weeksBack = Math.ceil((Date.now() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
-      
-      const { data: weeklyData, error } = await supabase.rpc('get_user_weekly_progress', {
-        p_user_id: userId,
-        p_weeks_back: Math.max(weeksBack, 4)
-      });
+      // Get daily activity data for the current program
+      const { data: dailyData, error: dailyError } = await supabase
+        .from('daily_activity_summary')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('date', subscription.start_date)
+        .lte('date', subscription.end_date)
+        .order('date', { ascending: true });
 
-      if (error) throw error;
+      if (dailyError) console.error('Error fetching daily data:', dailyError);
 
-      // Calculate total score and average based on actual data
-      const totalPoints = weeklyData?.reduce((sum: number, week: any) => {
-        const weekPoints = Number(week.meditation_days || 0) * 20 + 
-                          Number(week.yoga_days || 0) * 20 + 
-                          Number(week.days_with_meals || 0) * 10 + 
-                          Math.min(Number(week.avg_water || 0), 4) * 10;
-        return sum + weekPoints;
-      }, 0) || 0;
+      // Calculate daily points and create milestones array
+      const milestones = [];
+      let cumulativePoints = 0;
       
-      // Calculate average score as percentage based on activity completion
-      const totalPossibleScore = progress.daysCompleted * 70; // Max 70 points per day (20+20+10+20)
-      const averageScore = totalPossibleScore > 0 ? Math.round((totalPoints / totalPossibleScore) * 100) : 0;
+      if (dailyData) {
+        for (let i = 0; i < progress.daysCompleted; i++) {
+          const currentDate = new Date(subscription.start_date);
+          currentDate.setDate(currentDate.getDate() + i);
+          const dateStr = currentDate.toISOString().split('T')[0];
+          
+          const dayData = dailyData.find(d => d.date === dateStr);
+          
+          // Calculate daily points (same logic as weekly but for individual days)
+          const dailyPoints = (dayData?.meditation_completed ? 20 : 0) + 
+                             (dayData?.surya_namaskar_count > 0 ? 20 : 0) + 
+                             (dayData?.meals_logged > 0 ? 10 : 0) + 
+                             (Math.min(dayData?.water_litres || 0, 4) * 5); // 5 points per liter, max 20
+          
+          cumulativePoints += dailyPoints;
+          
+          milestones.push({
+            day: i + 1,
+            score: dailyPoints,
+            cumulativeScore: cumulativePoints,
+            date: dateStr
+          });
+        }
+      }
+
+      // Calculate total and average scores
+      const totalPoints = cumulativePoints;
+      const maxPossiblePoints = progress.daysCompleted * 70; // Max 70 points per day
+      const averageScore = maxPossiblePoints > 0 ? Math.round((totalPoints / maxPossiblePoints) * 100) : 0;
 
       // Get program name
       const programName = (subscription.programs as any)?.name || 'Wellness Program';
@@ -236,7 +258,7 @@ export const useOptimizedProgressData = () => {
         programName,
         startDate: subscription.start_date,
         endDate: subscription.end_date,
-        milestones: [],
+        milestones,
         suggestions: [
           'Keep up the consistency in your wellness journey',
           'Focus on completing all daily activities',

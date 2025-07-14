@@ -27,6 +27,7 @@ interface JourneyProgressData {
   milestones: Array<{
     day: number;
     score: number;
+    cumulativeScore: number;
     date: string;
   }>;
   suggestions: string[];
@@ -69,8 +70,9 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
   };
 
   const chartData = data.milestones.map((milestone) => ({
-    day: `Day ${milestone.day}`,
-    score: Math.round(milestone.score),
+    day: milestone.day,
+    points: milestone.cumulativeScore,
+    dailyPoints: milestone.score,
     date: milestone.date
   }));
 
@@ -198,11 +200,11 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <TrendingUp size={20} />
-              Milestone Progress
+              Daily Points Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-48">
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                   <XAxis 
@@ -210,20 +212,21 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: '#6B7280' }}
+                    label={{ value: 'Day', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: '12px', fill: '#6B7280' } }}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: '#6B7280' }}
-                    domain={[0, 100]}
+                    label={{ value: 'Cumulative Points', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '12px', fill: '#6B7280' } }}
                   />
                   <Line 
                     type="monotone" 
-                    dataKey="score" 
+                    dataKey="points" 
                     stroke="#10B981" 
                     strokeWidth={3}
-                    dot={{ fill: '#10B981', strokeWidth: 2, r: 6 }}
-                    activeDot={{ r: 8, fill: '#10B981' }}
+                    dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: '#10B981' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
