@@ -121,22 +121,31 @@ export const useOptimizedProgressData = () => {
       if (weeklyData && weeklyData.length > 0) {
         const currentWeek = weeklyData[0];
         
-        // Calculate daily scores for the week
+        // Calculate daily scores based on weekly performance
+        const totalActivities = Number(currentWeek.meditation_days) + Number(currentWeek.yoga_days) + 
+                               Number(currentWeek.days_with_meals) + (Number(currentWeek.avg_water) >= 3 ? 7 : 0);
+        const maxActivities = 7 * 4; // 7 days * 4 activities
+        const weeklyScore = Math.round((totalActivities / maxActivities) * 100);
+        
+        // Generate realistic daily scores based on weekly data
         const dailyScores = [];
-        for (let i = 6; i >= 0; i--) {
-          let score = 0;
-          if (currentWeek.meditation_days > i) score += 25;
-          if (currentWeek.yoga_days > i) score += 25;
-          if (currentWeek.avg_water >= 3) score += 25;
-          if (currentWeek.days_with_meals > i) score += 25;
-          dailyScores.push(score);
+        const activeDaysCount = Number(currentWeek.days_tracked);
+        for (let i = 0; i < 7; i++) {
+          if (i < activeDaysCount) {
+            let score = 0;
+            if (Number(currentWeek.meditation_days) > 0) score += 25;
+            if (Number(currentWeek.yoga_days) > 0) score += 25;
+            if (Number(currentWeek.avg_water) >= 3) score += 25;
+            if (Number(currentWeek.days_with_meals) > 0) score += 25;
+            dailyScores.push(score);
+          } else {
+            dailyScores.push(0);
+          }
         }
 
         return {
-          totalScore: Math.round((currentWeek.avg_water * 25 + currentWeek.meditation_days * 25 + 
-                                currentWeek.yoga_days * 25 + currentWeek.days_with_meals * 25) / 7),
-          averageScore: Math.round((currentWeek.avg_water * 25 + currentWeek.meditation_days * 25 + 
-                                 currentWeek.yoga_days * 25 + currentWeek.days_with_meals * 25) / 7),
+          totalScore: weeklyScore,
+          averageScore: weeklyScore,
           dailyScores,
           suggestions: [
             'Keep up the consistency in daily activities',
@@ -150,7 +159,7 @@ export const useOptimizedProgressData = () => {
         totalScore: 0,
         averageScore: 0,
         dailyScores: [0, 0, 0, 0, 0, 0, 0],
-        suggestions: ['Start tracking your daily activities']
+        suggestions: ['Let\'s focus on consistency this week!']
       };
     } catch (error) {
       console.error('Error fetching optimized weekly data:', error);
@@ -165,10 +174,10 @@ export const useOptimizedProgressData = () => {
 
   const fetchOptimizedJourneyData = async (userId: string): Promise<Omit<JourneyProgressData, 'currentStreak' | 'bestStreak' | 'activeDays'>> => {
     try {
-      // Get user's program info
+      // Get user's program info with programs table join for name
       const { data: subscription } = await supabase
         .from('user_subscriptions')
-        .select('start_date, end_date')
+        .select('start_date, end_date, programs(name)')
         .eq('user_id', userId)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
@@ -176,15 +185,14 @@ export const useOptimizedProgressData = () => {
         .maybeSingle();
 
       if (!subscription?.start_date || !subscription?.end_date) {
-        const today = new Date().toISOString().split('T')[0];
         return {
           totalDays: 0,
           completedDays: 0,
           averageScore: 0,
           totalScore: 0,
-          programName: 'Wellness Program',
-          startDate: today,
-          endDate: today,
+          programName: 'No Active Program',
+          startDate: 'Not Set',
+          endDate: 'Not Set',
           milestones: [],
           suggestions: ['Start your wellness journey by subscribing to a program']
         };
@@ -193,25 +201,38 @@ export const useOptimizedProgressData = () => {
       const { calculateProgramProgress } = await import('@/utils/dateUtils');
       const progress = calculateProgramProgress(subscription.start_date, subscription.end_date);
 
-      // Get aggregated progress data
+      // Get all weekly data since program start
+      const startDate = new Date(subscription.start_date);
+      const weeksBack = Math.ceil((Date.now() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1;
+      
       const { data: weeklyData, error } = await supabase.rpc('get_user_weekly_progress', {
         p_user_id: userId,
-        p_weeks_back: 12 // Get more weeks for journey data
+        p_weeks_back: Math.max(weeksBack, 4)
       });
 
       if (error) throw error;
 
-      const totalScore = weeklyData?.reduce((sum: number, week: any) => 
-        sum + (week.avg_water * 7 + week.meditation_days + week.yoga_days + week.days_with_meals), 0) || 0;
+      // Calculate total score and average based on actual data
+      const totalPoints = weeklyData?.reduce((sum: number, week: any) => {
+        const weekPoints = Number(week.meditation_days || 0) * 20 + 
+                          Number(week.yoga_days || 0) * 20 + 
+                          Number(week.days_with_meals || 0) * 10 + 
+                          Math.min(Number(week.avg_water || 0), 4) * 10;
+        return sum + weekPoints;
+      }, 0) || 0;
       
-      const averageScore = weeklyData?.length > 0 ? totalScore / weeklyData.length : 0;
+      const totalWeeks = weeklyData?.length || 1;
+      const averageScore = Math.round(totalPoints / totalWeeks);
+
+      // Get program name
+      const programName = (subscription.programs as any)?.name || 'Wellness Program';
 
       return {
         totalDays: progress.totalDays,
         completedDays: progress.daysCompleted,
-        averageScore: Math.round(averageScore),
-        totalScore: Math.round(totalScore),
-        programName: 'Wellness Program',
+        averageScore,
+        totalScore: totalPoints,
+        programName,
         startDate: subscription.start_date,
         endDate: subscription.end_date,
         milestones: [],
@@ -228,9 +249,9 @@ export const useOptimizedProgressData = () => {
         completedDays: 0,
         averageScore: 0,
         totalScore: 0,
-        programName: '',
-        startDate: '',
-        endDate: '',
+        programName: 'Error Loading',
+        startDate: 'Error',
+        endDate: 'Error',
         milestones: [],
         suggestions: []
       };
