@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserData } from '@/contexts/UserDataContext';
 
 interface CompletedSubscription {
   id: string;
@@ -18,50 +19,49 @@ export const useProgramCompletion = () => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [completedSubscription, setCompletedSubscription] = useState<CompletedSubscription | null>(null);
   const [hasFinalAssessment, setHasFinalAssessment] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [checkingAssessment, setCheckingAssessment] = useState(false);
   const { user } = useAuth();
+  const { userSubscriptions, loading: userDataLoading } = useUserData();
 
   useEffect(() => {
     checkProgramCompletion();
-  }, []);
+  }, [userSubscriptions, user]);
 
   const checkProgramCompletion = async () => {
-    if (!user) {
-      setLoading(false);
+    if (!user || userDataLoading) {
       return;
     }
     
     try {
-
       const today = new Date().toISOString().split('T')[0];
-      const todayDate = new Date(today);
       
-      // Get active subscription that has ended (end date is inclusive, so program ends the day after)
-      const { data: subscription } = await supabase
-        .from('user_subscriptions')
-        .select('*, programs(*)')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .lt('end_date', today) // Program completes the day after end date
-        .maybeSingle();
+      // Find completed subscription from context data
+      const completedSub = userSubscriptions.find(sub => {
+        return sub.status === 'active' && sub.end_date < today;
+      });
 
-      if (subscription) {
+      if (completedSub) {
+        setCheckingAssessment(true);
         // Check if final assessment is already completed
         const { data: finalAssessment } = await supabase
           .from('final_assessments')
           .select('id')
           .eq('user_id', user.id)
-          .eq('subscription_id', subscription.id)
+          .eq('subscription_id', completedSub.id)
           .maybeSingle();
 
         setIsCompleted(true);
-        setCompletedSubscription(subscription);
+        setCompletedSubscription(completedSub as CompletedSubscription);
         setHasFinalAssessment(!!finalAssessment);
+      } else {
+        setIsCompleted(false);
+        setCompletedSubscription(null);
+        setHasFinalAssessment(false);
       }
     } catch (error) {
       console.error('Error checking program completion:', error);
     } finally {
-      setLoading(false);
+      setCheckingAssessment(false);
     }
   };
 
@@ -88,7 +88,7 @@ export const useProgramCompletion = () => {
     isCompleted, 
     completedSubscription, 
     hasFinalAssessment, 
-    loading, 
+    loading: userDataLoading || checkingAssessment, 
     checkProgramCompletion,
     markSubscriptionCompleted
   };

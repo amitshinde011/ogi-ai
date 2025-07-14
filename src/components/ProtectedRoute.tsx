@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useUserProgram } from '@/hooks/useUserProgram';
+import { useUserData } from '@/contexts/UserDataContext';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import Loader from '@/components/ui/loader';
 import SubscriptionBlurOverlay from './SubscriptionBlurOverlay';
@@ -18,16 +18,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiresActiveSubscription = false,
   showBlurOverlay = false
 }) => {
-  const { data: userProgram, isLoading: programLoading } = useUserProgram();
+  const { currentSubscription, hasActiveSubscription, loading: userDataLoading } = useUserData();
   const { isCompleted, loading: completionLoading } = useProgramCompletion();
 
-  console.log('ProtectedRoute - userProgram:', userProgram);
+  console.log('ProtectedRoute - currentSubscription:', currentSubscription);
+  console.log('ProtectedRoute - hasActiveSubscription:', hasActiveSubscription);
   console.log('ProtectedRoute - isCompleted:', isCompleted);
   console.log('ProtectedRoute - requiresActiveSubscription:', requiresActiveSubscription);
   console.log('ProtectedRoute - showBlurOverlay:', showBlurOverlay);
 
   // Show loading while checking subscription status
-  if (programLoading || completionLoading) {
+  if (userDataLoading || completionLoading) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="text-center">
@@ -57,7 +58,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
     
     // If no active program, either show blur overlay or redirect
-    if (!userProgram) {
+    if (!hasActiveSubscription) {
       if (showBlurOverlay) {
         return <SubscriptionBlurOverlay>{children}</SubscriptionBlurOverlay>;
       }

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { initializeCapacitorPlugins } from "@/utils/capacitorConfig";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { UserDataProvider } from "@/contexts/UserDataContext";
 
 // Import all pages
 import Index from "./pages/Index";
@@ -58,9 +59,10 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+          <UserDataProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
@@ -103,6 +105,7 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          </UserDataProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
