@@ -46,6 +46,7 @@ export const useOptimizedHomeData = () => {
     }
   });
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const { trackEvent } = useAnalytics();
   const fetchingRef = useRef(false);
   const lastFetchRef = useRef<number>(0);
@@ -162,6 +163,8 @@ export const useOptimizedHomeData = () => {
         const loadTime = endTime - startTime;
         console.log(`✅ useOptimizedHomeData: Data fetch completed in ${loadTime.toFixed(2)}ms (optimized)`);
         trackEvent('home_data_loaded_optimized', 'Performance', `Load Time: ${Math.round(loadTime)}ms`);
+        
+        // Mark initial load as complete (done outside fetchAllData to avoid circular dependency)
         return;
       }
 
@@ -278,6 +281,8 @@ export const useOptimizedHomeData = () => {
       
       // Track analytics
       trackEvent('home_data_loaded', 'Performance', `Load Time: ${Math.round(loadTime)}ms`);
+      
+      // Mark initial load as complete (done outside fetchAllData to avoid circular dependency)
 
     } catch (error) {
       console.error('❌ useOptimizedHomeData: Error fetching home data:', error);
@@ -319,8 +324,25 @@ export const useOptimizedHomeData = () => {
 
     const handleMealLogged = (event: CustomEvent) => {
       console.log('📢 useOptimizedHomeData: Meal logged event received:', event.detail);
-      // Refetch data to get updated meal counts
-      fetchAllData();
+      const { mealType, mealData } = event.detail;
+      
+      // Update state immediately for instant UI feedback
+      setData(prev => ({
+        ...prev,
+        todayProgress: {
+          ...prev.todayProgress,
+          [mealType]: true
+        }
+      }));
+      
+      // Use current ref to ensure we have the latest function
+      setTimeout(() => {
+        if (fetchingRef.current) {
+          console.log('🔄 useOptimizedHomeData: Skipping refetch - already fetching');
+          return;
+        }
+        fetchAllData();
+      }, 500); // Small delay to ensure database is updated
     };
 
     window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
@@ -331,24 +353,26 @@ export const useOptimizedHomeData = () => {
       window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
       window.removeEventListener('mealLogged', handleMealLogged as EventListener);
     };
-  }, []); // Removed fetchAllData dependency to prevent circular dependency
+  }, []); // Remove fetchAllData dependency to prevent circular dependency
 
   useEffect(() => {
     console.log('🔄 useOptimizedHomeData: useEffect triggered, user:', !!user);
     if (user) {
       fetchAllData();
+      setInitialLoad(false);
     } else {
       setLoading(false); // Don't keep loading if no user
     }
-  }, [user]); // Removed fetchAllData dependency to prevent loops
+  }, [user]); // Remove fetchAllData dependency to prevent loops
 
   console.log('📊 useOptimizedHomeData: Current state:', { 
     loading, 
+    initialLoad,
     dataKeys: Object.keys(data),
     todayProgressKeys: Object.keys(data.todayProgress),
     currentSteps: data.todayProgress.steps,
     currentWalkScore: data.todayProgress.walkScore
   });
 
-  return { data, loading, refetch: fetchAllData };
+  return { data, loading: loading && initialLoad, refetch: fetchAllData };
 };

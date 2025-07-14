@@ -6,26 +6,68 @@ import CreatePostModal from '@/components/social/CreatePostModal';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 import { useUserProgram } from '@/hooks/useUserProgram';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
+import { toast } from '@/hooks/use-toast';
 
 const MealLogger = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const { createPost, fetchDiscoverFeed } = useSocialPosts();
   const { data: userProgram } = useUserProgram();
   const { isCompleted } = useProgramCompletion();
+  const { user } = useAuth();
 
   const handleCreateMealPost = async (imageUrl: string, caption: string, mealType?: string) => {
-    const success = await createPost(imageUrl, caption, mealType);
-    if (success) {
-      fetchDiscoverFeed(); // Refresh feeds
-      
-      // Dispatch event to notify home page to refresh meal data
-      const event = new CustomEvent('mealLogged', {
-        detail: { mealType }
-      });
-      window.dispatchEvent(event);
-      console.log('📢 MealLogger: mealLogged event dispatched for:', mealType);
+    if (!user || !mealType) {
+      console.log('⚠️ MealLogger: Missing user or mealType');
+      return false;
     }
-    return success;
+
+    try {
+      // First, log the meal to the meal_tracking table
+      const today = getLocalDateString();
+      const { data: mealData, error: mealError } = await supabase
+        .from('meal_tracking')
+        .insert({
+          user_id: user.id,
+          date: today,
+          meal_type: mealType,
+          food_item: caption || 'Meal logged from social post'
+        })
+        .select()
+        .single();
+
+      if (mealError) {
+        console.error('❌ MealLogger: Error logging meal:', mealError);
+        toast({ title: "Failed to log meal", variant: "destructive" });
+        return false;
+      }
+
+      console.log('✅ MealLogger: Meal logged successfully:', mealData);
+
+      // Then create the social post
+      const success = await createPost(imageUrl, caption, mealType);
+      if (success) {
+        fetchDiscoverFeed(); // Refresh feeds
+        
+        // Dispatch event to notify home page to refresh meal data
+        const event = new CustomEvent('mealLogged', {
+          detail: { mealType, mealData }
+        });
+        window.dispatchEvent(event);
+        console.log('📢 MealLogger: mealLogged event dispatched for:', mealType);
+        
+        toast({ title: "Meal logged and shared successfully!" });
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('❌ MealLogger: Error in handleCreateMealPost:', error);
+      toast({ title: "Failed to log meal", variant: "destructive" });
+      return false;
+    }
   };
 
   return (
