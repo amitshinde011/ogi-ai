@@ -16,9 +16,11 @@ export const useStepTracking = () => {
 
   // Load persisted data from localStorage
   const loadPersistedData = useCallback(() => {
+    if (!user) return 0;
+    
     try {
       const today = new Date().toISOString().split('T')[0];
-      const savedData = localStorage.getItem(`steps_${today}`);
+      const savedData = localStorage.getItem(`steps_${user.id}_${today}`);
       if (savedData) {
         const parsed = JSON.parse(savedData);
         return parsed.steps || 0;
@@ -28,20 +30,36 @@ export const useStepTracking = () => {
       console.error('Error loading persisted data:', error);
       return 0;
     }
-  }, []);
+  }, [user]);
 
   // Persist data to localStorage
   const persistData = useCallback((steps: number) => {
+    if (!user) return;
+    
     try {
       const today = new Date().toISOString().split('T')[0];
       const dataToSave = {
         steps,
         timestamp: Date.now()
       };
-      localStorage.setItem(`steps_${today}`, JSON.stringify(dataToSave));
+      localStorage.setItem(`steps_${user.id}_${today}`, JSON.stringify(dataToSave));
     } catch (error) {
       console.error('Error persisting data:', error);
     }
+  }, [user]);
+
+  // Clear cache when user changes
+  const clearUserCache = useCallback(() => {
+    const today = new Date().toISOString().split('T')[0];
+    // Clear all step cache entries for today (from previous users)
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('steps_') && key.endsWith(`_${today}`)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
   }, []);
 
   // Fetch today's steps from database
@@ -98,6 +116,9 @@ export const useStepTracking = () => {
     const initializeTracking = async () => {
       if (!user) return;
 
+      // Clear any cached step data from other users first
+      clearUserCache();
+
       setIsLoading(true);
       try {
         // Try to fetch from database first, fallback to localStorage
@@ -126,7 +147,7 @@ export const useStepTracking = () => {
     };
 
     initializeTracking();
-  }, [user, fetchTodaySteps, loadPersistedData, syncToDatabase]);
+  }, [user, fetchTodaySteps, loadPersistedData, syncToDatabase, clearUserCache]);
 
   // Setup sync on app visibility change and before unload
   useEffect(() => {

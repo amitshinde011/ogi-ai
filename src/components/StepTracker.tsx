@@ -6,6 +6,7 @@ import { Footprints, Plus } from 'lucide-react';
 import { useStepTracking } from '@/hooks/useStepTracking';
 import { GoalCompletionMessage } from './wellness/GoalCompletionMessage';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useAuth } from '@/contexts/AuthContext';
 
 const StepTracker = () => {
   console.log('👟 StepTracker: Component initialized');
@@ -14,6 +15,7 @@ const StepTracker = () => {
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [goalAchievedToday, setGoalAchievedToday] = useState(false);
   const { trackEvent } = useAnalytics();
+  const { user } = useAuth();
 
   const goal = 5000; // 5,000 steps goal for 5km
 
@@ -27,8 +29,10 @@ const StepTracker = () => {
 
   // Check if goal was achieved today and store in localStorage
   useEffect(() => {
+    if (!user) return;
+    
     const today = new Date().toISOString().split('T')[0];
-    const storageKey = `step_goal_achieved_${today}`;
+    const storageKey = `step_goal_achieved_${user.id}_${today}`;
     const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
     
     setGoalAchievedToday(wasAchievedToday);
@@ -49,7 +53,7 @@ const StepTracker = () => {
       localStorage.setItem(storageKey, 'true');
       trackEvent('step_goal_achieved', 'Fitness', '5km Goal', stepData.steps);
     }
-  }, [stepData.steps, goal, trackEvent]);
+  }, [stepData.steps, goal, trackEvent, user]);
 
   const getRandomMessage = () => {
     const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
