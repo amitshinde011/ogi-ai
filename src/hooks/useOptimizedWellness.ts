@@ -40,7 +40,6 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
         newData: initialData
       });
       setWellnessData(initialData);
-      trackEvent('wellness_data_sync', 'Data Management', 'Initial Data Updated');
     }
   }, [initialData.id, initialData.water_litres, initialData.surya_namaskar_count, initialData.meditation_completed]);
 
@@ -179,7 +178,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('water_intake_action', 'UI', delta > 0 ? 'Increase' : 'Decrease', Math.abs(delta));
     debouncedUpdate({ water_litres: newValue });
-  }, [wellnessData.water_litres, debouncedUpdate]);
+  }, [wellnessData.water_litres, debouncedUpdate, trackEvent]);
 
   const updateSuryaNamaskar = useCallback((delta: number) => {
     const newValue = Math.max(0, wellnessData.surya_namaskar_count + delta);
@@ -190,7 +189,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('surya_namaskar_action', 'UI', delta > 0 ? 'Increase' : 'Decrease', Math.abs(delta));
     debouncedUpdate({ surya_namaskar_count: newValue });
-  }, [wellnessData.surya_namaskar_count, debouncedUpdate]);
+  }, [wellnessData.surya_namaskar_count, debouncedUpdate, trackEvent]);
 
   const toggleMeditation = useCallback(() => {
     const newValue = !wellnessData.meditation_completed;
@@ -200,7 +199,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('meditation_action', 'UI', newValue ? 'Complete' : 'Incomplete');
     debouncedUpdate({ meditation_completed: newValue });
-  }, [wellnessData.meditation_completed, debouncedUpdate]);
+  }, [wellnessData.meditation_completed, debouncedUpdate, trackEvent]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
