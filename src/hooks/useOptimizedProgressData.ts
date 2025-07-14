@@ -104,7 +104,6 @@ export const useOptimizedProgressData = () => {
     const progressData: ProgressData = {
       weeklyData: { 
         ...weeklyResult, 
-        activeDays: streaksResult.activeDays,
         streak: streaksResult.streak
       },
       journeyData: { 
@@ -163,7 +162,8 @@ export const useOptimizedProgressData = () => {
           dailyScores[i] = Math.round(dayScore);
           totalScore += dayScore;
           
-          if (dayScore > 0) {
+          // Only count as active day if there's meaningful activity (score >= 10)
+          if (dayScore >= 10) {
             activeDays++;
           }
         }
