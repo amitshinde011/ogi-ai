@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface ActivityData {
   mealsLogged: number;
@@ -41,7 +42,7 @@ export const useTodayActivity = () => {
     try {
       if (!user) return;
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       const cacheKey = `${user.id}-${today}`;
       
       // Check cache first

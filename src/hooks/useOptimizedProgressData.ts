@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface WeeklyProgressData {
   totalScore: number;
@@ -130,8 +131,8 @@ export const useOptimizedProgressData = () => {
         .from('daily_activity_summary')
         .select('*')
         .eq('user_id', userId)
-        .gte('date', startDate.toISOString().split('T')[0])
-        .lte('date', today.toISOString().split('T')[0])
+        .gte('date', getLocalDateString(startDate))
+        .lte('date', getLocalDateString(today))
         .order('date', { ascending: true });
 
       if (error) {
@@ -148,7 +149,7 @@ export const useOptimizedProgressData = () => {
       for (let i = 0; i < 7; i++) {
         const date = new Date(startDate);
         date.setDate(startDate.getDate() + i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(date);
         
         const dayData = dailyData?.find(d => d.date === dateStr);
         
