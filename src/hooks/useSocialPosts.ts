@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface SocialPost {
   id: number; // Changed from string to number (bigint)
@@ -25,44 +26,37 @@ export const useSocialPosts = () => {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { createNotification } = useNotifications();
+  const { user } = useAuth();
 
   // Fetch current user
   const fetchCurrentUser = async () => {
+    if (!user) {
+      setCurrentUser(null);
+      return;
+    }
+    
     try {
       console.log('🔍 Fetching current user...');
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log('👤 Auth user:', { user, authError });
+      console.log('👤 Auth user:', user.id);
       
-      if (authError) {
-        console.error('❌ Auth error:', authError);
-        return;
-      }
+      // Get user profile
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (user) {
-        console.log('👤 Got authenticated user:', user.id);
-        
-        // Get user profile
-        const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
+      console.log('👤 User profile query result:', { profile, profileError });
 
-        console.log('👤 User profile query result:', { profile, profileError });
+      const userData = {
+        auth_id: user.id, // This is auth.users.id - use for RLS operations
+        profile_id: profile?.id, // This is user_profiles.id - use for profile references
+        name: profile?.name || user.email?.split('@')[0] || 'User',
+        profile_photo_url: profile?.profile_photo_url
+      };
 
-        const userData = {
-          auth_id: user.id, // This is auth.users.id - use for RLS operations
-          profile_id: profile?.id, // This is user_profiles.id - use for profile references
-          name: profile?.name || user.email?.split('@')[0] || 'User',
-          profile_photo_url: profile?.profile_photo_url
-        };
-
-        setCurrentUser(userData);
-        console.log('✅ Current user set:', userData);
-      } else {
-        console.log('⚠️ No authenticated user found');
-        setCurrentUser(null);
-      }
+      setCurrentUser(userData);
+      console.log('✅ Current user set:', userData);
     } catch (error) {
       console.error('❌ Error fetching current user:', error);
       setCurrentUser(null);

@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface RecipeSearchWithSuggestionsProps {
   searchTerm: string;
@@ -15,12 +16,12 @@ const RecipeSearchWithSuggestions = ({ searchTerm, onSearchChange }: RecipeSearc
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   // Get user's program recipes for suggestions
   const { data: programRecipes = [] } = useQuery({
-    queryKey: ['user-program-recipes'],
+    queryKey: ['user-program-recipes', user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
       const today = new Date().toISOString().split('T')[0];

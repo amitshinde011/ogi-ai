@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface Comment {
   id: number;
@@ -19,6 +20,7 @@ export interface Comment {
 export const useComments = (postId: number | null) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   const fetchComments = async () => {
     if (!postId) return;
@@ -70,12 +72,12 @@ export const useComments = (postId: number | null) => {
   const addComment = async (text: string, parentCommentId?: number) => {
     if (!postId) return false;
 
+    if (!user) {
+      toast({ title: "Please log in to comment", variant: "destructive" });
+      return false;
+    }
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({ title: "Please log in to comment", variant: "destructive" });
-        return false;
-      }
 
       const { error } = await supabase
         .from('comments')

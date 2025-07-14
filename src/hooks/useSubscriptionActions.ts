@@ -8,6 +8,7 @@ import { useLocationDetection } from '@/hooks/useLocationDetection';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
 import { calculatePricing } from '@/utils/pricingUtils';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Program {
   id: string;
@@ -28,6 +29,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
   const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
   const { isIndiaUser, userLocation } = useLocationDetection();
   const pricingConfig = usePricingConfig();
+  const { user } = useAuth();
 
   const getDisplayPrice = (program: Program) => {
     if (isIndiaUser && program.price_inr) {
@@ -43,12 +45,11 @@ export const useSubscriptionActions = (programs: Program[]) => {
   };
 
   const createFreeSubscription = async (program: Program) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
 
       // First, mark any existing active subscriptions as completed
       const { error: updateError } = await supabase
@@ -109,18 +110,17 @@ export const useSubscriptionActions = (programs: Program[]) => {
   };
 
   const handleSubscribe = async (programId: string, couponDiscountPercentage: number = 0, finalPrice?: number) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to subscribe.",
+        variant: "destructive",
+      });
+      navigate('/login');
+      return;
+    }
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to subscribe.",
-          variant: "destructive",
-        });
-        navigate('/login');
-        return;
-      }
 
       console.log('Current user:', user.id);
       console.log('Location data:', { isIndiaUser, userLocation });

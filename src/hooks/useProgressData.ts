@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateProgramProgress } from '@/utils/dateUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface WeeklyProgressData {
   totalScore: number;
@@ -51,6 +52,7 @@ export const useProgressData = () => {
   });
   
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchProgressData();
@@ -90,9 +92,9 @@ export const useProgressData = () => {
   };
 
   const fetchProgressData = async () => {
+    if (!user) return;
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
 
       // Get current subscription
       const { data: subscription } = await supabase

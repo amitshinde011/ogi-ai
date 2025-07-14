@@ -2,15 +2,16 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useSavedRecipes = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // Get saved recipe IDs for current user
   const { data: savedRecipeIds = [], isLoading } = useQuery({
-    queryKey: ['saved-recipes'],
+    queryKey: ['saved-recipes', user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -30,7 +31,6 @@ export const useSavedRecipes = () => {
   // Save recipe mutation
   const saveRecipeMutation = useMutation({
     mutationFn: async (recipeId: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { error } = await supabase
@@ -50,7 +50,6 @@ export const useSavedRecipes = () => {
   // Unsave recipe mutation
   const unsaveRecipeMutation = useMutation({
     mutationFn: async (recipeId: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const { error } = await supabase

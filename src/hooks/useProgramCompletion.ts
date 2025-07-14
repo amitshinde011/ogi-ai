@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CompletedSubscription {
   id: string;
@@ -18,18 +19,19 @@ export const useProgramCompletion = () => {
   const [completedSubscription, setCompletedSubscription] = useState<CompletedSubscription | null>(null);
   const [hasFinalAssessment, setHasFinalAssessment] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     checkProgramCompletion();
   }, []);
 
   const checkProgramCompletion = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
 
       const today = new Date().toISOString().split('T')[0];
       const todayDate = new Date(today);
