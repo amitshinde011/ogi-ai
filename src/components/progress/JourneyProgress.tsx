@@ -16,11 +16,14 @@ import {
 interface JourneyProgressData {
   totalDays: number;
   completedDays: number;
+  activeDays: number;
   averageScore: number;
   totalScore: number;
   programName: string;
   startDate: string;
   endDate: string;
+  currentStreak: number;
+  bestStreak: number;
   milestones: Array<{
     day: number;
     score: number;
@@ -135,10 +138,25 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
             </div>
             
             <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Active Days</span>
+              <span className="font-semibold text-gray-800">{data.activeDays} / {data.totalDays}</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Days Remaining</span>
               <span className="font-semibold text-gray-800">
                 {Math.max(0, data.totalDays - data.completedDays)} days
               </span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Current Streak</span>
+              <span className="font-semibold text-gray-800">{data.currentStreak} days</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Best Streak</span>
+              <span className="font-semibold text-gray-800">{data.bestStreak} days</span>
             </div>
             
             <div className="flex justify-between items-center">
@@ -147,11 +165,6 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
                 Total Points
               </span>
               <span className="font-semibold text-gray-800">{Math.round(data.totalScore)}</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Milestones</span>
-              <span className="font-semibold text-gray-800">{data.milestones.length}</span>
             </div>
           </CardContent>
         </Card>

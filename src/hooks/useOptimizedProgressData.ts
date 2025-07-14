@@ -13,11 +13,14 @@ interface WeeklyProgressData {
 interface JourneyProgressData {
   totalDays: number;
   completedDays: number;
+  activeDays: number;
   averageScore: number;
   totalScore: number;
   programName: string;
   startDate: string;
   endDate: string;
+  currentStreak: number;
+  bestStreak: number;
   milestones: Array<{
     day: number;
     score: number;
@@ -47,11 +50,14 @@ export const useOptimizedProgressData = () => {
     journeyData: {
       totalDays: 0,
       completedDays: 0,
+      activeDays: 0,
       averageScore: 0,
       totalScore: 0,
       programName: '',
       startDate: '',
       endDate: '',
+      currentStreak: 0,
+      bestStreak: 0,
       milestones: [],
       suggestions: [],
     },
@@ -206,11 +212,14 @@ export const useOptimizedProgressData = () => {
         return {
           totalDays: 0,
           completedDays: 0,
+          activeDays: 0,
           averageScore: 0,
           totalScore: 0,
           programName: 'Wellness Program',
           startDate: '',
           endDate: '',
+          currentStreak: 0,
+          bestStreak: 0,
           milestones: [],
           suggestions: []
         };
@@ -245,6 +254,49 @@ export const useOptimizedProgressData = () => {
         ...(meals.data?.map(m => m.date) || []),
       ]).size;
 
+      // Calculate streaks - get all unique dates with activity
+      const activityDates = Array.from(new Set([
+        ...(wellness.data?.map(w => w.date) || []),
+        ...(meals.data?.map(m => m.date) || []),
+      ])).sort();
+
+      // Calculate current and best streak
+      let currentStreak = 0;
+      let bestStreak = 0;
+      let tempStreak = 0;
+      
+      const today = new Date().toISOString().split('T')[0];
+      let checkingCurrent = true;
+      
+      // Generate all dates from start to today
+      const startDate = new Date(subscription.start_date);
+      const endDate = new Date(today);
+      const allDates = [];
+      
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        allDates.push(d.toISOString().split('T')[0]);
+      }
+      
+      // Check streaks from most recent to oldest
+      for (let i = allDates.length - 1; i >= 0; i--) {
+        const dateStr = allDates[i];
+        const hasActivity = activityDates.includes(dateStr);
+        
+        if (hasActivity) {
+          tempStreak++;
+          bestStreak = Math.max(bestStreak, tempStreak);
+          if (checkingCurrent) {
+            currentStreak = tempStreak;
+          }
+        } else {
+          if (checkingCurrent) {
+            checkingCurrent = false;
+            currentStreak = tempStreak;
+          }
+          tempStreak = 0;
+        }
+      }
+
       const totalWater = wellness.data?.reduce((sum, w) => sum + (w.water_litres || 0), 0) || 0;
       const totalSteps = steps.data?.reduce((sum, s) => sum + (s.steps_count || 0), 0) || 0;
       const meditationSessions = wellness.data?.filter(w => w.meditation_completed).length || 0;
@@ -256,11 +308,14 @@ export const useOptimizedProgressData = () => {
       return {
         totalDays: progress.totalDays,
         completedDays: progress.daysCompleted,
+        activeDays,
         averageScore,
         totalScore: calculatedTotalScore,
         programName: 'Wellness Program',
         startDate: subscription.start_date,
         endDate: subscription.end_date,
+        currentStreak,
+        bestStreak,
         milestones: [],
         suggestions: [
           'Keep up the consistency in your wellness journey',
@@ -273,11 +328,14 @@ export const useOptimizedProgressData = () => {
       return {
         totalDays: 0,
         completedDays: 0,
+        activeDays: 0,
         averageScore: 0,
         totalScore: 0,
         programName: '',
         startDate: '',
         endDate: '',
+        currentStreak: 0,
+        bestStreak: 0,
         milestones: [],
         suggestions: []
       };
