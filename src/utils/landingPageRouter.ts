@@ -1,5 +1,7 @@
 
+import { NavigateFunction } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 export interface OnboardingState {
   profile_completed?: boolean;
@@ -85,7 +87,7 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
     }
 
     // Get program completion state ONLY after before assessment is completed
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     
     const { data: currentSubscription } = await supabase
       .from('user_subscriptions')

@@ -14,6 +14,7 @@ import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { useR2Upload } from '@/hooks/useR2Upload';
 import html2canvas from 'html2canvas';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface AssessmentData {
   id?: string;
@@ -46,7 +47,7 @@ const Comparison = () => {
           return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         
         // Get active subscription that has ended (completed program)
         const { data: subscription } = await supabase

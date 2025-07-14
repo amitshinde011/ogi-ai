@@ -16,6 +16,7 @@ import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSec
 import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
 import { useR2Upload } from '@/hooks/useR2Upload';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface AssessmentFormData {
   walk_10km_comfort: number;
@@ -68,7 +69,7 @@ const BeforeAssessment = () => {
     
     try {
       console.log('In BA page');
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       console.log('In BA pager: ',today);
       // Get active subscription
       const { data: subscription } = await supabase
@@ -294,7 +295,7 @@ const BeforeAssessment = () => {
         .from('user_subscriptions')
         .update({
           start_date: selectedStartDate,
-          end_date: endDate.toISOString().split('T')[0]
+          end_date: getLocalDateString(endDate)
         })
         .eq('id', currentSubscription.id);
 
@@ -309,7 +310,7 @@ const BeforeAssessment = () => {
       });
 
       // Check if start date is today
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
       if (selectedStartDate === todayStr) {
         navigate('/journey-start');
       } else {
@@ -338,14 +339,13 @@ const BeforeAssessment = () => {
   };
 
   const getMinDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return getLocalDateString();
   };
 
   const getMaxDate = () => {
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() + 7);
-    return maxDate.toISOString().split('T')[0];
+    return getLocalDateString(maxDate);
   };
 
   if (showDateSelection && assessmentCompleted) {

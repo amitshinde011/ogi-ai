@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserData } from '@/contexts/UserDataContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface CompletedSubscription {
   id: string;
@@ -33,7 +34,7 @@ export const useProgramCompletion = () => {
     }
     
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       
       // Find completed subscription from context data
       const completedSub = userSubscriptions.find(sub => {

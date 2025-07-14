@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useR2Upload } from '@/hooks/useR2Upload';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface FinalAssessmentForm {
   walk_10km_comfort: number;
@@ -33,7 +34,7 @@ export const useFinalAssessment = () => {
           return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         
         // Get active subscription that has ended (completed program)
         const { data: subscription } = await supabase
@@ -127,7 +128,7 @@ export const useFinalAssessment = () => {
       if (!user) throw new Error('No user found');
 
       // Get current subscription (should be completed by now)
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       const { data: subscription } = await supabase
         .from('user_subscriptions')
         .select('id')

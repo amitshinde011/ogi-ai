@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface WellnessData {
   id?: string;
@@ -104,7 +105,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
           return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         const updatedData = { ...wellnessData, ...allPendingUpdates };
         console.log('📊 useOptimizedWellness: Prepared data for API update:', { 
           today, 

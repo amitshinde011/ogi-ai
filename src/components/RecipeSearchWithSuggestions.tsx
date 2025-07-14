@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface RecipeSearchWithSuggestionsProps {
   searchTerm: string;
@@ -24,7 +25,7 @@ const RecipeSearchWithSuggestions = ({ searchTerm, onSearchChange }: RecipeSearc
     queryFn: async () => {
       if (!user) return [];
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       
       const { data: subscription } = await supabase
         .from('user_subscriptions')

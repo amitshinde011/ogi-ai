@@ -9,6 +9,7 @@ import { usePricingConfig } from '@/hooks/usePricingConfig';
 import { calculatePricing } from '@/utils/pricingUtils';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface Program {
   id: string;
@@ -73,8 +74,8 @@ export const useSubscriptionActions = (programs: Program[]) => {
         .insert({
           user_id: user.id,
           program_id: program.id,
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0],
+          start_date: getLocalDateString(startDate),
+          end_date: getLocalDateString(endDate),
           status: 'active',
           payment_status: 'paid' // Use 'paid' instead of 'free' to match database constraints
         });

@@ -8,6 +8,7 @@ import Layout from '@/components/Layout';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 const ProgramComplete = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const ProgramComplete = () => {
           return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         
         // Get active subscription that has ended (completed program)
         const { data: subscription } = await supabase

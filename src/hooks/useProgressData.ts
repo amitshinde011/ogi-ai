@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateProgramProgress } from '@/utils/dateUtils';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface WeeklyProgressData {
   totalScore: number;
@@ -122,7 +123,7 @@ export const useProgressData = () => {
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(today.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(date);
         
         weeklyPromises.push(
           Promise.all([
@@ -194,7 +195,7 @@ export const useProgressData = () => {
         for (let day = 7; day <= daysCompleted; day += 7) {
           const milestoneDate = new Date(subscription.start_date);
           milestoneDate.setDate(milestoneDate.getDate() + day - 1);
-          const dateStr = milestoneDate.toISOString().split('T')[0];
+          const dateStr = getLocalDateString(milestoneDate);
           
           milestonePromises.push(
             Promise.all([
@@ -233,7 +234,7 @@ export const useProgressData = () => {
         for (let day = 1; day <= daysCompleted; day++) {
           const dayDate = new Date(subscription.start_date);
           dayDate.setDate(dayDate.getDate() + day - 1);
-          const dateStr = dayDate.toISOString().split('T')[0];
+          const dateStr = getLocalDateString(dayDate);
           
           const [meals, wellness, steps] = await Promise.all([
             supabase

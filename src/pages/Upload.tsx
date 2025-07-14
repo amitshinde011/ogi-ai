@@ -13,6 +13,7 @@ import { useR2Upload } from '@/hooks/useR2Upload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProgram } from '@/hooks/useUserProgram';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 const Upload = () => {
   const location = useLocation();
@@ -115,7 +116,7 @@ const Upload = () => {
           user_id: user.id, // Use cached user.id
           meal_type: selectedMeal,
           food_item: description || 'Meal logged',
-          date: new Date().toISOString().split('T')[0]
+          date: getLocalDateString()
         });
 
       console.log('✅ Meal tracking saved');

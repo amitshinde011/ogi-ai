@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface UserProfile {
   id: string;
@@ -145,7 +146,7 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
 
   // Calculate current subscription and active status
   const currentSubscription = userSubscriptions.find(sub => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     return sub.status === 'active' && sub.end_date >= today;
   }) || null;
 
