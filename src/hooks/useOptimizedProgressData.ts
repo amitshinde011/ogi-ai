@@ -221,8 +221,9 @@ export const useOptimizedProgressData = () => {
         return sum + weekPoints;
       }, 0) || 0;
       
-      const totalWeeks = weeklyData?.length || 1;
-      const averageScore = Math.round(totalPoints / totalWeeks);
+      // Calculate average score as percentage based on activity completion
+      const totalPossibleScore = progress.daysCompleted * 70; // Max 70 points per day (20+20+10+20)
+      const averageScore = totalPossibleScore > 0 ? Math.round((totalPoints / totalPossibleScore) * 100) : 0;
 
       // Get program name
       const programName = (subscription.programs as any)?.name || 'Wellness Program';

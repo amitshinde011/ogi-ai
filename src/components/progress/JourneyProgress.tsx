@@ -140,29 +140,44 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Completion</span>
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Target size={16} className="text-primary" />
+                Completion
+              </span>
               <span className="font-semibold text-gray-800">{Math.round(progressPercentage)}%</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Active Days</span>
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Activity size={16} className="text-sage" />
+                Active Days
+              </span>
               <span className="font-semibold text-gray-800">{data.activeDays} / {data.totalDays}</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Days Remaining</span>
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Calendar size={16} className="text-muted-foreground" />
+                Days Remaining
+              </span>
               <span className="font-semibold text-gray-800">
                 {Math.max(0, data.totalDays - data.completedDays)} days
               </span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Current Streak</span>
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <TrendingUp size={16} className="text-orange-500" />
+                Current Streak
+              </span>
               <span className="font-semibold text-gray-800">{data.currentStreak} days</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Best Streak</span>
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Award size={16} className="text-yellow-500" />
+                Best Streak
+              </span>
               <span className="font-semibold text-gray-800">{data.bestStreak} days</span>
             </div>
             
