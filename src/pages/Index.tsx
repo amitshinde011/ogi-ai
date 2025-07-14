@@ -1,12 +1,15 @@
 
 import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Loader from '@/components/ui/loader';
 import { determineLandingPage } from '@/utils/landingPageRouter';
 import { IMAGES } from '@/constants/images';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
     // Only run redirect logic if we're actually on the root path
@@ -15,13 +18,21 @@ const Index = () => {
       return;
     }
 
+    // Wait for auth to be resolved
+    if (authLoading) {
+      console.log('Still loading auth state...');
+      return;
+    }
+
     const handleRedirect = async () => {
-      const redirectPath = await determineLandingPage();
-      window.location.href = redirectPath;
+      // Use cached auth state to avoid additional API calls
+      const redirectPath = await determineLandingPage(user?.id, isAuthenticated);
+      console.log('Redirecting to:', redirectPath);
+      navigate(redirectPath, { replace: true });
     };
 
     handleRedirect();
-  }, [location.pathname]);
+  }, [location.pathname, user, authLoading, isAuthenticated, navigate]);
 
   // Show loading screen while checking
   return (

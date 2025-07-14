@@ -14,32 +14,40 @@ export interface ProgramCompletionState {
   hasFinalAssessment: boolean;
 }
 
-export const determineLandingPage = async (): Promise<string> => {
+export const determineLandingPage = async (userId?: string, isAuthenticated?: boolean): Promise<string> => {
   try {
     console.log('Landing page router: Starting redirect logic');
     
-    // Use getSession instead of getUser for better error handling
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // If auth state is passed, use it; otherwise fall back to auth check
+    if (isAuthenticated === false || !userId) {
+      console.log('No authenticated user, redirecting to login');
+      return '/login';
+    }
     
-    if (sessionError) {
-      console.error('Session error:', sessionError);
-      // If there's a session error, redirect to login
-      return '/login';
-    }
+    // Only make auth call if not provided
+    let user_id = userId;
+    if (!user_id) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        return '/login';
+      }
 
-    if (!session || !session.user) {
-      console.log('No session found, redirecting to login');
-      return '/login';
+      if (!session || !session.user) {
+        console.log('No session found, redirecting to login');
+        return '/login';
+      }
+      
+      user_id = session.user.id;
     }
-
-    const user = session.user;
-    console.log('User found:', user.id);
+    console.log('User found:', user_id);
 
     // Get onboarding state
     const { data: onboardingData } = await supabase
       .from('user_onboarding')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', user_id)
       .maybeSingle();
 
     const onboardingState: OnboardingState = onboardingData || {};
@@ -75,7 +83,7 @@ export const determineLandingPage = async (): Promise<string> => {
     const { data: currentSubscription } = await supabase
       .from('user_subscriptions')
       .select('*, programs(*)')
-      .eq('user_id', user.id)
+      .eq('user_id', user_id)
       .eq('status', 'active')
       .or('start_date.is.null,start_date.lte.' + today)
       .or('end_date.is.null,end_date.gte.' + today)
@@ -104,7 +112,7 @@ export const determineLandingPage = async (): Promise<string> => {
         const { data: finalAssessment } = await supabase
           .from('final_assessments')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('user_id', user_id)
           .eq('subscription_id', currentSubscription.id)
           .maybeSingle();
         
