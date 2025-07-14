@@ -87,6 +87,11 @@ export const useOptimizedHomeData = () => {
   }, []);
 
   const fetchAllData = useCallback(async () => {
+    if (!user) {
+      console.log('👤 useOptimizedHomeData: Waiting for user authentication');
+      return;
+    }
+
     const now = Date.now();
     
     // Prevent duplicate fetches within 5 seconds
@@ -105,6 +110,7 @@ export const useOptimizedHomeData = () => {
       if (!user) {
         console.warn('⚠️ useOptimizedHomeData: No authenticated user found');
         trackEvent('home_data_error', 'Error', 'No User');
+        setLoading(false);
         return;
       }
 
@@ -311,12 +317,16 @@ export const useOptimizedHomeData = () => {
       fetchingRef.current = false;
       console.log('🏁 useOptimizedHomeData: Loading state updated to false');
     }
-  }, []); // Remove trackEvent from dependencies to prevent loops
+  }, [user, trackEvent]); // Add user dependency
 
   useEffect(() => {
-    console.log('🔄 useOptimizedHomeData: useEffect triggered, calling fetchAllData');
-    fetchAllData();
-  }, [fetchAllData]);
+    console.log('🔄 useOptimizedHomeData: useEffect triggered, user:', !!user);
+    if (user) {
+      fetchAllData();
+    } else {
+      setLoading(false); // Don't keep loading if no user
+    }
+  }, [fetchAllData, user]);
 
   console.log('📊 useOptimizedHomeData: Current state:', { 
     loading, 
