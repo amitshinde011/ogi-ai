@@ -23,9 +23,9 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
       const newSteps = event.detail.steps;
       setCurrentSteps(newSteps);
       
-      // Calculate walk score: 1000 steps = 1km, so 5km = 5,000 steps
-      // Score out of 5: each 1000 steps = 1 point
-      const newWalkScore = Math.min(Math.floor(newSteps / 1000), 5);
+      // Calculate walk score: Based on 5000 steps = 5 stars goal
+      // Score out of 5: (steps / 5000) * 5 stars
+      const newWalkScore = Math.min(Math.floor((newSteps / 5000) * 5), 5);
       setCurrentWalkScore(newWalkScore);
       
       console.log('📊 DailyProgressCard: Updated steps and walk score:', { 

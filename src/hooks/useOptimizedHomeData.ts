@@ -233,7 +233,7 @@ export const useOptimizedHomeData = () => {
       );
 
       const todaySteps = stepsResult.data?.steps_count || 0;
-      const walkScore = Math.min(Math.floor(todaySteps / 1000), 5); // Updated: 1000 steps = 1 point for 5km goal
+      const walkScore = Math.min(Math.floor((todaySteps / 5000) * 5), 5); // Updated: Based on 5000 steps = 5 stars goal
       
       console.log('👟 useOptimizedHomeData: Steps processed:', {
         todaySteps,
@@ -309,7 +309,7 @@ export const useOptimizedHomeData = () => {
       const newSteps = event.detail.steps;
       
       setData(prev => {
-        const newWalkScore = Math.min(Math.floor(newSteps / 1000), 5);
+        const newWalkScore = Math.min(Math.floor((newSteps / 5000) * 5), 5);
         const updatedData = {
           ...prev,
           todayProgress: {
