@@ -940,9 +940,7 @@ export type Database = {
       }
       weekly_progress_summary: {
         Row: {
-          avg_meals: number | null
           avg_steps: number | null
-          avg_surya_namaskar: number | null
           avg_water: number | null
           days_tracked: number | null
           days_with_meals: number | null
