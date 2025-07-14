@@ -102,15 +102,24 @@ export const useOptimizedProgressData = () => {
     ]);
 
     const progressData: ProgressData = {
-      weeklyData: { ...weeklyResult, ...streaksResult },
-      journeyData: { ...journeyResult, ...streaksResult },
+      weeklyData: { 
+        ...weeklyResult, 
+        activeDays: streaksResult.activeDays,
+        streak: streaksResult.streak
+      },
+      journeyData: { 
+        ...journeyResult, 
+        currentStreak: streaksResult.currentStreak,
+        bestStreak: streaksResult.bestStreak,
+        activeDays: streaksResult.activeDays
+      },
     };
 
     cache.set(cacheKey, { data: progressData, timestamp: Date.now() });
     setData(progressData);
   };
 
-  const fetchOptimizedWeeklyData = async (userId: string): Promise<Omit<WeeklyProgressData, 'streak' | 'activeDays'>> => {
+  const fetchOptimizedWeeklyData = async (userId: string): Promise<WeeklyProgressData> => {
     try {
       // Use optimized database function for weekly data
       const { data: weeklyResult, error } = await supabase.rpc('get_optimized_weekly_data', {
@@ -129,6 +138,8 @@ export const useOptimizedProgressData = () => {
           totalScore: 0,
           averageScore: 0,
           dailyScores: [0, 0, 0, 0, 0, 0, 0],
+          activeDays: 0,
+          streak: 0,
           suggestions: ['Start tracking your daily activities']
         };
       }
@@ -160,6 +171,8 @@ export const useOptimizedProgressData = () => {
         totalScore,
         averageScore,
         dailyScores,
+        activeDays: 0, // Will be set by streak data
+        streak: 0, // Will be set by streak data
         suggestions: weeklyData.length > 0 ? [
           'Great consistency this week!',
           'Keep tracking your daily activities',
@@ -176,6 +189,8 @@ export const useOptimizedProgressData = () => {
         totalScore: 0,
         averageScore: 0,
         dailyScores: [0, 0, 0, 0, 0, 0, 0],
+        activeDays: 0,
+        streak: 0,
         suggestions: ['Let\'s focus on consistency this week!']
       };
     }
@@ -284,11 +299,12 @@ export const useOptimizedProgressData = () => {
       const streakData = result.streak_data && typeof result.streak_data === 'string' ? 
         JSON.parse(result.streak_data) : 
         (typeof result.streak_data === 'object' ? result.streak_data : {});
+      
       return {
         currentStreak: streakData.current_streak || 0,
         bestStreak: streakData.best_streak || 0,
         activeDays: streakData.active_days || 0,
-        streak: streakData.current_streak || 0
+        streak: streakData.best_streak || 0 // Use best_streak for weekly display
       };
     } catch (error) {
       console.error('Error fetching optimized streaks:', error);
