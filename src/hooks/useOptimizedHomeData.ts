@@ -320,7 +320,7 @@ export const useOptimizedHomeData = () => {
       fetchingRef.current = false;
       console.log('🏁 useOptimizedHomeData: Loading state updated to false');
     }
-  }, [user, trackEvent]); // Add user dependency
+  }, [user]); // Remove trackEvent to prevent refetch loops
 
   useEffect(() => {
     console.log('🔄 useOptimizedHomeData: useEffect triggered, user:', !!user);
