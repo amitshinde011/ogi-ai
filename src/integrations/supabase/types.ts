@@ -959,6 +959,30 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_user_streaks: {
+        Args: { p_user_id: string; p_start_date?: string }
+        Returns: {
+          current_streak: number
+          best_streak: number
+          active_days: number
+        }[]
+      }
+      get_community_feed: {
+        Args: { p_user_id: string; p_limit?: number; p_offset?: number }
+        Returns: {
+          id: number
+          image_url: string
+          caption: string
+          category: string
+          created_at: string
+          like_count: number
+          comment_count: number
+          author_id: string
+          author_name: string
+          author_avatar: string
+          user_has_liked: boolean
+        }[]
+      }
       get_home_data: {
         Args: { p_user_id: string; p_date: string }
         Returns: {
@@ -979,9 +1003,48 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
+      get_user_weekly_progress: {
+        Args: { p_user_id: string; p_weeks_back?: number }
+        Returns: {
+          week_start: string
+          days_tracked: number
+          days_with_meals: number
+          meditation_days: number
+          yoga_days: number
+          step_goal_days: number
+          avg_water: number
+          avg_steps: number
+          total_steps: number
+          total_water: number
+        }[]
+      }
       refresh_activity_views: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      refresh_activity_views_batch: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      scheduled_view_refresh: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      upsert_wellness_data: {
+        Args: {
+          p_user_id: string
+          p_date: string
+          p_water_litres?: number
+          p_surya_namaskar_count?: number
+          p_meditation_completed?: boolean
+          p_meditation_minutes?: number
+        }
+        Returns: {
+          id: string
+          water_litres: number
+          surya_namaskar_count: number
+          meditation_completed: boolean
+        }[]
       }
     }
     Enums: {
