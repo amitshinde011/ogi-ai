@@ -223,10 +223,10 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
                   <Line 
                     type="monotone" 
                     dataKey="points" 
-                    stroke="#10B981" 
+                    stroke={getScoreColor(data.averageScore)}
                     strokeWidth={3}
-                    dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: '#10B981' }}
+                    dot={{ fill: getScoreColor(data.averageScore), strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: getScoreColor(data.averageScore) }}
                   />
                 </LineChart>
               </ResponsiveContainer>
