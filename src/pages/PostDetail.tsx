@@ -179,10 +179,10 @@ const PostDetail = () => {
   }
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title="Post" showBack />
       
-      <div className="max-w-md mx-auto pb-4">
+      <div className="pb-4">
         {/* Post Content */}
         <Card className="mx-4 overflow-hidden animate-fade-in">
           <CardContent className="p-0">

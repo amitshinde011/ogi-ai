@@ -8,6 +8,7 @@ import PhotoUpload from '@/components/PhotoUpload';
 import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
 import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
 import { useFinalAssessment } from '@/hooks/useFinalAssessment';
+import Layout from '@/components/Layout';
 
 const FinalAssessment = () => {
   const {
@@ -69,11 +70,12 @@ const FinalAssessment = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <Header title="Final Assessment" />
-      
-      <div className="min-h-screen bg-gradient-peaceful p-4">
-        <div className="max-w-md mx-auto">
+    <Layout containerVariant="narrow" noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <Header title="Final Assessment" />
+        
+        <div className="min-h-screen bg-gradient-peaceful py-4">
+          <div className="max-w-md mx-auto px-4">
           <Card className="bg-white shadow-xl border-0">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel now?</CardTitle>
@@ -130,8 +132,9 @@ const FinalAssessment = () => {
             </CardContent>
           </Card>
         </div>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

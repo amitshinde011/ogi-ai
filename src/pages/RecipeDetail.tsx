@@ -10,6 +10,7 @@ import { useRecipe } from '@/hooks/useRecipes';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { toast } from '@/hooks/use-toast';
 import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
+import Layout from '@/components/Layout';
 
 const RecipeDetail = () => {
   const { id } = useParams();
@@ -109,10 +110,11 @@ const RecipeDetail = () => {
   const nutritionItems = getNutritionItems();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10 no-yellow">
-      <Header title="Recipe" showBack />
-      
-      <div className="max-w-md mx-auto">
+    <Layout containerVariant="narrow" noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10 no-yellow">
+        <Header title="Recipe" showBack />
+        
+        <div className="max-w-md mx-auto">
         {/* Hero Image */}
         <div className="relative">
           <img
@@ -270,8 +272,9 @@ const RecipeDetail = () => {
             </Button>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

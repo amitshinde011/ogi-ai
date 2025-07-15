@@ -149,10 +149,10 @@ const JourneyStart = () => {
   };
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title="Your Journey Begins!" />
 
-      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+      <div className="space-y-6 py-4 bg-light-gray min-h-screen">
         {/* Welcome Card */}
         <Card className="text-center bg-gradient-sage text-white">
           <CardContent className="p-8">

@@ -139,10 +139,10 @@ const ProfileEdit = () => {
   };
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title="Edit Profile" showBack />
       
-      <div className="p-6 max-w-lg mx-auto bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+      <div className="py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
         <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
           <CardHeader className="text-center pb-6">
             <div className="relative w-28 h-28 mx-auto mb-6">

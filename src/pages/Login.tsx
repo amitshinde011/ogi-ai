@@ -7,6 +7,8 @@ import LoginForm from '@/components/auth/LoginForm';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
 import WellnessCarousel from '@/components/auth/WellnessCarousel';
 import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
+import Layout from '@/components/Layout';
+import Header from '@/components/Header';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -48,8 +50,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl mx-auto">
+    <Layout containerVariant="full" noContainer>
+      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
+        <div className="w-full max-w-6xl mx-auto">
         {/* Mobile Carousel - shown at top on mobile screens */}
         <div className="lg:hidden mb-6 flex justify-center">
           <div className="w-full max-w-md">
@@ -126,8 +129,9 @@ const Login = () => {
             <TestimonialsCarousel />
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

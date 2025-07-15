@@ -352,10 +352,10 @@ const BeforeAssessment = () => {
     const daysUntil = getDaysUntilStart();
     
     return (
-      <Layout>
+      <Layout containerVariant="narrow">
         <Header title="Schedule Your Journey" />
         
-        <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+        <div className="space-y-6 py-4 bg-light-gray min-h-screen">
           {/* Sacred Journey Message */}
           <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200/60 rounded-2xl p-8 shadow-lg backdrop-blur-sm">
             <div className="text-center mb-8">
@@ -499,10 +499,10 @@ const BeforeAssessment = () => {
 
   if (assessmentCompleted) {
     return (
-      <Layout>
+      <Layout containerVariant="narrow">
         <Header title="Assessment Complete" />
         
-        <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+        <div className="space-y-6 py-4 bg-light-gray min-h-screen">
           <Card className="text-center">
             <CardContent className="p-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -530,8 +530,8 @@ const BeforeAssessment = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <Header title="Before Assessment" />
       
-      <div className="min-h-screen bg-gradient-peaceful p-4">
-        <div className="max-w-md mx-auto">
+      <div className="min-h-screen bg-gradient-peaceful py-4">
+        <div className="max-w-md mx-auto px-4">
           <Card className="bg-white shadow-xl border-0">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel right now?</CardTitle>

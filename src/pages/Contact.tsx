@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import Layout from '@/components/Layout';
+import Header from '@/components/Header';
 
 const Contact = () => {
   const navigate = useNavigate();
@@ -77,8 +79,10 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
-      <div className="max-w-2xl mx-auto">
+    <Layout containerVariant="wide">
+      <Header title="Contact Us" showBack />
+      
+      <div className="min-h-screen bg-gradient-peaceful py-4">
         {/* Header */}
         <div className="flex items-center mb-6">
           <Button
@@ -187,7 +191,7 @@ const Contact = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 

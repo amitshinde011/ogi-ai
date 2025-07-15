@@ -9,10 +9,10 @@ const Discover = () => {
   const { posts, loading } = useCommunityFeed();
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title="Discover" showBack />
       
-      <div className="p-4 max-w-md mx-auto">
+      <div className="py-4">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader size="lg" />

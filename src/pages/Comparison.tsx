@@ -352,10 +352,10 @@ Before vs After Progress - Your dedication and consistency can create amazing re
   }
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title="Your Amazing Transformation!" />
       
-      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+      <div className="space-y-6 py-4 bg-light-gray min-h-screen">
         {/* Celebration Header */}
         <Card className="bg-gradient-sage text-white text-center">
           <CardContent className="p-6">

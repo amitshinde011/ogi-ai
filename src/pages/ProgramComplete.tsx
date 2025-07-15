@@ -64,11 +64,11 @@ const ProgramComplete = () => {
   }, [navigate, user]);
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow" noContainer>
       <Header title="Congratulations!" />
       
-      <div className="min-h-screen bg-gradient-peaceful p-4">
-        <div className="max-w-md mx-auto">
+      <div className="min-h-screen bg-gradient-peaceful py-4">
+        <div className="max-w-md mx-auto px-4">
           <Card className="text-center bg-gradient-sage text-white animate-scale-in">
             <CardContent className="p-8">
               <div className="flex justify-center mb-6">
