@@ -175,11 +175,11 @@ export const useStepTracking = () => {
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    //document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      //document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [stepData.steps, syncToDatabase]);
