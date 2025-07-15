@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const MealLogger = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -17,6 +18,7 @@ const MealLogger = () => {
   const { data: userProgram } = useUserProgram();
   const { isCompleted } = useProgramCompletion();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleCreateMealPost = async (imageUrl: string, caption: string, mealType?: string) => {
     if (!user || !mealType) {
@@ -59,6 +61,9 @@ const MealLogger = () => {
         console.log('📢 MealLogger: mealLogged event dispatched for:', mealType);
         
         toast({ title: "Meal logged and shared successfully!" });
+        
+        // Navigate to community page to show the new post
+        navigate('/community');
         return true;
       }
 
