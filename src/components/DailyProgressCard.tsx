@@ -48,20 +48,15 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
 
   // Sync with props when they change
   useEffect(() => {
-    console.log('🔄 DailyProgressCard: Props updated, syncing:', { 
-      initialSteps, 
-      initialWalkScore,
-      currentSteps,
-      currentWalkScore
-    });
+    console.log('🔄 DailyProgressCard: Props updated, syncing state.');
     
-    if (initialSteps !== currentSteps) {
-      setCurrentSteps(initialSteps);
-    }
-    if (initialWalkScore !== currentWalkScore) {
-      setCurrentWalkScore(initialWalkScore);
-    }
-  }, [initialSteps, initialWalkScore, currentSteps, currentWalkScore]);
+    // This effect now correctly syncs state ONLY when the props change.
+    setCurrentSteps(initialSteps);
+    
+    const calculatedWalkScore = Math.min(Math.floor((initialSteps / 5000) * 5), 5);
+    setCurrentWalkScore(calculatedWalkScore);
+    
+  }, [initialSteps, initialWalkScore]);
 
   const stepsProgress = Math.min((currentSteps / 5000) * 100, 100); // 5,000 steps = 100%
   const kmWalked = (currentSteps / 1000).toFixed(1); // 1000 steps ≈ 1km
