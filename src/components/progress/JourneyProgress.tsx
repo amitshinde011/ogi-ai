@@ -78,7 +78,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
   return (
     <div className="space-y-6">
       {/* Journey Overview */}
-      <Card className="bg-gradient-to-br from-sage to-sage/90 text-white border-0 shadow-lg">
+      <Card className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             <Activity size={24} />
