@@ -194,7 +194,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 text-primary-foreground ${
               isPopular 
                 ? 'bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl' 
-                : 'bg-gray-900 hover:bg-gray-800'
+                : 'bg-green-600 hover:bg-green-500'
             }`}
             onClick={handleSubscribe}
           >
