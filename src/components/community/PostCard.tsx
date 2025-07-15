@@ -144,6 +144,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           <PostActions
             isLiked={post.is_liked}
             likeCount={post.like_count}
+            commentCount={post.comment_count}
             onLike={() => onLike(post.id)}
             onToggleComments={() => setShowComments(!showComments)}
           />

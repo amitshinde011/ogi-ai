@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 interface PostActionsProps {
   isLiked?: boolean;
   likeCount: number;
+  commentCount: number;
   onLike: () => void;
   onToggleComments: () => void;
 }
@@ -13,6 +14,7 @@ interface PostActionsProps {
 export const PostActions: React.FC<PostActionsProps> = ({
   isLiked,
   likeCount,
+  commentCount,
   onLike,
   onToggleComments
 }) => {
@@ -43,11 +45,18 @@ export const PostActions: React.FC<PostActionsProps> = ({
         </Button>
       </div>
 
-      {likeCount > 0 && (
-        <p className="text-sm font-semibold">
-          {likeCount} {likeCount === 1 ? 'like' : 'likes'}
-        </p>
-      )}
+      <div className="flex items-center gap-4">
+        {likeCount > 0 && (
+          <p className="text-sm font-semibold">
+            {likeCount} {likeCount === 1 ? 'like' : 'likes'}
+          </p>
+        )}
+        {commentCount > 0 && (
+          <p className="text-sm font-semibold">
+            {commentCount} {commentCount === 1 ? 'comment' : 'comments'}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
