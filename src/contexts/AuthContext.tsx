@@ -74,6 +74,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setUser(null);
           setSession(null);
           setUserProfile(null);
+          setLoading(false);
           return;
         }
 
