@@ -1,100 +1,225 @@
-/* Design System - Consolidated styles for better maintainability */
+/* Modern Minimalistic Design System - Component Styles */
 
 @layer utilities {
-  /* Brand color utilities */
-  .brand-primary {
-    background: linear-gradient(135deg, hsl(239, 68%, 68%) 0%, hsl(251, 83%, 68%) 100%);
-    color: hsl(0, 0%, 100%);
-  }
+  /* Spacing Utilities - 8px base unit system */
+  .space-1 { @apply p-2; }    /* 8px */
+  .space-2 { @apply p-4; }    /* 16px */
+  .space-3 { @apply p-6; }    /* 24px */
+  .space-4 { @apply p-8; }    /* 32px */
+  .space-6 { @apply p-12; }   /* 48px */
+  .space-8 { @apply p-16; }   /* 64px */
 
-  .brand-sage {
-    background-color: hsl(160, 65%, 55%);
-    color: hsl(0, 0%, 100%);
+  /* Layout System */
+  .container-fluid {
+    @apply w-full px-4 sm:px-6 lg:px-8;
   }
-
-  /* Logo and brand styling */
-  .logo {
-    transition: all 0.3s ease;
+  
+  .container-centered {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
-
-  .logo:hover {
-    transform: scale(1.05);
-    filter: brightness(1.1);
+  
+  .section-spacing {
+    @apply py-12 md:py-16 lg:py-20;
   }
-
-  /* Card system */
+  
+  /* Card System - Modern & Clean */
+  .card-minimal {
+    @apply bg-card border border-border rounded-lg shadow-sm transition-all duration-200;
+  }
+  
+  .card-minimal:hover {
+    @apply shadow-md transform translate-y-[-2px];
+  }
+  
   .card-elevated {
-    background: hsl(0, 0%, 100%);
-    border: 1px solid hsl(220, 13%, 91%);
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px hsla(220, 39%, 11%, 0.1);
-    backdrop-filter: blur(8px);
-    transition: all 0.2s ease;
-  }
-
-  .card-elevated:hover {
-    box-shadow: 0 10px 25px -3px hsla(220, 39%, 11%, 0.1);
-    transform: translateY(-2px);
-  }
-
-  /* Navigation system */
-  .nav-item-styled {
-    color: hsl(215, 25%, 27%);
-    transition: all 0.2s ease;
-    border-radius: 0.75rem;
-    padding: 0.5rem;
+    @apply bg-card border border-border rounded-lg shadow-md backdrop-blur-sm;
   }
   
-  .nav-item-styled.active {
-    color: hsl(239, 68%, 68%);
-    background: hsla(239, 68%, 68%, 0.1);
-    transform: scale(1.05);
-  }
-  
-  .nav-item-styled:hover {
-    color: hsl(239, 68%, 68%);
-    background: hsla(239, 68%, 68%, 0.05);
-    transform: translateY(-2px);
+  .card-interactive {
+    @apply card-minimal cursor-pointer hover:shadow-lg hover:border-primary/20;
   }
 
-  /* Loading states */
+  /* Button System - Clean & Accessible */
+  .btn-base {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  .btn-primary {
+    @apply btn-base bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/95;
+  }
+  
+  .btn-secondary {
+    @apply btn-base border border-input bg-background hover:bg-accent hover:text-accent-foreground active:bg-accent/80;
+  }
+  
+  .btn-ghost {
+    @apply btn-base hover:bg-accent hover:text-accent-foreground active:bg-accent/80;
+  }
+  
+  .btn-destructive {
+    @apply btn-base bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/95;
+  }
+
+  /* Input System - Consistent & Clean */
+  .input-base {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .input-error {
+    @apply input-base border-destructive focus-visible:ring-destructive;
+  }
+  
+  .input-success {
+    @apply input-base border-success focus-visible:ring-success;
+  }
+
+  /* Navigation & Interactive Elements */
+  .nav-item {
+    @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+  
+  .nav-item-active {
+    @apply nav-item bg-accent text-accent-foreground;
+  }
+  
+  .link-primary {
+    @apply text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm;
+  }
+
+  /* Status & Feedback */
+  .status-success {
+    @apply bg-success/10 text-success border border-success/20 rounded-md px-3 py-2 text-sm;
+  }
+  
+  .status-error {
+    @apply bg-destructive/10 text-destructive border border-destructive/20 rounded-md px-3 py-2 text-sm;
+  }
+  
+  .status-warning {
+    @apply bg-warning/10 text-warning-foreground border border-warning/20 rounded-md px-3 py-2 text-sm;
+  }
+  
+  .status-info {
+    @apply bg-primary/10 text-primary border border-primary/20 rounded-md px-3 py-2 text-sm;
+  }
+
+  /* Typography Utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Accessibility Helpers */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  .focus-outline {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+
+  /* Loading & Animation States */
   .loading-skeleton {
-    background: linear-gradient(90deg, 
-      hsl(0, 0%, 96%) 0%, 
-      hsl(0, 0%, 93%) 50%, 
-      hsl(0, 0%, 96%) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    @apply bg-muted animate-pulse rounded;
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+  
+  .scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
   }
 
-  @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+  /* Modern Hover Effects */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg;
+  }
+  
+  .hover-glow {
+    @apply transition-shadow duration-200 hover:shadow-lg hover:shadow-primary/25;
   }
 
-  /* Consistent spacing system */
-  .section-padding {
-    padding: 2rem 1rem;
+  /* Grid System */
+  .grid-auto-fit {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  
+  .grid-auto-fill {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 
-  .container-max {
-    max-width: 1200px;
-    margin: 0 auto;
+  /* Dividers */
+  .divider {
+    @apply border-t border-border;
   }
-
-  /* Interactive elements */
-  .interactive-element {
-    transition: all 0.2s ease;
-    cursor: pointer;
+  
+  .divider-vertical {
+    @apply border-l border-border h-full;
   }
+}
 
-  .interactive-element:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px hsla(220, 39%, 11%, 0.15);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-
-  .interactive-element:active {
+  to {
+    opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Component-specific overrides for consistency */
+@layer components {
+  /* Ensure all interactive elements have consistent focus styles */
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  a:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+  
+  /* Consistent disabled state */
+  button:disabled,
+  [role="button"]:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+  
+  /* Smooth transitions for all interactive elements */
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  a {
+    @apply transition-colors duration-150;
   }
 }

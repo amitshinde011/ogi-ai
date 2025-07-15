@@ -10,8 +10,8 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      "w-full max-w-none", // Ensure full width responsiveness
+      "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-150",
+      "w-full max-w-none hover:shadow-md", // Clean hover effect
       className
     )}
     {...props}
@@ -26,8 +26,8 @@ const CardHeader = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex flex-col space-y-1.5",
-      "p-4 sm:p-5 md:p-6", // Responsive padding
+      "flex flex-col space-y-2",
+      "p-4 sm:p-5 md:p-6", // Responsive padding following 8px system
       className
     )}
     {...props}
@@ -42,8 +42,8 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "font-semibold leading-none tracking-tight",
-      "text-lg sm:text-xl md:text-2xl", // Responsive font sizes
+      "font-semibold leading-tight tracking-tight text-balance",
+      "text-lg sm:text-xl md:text-2xl", // Responsive typography
       className
     )}
     {...props}
@@ -58,8 +58,8 @@ const CardDescription = React.forwardRef<
   <p
     ref={ref}
     className={cn(
-      "text-muted-foreground",
-      "text-xs sm:text-sm md:text-base", // Responsive font sizes
+      "text-muted-foreground leading-relaxed text-pretty",
+      "text-sm sm:text-base", // Responsive font sizes
       className
     )}
     {...props}
@@ -75,7 +75,7 @@ const CardContent = React.forwardRef<
     ref={ref} 
     className={cn(
       "pt-0",
-      "p-4 sm:p-5 md:p-6", // Responsive padding
+      "p-4 sm:p-5 md:p-6", // Consistent spacing
       className
     )} 
     {...props} 
@@ -90,8 +90,8 @@ const CardFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex items-center pt-0",
-      "p-4 sm:p-5 md:p-6", // Responsive padding
+      "flex items-center justify-between pt-0",
+      "p-4 sm:p-5 md:p-6", // Consistent spacing
       className
     )}
     {...props}
