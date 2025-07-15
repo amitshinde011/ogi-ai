@@ -57,13 +57,21 @@ const Index = () => {
         });
         
         const redirectPath = await determineLandingPage(user?.id, isAuthenticated);
-        console.log('Index: Redirecting to:', redirectPath);
+        console.log('Index: Received redirect path:', redirectPath);
+        
+        if (!redirectPath) {
+          console.error('Index: No redirect path received, falling back to login');
+          hasRedirected = true;
+          navigate('/login', { replace: true });
+          return;
+        }
         
         // Mark as redirected before navigation
         hasRedirected = true;
         
         // Add a small delay to prevent rapid redirects
         timeoutId = setTimeout(() => {
+          console.log('Index: Executing navigation to:', redirectPath);
           navigate(redirectPath, { replace: true });
         }, 100);
       } catch (error) {
