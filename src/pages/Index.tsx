@@ -14,6 +14,7 @@ const Index = () => {
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
     let fallbackTimeoutId: NodeJS.Timeout;
+    let hasRedirected = false;
     
     // Only run redirect logic if we're actually on the root path
     if (location.pathname !== '/') {
@@ -27,8 +28,11 @@ const Index = () => {
       
       // Fallback timeout to prevent infinite loading
       fallbackTimeoutId = setTimeout(() => {
-        console.log('Auth loading timeout reached, redirecting to login');
-        navigate('/login', { replace: true });
+        if (!hasRedirected) {
+          console.log('Auth loading timeout reached, redirecting to login');
+          hasRedirected = true;
+          navigate('/login', { replace: true });
+        }
       }, 10000); // 10 second timeout
       
       return () => {
@@ -39,6 +43,12 @@ const Index = () => {
     }
 
     const handleRedirect = async () => {
+      // Prevent multiple redirects
+      if (hasRedirected) {
+        console.log('Redirect already handled, skipping');
+        return;
+      }
+
       try {
         console.log('Index: Checking redirect with auth state:', { 
           userId: user?.id, 
@@ -49,6 +59,9 @@ const Index = () => {
         const redirectPath = await determineLandingPage(user?.id, isAuthenticated);
         console.log('Index: Redirecting to:', redirectPath);
         
+        // Mark as redirected before navigation
+        hasRedirected = true;
+        
         // Add a small delay to prevent rapid redirects
         timeoutId = setTimeout(() => {
           navigate(redirectPath, { replace: true });
@@ -56,7 +69,10 @@ const Index = () => {
       } catch (error) {
         console.error('Error during redirect:', error);
         // Fallback redirect
-        navigate('/login', { replace: true });
+        if (!hasRedirected) {
+          hasRedirected = true;
+          navigate('/login', { replace: true });
+        }
       }
     };
 
