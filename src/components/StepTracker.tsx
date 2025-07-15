@@ -15,6 +15,7 @@ const StepTracker = () => {
   const { stepData, manuallyAddSteps } = useStepTracking();
   const [showGoalMessage, setShowGoalMessage] = useState(false);
   const [goalAchievedToday, setGoalAchievedToday] = useState(false);
+  const [goalMessage, setGoalMessage] = useState('');
   const { trackEvent } = useAnalytics();
   const { user } = useAuth();
 
@@ -47,14 +48,16 @@ const StepTracker = () => {
     });
 
     // Only show message if goal is reached and hasn't been achieved today yet
-    if (stepData.steps >= goal && !wasAchievedToday) {
+    if (stepData.steps >= goal && !wasAchievedToday && !showGoalMessage) {
       console.log('🎯 StepTracker: 5km goal completed for the first time today!');
+      const selectedMessage = getRandomMessage();
+      setGoalMessage(selectedMessage);
       setShowGoalMessage(true);
       setGoalAchievedToday(true);
       localStorage.setItem(storageKey, 'true');
       trackEvent('step_goal_achieved', 'Fitness', '5km Goal', stepData.steps);
     }
-  }, [stepData.steps, goal, user]);
+  }, [stepData.steps, goal, user, showGoalMessage]);
 
   const getRandomMessage = () => {
     const message = goalMessages[Math.floor(Math.random() * goalMessages.length)];
@@ -165,7 +168,7 @@ const StepTracker = () => {
 
         <GoalCompletionMessage
           show={showGoalMessage}
-          message={getRandomMessage()}
+          message={goalMessage}
           onComplete={() => {
             console.log('🎉 StepTracker: Goal completion message dismissed');
             setShowGoalMessage(false);
