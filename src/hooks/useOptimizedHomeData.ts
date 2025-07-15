@@ -50,7 +50,7 @@ export const useOptimizedHomeData = () => {
   const { trackEvent } = useAnalytics();
   const fetchingRef = useRef(false);
   const lastFetchRef = useRef<number>(0);
-
+  const isInitialLoad = useRef(true);
   const fetchAllData = useCallback(async () => {
     if (!user) {
       console.log('👤 useOptimizedHomeData: Waiting for user authentication');
@@ -74,7 +74,9 @@ export const useOptimizedHomeData = () => {
 
     fetchingRef.current = true;
     lastFetchRef.current = now;
-    setLoading(true);
+    if (isInitialLoad.current) {
+      setLoading(true);
+    }
     
     console.log('📡 useOptimizedHomeData: Starting data fetch');
     const startTime = performance.now();
@@ -296,7 +298,11 @@ export const useOptimizedHomeData = () => {
       console.error('❌ useOptimizedHomeData: Error fetching home data:', error);
       trackEvent('home_data_error', 'Error', 'Fetch Failed');
     } finally {
-      setLoading(false);
+      if (isInitialLoad.current) {
+        setLoading(false);
+        isInitialLoad.current = false;
+        console.log('🏁 useOptimizedHomeData: Initial load completed');
+      }
       fetchingRef.current = false;
       console.log('🏁 useOptimizedHomeData: Loading state updated to false');
     }
