@@ -16,7 +16,7 @@ import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSec
 import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
 import { useR2Upload } from '@/hooks/useR2Upload';
 import { useAuth } from '@/contexts/AuthContext';
-import { getLocalDateString } from '@/utils/dateUtils';
+import { getLocalDateString, createLocalDate } from '@/utils/dateUtils';
 
 interface AssessmentFormData {
   walk_10km_comfort: number;
@@ -111,9 +111,9 @@ const BeforeAssessment = () => {
         if (!subscription.start_date) {
           setShowDateSelection(true);
         } else {
-          // Check if start date has arrived
-          const startDate = new Date(subscription.start_date + 'T00:00:00');
-          const todayDate = new Date(today + 'T00:00:00');
+          // Check if start date has arrived using local dates
+          const startDate = createLocalDate(subscription.start_date);
+          const todayDate = createLocalDate(today);
           
           if (todayDate >= startDate) {
             // Update onboarding and navigate to journey start
@@ -259,9 +259,8 @@ const BeforeAssessment = () => {
       return;
     }
 
-    const selectedDate = new Date(selectedStartDate + 'T00:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const selectedDate = createLocalDate(selectedStartDate);
+    const today = createLocalDate(getLocalDateString());
 
     if (selectedDate < today) {
       toast({
@@ -272,8 +271,8 @@ const BeforeAssessment = () => {
       return;
     }
 
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 7);
+    const maxDateStr = getMaxDate();
+    const maxDate = createLocalDate(maxDateStr);
     if (selectedDate > maxDate) {
       toast({
         title: "Invalid Date",
@@ -287,9 +286,9 @@ const BeforeAssessment = () => {
     try {
       if (!user || !currentSubscription) return;
 
-      // Calculate end date (inclusive - so duration_days from start date)
-      const endDate = new Date(selectedDate);
-      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days);
+      // Calculate end date (inclusive - add duration_days - 1 to make it inclusive)
+      const endDate = createLocalDate(selectedStartDate);
+      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days - 1);
 
       const { error } = await supabase
         .from('user_subscriptions')
@@ -331,8 +330,8 @@ const BeforeAssessment = () => {
 
   const getDaysUntilStart = () => {
     if (!selectedStartDate) return 0;
-    const startDate = new Date(selectedStartDate);
-    const today = new Date();
+    const startDate = createLocalDate(selectedStartDate);
+    const today = createLocalDate(getLocalDateString());
     const diffTime = startDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
@@ -343,9 +342,9 @@ const BeforeAssessment = () => {
   };
 
   const getMaxDate = () => {
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 7);
-    return getLocalDateString(maxDate);
+    const today = createLocalDate(getLocalDateString());
+    today.setDate(today.getDate() + 7);
+    return getLocalDateString(today);
   };
 
   if (showDateSelection && assessmentCompleted) {
