@@ -81,7 +81,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       isPopular ? 'border-primary shadow-lg' : 'border-gray-200'
     }`}>
       {isPopular && (
-        <div className="absolute -top-7 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
           <Badge className="bg-primary text-primary-foreground px-4 py-1 rounded-full font-semibold flex items-center justify-center gap-2 text-sm whitespace-nowrap">
             <Star className="w-4 h-4 fill-current" />
             Most Popular
