@@ -191,15 +191,14 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         {/* CTA Button */}
         <div className="mt-auto pt-4 sm:pt-6">
           <Button 
-            className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 ${
+            className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 text-primary-foreground ${
               isPopular 
-                ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl' 
-                : 'bg-gray-900 hover:bg-gray-800 text-white'
+                ? 'bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl' 
+                : 'bg-gray-900 hover:bg-gray-800'
             }`}
-            style={{ color: 'white !important' }}
             onClick={handleSubscribe}
           >
-            <span className="truncate text-white">
+            <span className="truncate">
               {isFree ? '🎉 Get Free Access' : `Pay ${currencySymbol}${Math.round(pricing.finalPrice)}`}
             </span>
           </Button>

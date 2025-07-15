@@ -47,9 +47,9 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
   }));
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return '#10B981';
-    if (score >= 60) return '#F59E0B';
-    return '#EF4444';
+    if (score >= 80) return 'hsl(var(--success))';
+    if (score >= 60) return 'hsl(var(--warning))';
+    return 'hsl(var(--destructive))';
   };
 
   const getPerformanceMessage = () => {
@@ -75,8 +75,8 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
                 styles={buildStyles({
                   textSize: '18px',
                   pathColor: getScoreColor(data.averageScore),
-                  textColor: '#374151',
-                  trailColor: '#F3F4F6',
+                  textColor: 'hsl(var(--foreground))',
+                  trailColor: 'hsl(var(--muted))',
                 })}
               />
             </div>
@@ -140,17 +140,17 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
                   dataKey="day" 
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6B7280' }}
+                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                 />
                 <YAxis 
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6B7280' }}
+                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                   domain={[0, 100]}
                 />
                 <Bar 
                   dataKey="score" 
-                  fill="#10B981" 
+                  fill="hsl(var(--success))" 
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>

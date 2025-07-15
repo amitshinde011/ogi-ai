@@ -111,7 +111,7 @@ const VideoPlayerControls = ({
             onClick={handleProgressClick}
           >
             <div 
-              className="h-full bg-indigo-500 rounded-full transition-all duration-200"
+              className="h-full bg-primary rounded-full transition-all duration-200 relative"
               style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
             />
           </div>

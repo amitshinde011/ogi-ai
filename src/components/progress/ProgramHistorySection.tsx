@@ -96,7 +96,7 @@ const ProgramHistorySection = ({ programs, onItemClick }: ProgramHistorySectionP
             <div className="mt-3">
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="bg-gradient-to-r from-primary to-blue-500 h-2 rounded-full transition-all"
+                  className="bg-gradient-to-r from-primary to-primary/80 h-2 rounded-full transition-all"
                   style={{ width: `${program.progress_percentage}%` }}
                 />
               </div>

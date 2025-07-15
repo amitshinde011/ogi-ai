@@ -55,9 +55,9 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return '#10B981';
-    if (score >= 60) return '#F59E0B';
-    return '#EF4444';
+    if (score >= 80) return 'hsl(var(--success))';
+    if (score >= 60) return 'hsl(var(--warning))';
+    return 'hsl(var(--destructive))';
   };
 
   const getJourneyMessage = () => {
@@ -120,8 +120,8 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
                 styles={buildStyles({
                   textSize: '18px',
                   pathColor: getScoreColor(data.averageScore),
-                  textColor: '#374151',
-                  trailColor: '#F3F4F6',
+                  textColor: 'hsl(var(--foreground))',
+                  trailColor: 'hsl(var(--muted))',
                 })}
               />
             </div>
@@ -210,14 +210,14 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
                     dataKey="day" 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
-                    label={{ value: 'Day', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fontSize: '12px', fill: '#6B7280' } }}
+                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                    label={{ value: 'Day', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
-                    label={{ value: 'Points Earned', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '12px', fill: '#6B7280' } }}
+                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                    label={{ value: 'Points Earned', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
                     domain={[0, 70]}
                   />
                   <Line 

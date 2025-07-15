@@ -133,7 +133,7 @@ const Comparison = () => {
 
     try {
       const canvas = await html2canvas(photoComparisonRef.current, {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'hsl(var(--background))',
         scale: 2,
         useCORS: true,
         allowTaint: true,
