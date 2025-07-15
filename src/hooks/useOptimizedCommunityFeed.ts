@@ -307,11 +307,13 @@ export const useOptimizedCommunityFeed = () => {
         .subscribe();
     };
 
-    // Handle visibility change to reconnect realtime only
+    // Handle visibility change to reconnect when tab becomes visible
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         console.log('Tab became visible, reconnecting realtime...');
-        // Reconnect realtime subscription only - no data refresh
+        // Refresh data when tab becomes visible again
+        refreshPosts();
+        // Reconnect realtime subscription
         setupRealtimeSubscription();
       }
     };
