@@ -126,15 +126,7 @@ const Home = () => {
     return null;
   }
 
-  // If profile is missing, show loading (it loads after user)
-  if (!userProfile) {
-    console.log('⏳ Home: User exists but profile still loading');
-    return (
-      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
-        <Loader size="lg" />
-      </div>
-    );
-  }
+  // Profile should now always be available due to immediate default profile setting
 
   console.log('🍽️ Home: Meals logged today:', mealsLogged);
   console.log('📊 Home: Current wellness data:', wellnessData);

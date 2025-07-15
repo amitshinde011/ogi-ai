@@ -77,29 +77,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return;
         }
 
-        if (session?.user) {
-          try {
-            const profile = await fetchUserProfile(session.user.id);
-            if (mounted) {
-              setUser(session.user);
-              setSession(session);
-              setUserProfile(profile);
-              // Cache the user and profile data
-              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-              localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
-            }
-          } catch (profileError) {
-            console.error('Profile fetch error:', profileError);
-            // Still set user even if profile fails
-            if (mounted) {
-              setUser(session.user);
-              setSession(session);
-              setUserProfile({
-                name: 'User',
-                profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
-              });
-            }
+      if (session?.user) {
+        // Set user immediately to prevent loading state
+        setUser(session.user);
+        setSession(session);
+        localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
+        
+        // Set default profile first, then fetch real profile
+        const defaultProfile = {
+          name: 'User',
+          profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
+        };
+        setUserProfile(defaultProfile);
+        
+        try {
+          const profile = await fetchUserProfile(session.user.id);
+          if (mounted) {
+            setUserProfile(profile);
+            localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
           }
+        } catch (profileError) {
+          console.error('Profile fetch error:', profileError);
+          // Keep default profile if fetch fails
+        }
         } else {
           setUser(null);
           setSession(null);
@@ -150,7 +150,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setSession(session);
             localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
             
-            // Fetch profile asynchronously without blocking
+            // Set default profile immediately
+            const defaultProfile = {
+              name: 'User',
+              profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
+            };
+            setUserProfile(defaultProfile);
+            
+            // Fetch real profile asynchronously without blocking
             try {
               const profile = await fetchUserProfile(session.user.id);
               if (mounted) {
@@ -159,12 +166,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               }
             } catch (error) {
               console.error('Profile fetch error on sign in:', error);
-              if (mounted) {
-                setUserProfile({
-                  name: 'User',
-                  profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
-                });
-              }
+              // Keep default profile if fetch fails
             }
           }
           break;
