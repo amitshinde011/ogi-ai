@@ -33,7 +33,7 @@ const Index = () => {
           hasRedirected = true;
           navigate('/login', { replace: true });
         }
-      }, 10000); // 10 second timeout
+      }, 5000); // 5 second timeout - reduced for better UX
       
       return () => {
         if (fallbackTimeoutId) {
@@ -56,7 +56,13 @@ const Index = () => {
           userExists: !!user 
         });
         
-        const redirectPath = await determineLandingPage(user?.id, isAuthenticated);
+        // Add timeout to prevent hanging on determineLandingPage
+        const redirectPromise = determineLandingPage(user?.id, isAuthenticated);
+        const timeoutPromise = new Promise<string>((_, reject) => {
+          setTimeout(() => reject(new Error('Landing page determination timeout')), 3000);
+        });
+        
+        const redirectPath = await Promise.race([redirectPromise, timeoutPromise]);
         console.log('Index: Received redirect path:', redirectPath);
         
         if (!redirectPath) {
