@@ -120,13 +120,15 @@ const Home = () => {
     );
   }
 
-  // Early return for missing user - but allow missing profile (it loads async)
-  if (!user) {
-    console.log('❌ Home: Missing user data');
-    return null;
+  // Early return for missing user or profile
+  if (!user || !userProfile) {
+    console.log('❌ Home: Missing user or profile data');
+    return (
+      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
+        <Loader size="lg" />
+      </div>
+    );
   }
-
-  // Profile should now always be available due to immediate default profile setting
 
   console.log('🍽️ Home: Meals logged today:', mealsLogged);
   console.log('📊 Home: Current wellness data:', wellnessData);
