@@ -8,7 +8,7 @@ import DailyProgressCard from '@/components/DailyProgressCard';
 import QuickActions from '@/components/QuickActions';
 import TodayMeals from '@/components/TodayMeals';
 import WeeklyStreak from '@/components/WeeklyStreak';
-import StepTracker from '@/components/StepTracker';
+import StepTracker from '@/components/wellness/StepTracker';
 import DailySpecialTracking from '@/components/DailySpecialTracking';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { useNavigate } from 'react-router-dom';
