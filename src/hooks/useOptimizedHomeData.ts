@@ -45,8 +45,8 @@ export const useOptimizedHomeData = () => {
       meditation_completed: false
     }
   });
-  const [loading, setLoading] = useState(true);
-  const [initialLoad, setInitialLoad] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(false);
   const { trackEvent } = useAnalytics();
   const fetchingRef = useRef(false);
   const lastFetchRef = useRef<number>(0);
