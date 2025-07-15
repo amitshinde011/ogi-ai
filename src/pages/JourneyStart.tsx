@@ -244,7 +244,7 @@ const JourneyStart = () => {
             <Button
               onClick={handleStartJourney}
               disabled={loading}
-              className="w-full h-12 text-lg bg-gradient-sage text-white hover:opacity-90"
+              className="w-full h-12 text-lg bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {loading ? (
                 <>
