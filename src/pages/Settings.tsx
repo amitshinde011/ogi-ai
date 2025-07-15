@@ -159,10 +159,10 @@ const Settings = () => {
   }
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title="Settings" />
       
-      <div className="p-6 space-y-8 max-w-lg mx-auto bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+      <div className="space-y-8 py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
         {/* Profile Card */}
         <ProfileCard userProfile={transformedProfile} />
 

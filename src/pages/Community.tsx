@@ -90,12 +90,12 @@ const Community = () => {
   }
 
   return (
-    <Layout>
+    <Layout containerVariant="wide">
       <Header title="Community" />
       
       <div 
         ref={containerRef}
-        className="relative p-4 sm:p-6 max-w-2xl mx-auto"
+        className="relative py-4 sm:py-6"
       >
         {/* Pull-to-Refresh Spinner */}
         <RefreshSpinner

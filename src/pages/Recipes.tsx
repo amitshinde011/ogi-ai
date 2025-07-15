@@ -60,9 +60,9 @@ const Recipes = () => {
   // Show message if user has no active program
   if (!userProgram) {
     return (
-      <Layout>
+      <Layout containerVariant="narrow">
         <Header title="Recipes" />
-        <div className="max-w-md mx-auto p-4">
+        <div className="py-4">
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">You need an active program to view recipes.</p>
             <Link to="/subscriptions">
@@ -75,7 +75,7 @@ const Recipes = () => {
   }
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header 
         title="Recipes" 
         rightElement={
@@ -92,7 +92,7 @@ const Recipes = () => {
         }
       />
       
-      <div className="p-4 space-y-6 max-w-md mx-auto">
+      <div className="space-y-6 py-4">
         <ProgramInfoCard programName={userProgram.programs?.name} />
         <SavedRecipesCard savedRecipesCount={savedRecipeIds.length} />
         

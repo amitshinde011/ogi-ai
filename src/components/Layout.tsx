@@ -10,9 +10,11 @@ import { IMAGES } from '@/constants/images';
 
 interface LayoutProps {
   children: React.ReactNode;
+  containerVariant?: 'narrow' | 'wide' | 'full';
+  noContainer?: boolean;
 }
 
-const Layout = ({ children }: LayoutProps) => {
+const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
@@ -59,7 +61,19 @@ const Layout = ({ children }: LayoutProps) => {
       )}
       
       <main className={`flex-1 ${shouldShowNavigation ? 'pb-16 sm:pb-20 md:pb-0 md:pl-64' : ''} ${isCompleted ? 'pt-20 sm:pt-24 md:pt-32' : ''}`}>
-        {children}
+        {noContainer ? (
+          children
+        ) : (
+          <div className={`w-full mx-auto px-4 sm:px-6 ${
+            containerVariant === 'narrow' 
+              ? 'max-w-md' 
+              : containerVariant === 'wide' 
+                ? 'max-w-2xl' 
+                : 'max-w-6xl'
+          }`}>
+            {children}
+          </div>
+        )}
       </main>
       
       {/* Mobile Bottom Navigation - Only show on specified pages */}

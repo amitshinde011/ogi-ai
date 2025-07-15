@@ -57,7 +57,7 @@ const SavedRecipes = () => {
     return (
       <Layout>
         <Header title="Saved Recipes" showBack />
-        <div className="max-w-md mx-auto p-4">
+        <div className="py-4">
           <div className="text-center py-12">
             <Heart size={48} strokeWidth={1.5} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">Please log in</h3>
@@ -75,10 +75,10 @@ const SavedRecipes = () => {
   }
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title="Saved Recipes" showBack />
       
-      <div className="max-w-md mx-auto p-4">
+      <div className="py-4">
         {savedRecipes.length === 0 ? (
           <div className="text-center py-12">
             <Heart size={48} strokeWidth={1.5} className="mx-auto text-gray-300 mb-4" />

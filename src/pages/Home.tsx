@@ -160,7 +160,7 @@ const Home = () => {
   console.log('🎨 Home: Rendering home page with all components');
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title="Home" rightElement={profileElement} />
       {showBanner && (
         <>
@@ -169,7 +169,7 @@ const Home = () => {
         </>
       )}
       
-      <div className="p-4 space-y-6 max-w-md mx-auto">
+      <div className="space-y-6 py-4">
         {isCompleted && completedSubscription && (
           <>
             <ProgramCompletionBanner completedSubscription={completedSubscription} />

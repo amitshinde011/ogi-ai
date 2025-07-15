@@ -5,10 +5,10 @@ import Header from '@/components/Header';
 
 const Messages = () => {
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title="Messages" showBack />
       
-      <div className="p-4 max-w-md mx-auto">
+      <div className="py-4">
         <div className="text-center py-12">
           <p className="text-gray-500 mb-4">Messages</p>
           <p className="text-sm text-gray-400">

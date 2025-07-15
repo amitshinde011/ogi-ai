@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Shield, CreditCard } from 'lucide-react';
+import { Shield, CreditCard } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,8 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import { Link } from 'react-router-dom';
 import { createPaymentSession, handleRazorpayPayment } from '@/utils/paymentGateway';
 import { useAuth } from '@/contexts/AuthContext';
+import Layout from '@/components/Layout';
+import Header from '@/components/Header';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -222,19 +224,10 @@ const Payment = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mr-4 p-2 hover:bg-white/20"
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <h1 className="text-2xl font-bold text-slate-900">Complete Payment</h1>
-        </div>
+    <Layout containerVariant="wide">
+      <Header title="Complete Payment" showBack />
+      
+      <div className="min-h-screen bg-gradient-peaceful py-4">
 
         {/* Single Combined Card */}
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
@@ -379,7 +372,7 @@ const Payment = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 

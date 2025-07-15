@@ -54,10 +54,10 @@ const Profile = () => {
   const isOwnProfile = currentUser?.id === profileUser.id;
 
   return (
-    <Layout>
+    <Layout containerVariant="narrow">
       <Header title={profileUser.name || 'Profile'} showBack />
       
-      <div className="p-4 max-w-md mx-auto">
+      <div className="py-4">
         {/* Profile Header */}
         <div className="text-center mb-6">
           <Avatar className="w-24 h-24 mx-auto mb-4">

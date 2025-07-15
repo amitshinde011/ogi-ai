@@ -158,12 +158,12 @@ const ProgressPage = () => {
   }
 
   return (
-    <Layout>
+    <Layout containerVariant="full">
       <Header title="Your Progress" />
       {showBanner && <SubscriptionBanner />}
       
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="p-4 max-w-4xl mx-auto">
+        <div className="py-4">
           <Tabs defaultValue="today" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm">
               <TabsTrigger value="today" className="flex items-center gap-2">
