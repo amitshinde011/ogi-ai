@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { User, Session } from '@supabase/supabase-js';
@@ -263,7 +263,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return true;
   };
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     session,
     userProfile,
@@ -272,7 +272,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signOut,
     refreshSession,
     requireAuth,
-  };
+  }), [user, session, userProfile, loading, isAuthenticated]);
 
   return (
     <AuthContext.Provider value={value}>
