@@ -120,10 +120,20 @@ const Home = () => {
     );
   }
 
-  // Early return for missing auth - but hooks have already been called
-  if (!user || !userProfile) {
-    console.log('❌ Home: Missing user or profile data');
+  // Early return for missing user - but allow missing profile (it loads async)
+  if (!user) {
+    console.log('❌ Home: Missing user data');
     return null;
+  }
+
+  // If profile is missing, show loading (it loads after user)
+  if (!userProfile) {
+    console.log('⏳ Home: User exists but profile still loading');
+    return (
+      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
+        <Loader size="lg" />
+      </div>
+    );
   }
 
   console.log('🍽️ Home: Meals logged today:', mealsLogged);
