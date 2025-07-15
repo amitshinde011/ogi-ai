@@ -95,12 +95,12 @@ const Chat = () => {
             >
               <div className={`max-w-xs px-4 py-2 rounded-lg ${
                 message.isFromCurrentUser 
-                  ? 'bg-sage text-white' 
+                  ? 'bg-primary text-primary-foreground' 
                   : 'bg-gray-100 text-gray-900'
               }`}>
                 <p className="text-sm">{message.message_text}</p>
                 <p className={`text-xs mt-1 ${
-                  message.isFromCurrentUser ? 'text-sage-200' : 'text-gray-500'
+                  message.isFromCurrentUser ? 'text-primary-foreground/80' : 'text-gray-500'
                 }`}>
                   {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
                 </p>
@@ -123,7 +123,6 @@ const Chat = () => {
             <Button 
               onClick={handleSendMessage}
               disabled={!newMessage.trim()}
-              className="bg-sage hover:bg-sage/90"
             >
               <Send className="w-4 h-4" />
             </Button>

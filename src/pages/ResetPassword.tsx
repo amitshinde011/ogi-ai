@@ -183,7 +183,7 @@ const ResetPassword = () => {
             </div>
             <Button 
               type="submit" 
-              className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md"
+              className="w-full rounded-xl shadow-md"
               disabled={isLoading}
             >
               {isLoading ? "Updating Password..." : "Update Password"}

@@ -159,7 +159,7 @@ const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) 
           </Button>
           <Button
             type="submit"
-            className="flex-1 rounded-xl bg-sage hover:bg-sage/90 text-white"
+            className="flex-1 rounded-xl"
             disabled={isLoading}
           >
             {isLoading ? 'Saving...' : 'Save Changes'}

@@ -120,7 +120,7 @@ const TestimonialsCarousel = () => {
                       alt={testimonial.name}
                       className="object-cover"
                     />
-                    <AvatarFallback className="bg-sage text-white font-semibold text-sm sm:text-lg">
+                    <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm sm:text-lg">
                       {getInitials(testimonial.name)}
                     </AvatarFallback>
                   </Avatar>

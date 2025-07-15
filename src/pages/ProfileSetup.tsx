@@ -130,7 +130,7 @@ const ProfileSetup = () => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-sage hover:bg-sage/90 text-white py-3 text-lg font-medium" 
+                className="w-full py-3 text-lg font-medium" 
                 disabled={loading || uploading}
               >
                 {loading ? 'Saving...' : uploading ? 'Uploading Photo...' : 'Continue to Subscriptions'}

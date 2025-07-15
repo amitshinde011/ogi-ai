@@ -109,7 +109,7 @@ const Community = () => {
         {userProgram && !isCompleted ? (
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="w-full mb-6 bg-sage hover:bg-sage/90 flex items-center justify-center gap-2 py-3 text-base sm:text-lg"
+            className="w-full mb-6 flex items-center justify-center gap-2 py-3 text-base sm:text-lg"
           >
             <Plus className="w-5 h-5" />
             Create Post

@@ -178,7 +178,7 @@ const RecipeDetail = () => {
                 <h3 className="font-semibold text-primary mb-4">Nutrition per serving</h3>
                 <div className={`grid gap-3 ${nutritionItems.length === 1 ? 'grid-cols-1' : nutritionItems.length === 2 ? 'grid-cols-2' : nutritionItems.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   {nutritionItems.map((item, index) => (
-                    <div key={index} className="text-center p-3 bg-sage/5 rounded-lg">
+                    <div key={index} className="text-center p-3 bg-primary/5 rounded-lg">
                       <div className="text-lg font-bold text-primary">{item.value}</div>
                       <div className="text-sm text-muted-foreground">{item.label}</div>
                     </div>

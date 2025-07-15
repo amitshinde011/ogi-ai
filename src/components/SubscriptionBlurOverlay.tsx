@@ -32,12 +32,12 @@ const SubscriptionBlurOverlay: React.FC<SubscriptionBlurOverlayProps> = ({ child
               To access this page and unlock all features, you need an active subscription.
             </p>
             <div className="space-y-3">
-              <Button 
-                onClick={() => navigate('/subscriptions')}
-                className="w-full bg-sage hover:bg-sage/90"
-              >
-                Subscribe Now
-              </Button>
+            <Button 
+              onClick={() => navigate('/subscriptions')}
+              className="w-full"
+            >
+              Subscribe Now
+            </Button>
               <Button 
                 onClick={() => navigate(-1)}
                 variant="outline"

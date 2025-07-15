@@ -147,20 +147,20 @@ const Upload = () => {
                     onClick={() => setSelectedMeal(meal.id)}
                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                       selectedMeal === meal.id
-                        ? 'border-sage bg-sage/10 shadow-md'
-                        : 'border-lavender/30 hover:border-sage hover:bg-lavender/5'
+                        ? 'border-primary bg-primary/10 shadow-md'
+                        : 'border-border hover:border-primary hover:bg-accent/50'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <IconComponent size={24} className="text-sage mr-3" />
+                        <IconComponent size={24} className="text-primary mr-3" />
                         <div>
                           <h4 className="font-medium text-stone">{meal.name}</h4>
                           <p className="text-sm text-stone/60">{meal.time}</p>
                         </div>
                       </div>
                       {selectedMeal === meal.id && (
-                        <Check size={20} strokeWidth={1.5} className="text-sage" />
+                        <Check size={20} strokeWidth={1.5} className="text-primary" />
                       )}
                     </div>
                   </div>
@@ -175,9 +175,9 @@ const Upload = () => {
           <CardContent className="p-4">
             <h3 className="font-semibold text-stone mb-4">Upload Photo</h3>
             {!imagePreview ? (
-              <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-sage rounded-xl">
-                <Camera size={32} strokeWidth={1.5} className="text-sage mb-2" />
-                <span className="text-sage font-medium mb-4">Select photo</span>
+              <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-primary rounded-xl">
+                <Camera size={32} strokeWidth={1.5} className="text-primary mb-2" />
+                <span className="text-primary font-medium mb-4">Select photo</span>
                 
                 <div className="flex gap-3">
                   <label className="cursor-pointer">
@@ -243,7 +243,7 @@ const Upload = () => {
               placeholder="Tell us about your meal... What did you eat? How did it taste?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="rounded-xl min-h-20 text-stone border-lavender/30 focus:border-sage"
+              className="rounded-xl min-h-20 text-stone border-lavender/30 focus:border-primary"
             />
           </CardContent>
         </Card>
@@ -252,7 +252,7 @@ const Upload = () => {
         <Button
           onClick={handleSubmit}
           disabled={!selectedMeal || !imageFile || uploading || !isAuthenticated || !user || !userProgram || isCompleted}
-          className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white py-6 font-medium shadow-lg"
+          className="w-full rounded-xl py-6 font-medium shadow-lg"
         >
           {uploading ? (
             <div className="flex items-center">

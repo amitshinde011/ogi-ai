@@ -93,8 +93,9 @@ const Profile = () => {
               className={`${
                 isFollowing 
                   ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
-                  : 'bg-sage hover:bg-sage/90 text-white'
+                  : ''
               }`}
+              variant={isFollowing ? 'secondary' : 'default'}
             >
               {isFollowing ? 'Unfollow' : 'Follow'}
             </Button>

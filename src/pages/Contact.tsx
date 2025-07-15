@@ -175,7 +175,7 @@ const Contact = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-sage hover:bg-sage/90"
+                className="w-full"
                 disabled={isLoading}
               >
                 {isLoading ? (

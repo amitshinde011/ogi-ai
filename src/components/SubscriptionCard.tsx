@@ -78,11 +78,11 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
 
   return (
     <Card className={`relative h-full flex flex-col bg-white border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 w-full ${
-      isPopular ? 'border-yellow-400 shadow-lg' : 'border-gray-200'
+      isPopular ? 'border-primary shadow-lg' : 'border-gray-200'
     }`}>
       {isPopular && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-          <Badge className="bg-yellow-400 text-yellow-900 px-2 sm:px-4 py-1 rounded-full font-semibold flex items-center gap-1 text-xs sm:text-sm">
+          <Badge className="bg-primary text-primary-foreground px-2 sm:px-4 py-1 rounded-full font-semibold flex items-center gap-1 text-xs sm:text-sm">
             <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
             Most Popular
             <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
@@ -191,10 +191,10 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         {/* CTA Button */}
         <div className="mt-auto pt-4 sm:pt-6">
           <Button 
-            className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 text-white ${
+            className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 ${
               isPopular 
-                ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl' 
-                : 'bg-gray-900 hover:bg-gray-800'
+                ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl' 
+                : 'bg-gray-900 hover:bg-gray-800 text-white'
             }`}
             style={{ color: 'white !important' }}
             onClick={handleSubscribe}

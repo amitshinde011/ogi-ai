@@ -61,8 +61,8 @@ const DailySpecialTracking = ({ saladBowlCompleted, kanjiCompleted }: DailySpeci
         {specialItems.map(({ name, description, icon: Icon, completed, trackingType, recipeId }) => (
           <div key={name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-sage/10 rounded-full">
-                <Icon size={16} className="text-sage" />
+              <div className="p-2 bg-primary/10 rounded-full">
+                <Icon size={16} className="text-primary" />
               </div>
               <div>
                 <p className="font-medium text-gray-900">{name}</p>

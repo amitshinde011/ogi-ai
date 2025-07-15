@@ -104,9 +104,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
         <div className="space-y-4">
           {/* Image Upload */}
           {!imagePreview ? (
-            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-sage rounded-lg">
-              <Plus size={48} strokeWidth={1.5} className="text-sage mb-2" />
-              <span className="text-sage font-medium mb-4">Select photo</span>
+            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-primary rounded-lg">
+              <Plus size={48} strokeWidth={1.5} className="text-primary mb-2" />
+              <span className="text-primary font-medium mb-4">Select photo</span>
               
               <div className="flex gap-3">
                 <label className="cursor-pointer">
@@ -178,11 +178,11 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                       onClick={() => setSelectedMealType(meal.id)}
                       className={`p-3 rounded-lg border-2 transition-all flex flex-col items-center ${
                         selectedMealType === meal.id
-                          ? 'border-sage bg-sage/10'
-                          : 'border-gray-200 hover:border-sage'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-gray-200 hover:border-primary'
                       }`}
                     >
-                      <IconComponent size={24} className="text-sage mb-1" />
+                      <IconComponent size={24} className="text-primary mb-1" />
                       <div className="text-sm font-medium">{meal.name}</div>
                     </button>
                   );
@@ -215,7 +215,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 uploading || 
                 (showMealTypeSelection && !selectedMealType)
               }
-              className="w-full bg-sage hover:bg-sage/90"
+              className="w-full"
             >
               {isSubmitting || uploading ? 'Creating Post...' : 'Share Post'}
             </Button>

@@ -85,7 +85,7 @@ const MealLogger = () => {
         <Button
           onClick={() => setShowCreateModal(true)}
           disabled={!userProgram || isCompleted}
-          className="w-full bg-sage hover:bg-sage/90 flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
           {!userProgram || isCompleted ? 'Subscription Required' : 'Log Your Meal'}
