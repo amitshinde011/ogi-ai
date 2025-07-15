@@ -371,7 +371,7 @@ export const useOptimizedHomeData = () => {
     } else {
       setLoading(false); // Don't keep loading if no user
     }
-  }, [user]); // Remove fetchAllData dependency to prevent loops
+  }, [user, fetchAllData]); // Fixed: Include fetchAllData in dependency array
 
   console.log('📊 useOptimizedHomeData: Current state:', { 
     loading, 
