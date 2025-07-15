@@ -58,7 +58,7 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
       .select('*')
       .eq('user_id', user_id)
       .maybeSingle();
-
+    console.log('Onboarding data:', onboardingData);
     const onboardingState: OnboardingState = onboardingData || {};
     console.log('Onboarding state:', onboardingState);
 
