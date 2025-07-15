@@ -238,68 +238,99 @@ export const useOptimizedCommunityFeed = () => {
 
   // Real-time updates - optimized to only add new posts
   useEffect(() => {
-    const channel = supabase
-      .channel('public:posts')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'posts' 
-      }, async (payload) => {
-        if (payload.new.author_id !== currentUser?.id) {
-          // Fetch the new post with author info
-          const { data: postData } = await supabase
-            .from('posts')
-            .select('*')
-            .eq('id', payload.new.id)
-            .single();
+    if (!currentUser) return;
 
-          if (postData) {
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('name, profile_photo_url')
-              .eq('user_id', postData.author_id)
+    let channel: any = null;
+
+    const setupRealtimeSubscription = () => {
+      // Clean up existing channel
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+
+      channel = supabase
+        .channel('public:posts')
+        .on('postgres_changes', { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'posts' 
+        }, async (payload) => {
+          if (payload.new.author_id !== currentUser?.id) {
+            // Fetch the new post with author info
+            const { data: postData } = await supabase
+              .from('posts')
+              .select('*')
+              .eq('id', payload.new.id)
               .single();
 
-            const newPost: CommunityPost = {
-              ...postData,
-              author: {
-                name: profile?.name || 'Anonymous User',
-                profile_photo_url: profile?.profile_photo_url || null
-              },
-              is_liked: false
-            };
-            setPosts(prev => [newPost, ...prev]);
+            if (postData) {
+              const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('name, profile_photo_url')
+                .eq('user_id', postData.author_id)
+                .single();
+
+              const newPost: CommunityPost = {
+                ...postData,
+                author: {
+                  name: profile?.name || 'Anonymous User',
+                  profile_photo_url: profile?.profile_photo_url || null
+                },
+                is_liked: false
+              };
+              setPosts(prev => [newPost, ...prev]);
+            }
           }
-        }
-      })
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'posts' 
-      }, (payload) => {
-        setPosts(prev =>
-          prev.map(post =>
-            post.id === payload.new.id
-              ? { ...post, ...payload.new }
-              : post
-          )
-        );
-      })
-      .on('postgres_changes', { 
-        event: 'DELETE', 
-        schema: 'public', 
-        table: 'posts' 
-      }, (payload) => {
-        setPosts(prev =>
-          prev.filter(post => post.id !== payload.old.id)
-        );
-      })
-      .subscribe();
+        })
+        .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'posts' 
+        }, (payload) => {
+          setPosts(prev =>
+            prev.map(post =>
+              post.id === payload.new.id
+                ? { ...post, ...payload.new }
+                : post
+            )
+          );
+        })
+        .on('postgres_changes', { 
+          event: 'DELETE', 
+          schema: 'public', 
+          table: 'posts' 
+        }, (payload) => {
+          setPosts(prev =>
+            prev.filter(post => post.id !== payload.old.id)
+          );
+        })
+        .subscribe();
+    };
+
+    // Handle visibility change to reconnect when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Tab became visible, reconnecting realtime...');
+        // Refresh data when tab becomes visible again
+        refreshPosts();
+        // Reconnect realtime subscription
+        setupRealtimeSubscription();
+      }
+    };
+
+    // Set up initial subscription
+    setupRealtimeSubscription();
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      supabase.removeChannel(channel);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
-  }, [currentUser]);
+  }, [currentUser, refreshPosts]);
 
   return {
     posts,
