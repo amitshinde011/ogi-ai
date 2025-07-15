@@ -47,7 +47,13 @@ import NotFound from "./pages/NotFound";
 // Components
 import ProtectedRoute from "./components/ProtectedRoute";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   useEffect(() => {
