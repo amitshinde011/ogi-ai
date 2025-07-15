@@ -4,287 +4,165 @@ import { useToast } from '@/hooks/use-toast';
 import type { User, Session } from '@supabase/supabase-js';
 
 interface UserProfile {
-  name: string;
-  profile_photo_url: string | null;
+  name: string;
+  profile_photo_url: string | null;
 }
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  userProfile: UserProfile | null;
-  loading: boolean;
-  isAuthenticated: boolean;
-  signOut: () => Promise<boolean>;
-  refreshSession: () => Promise<boolean>;
-  requireAuth: () => boolean;
+  user: User | null;
+  session: Session | null;
+  userProfile: UserProfile | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+  signOut: () => Promise<boolean>;
+  refreshSession: () => Promise<boolean>;
+  requireAuth: () => boolean;
 }
-
-const AUTH_CACHE_KEY = 'auth_user_cache';
-const PROFILE_CACHE_KEY = 'auth_profile_cache';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
-  children: ReactNode;
+  children: ReactNode;
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!user;
 
-  const fetchUserProfile = async (userId: string): Promise<UserProfile> => {
-    try {
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('name, profile_photo_url')
-        .eq('user_id', userId)
-        .maybeSingle();
+  const fetchUserProfile = async (userId: string): Promise<UserProfile> => {
+    try {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('name, profile_photo_url')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-      return {
-        name: profile?.name || 'User',
-        profile_photo_url: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
-      };
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      return {
-        name: 'User',
-        profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
-      };
-    }
-  };
+      return {
+        name: profile?.name || 'User',
+        profile_photo_url: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
+      };
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return {
+        name: 'User',
+        profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
+      };
+    }
+  };
 
-  useEffect(() => {
-    let mounted = true;
+  // --- FINAL FIX: Simplified useEffect to use onAuthStateChange as the single source of truth ---
+  useEffect(() => {
+    let mounted = true;
 
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (!mounted) return;
+    // onAuthStateChange handles everything: initial session, sign in, sign out, etc.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
 
-        if (error) {
-          console.error('Session retrieval error:', error);
-          localStorage.removeItem(AUTH_CACHE_KEY);
-          localStorage.removeItem(PROFILE_CACHE_KEY);
-          setUser(null);
-          setSession(null);
-          setUserProfile(null);
-          return;
-        }
+      console.log('Auth state changed:', event, session);
 
-      if (session?.user) {
-        // Set user immediately to prevent loading state
-        setUser(session.user);
-        setSession(session);
-        localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-        
-        // Set default profile first, then fetch real profile
-        const defaultProfile = {
-          name: 'User',
-          profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
-        };
-        setUserProfile(defaultProfile);
-        
-        try {
-          const profile = await fetchUserProfile(session.user.id);
+      // Set the user and session state from the event
+      setUser(session?.user ?? null);
+      setSession(session);
+
+      // Fetch the user profile ONLY if a user exists
+      if (session?.user) {
+        // Fetch profile asynchronously without blocking UI updates
+        fetchUserProfile(session.user.id).then(profile => {
           if (mounted) {
             setUserProfile(profile);
-            localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
           }
-        } catch (profileError) {
-          console.error('Profile fetch error:', profileError);
-          // Keep default profile if fetch fails
-        }
-        } else {
-          setUser(null);
-          setSession(null);
-          setUserProfile(null);
-          localStorage.removeItem(AUTH_CACHE_KEY);
-          localStorage.removeItem(PROFILE_CACHE_KEY);
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        if (mounted) {
-          setUser(null);
-          setSession(null);
-          setUserProfile(null);
-          localStorage.removeItem(AUTH_CACHE_KEY);
-          localStorage.removeItem(PROFILE_CACHE_KEY);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    initializeAuth();
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-
-      console.log('Auth state changed:', event);
-      
-      // Only handle meaningful auth events to prevent double loading
-      if (event === 'INITIAL_SESSION') {
-        // Skip INITIAL_SESSION as it's already handled by getSession()
-        return;
-      }
-      
-      // Always set loading to false when auth state changes
-      setLoading(false);
-      
-      switch (event) {
-        case 'SIGNED_IN':
-          if (session?.user && mounted) {
-            // Immediately set user data to prevent race condition
-            setUser(session.user);
-            setSession(session);
-            localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-            
-            // Set default profile immediately
-            const defaultProfile = {
-              name: 'User',
-              profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${session.user.id}`
-            };
-            setUserProfile(defaultProfile);
-            
-            // Fetch real profile asynchronously without blocking
-            try {
-              const profile = await fetchUserProfile(session.user.id);
-              if (mounted) {
-                setUserProfile(profile);
-                localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
-              }
-            } catch (error) {
-              console.error('Profile fetch error on sign in:', error);
-              // Keep default profile if fetch fails
-            }
-          }
-          break;
-          
-        case 'SIGNED_OUT':
-          if (mounted) {
-            setUser(null);
-            setSession(null);
-            setUserProfile(null);
-            localStorage.removeItem(AUTH_CACHE_KEY);
-            localStorage.removeItem(PROFILE_CACHE_KEY);
-            localStorage.removeItem('user-preferences');
-            sessionStorage.clear();
-          }
-          break;
-          
-        case 'TOKEN_REFRESHED':
-          if (mounted && session) {
-            setSession(session);
-            setUser(session.user);
-            if (session.user) {
-              localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(session.user));
-            }
-          }
-          break;
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const signOut = async (): Promise<boolean> => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Sign out error:', error);
-        toast({
-          title: "Sign Out Error",
-          description: "Failed to sign out. Please try again.",
-          variant: "destructive",
         });
-        return false;
+      } else {
+        // Clear profile if there's no user
+        setUserProfile(null);
       }
 
-      // State will be updated by the auth state change listener
-      toast({
-        title: "Signed Out",
-        description: "You have been successfully signed out.",
-      });
+      // The loading process is finished once the first auth event is handled.
+      setLoading(false);
+    });
 
-      return true;
-    } catch (error) {
-      console.error('Unexpected sign out error:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred during sign out.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
-  const refreshSession = async (): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase.auth.refreshSession();
-      
-      if (error) {
+  const signOut = async (): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      toast({
+        title: "Signed Out",
+        description: "You have been successfully signed out.",
+      });
+      return true;
+    } catch (error) {
+      console.error('Unexpected sign out error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred during sign out.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const refreshSession = async (): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.refreshSession();
+      if (error) {
         console.error('Session refresh error:', error);
         return false;
       }
+      // The onAuthStateChange listener will handle the state update automatically
+      return true;
+    } catch (error) {
+      console.error('Unexpected session refresh error:', error);
+      return false;
+    }
+  };
 
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      return true;
-    } catch (error) {
-      console.error('Unexpected session refresh error:', error);
-      return false;
-    }
-  };
+  const requireAuth = (): boolean => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to access this feature.",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
 
-  const requireAuth = (): boolean => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to access this feature.",
-        variant: "destructive",
-      });
-      return false;
-    }
-    return true;
-  };
+  const value: AuthContextType = useMemo(() => ({
+    user,
+    session,
+    userProfile,
+    loading,
+    isAuthenticated,
+    signOut,
+    refreshSession,
+    requireAuth,
+  }), [user, session, userProfile, loading, isAuthenticated]);
 
-  const value: AuthContextType = useMemo(() => ({
-    user,
-    session,
-    userProfile,
-    loading,
-    isAuthenticated,
-    signOut,
-    refreshSession,
-    requireAuth,
-  }), [user, session, userProfile, loading, isAuthenticated]);
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
