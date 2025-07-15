@@ -45,8 +45,8 @@ export const useOptimizedHomeData = () => {
       meditation_completed: false
     }
   });
-  const [loading, setLoading] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(false);
+  const [loading, setLoading] = useState(true);
+//  const [initialLoad, setInitialLoad] = useState(false);
   const { trackEvent } = useAnalytics();
   const fetchingRef = useRef(false);
   const lastFetchRef = useRef<number>(0);
@@ -367,7 +367,7 @@ export const useOptimizedHomeData = () => {
     console.log('🔄 useOptimizedHomeData: useEffect triggered, user:', !!user);
     if (user) {
       fetchAllData();
-      setInitialLoad(false);
+      //setInitialLoad(false);
     } else {
       setLoading(false); // Don't keep loading if no user
     }
@@ -375,12 +375,11 @@ export const useOptimizedHomeData = () => {
 
   console.log('📊 useOptimizedHomeData: Current state:', { 
     loading, 
-    initialLoad,
     dataKeys: Object.keys(data),
     todayProgressKeys: Object.keys(data.todayProgress),
     currentSteps: data.todayProgress.steps,
     currentWalkScore: data.todayProgress.walkScore
   });
 
-  return { data, loading: loading && initialLoad, refetch: fetchAllData };
+  return { data, loading, refetch: fetchAllData };
 };
