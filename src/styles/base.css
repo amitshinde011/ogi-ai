@@ -3,38 +3,39 @@
 
 @layer base {
   :root {
+    /* Consistent with main index.css - override duplicates */
     --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --foreground: 220 39% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 220 39% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 258 75% 70%;
+    --popover-foreground: 220 39% 11%;
+    --primary: 239 68% 68%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 120 100% 50%;
-    --secondary-foreground: 0 0% 0%;
-    --accent: 0 0% 90%;
-    --accent-foreground: 0 0% 0%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --secondary: 220 13% 96%;
+    --secondary-foreground: 220 39% 11%;
+    --accent: 220 13% 96%;
+    --accent-foreground: 220 39% 11%;
+    --muted: 220 13% 96%;
+    --muted-foreground: 215 16% 47%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 100%;
-    --ring: 258 75% 70%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 239 68% 68%;
     --radius: 0.75rem;
-    --success: 142 76% 55%;
-    --warning: 38 92% 65%;
-    --info: 217 91% 70%;
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --info: 239 68% 68%;
     --surface: 0 0% 100%;
-    --surface-secondary: 0 0% 98%;
-    --text-primary: 0 0% 0%;
-    --text-secondary: 0 0% 30%;
-    --text-tertiary: 0 0% 50%;
+    --surface-secondary: 220 13% 98%;
+    --text-primary: 220 39% 11%;
+    --text-secondary: 215 25% 27%;
+    --text-tertiary: 215 16% 47%;
     --sage: 160 65% 55%;
-    --light-gray: 0 0% 90%;
-    --card-gray: 0 0% 96%;
-    --dark-text: 0 0% 0%;
+    --light-gray: 220 13% 91%;
+    --card-gray: 220 13% 96%;
+    --dark-text: 220 39% 11%;
     --pastel-purple: 270 85% 75%;
     --pastel-pink: 351 100% 80%;
     --pastel-blue: 195 85% 75%;
@@ -46,28 +47,28 @@
   }
 
   .dark {
-    --background: 262 40% 15%;
-    --foreground: 45 100% 96%;
-    --card: 262 40% 18%;
-    --card-foreground: 45 100% 96%;
-    --popover: 262 40% 15%;
-    --popover-foreground: 45 100% 96%;
-    --primary: 258 75% 70%;
+    --background: 220 39% 4%;
+    --foreground: 0 0% 98%;
+    --card: 220 39% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 220 39% 4%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 239 68% 68%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 120 100% 50%;
-    --secondary-foreground: 0 0% 0%;
-    --accent: 60 100% 70%;
-    --accent-foreground: 262 40% 15%;
-    --muted: 262 40% 22%;
-    --muted-foreground: 262 30% 65%;
+    --secondary: 220 39% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --accent: 220 39% 12%;
+    --accent-foreground: 0 0% 98%;
+    --muted: 220 39% 12%;
+    --muted-foreground: 215 16% 65%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 262 40% 15%;
-    --border: 262 40% 25%;
-    --input: 262 40% 18%;
-    --ring: 258 75% 70%;
-    --text-primary: 45 100% 96%;
-    --text-secondary: 45 80% 85%;
-    --text-tertiary: 262 30% 65%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 39% 18%;
+    --input: 220 39% 18%;
+    --ring: 239 68% 68%;
+    --text-primary: 0 0% 98%;
+    --text-secondary: 0 0% 85%;
+    --text-tertiary: 215 16% 65%;
   }
 }
 
@@ -85,12 +86,12 @@
 
   html, body, #root {
     min-height: 100vh;
-    background: hsl(0, 0%, 100%) !important;
+    background: hsl(var(--background)) !important;
   }
 
   /* Joyful heading styles */
   h1, h2, h3, h4, h5, h6 {
-    color: hsl(0, 0%, 0%);
+    color: hsl(var(--foreground));
     font-weight: 700;
     letter-spacing: -0.025em;
   }
@@ -102,7 +103,7 @@
 
   /* Bright text styles */
   p, span, div {
-    color: hsl(0, 0%, 0%);
+    color: hsl(var(--foreground));
     line-height: 1.6;
   }
 }
