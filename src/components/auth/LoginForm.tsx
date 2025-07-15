@@ -121,7 +121,7 @@ const LoginForm = ({ onSuccess }: LoginFormProps) => {
       </div>
       <Button 
         type="submit" 
-        className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md"
+        className="w-full rounded-xl shadow-md"
         disabled={isLoading}
       >
         {isLoading ? "Signing in..." : "Sign In"}
