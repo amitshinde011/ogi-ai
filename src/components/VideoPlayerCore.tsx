@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import Hls from 'hls.js';
 import { MP4_SOURCES_SEQUENCE, IFRAME_URLS } from '@/constants/videoSources';
 
@@ -59,8 +59,6 @@ const VideoPlayerCore = ({
     
     currentSourceRef.current = currentSource;
     
-    console.log('VideoPlayerCore: Setting video source to:', currentSource);
-    console.log('VideoPlayerCore: Using MP4 fallback:', useMP4Fallback);
 
     // Cleanup previous HLS instance
     if (hlsRef.current) {
@@ -71,37 +69,29 @@ const VideoPlayerCore = ({
     if (!useMP4Fallback && currentSource.includes('.m3u8')) {
       // Try HLS first
       if (Hls.isSupported()) {
-        console.log('VideoPlayerCore: Using HLS.js for M3U8');
         const hls = new Hls();
         hlsRef.current = hls;
         
         hls.loadSource(currentSource);
         hls.attachMedia(video);
         
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          console.log('VideoPlayerCore: HLS manifest parsed successfully');
-        });
         
         hls.on(Hls.Events.ERROR, (event, data) => {
           console.error('VideoPlayerCore: HLS error:', data);
           if (data.fatal) {
-            console.log('VideoPlayerCore: Fatal HLS error, trying MP4 fallback');
             setUseMP4Fallback(true);
           }
         });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         // Native HLS support (Safari)
-        console.log('VideoPlayerCore: Using native HLS support');
         video.src = currentSource;
       } else {
         // No HLS support, use MP4 fallback
-        console.log('VideoPlayerCore: No HLS support, using MP4 fallback');
         setUseMP4Fallback(true);
         return;
       }
     } else {
       // Use MP4 directly
-      console.log('VideoPlayerCore: Using MP4 source');
       video.src = currentSource;
     }
     
@@ -113,10 +103,8 @@ const VideoPlayerCore = ({
       console.error('VideoPlayerCore: Video error:', target.error);
       
       if (!useMP4Fallback) {
-        console.log('VideoPlayerCore: HLS failed, trying MP4 fallback');
         setUseMP4Fallback(true);
       } else {
-        console.log('VideoPlayerCore: MP4 failed, trying iframe fallback');
         setUseIframeFallback(true);
       }
     };
@@ -150,11 +138,9 @@ const VideoPlayerCore = ({
           allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
           allowFullScreen
           onLoad={() => {
-            console.log('VideoPlayerCore: Iframe loaded successfully');
             onLoadedData();
           }}
           onError={() => {
-            console.error('VideoPlayerCore: Iframe failed to load');
             onError({} as React.SyntheticEvent<HTMLVideoElement, Event>);
           }}
         />
@@ -197,4 +183,4 @@ const VideoPlayerCore = ({
   );
 };
 
-export default VideoPlayerCore;
+export default memo(VideoPlayerCore);

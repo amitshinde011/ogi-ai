@@ -34,14 +34,14 @@ export const useReportPost = (postId: number) => {
         .select('reason, description, created_at')
         .eq('post_id', postId)
         .eq('reporter_id', user.id)
-        .single();
+        .maybeSingle();
 
       // Get total report count for this post
       const { data: postData } = await supabase
         .from('posts')
         .select('report_count')
         .eq('id', postId)
-        .single();
+        .maybeSingle();
 
       setReportData({
         hasReported: !!userReport,

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { CheckCircle } from 'lucide-react';
 
 interface VideoPlayerStatesProps {
@@ -55,4 +55,4 @@ const VideoPlayerStates = ({
   );
 };
 
-export default VideoPlayerStates;
+export default memo(VideoPlayerStates);

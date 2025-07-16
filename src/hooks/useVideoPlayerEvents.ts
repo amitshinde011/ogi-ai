@@ -1,5 +1,5 @@
 
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 import { VideoPlayerState } from '@/types/videoPlayer';
 
 interface UseVideoPlayerEventsProps {
@@ -14,41 +14,32 @@ export const useVideoPlayerEvents = ({
   videoRef
 }: UseVideoPlayerEventsProps) => {
   
-  const handleVideoLoadedData = () => {
-    console.log('Video loaded successfully with quality:', state.currentQuality);
+  const handleVideoLoadedData = useCallback(() => {
     setState(prev => ({ ...prev, videoLoaded: true }));
-  };
+  }, [setState]);
 
-  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+  const handleVideoError = useCallback((e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
     console.error('Video error:', e.currentTarget.error);
-    console.error('Video error details:', {
-      code: e.currentTarget.error?.code,
-      message: e.currentTarget.error?.message,
-      currentSrc: e.currentTarget.currentSrc,
-      networkState: e.currentTarget.networkState,
-      readyState: e.currentTarget.readyState
-    });
     
     setState(prev => ({
       ...prev,
       videoError: true,
       videoLoaded: false
     }));
-  };
+  }, [setState]);
 
-  const handleVideoLoadStart = () => {
-    console.log('Video load started with quality:', state.currentQuality);
+  const handleVideoLoadStart = useCallback(() => {
     setState(prev => ({
       ...prev,
       videoLoaded: false,
       videoError: false,
       loadingStartTime: prev.loadingStartTime || Date.now()
     }));
-  };
+  }, [setState]);
 
-  const handleVideoCanPlay = () => {
-    console.log('Video can play');
-  };
+  const handleVideoCanPlay = useCallback(() => {
+    // Video can play
+  }, []);
 
   return {
     handleVideoLoadedData,
