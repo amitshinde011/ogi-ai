@@ -387,7 +387,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
                     <img 
                       src={beforeAssessment.full_body_photo_url} 
                       alt="Before" 
-                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+                      className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg border-2 border-gray-200"
                       crossOrigin="anonymous"
                     />
                     <p className="text-xs text-gray-500 mt-2">Start of journey</p>
@@ -401,7 +401,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
                     <img 
                       src={finalAssessment.full_body_photo_url} 
                       alt="After" 
-                      className="w-full h-48 object-cover rounded-lg border-2 border-green-300"
+                      className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg border-2 border-green-300"
                       crossOrigin="anonymous"
                     />
                     <p className="text-xs text-green-600 mt-2">Journey complete!</p>

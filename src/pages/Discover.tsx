@@ -33,7 +33,7 @@ const Discover = () => {
                   <img 
                     src={post.image_url} 
                     alt="Post" 
-                    className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                   />
                 </div>
               ))}

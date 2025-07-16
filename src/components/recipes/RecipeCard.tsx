@@ -20,7 +20,7 @@ const RecipeCard = ({ recipe, isSaved }: RecipeCardProps) => {
             <img
               src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
               alt={recipe.name}
-              className="w-full h-48 object-cover rounded-t-lg"
+              className="w-full max-w-md mx-auto aspect-square object-cover rounded-t-lg"
             />
             {isSaved && (
               <div className="absolute top-3 right-3">

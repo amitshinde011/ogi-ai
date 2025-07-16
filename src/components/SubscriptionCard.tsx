@@ -113,7 +113,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             <img
               src={getTransformationImage()!}
               alt={`${program.duration_days} days transformation`}
-              className="w-full object-cover rounded-lg border border-gray-200"
+              className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg border border-gray-200"
             />
           </div>
         )}
