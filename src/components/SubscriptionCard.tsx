@@ -202,7 +202,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
                   .replace(/(Improved|Enhanced|Increased|Reduced|Better|Optimal|Maximum|Complete|Total|Deep|Profound|Significant)/gi, '<strong>$1</strong>')
                   .replace(/(\d+%|\d+x|dramatically|significantly|substantially)/gi, '<strong>$1</strong>')
                   .replace(/(Calmness|Restorative|Sleep|Sharpened|Awakened|Vibrant|Active|Body|Initial|Hormonal|Harmony|Bloating|Digestion|Measurable|Leap|Rooted|Optimized|Cycles|Cognitive|Function)/gi, '<strong>$1</strong>')
-                  .replace(/(Weight|Correction|Hormonal|regular|cycles|PMS|calmer|nervous|system|lowering|cortisol|Alleviation|Chronic|Aches|Exuberant|Joyful|Being|Embodying|True|Confident||Hormonal|Metabolic|Healing|Mastery|Over|Physical|Form|Body|Recomposition)/gi, '<strong>$1</strong>')
+                  .replace(/(Weight|Correction|Hormonal|regular|cycles|PMS|calmer|nervous|system|lowering|cortisol|Alleviation|Chronic|Aches|Exuberant|Joyful|Being|Embodying|True|Confident|Hormonal|Metabolic|Healing|Mastery|Over|Physical|Form|Body|Recomposition)/gi, '<strong>$1</strong>')
                   .replace(/(Superconscious|Intuition|Peak|Performance|Unshakeable|Inner|Bliss|Energetic|Realignment)/gi, '<strong>$1</strong>');
                 return (
                   <div key={index} className="flex items-start text-xs sm:text-sm text-gray-700">
