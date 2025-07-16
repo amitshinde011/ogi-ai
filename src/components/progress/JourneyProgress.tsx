@@ -76,9 +76,9 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
   }));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Journey Overview */}
-      <Card className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-0 shadow-lg max-w-md mx-auto">
+      <Card className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             <Activity size={24} />
@@ -106,9 +106,9 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
       </Card>
 
       {/* Performance Metrics */}
-      <div className="flex flex-row gap-4 overflow-x-auto pb-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Overall Score */}
-        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg min-w-64 flex-shrink-0">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-xl font-bold text-gray-800">Journey Score</CardTitle>
           </CardHeader>
@@ -132,7 +132,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
         </Card>
 
         {/* Journey Stats */}
-        <Card className="bg-white border-0 shadow-sm min-w-64 flex-shrink-0">
+        <Card className="bg-white border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <Award size={20} />
@@ -195,7 +195,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
 
       {/* Milestone Progress Chart */}
       {data.milestones.length > 0 && (
-        <Card className="bg-white border-0 shadow-sm max-w-md mx-auto">
+        <Card className="bg-white border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <TrendingUp size={20} />
@@ -236,7 +236,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
       )}
 
       {/* Journey Suggestions */}
-      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-0 max-w-md mx-auto">
+      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-0">
         <CardContent className="p-4">
           <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <Star size={18} className="text-green-600" />
