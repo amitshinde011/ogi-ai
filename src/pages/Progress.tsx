@@ -143,20 +143,6 @@ const ProgressPage = () => {
     navigate('/comparison', { state: { subscriptionId: programId } });
   };
 
-  if (loading || activityLoading || progressLoading) {
-    return (
-      <Layout>
-        <Header title="Progress" />
-        {showBanner && <SubscriptionBanner />}
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-          <div className="text-center">
-            <Loader size="lg" className="mx-auto mb-4" />
-            <p className="text-gray-600">Loading your progress...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout noContainer>
@@ -166,6 +152,14 @@ const ProgressPage = () => {
           {showBanner && <SubscriptionBanner />}
           
           <div className="py-4">
+          {(loading || activityLoading || progressLoading) ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Loader size="lg" className="mx-auto mb-4" />
+                <p className="text-gray-600">Loading your progress...</p>
+              </div>
+            </div>
+          ) : (
           <Tabs defaultValue="today" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm">
               <TabsTrigger value="today" className="flex items-center gap-2">
@@ -213,6 +207,7 @@ const ProgressPage = () => {
               />
             </TabsContent>
           </Tabs>
+          )}
           </div>
         </PageContainer>
       </div>

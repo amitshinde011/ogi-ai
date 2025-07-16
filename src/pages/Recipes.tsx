@@ -47,16 +47,6 @@ const Recipes = () => {
 
   const isLoading = programLoading || recipesLoading;
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <Header title="Recipes" />
-        <div className="flex items-center justify-center h-64">
-          <Loader size="lg" className="mx-auto" />
-        </div>
-      </Layout>
-    );
-  }
 
   // Show message if user has no active program
   if (!userProgram) {
@@ -97,6 +87,12 @@ const Recipes = () => {
         />
         
         <div className="space-y-6 py-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader size="lg" className="mx-auto" />
+          </div>
+        ) : (
+          <>
         <ProgramInfoCard programName={userProgram.programs?.name} />
         <SavedRecipesCard savedRecipesCount={savedRecipeIds.length} />
         
@@ -116,6 +112,8 @@ const Recipes = () => {
           savedRecipeIds={savedRecipeIds}
           totalProgramRecipes={programRecipes?.length || 0}
         />
+          </>
+        )}
         </div>
       </PageContainer>
     </Layout>

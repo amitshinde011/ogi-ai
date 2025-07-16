@@ -111,9 +111,9 @@ const Home = () => {
     }
   }, [mealsLogged]);
 
-  // Show loading screen while checking auth or fetching data
-  if (authLoading || homeLoading) {
-    console.log('⏳ Home: Showing loading state');
+  // Early return for missing user while auth is loading
+  if (authLoading || !user) {
+    console.log('⏳ Home: Showing auth loading state');
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <Loader size="lg" />
@@ -121,9 +121,9 @@ const Home = () => {
     );
   }
 
-  // Early return for missing user or profile
-  if (!user || !userProfile) {
-    console.log('❌ Home: Missing user or profile data');
+  // Early return for missing profile but don't show full-page loader for data fetching
+  if (!userProfile) {
+    console.log('❌ Home: Missing user profile data');
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <Loader size="lg" />
@@ -172,6 +172,15 @@ const Home = () => {
         )}
         
         <div className="space-y-6 py-4">
+        {homeLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <Loader size="lg" className="mx-auto mb-4" />
+              <p className="text-gray-600">Loading your wellness data...</p>
+            </div>
+          </div>
+        ) : (
+          <>
         {isCompleted && completedSubscription && (
           <>
             <ProgramCompletionBanner completedSubscription={completedSubscription} />
@@ -220,6 +229,8 @@ const Home = () => {
         />
 
         <WeeklyStreak streak={homeData.weeklyStreak} />
+          </>
+        )}
         </div>
       </PageContainer>
     </Layout>

@@ -148,16 +148,6 @@ const Settings = () => {
     }
   ];
 
-  if (!userProfile) {
-    return (
-      <Layout>
-        <Header title="Settings" />
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-          <Loader size="lg" />
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout noContainer>
@@ -166,6 +156,12 @@ const Settings = () => {
           <Header title="Settings" />
           
           <div className="space-y-8 py-6">
+        {!userProfile ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader size="lg" />
+          </div>
+        ) : (
+          <>
         {/* Profile Card */}
         <ProfileCard userProfile={transformedProfile} />
 
@@ -198,6 +194,8 @@ const Settings = () => {
         <div className="text-center text-sm text-slate-500 font-medium">
           Yogi v1.0.0
         </div>
+          </>
+        )}
           </div>
         </PageContainer>
       </div>

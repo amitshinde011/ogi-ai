@@ -311,8 +311,8 @@ export const useOptimizedCommunityFeed = () => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         console.log('Tab became visible, reconnecting realtime...');
-        // Refresh data when tab becomes visible again
-        refreshPosts();
+        // Don't refresh data to prevent re-rendering on tab focus
+        // refreshPosts();
         // Reconnect realtime subscription
         setupRealtimeSubscription();
       }

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserData } from '@/contexts/UserDataContext';
@@ -23,6 +23,7 @@ export const useProgramCompletion = () => {
   const [checkingAssessment, setCheckingAssessment] = useState(false);
   const { user } = useAuth();
   const { userSubscriptions, loading: userDataLoading } = useUserData();
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
     checkProgramCompletion();
@@ -31,6 +32,11 @@ export const useProgramCompletion = () => {
   const checkProgramCompletion = async () => {
     if (!user || userDataLoading) {
       return;
+    }
+    
+    // Only set loading state for initial load
+    if (isInitialLoad.current) {
+      setCheckingAssessment(true);
     }
     
     try {
@@ -42,7 +48,6 @@ export const useProgramCompletion = () => {
       });
 
       if (completedSub) {
-        setCheckingAssessment(true);
         // Check if final assessment is already completed
         const { data: finalAssessment } = await supabase
           .from('final_assessments')
@@ -62,7 +67,11 @@ export const useProgramCompletion = () => {
     } catch (error) {
       console.error('Error checking program completion:', error);
     } finally {
-      setCheckingAssessment(false);
+      // Only update loading state if it was an initial load
+      if (isInitialLoad.current) {
+        setCheckingAssessment(false);
+        isInitialLoad.current = false;
+      }
     }
   };
 

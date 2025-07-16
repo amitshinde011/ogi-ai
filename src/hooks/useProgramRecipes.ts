@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useRecipes } from '@/hooks/useRecipes';
 
 export const useProgramRecipes = (userProgram: any) => {
   const { data: allRecipes, isLoading: recipesLoading } = useRecipes();
+  const isInitialLoad = useRef(true);
 
   // Filter recipes based on user's current program
   const programRecipes = React.useMemo(() => {
@@ -46,11 +47,20 @@ export const useProgramRecipes = (userProgram: any) => {
       return uniqueCategories;
     },
     enabled: !!userProgram,
+    refetchOnWindowFocus: false, // Prevent refetch on tab focus
   });
+
+  // Only show loading for initial load
+  const isLoading = isInitialLoad.current && (recipesLoading || categoriesLoading);
+  
+  // Mark initial load as complete when both queries finish
+  if (isInitialLoad.current && !recipesLoading && !categoriesLoading) {
+    isInitialLoad.current = false;
+  }
 
   return {
     programRecipes,
     categories,
-    isLoading: recipesLoading || categoriesLoading,
+    isLoading,
   };
 };
