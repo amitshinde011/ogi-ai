@@ -73,7 +73,7 @@ const IntroVideo = () => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-3 sm:p-4 md:p-6 flex items-center justify-center">
       <div className="max-w-4xl w-full space-y-4 sm:space-y-6 md:space-y-8">
         {/* Main Card */}
-        <Card className="bg-white border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
+        <Card className="bg-white border-0 shadow-2xl hover:shadow-3xl transition-all duration-300 max-w-md mx-auto">
           <CardHeader className="text-center pb-4 sm:pb-6 md:pb-8 px-3 sm:px-6 md:px-8">
             <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl sm:rounded-2xl md:rounded-3xl mx-auto flex items-center justify-center mb-3 sm:mb-4 md:mb-6 shadow-xl">
               <Play className="text-white" size={20} />

@@ -156,7 +156,7 @@ const JourneyStart = () => {
 
           <div className="space-y-6 py-4 bg-light-gray min-h-screen">
         {/* Welcome Card */}
-        <Card className="text-center bg-primary text-primary-foreground">
+        <Card className="text-center bg-primary text-primary-foreground max-w-md mx-auto">
           <CardContent className="p-8">
             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Star className="w-10 h-10 text-yellow-300" />

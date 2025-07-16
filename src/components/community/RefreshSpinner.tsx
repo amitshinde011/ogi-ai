@@ -30,7 +30,7 @@ export const RefreshSpinner: React.FC<RefreshSpinnerProps> = ({
         transition: isRefreshing ? 'opacity 0.3s ease, transform 0.3s ease' : 'none'
       }}
     >
-      <div className="bg-white rounded-full p-2 shadow-lg">
+      <div className="bg-white rounded-full p-2 shadow-lg max-w-md mx-auto">
         <Loader 
           size="md"
           className={`text-sage ${isRefreshing ? '' : 'opacity-60'}`}

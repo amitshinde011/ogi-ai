@@ -69,7 +69,7 @@ const ProfileSetup = () => {
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-peaceful py-4">
         <div className="max-w-4xl mx-auto px-4">
-        <Card className="bg-white border border-gray-200 shadow-xl">
+        <Card className="bg-white border border-gray-200 shadow-xl max-w-md mx-auto">
           <ProfileSetupHeader />
           <CardContent className="space-y-8">
             <div>

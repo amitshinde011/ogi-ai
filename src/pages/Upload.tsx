@@ -136,7 +136,7 @@ const Upload = () => {
       <div className="max-w-4xl mx-auto px-4">
         <div className="space-y-6 py-4">
         {/* Meal Type Selection */}
-        <Card className="shadow-lg border-lavender/20">
+        <Card className="shadow-lg border-lavender/20 max-w-md mx-auto">
           <CardContent className="p-4">
             <h3 className="font-semibold text-stone mb-4">Select Meal Type</h3>
             <div className="space-y-3">
@@ -172,7 +172,7 @@ const Upload = () => {
         </Card>
 
         {/* Image Upload */}
-        <Card className="shadow-lg border-lavender/20">
+        <Card className="shadow-lg border-lavender/20 max-w-md mx-auto">
           <CardContent className="p-4">
             <h3 className="font-semibold text-stone mb-4">Upload Photo</h3>
             {!imagePreview ? (
@@ -237,7 +237,7 @@ const Upload = () => {
         </Card>
 
         {/* Description */}
-        <Card className="shadow-lg border-lavender/20">
+        <Card className="shadow-lg border-lavender/20 max-w-md mx-auto">
           <CardContent className="p-4">
             <h3 className="font-semibold text-stone mb-4">Add Description (Optional)</h3>
             <Textarea
