@@ -62,7 +62,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateMealsProgress(),
       weight: 30,
       unit: 'meals',
-      color: 'hsl(var(--success))'
+      color: 'hsl(var(--pastel-purple))'
     },
     {
       name: 'Surya Namaskar',
@@ -72,7 +72,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateSuryaNamaskarProgress(),
       weight: 20,
       unit: 'rounds',
-      color: 'hsl(var(--warning))'
+      color: 'hsl(var(--pastel-lavender))'
     },
     {
       name: 'Dhatu Meditation',
@@ -82,7 +82,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateMeditationProgress(),
       weight: 20,
       unit: 'session',
-      color: 'hsl(var(--primary))'
+      color: 'hsl(var(--pastel-mint))'
     },
     {
       name: 'Water Intake',
@@ -92,7 +92,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateWaterProgress(),
       weight: 15,
       unit: 'liters',
-      color: 'hsl(var(--accent-foreground))'
+      color: 'hsl(var(--pastel-blue))'
     },
     {
       name: 'Steps',
@@ -102,7 +102,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateStepsProgress(),
       weight: 15,
       unit: 'steps',
-      color: 'hsl(var(--destructive))'
+      color: 'hsl(var(--pastel-peach))'
     }
   ];
 
