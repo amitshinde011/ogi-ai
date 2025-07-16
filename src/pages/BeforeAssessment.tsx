@@ -351,9 +351,10 @@ const BeforeAssessment = () => {
     const daysUntil = getDaysUntilStart();
     
     return (
-      <Layout containerVariant="narrow">
-        <Header title="Schedule Your Journey" />
-        
+      <Layout noContainer>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="max-w-2xl mx-auto px-4">
+            <Header title="Schedule Your Journey" />
         <div className="space-y-6 py-4 bg-light-gray min-h-screen">
           {/* Sacred Journey Message */}
           <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200/60 rounded-2xl p-8 shadow-lg backdrop-blur-sm">
@@ -491,6 +492,8 @@ const BeforeAssessment = () => {
               </div>
             </CardContent>
           </Card>
+            </div>
+          </div>
         </div>
       </Layout>
     );
@@ -498,37 +501,42 @@ const BeforeAssessment = () => {
 
   if (assessmentCompleted) {
     return (
-      <Layout containerVariant="narrow">
-        <Header title="Assessment Complete" />
-        
-        <div className="space-y-6 py-4 bg-light-gray min-h-screen">
-          <Card className="text-center">
-            <CardContent className="p-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ArrowRight className="w-8 h-8 text-green-600" />
-              </div>
-              <h2 className="text-xl font-semibold mb-2">Assessment Complete!</h2>
-              <p className="text-gray-600 mb-4">
-                Your journey will begin soon. Please wait for your start date.
-              </p>
-              {currentSubscription?.start_date && (
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    Journey starts: {new Date(currentSubscription.start_date).toLocaleDateString()}
+      <Layout noContainer>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="max-w-2xl mx-auto px-4">
+            <Header title="Assessment Complete" />
+            
+            <div className="space-y-6 py-4 bg-light-gray min-h-screen">
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <ArrowRight className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold mb-2">Assessment Complete!</h2>
+                  <p className="text-gray-600 mb-4">
+                    Your journey will begin soon. Please wait for your start date.
                   </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  {currentSubscription?.start_date && (
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        Journey starts: {new Date(currentSubscription.start_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <Header title="Before Assessment" />
-      
+    <Layout noContainer>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <div className="max-w-2xl mx-auto px-4">
+            <Header title="Before Assessment" />
       <div className="min-h-screen bg-gradient-peaceful py-4">
         <div className="max-w-md mx-auto px-4">
           <Card className="bg-white shadow-xl border-0">
@@ -588,7 +596,9 @@ const BeforeAssessment = () => {
           </Card>
         </div>
       </div>
-    </div>
+          </div>
+        </div>
+    </Layout>
   );
 };
 

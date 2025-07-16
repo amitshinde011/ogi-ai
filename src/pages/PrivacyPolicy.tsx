@@ -11,7 +11,7 @@ const PrivacyPolicy = () => {
   const navigate = useNavigate();
 
   return (
-    <Layout containerVariant="full" noContainer>
+    <Layout noContainer>
       <Header title="Privacy Policy" showBack />
       
       <div className="min-h-screen bg-gradient-peaceful py-4">

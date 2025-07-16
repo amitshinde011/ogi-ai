@@ -64,7 +64,7 @@ const ProgramComplete = () => {
   }, [navigate, user]);
 
   return (
-    <Layout containerVariant="narrow" noContainer>
+    <Layout noContainer>
       <Header title="Congratulations!" />
       
       <div className="min-h-screen bg-gradient-peaceful py-4">

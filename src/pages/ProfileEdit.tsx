@@ -139,60 +139,63 @@ const ProfileEdit = () => {
   };
 
   return (
-    <Layout containerVariant="narrow">
-      <Header title="Edit Profile" showBack />
-      
-      <div className="py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
-        <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <CardHeader className="text-center pb-6">
-            <div className="relative w-28 h-28 mx-auto mb-6">
-              <img
-                src={profileImage}
-                alt="Profile"
-                className="w-28 h-28 rounded-3xl shadow-xl object-cover border-4 border-white"
-              />
-              <div className="absolute -bottom-2 -right-2 flex gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="user"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="profile-camera"
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="max-w-2xl mx-auto px-4">
+          <Header title="Edit Profile" showBack />
+          <div className="py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+            <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader className="text-center pb-6">
+                <div className="relative w-28 h-28 mx-auto mb-6">
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="w-28 h-28 rounded-3xl shadow-xl object-cover border-4 border-white"
+                  />
+                  <div className="absolute -bottom-2 -right-2 flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="profile-camera"
+                    />
+                    <label htmlFor="profile-camera" className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-3 cursor-pointer hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                      <Camera size={16} className="text-white" />
+                    </label>
+                    
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="profile-gallery"
+                    />
+                    <label htmlFor="profile-gallery" className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-3 cursor-pointer hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                      <Upload size={16} className="text-white" />
+                    </label>
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
+                  <User className="w-6 h-6 inline mr-2" />
+                  Update Profile
+                </CardTitle>
+                <p className="text-slate-600 font-medium">
+                  Keep your information current for the best experience
+                </p>
+              </CardHeader>
+              <CardContent className="p-8">
+                <ProfileForm
+                  form={form}
+                  onSubmit={onSubmit}
+                  onCancel={() => navigate('/settings')}
+                  isLoading={isLoading}
                 />
-                <label htmlFor="profile-camera" className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-3 cursor-pointer hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                  <Camera size={16} className="text-white" />
-                </label>
-                
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="profile-gallery"
-                />
-                <label htmlFor="profile-gallery" className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-3 cursor-pointer hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                  <Upload size={16} className="text-white" />
-                </label>
-              </div>
-            </div>
-            <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
-              <User className="w-6 h-6 inline mr-2" />
-              Update Profile
-            </CardTitle>
-            <p className="text-slate-600 font-medium">
-              Keep your information current for the best experience
-            </p>
-          </CardHeader>
-          <CardContent className="p-8">
-            <ProfileForm
-              form={form}
-              onSubmit={onSubmit}
-              onCancel={() => navigate('/settings')}
-              isLoading={isLoading}
-            />
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </Layout>
   );

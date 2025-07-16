@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { calculateProgramProgress } from '@/utils/dateUtils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,48 +53,50 @@ export const useProgressData = () => {
   });
   
   const [loading, setLoading] = useState(true);
+  const isInitialLoad = useRef(true);
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchProgressData();
-  }, []);
-
-  const calculateDailyScore = (meals: any[], wellness: any, steps: any) => {
-    const uniqueMealTypes = new Set(meals?.map(m => m.meal_type.toLowerCase()) || []);
-    const mealsLogged = uniqueMealTypes.size;
-    
-    const mealsScore = Math.min((mealsLogged / 3) * 30, 30);
-    const suryaScore = Math.min(((wellness?.surya_namaskar_count || 0) / 12) * 20, 20);
-    const meditationScore = (wellness?.meditation_completed || false) ? 20 : 0;
-    const waterScore = Math.min(((wellness?.water_litres || 0) / 4) * 15, 15);
-    const stepsScore = Math.min(((steps?.steps_count || 0) / 5000) * 15, 15);
-    
-    return mealsScore + suryaScore + meditationScore + waterScore + stepsScore;
-  };
-
-  const generateSuggestions = (score: number, type: 'weekly' | 'journey') => {
-    const suggestions = [];
-    
-    if (score < 50) {
-      suggestions.push("Focus on logging all three meals daily");
-      suggestions.push("Start with basic Surya Namaskar practice");
-      suggestions.push("Set water intake reminders throughout the day");
-    } else if (score < 80) {
-      suggestions.push("Great progress! Try to maintain consistency");
-      suggestions.push("Complete your meditation sessions for better scores");
-      suggestions.push("Increase your daily step count gradually");
-    } else {
-      suggestions.push("Excellent work! You're maintaining healthy habits");
-      suggestions.push("Consider sharing your progress with the community");
-      suggestions.push("Keep up the momentum for long-term wellness");
-    }
-    
-    return suggestions;
-  };
-
-  const fetchProgressData = async () => {
+  const fetchProgressData = useCallback(async () => {
     if (!user) return;
     
+    // Only set loading state for initial load
+    if (isInitialLoad.current) {
+      setLoading(true);
+    }
+    
+    const calculateDailyScore = (meals: any[], wellness: any, steps: any) => {
+      const uniqueMealTypes = new Set(meals?.map(m => m.meal_type.toLowerCase()) || []);
+      const mealsLogged = uniqueMealTypes.size;
+      
+      const mealsScore = Math.min((mealsLogged / 3) * 30, 30);
+      const suryaScore = Math.min(((wellness?.surya_namaskar_count || 0) / 12) * 20, 20);
+      const meditationScore = (wellness?.meditation_completed || false) ? 20 : 0;
+      const waterScore = Math.min(((wellness?.water_litres || 0) / 4) * 15, 15);
+      const stepsScore = Math.min(((steps?.steps_count || 0) / 5000) * 15, 15);
+      
+      return mealsScore + suryaScore + meditationScore + waterScore + stepsScore;
+    };
+
+    const generateSuggestions = (score: number, type: 'weekly' | 'journey') => {
+      const suggestions = [];
+      
+      if (score < 50) {
+        suggestions.push("Focus on logging all three meals daily");
+        suggestions.push("Start with basic Surya Namaskar practice");
+        suggestions.push("Set water intake reminders throughout the day");
+      } else if (score < 80) {
+        suggestions.push("Great progress! Try to maintain consistency");
+        suggestions.push("Complete your meditation sessions for better scores");
+        suggestions.push("Increase your daily step count gradually");
+      } else {
+        suggestions.push("Excellent work! You're maintaining healthy habits");
+        suggestions.push("Consider sharing your progress with the community");
+        suggestions.push("Keep up the momentum for long-term wellness");
+      }
+      
+      return suggestions;
+    };
+
     try {
 
       // Get current subscription
@@ -288,9 +290,19 @@ export const useProgressData = () => {
     } catch (error) {
       console.error('Error fetching progress data:', error);
     } finally {
-      setLoading(false);
+      // Only update loading state if it was an initial load
+      if (isInitialLoad.current) {
+        setLoading(false);
+        isInitialLoad.current = false;
+      }
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchProgressData();
+    }
+  }, [user, fetchProgressData]);
 
   return { weeklyData, journeyData, loading, refetch: fetchProgressData };
 };

@@ -66,7 +66,7 @@ const ProfileSetup = () => {
   };
 
   return (
-    <Layout containerVariant="wide" noContainer>
+    <Layout noContainer>
       <div className="min-h-screen bg-gradient-peaceful py-4">
         <div className="max-w-2xl mx-auto px-4">
         <Card className="bg-white border border-gray-200 shadow-xl">

@@ -79,9 +79,10 @@ const Contact = () => {
   };
 
   return (
-    <Layout containerVariant="wide">
-      <Header title="Contact Us" showBack />
-      
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="max-w-4xl mx-auto px-4">
+          <Header title="Contact Us" showBack />
       <div className="min-h-screen bg-gradient-peaceful py-4">
         {/* Header */}
         <div className="flex items-center mb-6">
@@ -190,6 +191,8 @@ const Contact = () => {
             </form>
           </CardContent>
         </Card>
+      </div>
+        </div>
       </div>
     </Layout>
   );

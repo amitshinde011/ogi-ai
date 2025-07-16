@@ -224,10 +224,12 @@ const Payment = () => {
   };
 
   return (
-    <Layout containerVariant="wide">
-      <Header title="Complete Payment" showBack />
-      
-      <div className="min-h-screen bg-gradient-peaceful py-4">
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="max-w-4xl mx-auto px-4">
+          <Header title="Complete Your Purchase" showBack />
+          
+          <div className="min-h-screen bg-gradient-peaceful py-4">
 
         {/* Single Combined Card */}
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
@@ -371,6 +373,8 @@ const Payment = () => {
             </div>
           </CardContent>
         </Card>
+          </div>
+        </div>
       </div>
     </Layout>
   );

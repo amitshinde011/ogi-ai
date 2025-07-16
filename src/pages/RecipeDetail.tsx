@@ -110,7 +110,7 @@ const RecipeDetail = () => {
   const nutritionItems = getNutritionItems();
 
   return (
-    <Layout containerVariant="narrow" noContainer>
+    <Layout noContainer>
       <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10 no-yellow">
         <Header title="Recipe" showBack />
         

@@ -70,68 +70,69 @@ const FinalAssessment = () => {
   };
 
   return (
-    <Layout containerVariant="narrow" noContainer>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <Header title="Final Assessment" />
-        
-        <div className="min-h-screen bg-gradient-peaceful py-4">
-          <div className="max-w-md mx-auto px-4">
-          <Card className="bg-white shadow-xl border-0">
-            <CardHeader className="text-center pb-6">
-              <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel now?</CardTitle>
-              <p className="text-gray-600">
-                Let's capture your amazing transformation!
-              </p>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  {/* Photo Upload */}
-                  <div>
-                    <PhotoUpload
-                      selectedImage={imagePreview}
-                      onImageSelect={handleImageUpload}
-                      onImageRemove={handleImageRemove}
-                      uploading={uploading}
-                      title="Final Photo"
-                      description="Show off your amazing progress!"
-                    />
-                    {fieldMessages.photo && (
-                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm text-green-700 flex items-center">
-                          <span className="mr-2">✓</span>
-                          {fieldMessages.photo}
-                        </p>
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="max-w-2xl mx-auto px-4">
+          <Header title="Final Assessment" />
+          <div className="min-h-screen bg-gradient-peaceful py-4">
+            <div className="max-w-md mx-auto px-4">
+              <Card className="bg-white shadow-xl border-0">
+                <CardHeader className="text-center pb-6">
+                  <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel now?</CardTitle>
+                  <p className="text-gray-600">
+                    Let's capture your amazing transformation!
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                      {/* Photo Upload */}
+                      <div>
+                        <PhotoUpload
+                          selectedImage={imagePreview}
+                          onImageSelect={handleImageUpload}
+                          onImageRemove={handleImageRemove}
+                          uploading={uploading}
+                          title="Final Photo"
+                          description="Show off your amazing progress!"
+                        />
+                        {fieldMessages.photo && (
+                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p className="text-sm text-green-700 flex items-center">
+                              <span className="mr-2">✓</span>
+                              {fieldMessages.photo}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Comfort Level Questions with Sliders */}
-                  <ComfortQuestionsSection 
-                    control={form.control} 
-                    onSliderChange={handleSliderChange}
-                    fieldMessages={fieldMessages}
-                  />
+                      {/* Comfort Level Questions with Sliders */}
+                      <ComfortQuestionsSection 
+                        control={form.control} 
+                        onSliderChange={handleSliderChange}
+                        fieldMessages={fieldMessages}
+                      />
 
-                  {/* Health Conditions and Comments */}
-                  <HealthConditionsSection 
-                    control={form.control}
-                    onFieldChange={handleHealthConditionsChange}
-                    fieldMessages={fieldMessages}
-                  />
+                      {/* Health Conditions and Comments */}
+                      <HealthConditionsSection 
+                        control={form.control}
+                        onFieldChange={handleHealthConditionsChange}
+                        fieldMessages={fieldMessages}
+                      />
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-                    disabled={isSubmitting || uploading}
-                  >
-                    {isSubmitting ? 'Completing Assessment...' : uploading ? 'Uploading Photo...' : 'Complete My Journey'}
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
+                      <Button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                        disabled={isSubmitting || uploading}
+                      >
+                        {isSubmitting ? 'Completing Assessment...' : uploading ? 'Uploading Photo...' : 'Complete My Journey'}
+                      </Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </Layout>
