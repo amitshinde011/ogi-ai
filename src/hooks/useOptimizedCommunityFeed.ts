@@ -29,16 +29,19 @@ export const useOptimizedCommunityFeed = () => {
   const [hasMore, setHasMore] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // Fetch current user once
+  // Fetch current user once with caching
   const fetchCurrentUser = useCallback(async () => {
     try {
       if (!user) return;
+      
+      // Check if we already have the user cached
+      if (currentUser?.id === user.id) return;
       
       const { data: profile } = await supabase
         .from('user_profiles')
         .select('name, profile_photo_url')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       setCurrentUser({
         id: user.id,
@@ -49,7 +52,7 @@ export const useOptimizedCommunityFeed = () => {
     } catch (error) {
       console.error('Error fetching current user:', error);
     }
-  }, [user]);
+  }, [user, currentUser?.id]);
 
   // Optimized query using new database function
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {
