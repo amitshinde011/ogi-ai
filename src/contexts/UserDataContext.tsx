@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
@@ -65,7 +65,7 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
   const [userSubscriptions, setUserSubscriptions] = useState<UserSubscription[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -79,9 +79,9 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
     } catch (error) {
       console.error('Error fetching user profile:', error);
     }
-  };
+  }, [user]);
 
-  const fetchUserSubscriptions = async () => {
+  const fetchUserSubscriptions = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -107,9 +107,9 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
     } catch (error) {
       console.error('Error fetching user subscriptions:', error);
     }
-  };
+  }, [user]);
 
-  const refreshUserData = async () => {
+  const refreshUserData = useCallback(async () => {
     if (!user) return;
     
     setLoading(true);
@@ -123,15 +123,15 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, fetchUserProfile, fetchUserSubscriptions]);
 
-  const refreshSubscriptions = async () => {
+  const refreshSubscriptions = useCallback(async () => {
     await fetchUserSubscriptions();
-  };
+  }, [fetchUserSubscriptions]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     await fetchUserProfile();
-  };
+  }, [fetchUserProfile]);
 
   // Load user data when user becomes authenticated
   useEffect(() => {
@@ -142,7 +142,7 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
       setUserProfile(null);
       setUserSubscriptions([]);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, refreshUserData]);
 
   // Calculate current subscription and active status
   const currentSubscription = userSubscriptions.find(sub => {
