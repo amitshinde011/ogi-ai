@@ -170,12 +170,19 @@ export const useOptimizedCommunityFeed = () => {
 
       if (error) throw error;
 
-      // Add new post to the beginning of the list
+      // Add new post to the beginning of the list with correct structure
       const newPost: CommunityPost = {
-        ...data,
+        id: data.id,
+        image_url: data.image_url,
+        caption: data.caption,
+        category: data.category,
+        created_at: data.created_at,
+        like_count: data.like_count,
+        comment_count: data.comment_count,
+        author_id: data.author_id,
         author: {
-          name: currentUser.name,
-          profile_photo_url: currentUser.profile_photo_url
+          name: currentUser.name || 'Unknown User',
+          profile_photo_url: currentUser.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.id}`
         },
         is_liked: false
       };
