@@ -147,8 +147,24 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
   // Calculate current subscription and active status
   const currentSubscription = userSubscriptions.find(sub => {
     const today = getLocalDateString();
+    console.log('🔍 UserDataContext - Checking subscription:', {
+      subscriptionId: sub.id,
+      status: sub.status,
+      startDate: sub.start_date,
+      endDate: sub.end_date,
+      today,
+      statusCheck: sub.status === 'active',
+      dateCheck: sub.end_date >= today,
+      bothChecks: sub.status === 'active' && sub.end_date >= today
+    });
     return sub.status === 'active' && sub.end_date >= today;
   }) || null;
+
+  console.log('📊 UserDataContext - Current subscription result:', {
+    currentSubscription: currentSubscription?.id || 'none',
+    hasActiveSubscription: !!currentSubscription,
+    totalSubscriptions: userSubscriptions.length
+  });
 
   const hasActiveSubscription = !!currentSubscription;
 

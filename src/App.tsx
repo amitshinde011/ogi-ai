@@ -86,7 +86,7 @@ const App = () => {
               <Route path="/cancellations-refunds" element={<CancellationsRefunds />} />
 
               {/* Protected routes */}
-              <Route path="/home" element={<ProtectedRoute requiresActiveSubscription={true} showBlurOverlay={true}><Home /></ProtectedRoute>} />
+              <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/password-change" element={<ProtectedRoute><PasswordChange /></ProtectedRoute>} />
               <Route path="/profile-setup" element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
