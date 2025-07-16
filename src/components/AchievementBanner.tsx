@@ -21,7 +21,7 @@ export const AchievementBanner: React.FC<AchievementBannerProps> = ({
   onClose
 }) => {
   return (
-    <Card className="mb-6 bg-gradient-sage text-white border-none max-w-md mx-auto">
+    <Card className="mb-6 bg-gradient-sage text-white border-none">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">

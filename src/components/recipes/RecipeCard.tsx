@@ -14,25 +14,23 @@ interface RecipeCardProps {
 const RecipeCard = ({ recipe, isSaved }: RecipeCardProps) => {
   return (
     <Link to={`/recipe/${recipe.id}`}>
-      <Card className="hover:shadow-md transition-shadow max-w-md mx-auto">
+      <Card className="hover:shadow-md transition-shadow">
         <CardContent className="p-0">
-          <div className="px-4 pt-2 pb-4">
-            <div className="relative aspect-square w-full">
-              <img
-                src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
-                alt={recipe.name}
-                className="w-full h-full object-cover rounded-lg"
-              />
-              {isSaved && (
-                <div className="absolute top-3 right-3">
-                  <Heart size={16} className="text-red-500 fill-current" />
-                </div>
-              )}
-              <div className="absolute bottom-3 left-3">
-                <span className="bg-black/60 text-white px-2 py-1 rounded-full text-xs capitalize">
-                  {recipe.category}
-                </span>
+          <div className="relative">
+            <img
+              src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
+              alt={recipe.name}
+              className="w-full h-48 object-cover rounded-t-lg"
+            />
+            {isSaved && (
+              <div className="absolute top-3 right-3">
+                <Heart size={16} className="text-red-500 fill-current" />
               </div>
+            )}
+            <div className="absolute bottom-3 left-3">
+              <span className="bg-black/60 text-white px-2 py-1 rounded-full text-xs capitalize">
+                {recipe.category}
+              </span>
             </div>
           </div>
           <div className="p-4">

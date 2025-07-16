@@ -247,7 +247,7 @@ const Payment = () => {
           <div className="min-h-screen bg-gradient-peaceful py-4">
 
         {/* Single Combined Card */}
-        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg max-w-md mx-auto">
+        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl">Payment Details</CardTitle>
           </CardHeader>

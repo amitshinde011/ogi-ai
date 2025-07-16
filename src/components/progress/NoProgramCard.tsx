@@ -9,7 +9,7 @@ const NoProgramCard = () => {
   const navigate = useNavigate();
 
   return (
-    <Card className="bg-white w-full max-w-md mx-auto">
+    <Card className="bg-white w-full">
       <CardContent className="p-4 sm:p-6 text-center">
         <Search size={40} strokeWidth={1.5} className="text-gray-400 mx-auto mb-3 sm:mb-4 sm:w-12 sm:h-12" />
         <h3 className="font-semibold text-primary mb-2 text-sm sm:text-base">No Active Program</h3>

@@ -12,7 +12,7 @@ const ProgramCompletionBanner = ({ completedSubscription }: ProgramCompletionBan
   const navigate = useNavigate();
 
   return (
-    <Card className="bg-gradient-to-r from-green-400 to-emerald-400 text-white animate-pulse max-w-md mx-auto">
+    <Card className="bg-gradient-to-r from-green-400 to-emerald-400 text-white animate-pulse">
       <CardContent className="p-4 text-center">
         <span className="text-4xl block mb-2">🏆</span>
         <h3 className="font-bold text-lg">Congratulations! 🎉</h3>

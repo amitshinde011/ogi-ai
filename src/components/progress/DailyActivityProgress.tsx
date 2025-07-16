@@ -140,7 +140,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
           const completionPercentage = (activity.progress / activity.weight) * 100;
           
           return (
-            <Card key={activity.name} className="bg-white border-0 shadow-sm hover:shadow-md transition-all duration-200 max-w-md mx-auto">
+            <Card key={activity.name} className="bg-white border-0 shadow-sm hover:shadow-md transition-all duration-200">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">

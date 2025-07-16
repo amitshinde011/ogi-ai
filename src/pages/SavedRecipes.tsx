@@ -101,16 +101,14 @@ const SavedRecipes = () => {
             
             {savedRecipes.map((recipe) => (
               <Link key={recipe.id} to={`/recipe/${recipe.id}`}>
-                <Card className="hover:shadow-md transition-shadow max-w-md mx-auto">
+                <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex space-x-4">
-                      <div className="w-20 h-20">
-                        <img
-                          src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
-                          alt={recipe.name}
-                          className="w-full h-full rounded-lg object-cover"
-                        />
-                      </div>
+                      <img
+                        src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
+                        alt={recipe.name}
+                        className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                      />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 mb-1 truncate">{recipe.name}</h3>
                         {recipe.package && (

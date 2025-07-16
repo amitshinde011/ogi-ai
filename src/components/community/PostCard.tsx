@@ -130,7 +130,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6 max-w-md mx-auto">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
         <PostHeader
           authorId={post.author_id}
           authorName={post.author?.name}
@@ -146,14 +146,12 @@ export const PostCard: React.FC<PostCardProps> = ({
           setShowPopover={setShowPopover}
         />
 
-        <div className="px-4 pt-2 pb-4">
-          <div className="aspect-square w-full">
-            <img 
-              src={post.image_url} 
-              alt="Post content" 
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div>
+        <div className="aspect-square">
+          <img 
+            src={post.image_url} 
+            alt="Post content" 
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <div className="p-4">

@@ -5,7 +5,7 @@ import { AlertCircle } from 'lucide-react';
 
 const VideoInstructions = () => {
   return (
-    <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 shadow-lg max-w-md mx-auto">
+    <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 shadow-lg">
       <CardContent className="p-3 sm:p-4 md:p-6">
         <div className="flex items-start space-x-3 sm:space-x-4">
           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-amber-100 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center flex-shrink-0">

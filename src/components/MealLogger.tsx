@@ -72,7 +72,7 @@ const MealLogger = () => {
 
   return (
     <>
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 max-w-md mx-auto">
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-900">Share Your Meal</h3>
           <Camera className="w-5 h-5 text-sage" />

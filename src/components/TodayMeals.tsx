@@ -21,7 +21,7 @@ const TodayMeals = ({ breakfast, lunch, dinner }: TodayMealsProps) => {
   ];
 
   return (
-    <Card className="bg-white border border-gray-200 max-w-md mx-auto">
+    <Card className="bg-white border border-gray-200">
       <CardContent className="p-4">
         <h3 className="font-semibold text-gray-900 mb-4">Today's Meals</h3>
         <div className="space-y-3">

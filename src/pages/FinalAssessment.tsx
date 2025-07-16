@@ -75,7 +75,7 @@ const FinalAssessment = () => {
         <div className="max-w-4xl mx-auto px-4">
           <Header title="Final Assessment" />
           <div className="min-h-screen bg-gradient-peaceful py-4">
-            <Card className="bg-white shadow-xl border-0 max-w-md mx-auto">
+            <Card className="bg-white shadow-xl border-0">
               <CardHeader className="text-center pb-6">
                 <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel now?</CardTitle>
                 <p className="text-gray-600">

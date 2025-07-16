@@ -120,7 +120,7 @@ const RecipeDetail = () => {
           <img
             src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
             alt={recipe.name}
-            className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg"
+            className="w-full h-64 object-cover"
           />
           <div className="absolute top-4 right-4 flex space-x-2">
             <Button 
@@ -190,7 +190,7 @@ const RecipeDetail = () => {
 
           {/* Ingredients */}
           {ingredientsList.length > 0 && (
-            <Card className="border-l-4 border-l-green-500 max-w-md mx-auto">
+            <Card className="border-l-4 border-l-green-500">
               <CardContent className="p-6">
                 <div className="flex items-center mb-5">
                   <div className="p-2 bg-green-100 rounded-lg mr-3">
@@ -214,7 +214,7 @@ const RecipeDetail = () => {
 
           {/* Instructions */}
           {instructionsList.length > 0 && (
-            <Card className="border-l-4 border-l-blue-500 max-w-md mx-auto">
+            <Card className="border-l-4 border-l-blue-500">
               <CardContent className="p-6">
                 <div className="flex items-center mb-5">
                   <div className="p-2 bg-blue-100 rounded-lg mr-3">
@@ -240,7 +240,7 @@ const RecipeDetail = () => {
 
           {/* Tips - replace yellow with orange/amber theme */}
           {tipsList.length > 0 && (
-            <Card className="border-l-4 border-l-orange-500 max-w-md mx-auto">
+            <Card className="border-l-4 border-l-orange-500">
               <CardContent className="p-6">
                 <div className="flex items-center mb-5">
                   <div className="p-2 bg-orange-100 rounded-lg mr-3">

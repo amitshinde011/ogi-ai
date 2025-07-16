@@ -69,7 +69,7 @@ const ProgramComplete = () => {
       
       <div className="min-h-screen bg-gradient-peaceful py-4">
         <div className="max-w-4xl mx-auto px-4">
-          <Card className="text-center bg-gradient-sage text-white animate-scale-in max-w-md mx-auto">
+          <Card className="text-center bg-gradient-sage text-white animate-scale-in">
             <CardContent className="p-8">
               <div className="flex justify-center mb-6">
                 <div className="relative">
@@ -92,7 +92,7 @@ const ProgramComplete = () => {
             </CardContent>
           </Card>
 
-          <Card className="mt-6 bg-white max-w-md mx-auto">
+          <Card className="mt-6 bg-white">
             <CardContent className="p-6">
               <h2 className="text-xl font-semibold text-center mb-4 text-primary">
                 Complete Your Final Assessment

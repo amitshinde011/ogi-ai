@@ -37,7 +37,7 @@ const WeeklyStreak = ({ streak }: WeeklyStreakProps) => {
   const weekDays = getCurrentWeekDays();
   
   return (
-    <Card className="shadow-lg border-slate-200 interactive animate-scale-in max-w-md mx-auto">
+    <Card className="shadow-lg border-slate-200 interactive animate-scale-in">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">

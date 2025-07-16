@@ -409,7 +409,7 @@ const BeforeAssessment = () => {
             </div>
           </div>
 
-          <Card className="text-center max-w-md mx-auto">
+          <Card className="text-center">
             <CardHeader>
               <CardTitle className="flex items-center justify-center gap-2">
                 <Calendar className="w-6 h-6 text-primary" />
@@ -507,7 +507,7 @@ const BeforeAssessment = () => {
             <Header title="Assessment Complete" />
             
             <div className="space-y-6 py-4 bg-light-gray min-h-screen">
-              <Card className="text-center max-w-md mx-auto">
+              <Card className="text-center">
                 <CardContent className="p-6">
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <ArrowRight className="w-8 h-8 text-green-600" />
@@ -538,7 +538,7 @@ const BeforeAssessment = () => {
           <div className="max-w-4xl mx-auto px-4">
             <Header title="Before Assessment" />
       <div className="min-h-screen bg-gradient-peaceful py-4">
-          <Card className="bg-white shadow-xl border-0 max-w-md mx-auto">
+          <Card className="bg-white shadow-xl border-0">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel right now?</CardTitle>
               <p className="text-gray-600">

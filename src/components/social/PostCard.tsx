@@ -73,7 +73,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
   console.log('👤 User display data:', { userName, userAvatar, hasProfiles: !!post.user_profiles });
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden max-w-md mx-auto">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
       {/* Header */}
       <div className="p-4 flex items-center space-x-3">
         <Avatar className="w-10 h-10">
@@ -92,14 +92,12 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
       </div>
 
       {/* Image */}
-      <div className="px-4 pt-2 pb-4">
-        <div className="aspect-square w-full">
-          <img 
-            src={post.image_url} 
-            alt="Post" 
-            className="w-full h-full object-cover rounded-lg"
-          />
-        </div>
+      <div className="aspect-square">
+        <img 
+          src={post.image_url} 
+          alt="Post" 
+          className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Actions */}

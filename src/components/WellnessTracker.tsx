@@ -25,7 +25,7 @@ const WellnessTracker: React.FC<WellnessTrackerProps> = ({
   loading
 }) => {
   return (
-    <Card className="bg-white shadow-sm border-0 w-full max-w-md mx-auto">
+    <Card className="bg-white shadow-sm border-0 w-full">
       <CardHeader className="pb-3 sm:pb-4">
         <CardTitle className="text-base sm:text-lg md:text-xl font-semibold text-dark-text">Today's Wellness</CardTitle>
       </CardHeader>

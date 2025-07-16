@@ -358,7 +358,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
           <Header title="Your Amazing Transformation!" />
       <div className="space-y-6 py-4 bg-light-gray min-h-screen">
         {/* Celebration Header */}
-        <Card className="bg-gradient-sage text-white text-center max-w-md mx-auto">
+        <Card className="bg-gradient-sage text-white text-center">
           <CardContent className="p-6">
             <Trophy className="w-16 h-16 text-yellow-300 mx-auto mb-4" />
             <h1 className="text-2xl font-bold mb-2">Incredible Transformation!</h1>
@@ -369,7 +369,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
         {/* Before & After Photos - This will be captured for sharing */}
         {beforeAssessment?.full_body_photo_url && finalAssessment?.full_body_photo_url && (
           <div ref={photoComparisonRef}>
-            <Card className="bg-white max-w-md mx-auto">
+            <Card className="bg-white">
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-xl font-bold text-gray-800 mb-2">Before & After Transformation</CardTitle>
                 {completedSubscription?.programs?.name && (
@@ -387,7 +387,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
                     <img 
                       src={beforeAssessment.full_body_photo_url} 
                       alt="Before" 
-                      className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg border-2 border-gray-200"
+                      className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
                       crossOrigin="anonymous"
                     />
                     <p className="text-xs text-gray-500 mt-2">Start of journey</p>
@@ -401,7 +401,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
                     <img 
                       src={finalAssessment.full_body_photo_url} 
                       alt="After" 
-                      className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg border-2 border-green-300"
+                      className="w-full h-48 object-cover rounded-lg border-2 border-green-300"
                       crossOrigin="anonymous"
                     />
                     <p className="text-xs text-green-600 mt-2">Journey complete!</p>
@@ -417,7 +417,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
         )}
 
         {/* Comfort Level Comparisons */}
-        <Card className="bg-white max-w-md mx-auto">
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle className="text-primary flex items-center">
               <TrendingUp className="w-5 h-5 mr-2" />
@@ -489,7 +489,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
 
         {/* Health Conditions Comparison */}
         {(beforeAssessment?.current_health_conditions || finalAssessment?.current_health_conditions) && (
-          <Card className="bg-white max-w-md mx-auto">
+          <Card className="bg-white">
             <CardHeader>
               <CardTitle className="text-primary">Health Conditions</CardTitle>
             </CardHeader>
@@ -512,7 +512,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
 
         {/* Comments Comparison */}
         {(beforeAssessment?.comments || finalAssessment?.comments) && (
-          <Card className="bg-white max-w-md mx-auto">
+          <Card className="bg-white">
             <CardHeader>
               <CardTitle className="text-primary">Your Journey Reflections</CardTitle>
             </CardHeader>
@@ -538,7 +538,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
         )}
 
         {/* Sharing Section */}
-        <Card className="bg-white max-w-md mx-auto">
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle className="text-primary flex items-center">
               <Share2 className="w-5 h-5 mr-2" />
@@ -574,7 +574,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
         </Card>
 
         {/* Continue Button */}
-        <Card className="bg-white max-w-md mx-auto">
+        <Card className="bg-white">
           <CardContent className="p-6 text-center">
             <h3 className="text-lg font-semibold text-primary mb-2">Ready for Your Next Journey?</h3>
             <p className="text-gray-600 mb-4 text-sm">

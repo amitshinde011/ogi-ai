@@ -29,7 +29,7 @@ const PrivacyPolicy = () => {
         </div>
 
         {/* Content */}
-        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg max-w-md mx-auto">
+        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-8 space-y-6">
             <div className="text-sm text-slate-600 mb-4">
               Last updated: December 2024

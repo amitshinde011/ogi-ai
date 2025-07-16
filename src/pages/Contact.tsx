@@ -97,7 +97,7 @@ const Contact = () => {
         </div>
 
         {/* Contact Info Card */}
-        <Card className="mb-6 bg-white/95 backdrop-blur-sm border-0 shadow-lg max-w-md mx-auto">
+        <Card className="mb-6 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
           <CardHeader>
             <div className="flex items-center space-x-2">
               <Mail className="text-sage" size={20} />
@@ -117,7 +117,7 @@ const Contact = () => {
         </Card>
 
         {/* Contact Form */}
-        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg max-w-md mx-auto">
+        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
           <CardHeader>
             <h2 className="text-lg font-semibold text-slate-900">Send us a Message</h2>
           </CardHeader>
