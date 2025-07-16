@@ -106,9 +106,9 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
       </Card>
 
       {/* Performance Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="flex flex-row gap-4 overflow-x-auto pb-2">
         {/* Overall Score */}
-        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg max-w-md mx-auto">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg min-w-64 flex-shrink-0">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-xl font-bold text-gray-800">Journey Score</CardTitle>
           </CardHeader>
@@ -132,7 +132,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
         </Card>
 
         {/* Journey Stats */}
-        <Card className="bg-white border-0 shadow-sm max-w-md mx-auto">
+        <Card className="bg-white border-0 shadow-sm min-w-64 flex-shrink-0">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <Award size={20} />

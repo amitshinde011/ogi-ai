@@ -61,9 +61,9 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
   return (
     <div className="space-y-4">
       {/* Weekly Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="flex flex-row gap-4 overflow-x-auto pb-2">
         {/* Weekly Score Circle */}
-        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg max-w-md mx-auto">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg min-w-64 flex-shrink-0">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-xl font-bold text-gray-800">Weekly Score</CardTitle>
           </CardHeader>
@@ -87,7 +87,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
         </Card>
 
         {/* Weekly Stats */}
-        <Card className="bg-white border-0 shadow-sm max-w-md mx-auto">
+        <Card className="bg-white border-0 shadow-sm min-w-64 flex-shrink-0">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <Calendar size={20} />

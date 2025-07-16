@@ -134,13 +134,13 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       </Card>
 
       {/* Individual Activity Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="flex flex-row gap-3 overflow-x-auto pb-2">
         {activities.map((activity) => {
           const Icon = activity.icon;
           const completionPercentage = (activity.progress / activity.weight) * 100;
           
           return (
-            <Card key={activity.name} className="bg-white border-0 shadow-sm hover:shadow-md transition-all duration-200 max-w-md mx-auto">
+            <Card key={activity.name} className="bg-white border-0 shadow-sm hover:shadow-md transition-all duration-200 min-w-64 flex-shrink-0">
               <CardContent className="p-4 text-center">
                 <div className="flex flex-col items-center space-y-3 mb-4">
                   <div 
