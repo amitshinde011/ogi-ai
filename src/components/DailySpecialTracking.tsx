@@ -48,7 +48,7 @@ const DailySpecialTracking = ({ saladBowlCompleted, kanjiCompleted }: DailySpeci
   };
 
   return (
-    <Card className="bg-white border border-gray-200">
+    <Card className="bg-white border border-gray-200 max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-gray-900">
           Daily Special Items

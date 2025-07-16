@@ -90,7 +90,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   const currencySymbol = getCurrencySymbol();
 
   return (
-    <Card className={`relative h-full flex flex-col bg-white border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 w-full ${isPopular ? 'border-primary shadow-lg' : 'border-gray-200'
+    <Card className={`relative h-full flex flex-col bg-white border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 w-full max-w-md mx-auto ${isPopular ? 'border-primary shadow-lg' : 'border-gray-200'
       }`}>
       {isPopular && (
         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
