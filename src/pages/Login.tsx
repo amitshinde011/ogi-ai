@@ -93,17 +93,17 @@ const Login = () => {
                   <div className="text-center text-xs text-gray-600 space-y-2">
                     <p>
                       By logging in, you agree to our{' '}
-                      <Link to="/privacy-policy" className="text-sage hover:underline">
+                      <Link to="/privacy-policy" className="text-black/60 hover:underline">
                         Privacy Policy
                       </Link>
                       {' '}and{' '}
-                      <Link to="/terms-and-conditions" className="text-sage hover:underline">
+                      <Link to="/terms-and-conditions" className="text-black/60 hover:underline">
                         Terms and Conditions
                       </Link>
                     </p>
                     <p>
                       Need help? Contact us at{' '}
-                      <Link to="/contact" className="text-sage hover:underline">
+                      <Link to="/contact" className="text-black/60 hover:underline">
                         support@yogi.care
                       </Link>
                     </p>
