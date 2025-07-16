@@ -106,7 +106,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
       </Card>
 
       {/* Performance Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         {/* Overall Score */}
         <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
           <CardHeader className="text-center pb-2">
