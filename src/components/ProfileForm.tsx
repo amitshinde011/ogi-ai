@@ -26,7 +26,7 @@ interface ProfileFormProps {
 const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) => {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
         <FormField
           control={form.control}
           name="name"

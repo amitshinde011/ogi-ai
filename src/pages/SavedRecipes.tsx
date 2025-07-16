@@ -80,7 +80,7 @@ const SavedRecipes = () => {
       <PageContainer>
         <Header title="Saved Recipes" showBack />
         
-        <div className="py-4">
+        <div className="py-4 max-w-md mx-auto">
           {savedRecipes.length === 0 ? (
           <div className="text-center py-12">
             <Heart size={48} strokeWidth={1.5} className="mx-auto text-gray-300 mb-4" />

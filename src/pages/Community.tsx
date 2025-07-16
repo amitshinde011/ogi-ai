@@ -120,7 +120,7 @@ const Community = () => {
         
         <div 
           ref={containerRef}
-          className="relative py-4 sm:py-6"
+          className="relative py-4 sm:py-6 max-w-md mx-auto"
         >
         {/* Pull-to-Refresh Spinner */}
         <RefreshSpinner

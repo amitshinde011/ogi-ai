@@ -155,7 +155,7 @@ const Settings = () => {
         <PageContainer>
           <Header title="Settings" />
           
-          <div className="space-y-8 py-6">
+          <div className="space-y-8 py-6 max-w-md mx-auto">
         {!userProfile ? (
           <div className="flex items-center justify-center py-12">
             <Loader size="lg" />

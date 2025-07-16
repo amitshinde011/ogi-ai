@@ -128,8 +128,9 @@ const ResetPassword = () => {
   // Show loading state while checking reset validity
   if (!isValidReset) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md animate-fade-in shadow-lg border-gray-200 bg-white">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="max-w-md mx-auto">
+        <Card className="w-full animate-fade-in shadow-lg border-gray-200 bg-white">
           <CardContent className="flex items-center justify-center py-8">
             <div className="text-center">
               <Loader size="lg" className="mx-auto mb-4" />
@@ -138,12 +139,14 @@ const ResetPassword = () => {
           </CardContent>
         </Card>
       </div>
+    </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md animate-fade-in shadow-lg border-gray-200 bg-white">
+      <div className="max-w-md mx-auto">
+        <Card className="w-full animate-fade-in shadow-lg border-gray-200 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
             <div className="w-28 h-28 mx-auto flex items-center justify-center mb-4">
@@ -190,7 +193,8 @@ const ResetPassword = () => {
             </Button>
           </form>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };

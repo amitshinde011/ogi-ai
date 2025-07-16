@@ -86,7 +86,7 @@ const StepTracker = () => {
   }, [stepData.steps, goal, progressPercentage, kmWalked, goalAchievedToday]);
 
   return (
-    <Card className="bg-white border border-gray-200 relative">
+    <Card className="bg-white border border-gray-200 relative max-w-md mx-auto">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">

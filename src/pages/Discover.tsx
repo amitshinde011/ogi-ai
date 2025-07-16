@@ -14,7 +14,7 @@ const Discover = () => {
       <PageContainer>
         <Header title="Discover" showBack />
         
-        <div className="py-4">
+        <div className="py-4 max-w-md mx-auto">
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader size="lg" />

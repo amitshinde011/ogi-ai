@@ -28,7 +28,7 @@ const ComfortSlider: React.FC<ComfortSliderProps> = ({
   };
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 max-w-md mx-auto ${className}`}>
       <Label className="text-dark-text font-medium text-base">{label}</Label>
       
       <div className="space-y-6">

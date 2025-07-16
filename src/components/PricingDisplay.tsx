@@ -22,7 +22,7 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className="space-y-3 sm:space-y-4 max-w-md mx-auto">
       {/* Mobile Layout - Stacked */}
       <div className="flex flex-col space-y-3 sm:hidden">
         <div className="flex items-center justify-center space-x-2">

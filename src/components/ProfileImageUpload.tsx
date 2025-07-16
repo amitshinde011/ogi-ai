@@ -60,7 +60,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`space-y-2 max-w-md mx-auto ${className}`}>
       <Label className="text-dark-text font-medium">Profile Picture</Label>
       <div
         className={`relative border-2 border-dashed rounded-2xl p-6 text-center transition-all duration-200 cursor-pointer

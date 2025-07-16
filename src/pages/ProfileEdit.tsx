@@ -141,7 +141,7 @@ const ProfileEdit = () => {
   return (
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="max-w-2xl mx-auto px-4">
+        <div className="max-w-md mx-auto px-4">
           <Header title="Edit Profile" showBack />
           <div className="py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
             <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">

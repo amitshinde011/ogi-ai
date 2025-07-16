@@ -184,7 +184,7 @@ const PostDetail = () => {
       <PageContainer>
         <Header title="Post" showBack />
       
-      <div className="pb-4">
+      <div className="pb-4 max-w-md mx-auto">
         {/* Post Content */}
         <Card className="mx-4 overflow-hidden animate-fade-in">
           <CardContent className="p-0">

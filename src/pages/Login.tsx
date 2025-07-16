@@ -52,7 +52,7 @@ const Login = () => {
   return (
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
-        <div className="w-full max-w-6xl mx-auto">
+        <div className="w-full max-w-md mx-auto">
         {/* Mobile Carousel - shown at top on mobile screens */}
         <div className="lg:hidden mb-6 flex justify-center">
           <div className="w-full max-w-md">

@@ -103,7 +103,8 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md animate-fade-in shadow-lg border-gray-200 bg-white">
+      <div className="max-w-md mx-auto">
+        <Card className="w-full animate-fade-in shadow-lg border-gray-200 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
             <div className="w-32 h-32 mx-auto flex items-center justify-center mb-4">
@@ -192,7 +193,8 @@ const Signup = () => {
             </span>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 };
