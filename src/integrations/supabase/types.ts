@@ -116,6 +116,13 @@ export type Database = {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
+            referencedRelation: "community_feed_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
@@ -408,6 +415,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_feed_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "likes_post_id_fkey"
             columns: ["post_id"]
@@ -902,6 +916,21 @@ export type Database = {
       }
     }
     Views: {
+      community_feed_view: {
+        Row: {
+          author_avatar: string | null
+          author_id: string | null
+          author_name: string | null
+          caption: string | null
+          category: string | null
+          comment_count: number | null
+          created_at: string | null
+          id: number | null
+          image_url: string | null
+          like_count: number | null
+        }
+        Relationships: []
+      }
       daily_activity_summary: {
         Row: {
           date: string | null
@@ -1040,7 +1069,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      refresh_community_feed_view: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       refresh_materialized_views: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      scheduled_community_feed_refresh: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

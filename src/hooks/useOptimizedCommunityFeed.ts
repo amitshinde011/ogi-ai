@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { communityFeedRefreshService } from '@/utils/communityFeedRefreshService';
 
 export interface CommunityPost {
   id: number;
@@ -54,7 +55,7 @@ export const useOptimizedCommunityFeed = () => {
     }
   }, [user, currentUser?.id]);
 
-  // Optimized query using new database function
+  // Optimized query using materialized view and caching
   const fetchPosts = useCallback(async (offset = 0, reset = false) => {
     try {
       if (reset) {
@@ -71,22 +72,32 @@ export const useOptimizedCommunityFeed = () => {
         return;
       }
 
-      // Use optimized database function for single query
+      console.log(`🚀 Fetching community feed: offset=${offset}, reset=${reset}`);
+      const startTime = performance.now();
+
+      // Use optimized database function with materialized view
       const { data: postsData, error: postsError } = await supabase.rpc('get_community_feed', {
         p_user_id: currentUser.id,
         p_limit: PAGE_SIZE,
         p_offset: offset
       });
 
-      if (postsError) throw postsError;
+      const endTime = performance.now();
+      console.log(`⚡ Community feed fetched in ${(endTime - startTime).toFixed(2)}ms`);
+
+      if (postsError) {
+        console.error('❌ Error fetching community feed:', postsError);
+        throw postsError;
+      }
 
       if (!postsData?.length) {
+        console.log('📭 No more posts available');
         if (reset) setPosts([]);
         setHasMore(false);
         return;
       }
 
-      // Process posts - data comes optimized from database function
+      // Process posts - data comes pre-optimized from materialized view
       const processedPosts = postsData.map(post => ({
         id: post.id,
         author_id: post.author_id,
@@ -103,15 +114,22 @@ export const useOptimizedCommunityFeed = () => {
         is_liked: post.user_has_liked
       }));
 
+      console.log(`📦 Processed ${processedPosts.length} posts`);
+
       if (reset) {
         setPosts(processedPosts);
       } else {
-        setPosts(prev => [...prev, ...processedPosts]);
+        setPosts(prev => {
+          // Prevent duplicates when loading more
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = processedPosts.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        });
       }
 
       setHasMore(processedPosts.length === PAGE_SIZE);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('❌ Error fetching community posts:', error);
       toast({ title: "Failed to load community feed", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -228,9 +246,17 @@ export const useOptimizedCommunityFeed = () => {
     }
   }, [currentUser, posts]);
 
-  // Initialize
+  // Initialize and setup refresh service
   useEffect(() => {
     fetchCurrentUser();
+    
+    // Start the background refresh service
+    communityFeedRefreshService.startListening();
+    
+    return () => {
+      // Cleanup refresh service
+      communityFeedRefreshService.stopListening();
+    };
   }, [fetchCurrentUser]);
 
   useEffect(() => {
