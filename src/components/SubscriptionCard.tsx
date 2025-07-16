@@ -44,11 +44,11 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   const getTransformationImage = () => {
     switch (program.duration_days) {
       case 21:
-        return '/lovable-uploads/51db591c-55ea-4e0a-a02c-fe3b4a2a3908.png';
+        return '/lovable-uploads/21days.webp';
       case 49:
-        return '/lovable-uploads/c50b2bf3-abf2-4e37-b77b-995db9f5a4c0.png';
+        return '/lovable-uploads/49days.webp';
       case 108:
-        return '/lovable-uploads/7ce890e3-0d84-44ae-a1e1-a4b91bc3b569.png';
+        return '/lovable-uploads/108days.webp';
       default:
         return null;
     }
