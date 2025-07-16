@@ -598,6 +598,51 @@ export type Database = {
           },
         ]
       }
+      post_reports: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          post_id: number
+          reason: string
+          reporter_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          post_id: number
+          reason?: string
+          reporter_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          post_id?: number
+          reason?: string
+          reporter_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_feed_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string | null
@@ -607,7 +652,10 @@ export type Database = {
           created_at: string | null
           id: number
           image_url: string
+          is_reported: boolean
           like_count: number
+          report_count: number
+          report_threshold_reached: boolean
         }
         Insert: {
           author_id?: string | null
@@ -617,7 +665,10 @@ export type Database = {
           created_at?: string | null
           id?: never
           image_url: string
+          is_reported?: boolean
           like_count?: number
+          report_count?: number
+          report_threshold_reached?: boolean
         }
         Update: {
           author_id?: string | null
@@ -627,7 +678,10 @@ export type Database = {
           created_at?: string | null
           id?: never
           image_url?: string
+          is_reported?: boolean
           like_count?: number
+          report_count?: number
+          report_threshold_reached?: boolean
         }
         Relationships: []
       }

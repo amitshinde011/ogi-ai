@@ -12,6 +12,9 @@ export interface MyPost {
   like_count: number;
   comment_count: number;
   created_at: string;
+  report_count?: number;
+  is_reported?: boolean;
+  report_threshold_reached?: boolean;
   author?: {
     name: string | null;
     profile_photo_url: string | null;
@@ -70,7 +73,10 @@ export const useMyPosts = () => {
           category,
           like_count,
           comment_count,
-          created_at
+          created_at,
+          report_count,
+          is_reported,
+          report_threshold_reached
         `)
         .eq('author_id', user.id)
         .order('created_at', { ascending: false });

@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { useUserProgram } from '@/hooks/useUserProgram';
+import { supabase } from '@/integrations/supabase/client';
 
 const Community = () => {
   const { 
@@ -63,6 +64,28 @@ const Community = () => {
   const handleUpdatePost = (updatedPost: CommunityPost) => {
     // Updates will be handled by real-time updates
   };
+
+  // Real-time listener for reports
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const reportChannel = supabase
+      .channel('reports-updates')
+      .on('postgres_changes', { 
+        event: '*',
+        schema: 'public',
+        table: 'post_reports'
+      }, (payload) => {
+        console.log('Report update detected:', payload);
+        // Refresh the community feed when reports are submitted
+        refreshPosts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(reportChannel);
+    };
+  }, [isAuthenticated, refreshPosts]);
 
   // Infinite scroll
   useEffect(() => {
