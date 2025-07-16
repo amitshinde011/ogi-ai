@@ -59,83 +59,83 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Weekly Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Weekly Score */}
-        <Card className="bg-white border shadow-sm">
-          <CardHeader className="text-center pb-3">
-            <CardTitle className="text-lg font-semibold text-foreground">Weekly Score</CardTitle>
+    <div className="space-y-6">
+      {/* Weekly Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Weekly Score Circle */}
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-xl font-bold text-gray-800">Weekly Score</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center pb-6">
-            <div className="w-24 h-24 mb-4">
+          <CardContent className="flex flex-col items-center">
+            <div className="w-28 h-28 mb-4">
               <CircularProgressbar
                 value={data.averageScore}
                 text={`${Math.round(data.averageScore)}%`}
                 styles={buildStyles({
-                  textSize: '20px',
+                  textSize: '18px',
                   pathColor: getScoreColor(data.averageScore),
                   textColor: 'hsl(var(--foreground))',
                   trailColor: 'hsl(var(--muted))',
                 })}
               />
             </div>
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-gray-600 text-center font-medium">
               {getPerformanceMessage()}
             </p>
           </CardContent>
         </Card>
 
         {/* Weekly Stats */}
-        <Card className="bg-white border shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <Calendar size={18} />
+        <Card className="bg-white border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Calendar size={20} />
               Weekly Stats
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 pb-6">
+          <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Activity size={14} className="text-green-500" />
+              <span className="text-sm text-gray-600 flex items-center gap-1">
+                <Activity size={16} className="text-green-500" />
                 Active Days
               </span>
-              <div className="flex items-center gap-3">
-                <span className="font-semibold text-foreground">{data.activeDays}/7</span>
-                <div className="w-12 h-2">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-gray-800">{data.activeDays}/7</span>
+                <div className="w-16">
                   <Progress value={(data.activeDays / 7) * 100} className="h-2" />
                 </div>
               </div>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Flame size={14} className="text-orange-500" />
+              <span className="text-sm text-gray-600 flex items-center gap-1">
+                <Flame size={16} className="text-orange-500" />
                 Best Streak
               </span>
-              <span className="font-semibold text-foreground">{data.streak} days</span>
+              <span className="font-semibold text-gray-800">{data.streak} days</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Target size={14} className="text-blue-500" />
+              <span className="text-sm text-gray-600 flex items-center gap-1">
+                <Target size={16} className="text-blue-500" />
                 Total Points
               </span>
-              <span className="font-semibold text-foreground">{Math.round(data.totalScore)}</span>
+              <span className="font-semibold text-gray-800">{Math.round(data.totalScore)}</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Daily Performance Chart */}
-      <Card className="bg-white border shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold text-foreground">Daily Performance</CardTitle>
+      {/* Daily Scores Chart */}
+      <Card className="bg-white border-0 shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-800">Daily Performance</CardTitle>
         </CardHeader>
-        <CardContent className="pb-6">
-          <div className="h-64">
+        <CardContent>
+          <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <BarChart data={chartData}>
                 <XAxis 
                   dataKey="day" 
                   axisLine={false}
@@ -150,11 +150,29 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
                 />
                 <Bar 
                   dataKey="score" 
-                  fill="hsl(var(--primary))" 
+                  fill="hsl(var(--success))" 
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Suggestions */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-0">
+        <CardContent className="p-4">
+          <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Star size={18} className="text-blue-600" />
+            Weekly Suggestions
+          </h3>
+          <div className="space-y-2">
+            {data.suggestions.map((suggestion, index) => (
+              <p key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                <span className="text-blue-600 mt-0.5">•</span>
+                {suggestion}
+              </p>
+            ))}
           </div>
         </CardContent>
       </Card>

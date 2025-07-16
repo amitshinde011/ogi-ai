@@ -76,127 +76,157 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
   }));
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Journey Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Journey Score */}
-        <Card className="bg-white border shadow-sm">
-          <CardHeader className="text-center pb-3">
-            <CardTitle className="text-lg font-semibold text-foreground">Journey Score</CardTitle>
+    <div className="space-y-6">
+      {/* Journey Overview */}
+      <Card className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold flex items-center gap-2">
+            <Activity size={24} />
+            {data.programName}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between items-center text-sm">
+            <span>Started: {formatDate(data.startDate)}</span>
+            <span>Ends: {formatDate(data.endDate)}</span>
+          </div>
+          
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span>Journey Progress</span>
+              <span>{data.completedDays} / {data.totalDays} days</span>
+            </div>
+            <Progress value={progressPercentage} className="bg-white/30 h-3" />
+          </div>
+          
+          <p className="text-white/90 text-sm font-medium">
+            {getJourneyMessage()}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Performance Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Overall Score */}
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-xl font-bold text-gray-800">Journey Score</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center pb-6">
-            <div className="w-24 h-24 mb-4">
+          <CardContent className="flex flex-col items-center">
+            <div className="w-28 h-28 mb-4">
               <CircularProgressbar
                 value={data.averageScore}
                 text={`${Math.round(data.averageScore)}%`}
                 styles={buildStyles({
-                  textSize: '20px',
+                  textSize: '18px',
                   pathColor: getScoreColor(data.averageScore),
                   textColor: 'hsl(var(--foreground))',
                   trailColor: 'hsl(var(--muted))',
                 })}
               />
             </div>
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-gray-600 text-center">
               Average performance across milestones
             </p>
           </CardContent>
         </Card>
 
         {/* Journey Stats */}
-        <Card className="bg-white border shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <Calendar size={18} />
+        <Card className="bg-white border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <Award size={20} />
               Journey Stats
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 pb-6">
+          <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Target size={14} className="text-blue-500" />
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Target size={16} className="text-primary" />
                 Completion
               </span>
-              <span className="font-semibold text-foreground">{Math.round(progressPercentage)}%</span>
+              <span className="font-semibold text-gray-800">{Math.round(progressPercentage)}%</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Activity size={14} className="text-green-500" />
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Activity size={16} className="text-sage" />
                 Active Days
               </span>
-              <span className="font-semibold text-foreground">{data.activeDays} / {data.totalDays}</span>
+              <span className="font-semibold text-gray-800">{data.activeDays} / {data.totalDays}</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Calendar size={14} className="text-gray-500" />
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Calendar size={16} className="text-muted-foreground" />
                 Days Remaining
               </span>
-              <span className="font-semibold text-foreground">
+              <span className="font-semibold text-gray-800">
                 {Math.max(0, data.totalDays - data.completedDays)} days
               </span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <TrendingUp size={14} className="text-orange-500" />
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <TrendingUp size={16} className="text-orange-500" />
                 Current Streak
               </span>
-              <span className="font-semibold text-foreground">{data.currentStreak} days</span>
+              <span className="font-semibold text-gray-800">{data.currentStreak} days</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Award size={14} className="text-yellow-500" />
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Award size={16} className="text-yellow-500" />
                 Best Streak
               </span>
-              <span className="font-semibold text-foreground">{data.bestStreak} days</span>
+              <span className="font-semibold text-gray-800">{data.bestStreak} days</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <Target size={14} className="text-blue-500" />
+              <span className="text-sm text-gray-600 flex items-center gap-1">
+                <Target size={16} className="text-blue-500" />
                 Total Points
               </span>
-              <span className="font-semibold text-foreground">{Math.round(data.totalScore)}</span>
+              <span className="font-semibold text-gray-800">{Math.round(data.totalScore)}</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Daily Points Chart */}
+      {/* Milestone Progress Chart */}
       {data.milestones.length > 0 && (
-        <Card className="bg-white border shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <TrendingUp size={18} />
+        <Card className="bg-white border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+              <TrendingUp size={20} />
               Daily Points Earned
             </CardTitle>
           </CardHeader>
-          <CardContent className="pb-6">
-            <div className="h-64">
+          <CardContent>
+            <div className="h-80 pb-4">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
                   <XAxis 
                     dataKey="day" 
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                    label={{ value: 'Day', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                    domain={[0, 80]}
+                    label={{ value: 'Points Earned', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
+                    domain={[0, 70]}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="points" 
-                    stroke="hsl(var(--primary))"
+                    stroke={getScoreColor(data.averageScore)}
                     strokeWidth={3}
-                    dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
+                    dot={{ fill: getScoreColor(data.averageScore), strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: getScoreColor(data.averageScore) }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -204,6 +234,24 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Journey Suggestions */}
+      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-0">
+        <CardContent className="p-4">
+          <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Star size={18} className="text-green-600" />
+            Journey Insights
+          </h3>
+          <div className="space-y-2">
+            {data.suggestions.map((suggestion, index) => (
+              <p key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                <span className="text-green-600 mt-0.5">•</span>
+                {suggestion}
+              </p>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
