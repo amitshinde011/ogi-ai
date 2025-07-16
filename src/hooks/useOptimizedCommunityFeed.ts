@@ -349,8 +349,8 @@ export const useOptimizedCommunityFeed = () => {
         console.log('Tab became visible, reconnecting realtime...');
         // Don't refresh data to prevent re-rendering on tab focus
         // refreshPosts();
-        // Reconnect realtime subscription
-        setupRealtimeSubscription();
+        // Don't reconnect realtime subscription on visibility change
+        // setupRealtimeSubscription();
       }
     };
 
@@ -366,7 +366,7 @@ export const useOptimizedCommunityFeed = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, [currentUser, refreshPosts]);
+  }, [currentUser]);
 
   return {
     posts,
