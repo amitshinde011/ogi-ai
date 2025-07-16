@@ -21,6 +21,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useOptimizedHomeData } from '@/hooks/useOptimizedHomeData';
 import { useOptimizedWellness } from '@/hooks/useOptimizedWellness';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useUserData } from '@/contexts/UserDataContext';
 import Loader from '@/components/ui/loader';
 
 const Home = () => {
@@ -30,6 +31,7 @@ const Home = () => {
   
   // Always call all hooks in the same order - never conditionally
   const { user, userProfile, loading: authLoading, isAuthenticated } = useAuth();
+  const { refreshUserData } = useUserData();
   const { isCompleted, completedSubscription } = useProgramCompletion();
   const { showBanner } = useSubscriptionBanner();
   const { trackEvent, trackUserEngagement } = useAnalytics();
@@ -110,6 +112,14 @@ const Home = () => {
       trackEvent('daily_meals_count', 'Nutrition', `${mealsLogged} meals logged`);
     }
   }, [mealsLogged]);
+
+  // Refresh subscription data when home page loads to ensure latest subscription status
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && user) {
+      console.log('🔄 Home: Refreshing user data to get latest subscription status');
+      refreshUserData();
+    }
+  }, [authLoading, isAuthenticated, user]);
 
   // Early return for missing user while auth is loading
   if (authLoading || !user) {
