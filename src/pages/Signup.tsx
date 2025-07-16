@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import ContentContainer from '@/components/ContentContainer';
 import { IMAGES } from '@/constants/images';
 
 const Signup = () => {
@@ -103,7 +104,7 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="max-w-md mx-auto">
+      <ContentContainer variant="narrow">
         <Card className="w-full animate-fade-in shadow-lg border-gray-200 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
@@ -194,7 +195,7 @@ const Signup = () => {
           </div>
         </CardContent>
         </Card>
-      </div>
+      </ContentContainer>
     </div>
   );
 };

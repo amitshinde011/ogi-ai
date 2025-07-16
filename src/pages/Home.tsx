@@ -173,7 +173,7 @@ const Home = () => {
           </>
         )}
         
-        <div className="space-y-6 py-4 max-w-md mx-auto">
+        <div className="space-y-6 py-4">
         {homeLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">

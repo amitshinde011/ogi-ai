@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import ContentContainer from '@/components/ContentContainer';
 import LoginHeader from '@/components/auth/LoginHeader';
 import LoginForm from '@/components/auth/LoginForm';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
@@ -52,25 +53,20 @@ const Login = () => {
   return (
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
-        <div className="w-full max-w-md mx-auto">
+        <ContentContainer variant="narrow">
         {/* Mobile Carousel - shown at top on mobile screens */}
         <div className="lg:hidden mb-6 flex justify-center">
-          <div className="w-full max-w-md">
-            <WellnessCarousel />
-          </div>
+          <WellnessCarousel />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-4 items-center justify-items-center">
           {/* Left side - Wellness Carousel (Desktop only) */}
           <div className="hidden lg:flex lg:justify-center w-full">
-            <div className="w-full max-w-md">
-              <WellnessCarousel />
-            </div>
+            <WellnessCarousel />
           </div>
 
           {/* Right side - Login Form */}
           <div className="w-full flex justify-center">
-            <div className="w-full max-w-md">
               <Card className="animate-fade-in shadow-lg border-gray-300 bg-white">
                 <CardHeader className="text-center">
                   <LoginHeader showVerificationMessage={showVerificationMessage} />
@@ -119,17 +115,16 @@ const Login = () => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
           </div>
         </div>
 
         {/* Testimonials Section */}
         <div className="mt-16 flex justify-center">
-          <div className="w-full max-w-4xl">
+          <ContentContainer variant="legal">
             <TestimonialsCarousel />
-          </div>
+          </ContentContainer>
         </div>
-        </div>
+        </ContentContainer>
       </div>
     </Layout>
   );

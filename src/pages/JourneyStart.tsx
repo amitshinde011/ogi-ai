@@ -7,6 +7,7 @@ import Loader from '@/components/ui/loader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -151,9 +152,8 @@ const JourneyStart = () => {
   return (
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="max-w-2xl mx-auto px-4">
-          <Header title="Your Journey Starts Today!" />
-
+        <Header title="Your Journey Starts Today!" />
+        <ContentContainer variant="wide">
           <div className="space-y-6 py-4 bg-light-gray min-h-screen">
         {/* Welcome Card */}
         <Card className="text-center bg-primary text-primary-foreground">
@@ -263,7 +263,7 @@ const JourneyStart = () => {
           </CardContent>
         </Card>
           </div>
-        </div>
+        </ContentContainer>
       </div>
     </Layout>
   );

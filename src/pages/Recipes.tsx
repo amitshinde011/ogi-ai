@@ -86,7 +86,7 @@ const Recipes = () => {
           }
         />
         
-        <div className="space-y-6 py-4 max-w-md mx-auto">
+        <div className="space-y-6 py-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader size="lg" className="mx-auto" />

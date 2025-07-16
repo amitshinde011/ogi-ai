@@ -151,7 +151,7 @@ const ProgressPage = () => {
           <Header title="Your Progress" />
           {showBanner && <SubscriptionBanner />}
           
-          <div className="py-4 max-w-md mx-auto">
+          <div className="py-4">
           {(loading || activityLoading || progressLoading) ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">

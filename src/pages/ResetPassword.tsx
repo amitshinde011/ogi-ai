@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Loader from '@/components/ui/loader';
+import ContentContainer from '@/components/ContentContainer';
 import { IMAGES } from '@/constants/images';
 
 const ResetPassword = () => {
@@ -129,7 +130,7 @@ const ResetPassword = () => {
   if (!isValidReset) {
     return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="max-w-md mx-auto">
+      <ContentContainer variant="narrow">
         <Card className="w-full animate-fade-in shadow-lg border-gray-200 bg-white">
           <CardContent className="flex items-center justify-center py-8">
             <div className="text-center">
@@ -138,14 +139,14 @@ const ResetPassword = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </ContentContainer>
     </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="max-w-md mx-auto">
+      <ContentContainer variant="narrow">
         <Card className="w-full animate-fade-in shadow-lg border-gray-200 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
@@ -194,7 +195,7 @@ const ResetPassword = () => {
           </form>
         </CardContent>
         </Card>
-      </div>
+      </ContentContainer>
     </div>
   );
 };

@@ -9,6 +9,7 @@ import PhysicalActivitySection from '@/components/profile-setup/PhysicalActivity
 import HealthIssuesField from '@/components/profile-setup/HealthIssuesField';
 import { useProfileSetup } from '@/hooks/useProfileSetup';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 
 const ProfileSetup = () => {
   const {
@@ -68,7 +69,7 @@ const ProfileSetup = () => {
   return (
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-peaceful py-4">
-        <div className="max-w-4xl mx-auto px-4">
+        <ContentContainer variant="legal">
         <Card className="bg-white border border-gray-200 shadow-xl">
           <ProfileSetupHeader />
           <CardContent className="space-y-8">
@@ -138,7 +139,7 @@ const ProfileSetup = () => {
             </form>
           </CardContent>
         </Card>
-        </div>
+        </ContentContainer>
       </div>
     </Layout>
   );

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trophy, Star, Sparkles, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -68,7 +69,7 @@ const ProgramComplete = () => {
       <Header title="Congratulations!" />
       
       <div className="min-h-screen bg-gradient-peaceful py-4">
-        <div className="max-w-4xl mx-auto px-4">
+        <ContentContainer variant="legal">
           <Card className="text-center bg-gradient-sage text-white animate-scale-in">
             <CardContent className="p-8">
               <div className="flex justify-center mb-6">
@@ -111,7 +112,7 @@ const ProgramComplete = () => {
               </Button>
             </CardContent>
           </Card>
-        </div>
+        </ContentContainer>
       </div>
     </Layout>
   );

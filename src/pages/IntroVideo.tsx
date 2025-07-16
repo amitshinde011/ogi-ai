@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play } from 'lucide-react';
+import ContentContainer from '@/components/ContentContainer';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -71,7 +72,7 @@ const IntroVideo = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-3 sm:p-4 md:p-6 flex items-center justify-center">
-      <div className="max-w-4xl w-full space-y-4 sm:space-y-6 md:space-y-8">
+      <ContentContainer variant="legal" className="space-y-4 sm:space-y-6 md:space-y-8">
         {/* Main Card */}
         <Card className="bg-white border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
           <CardHeader className="text-center pb-4 sm:pb-6 md:pb-8 px-3 sm:px-6 md:px-8">
@@ -105,7 +106,7 @@ const IntroVideo = () => {
             />
           </CardContent>
         </Card>
-      </div>
+      </ContentContainer>
     </div>
   );
 };

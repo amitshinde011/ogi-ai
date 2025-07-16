@@ -5,6 +5,7 @@ import Loader from '@/components/ui/loader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
+import ContentContainer from '@/components/ContentContainer';
 import { useParams } from 'react-router-dom';
 import { useRecipe } from '@/hooks/useRecipes';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
@@ -114,7 +115,7 @@ const RecipeDetail = () => {
       <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10 no-yellow">
         <Header title="Recipe" showBack />
         
-        <div className="max-w-4xl mx-auto px-4">
+        <ContentContainer variant="legal">
         {/* Hero Image */}
         <div className="relative">
           <img
@@ -272,7 +273,7 @@ const RecipeDetail = () => {
             </Button>
           </div>
         </div>
-        </div>
+        </ContentContainer>
       </div>
     </Layout>
   );

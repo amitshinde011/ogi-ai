@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -85,7 +86,8 @@ const Chat = () => {
         }
       />
       
-      <div className="flex flex-col h-[calc(100vh-140px)] max-w-md mx-auto">
+      <ContentContainer variant="narrow">
+        <div className="flex flex-col h-[calc(100vh-140px)]">
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
@@ -128,7 +130,8 @@ const Chat = () => {
             </Button>
           </div>
         </div>
-      </div>
+        </div>
+      </ContentContainer>
     </Layout>
   );
 };

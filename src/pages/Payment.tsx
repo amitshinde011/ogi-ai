@@ -14,6 +14,7 @@ import { Link } from 'react-router-dom';
 import { createPaymentSession, handleRazorpayPayment } from '@/utils/paymentGateway';
 import { useAuth } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Header from '@/components/Header';
 
 const Payment = () => {
@@ -241,9 +242,8 @@ const Payment = () => {
   return (
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="max-w-4xl mx-auto px-4">
-          <Header title="Complete Your Purchase" showBack />
-          
+        <Header title="Complete Your Purchase" showBack />
+        <ContentContainer variant="legal">
           <div className="min-h-screen bg-gradient-peaceful py-4">
 
         {/* Single Combined Card */}
@@ -389,7 +389,7 @@ const Payment = () => {
           </CardContent>
         </Card>
           </div>
-        </div>
+        </ContentContainer>
       </div>
     </Layout>
   );
