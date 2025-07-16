@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
 import WellnessTracker from '@/components/WellnessTracker';
 import ProgramCompletionBanner from '@/components/ProgramCompletionBanner';
@@ -160,16 +161,17 @@ const Home = () => {
   console.log('🎨 Home: Rendering home page with all components');
 
   return (
-    <Layout containerVariant="narrow">
-      <Header title="Home" rightElement={profileElement} />
-      {showBanner && (
-        <>
-          <SubscriptionBanner />
-          {console.log('📢 Home: Subscription banner displayed')}
-        </>
-      )}
-      
-      <div className="space-y-6 py-4">
+    <Layout noContainer>
+      <PageContainer>
+        <Header title="Home" rightElement={profileElement} />
+        {showBanner && (
+          <>
+            <SubscriptionBanner />
+            {console.log('📢 Home: Subscription banner displayed')}
+          </>
+        )}
+        
+        <div className="space-y-6 py-4">
         {isCompleted && completedSubscription && (
           <>
             <ProgramCompletionBanner completedSubscription={completedSubscription} />
@@ -218,7 +220,8 @@ const Home = () => {
         />
 
         <WeeklyStreak streak={homeData.weeklyStreak} />
-      </div>
+        </div>
+      </PageContainer>
     </Layout>
   );
 };

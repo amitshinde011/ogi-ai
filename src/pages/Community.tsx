@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -90,13 +91,14 @@ const Community = () => {
   }
 
   return (
-    <Layout containerVariant="wide">
-      <Header title="Community" />
-      
-      <div 
-        ref={containerRef}
-        className="relative py-4 sm:py-6"
-      >
+    <Layout noContainer>
+      <PageContainer>
+        <Header title="Community" />
+        
+        <div 
+          ref={containerRef}
+          className="relative py-4 sm:py-6"
+        >
         {/* Pull-to-Refresh Spinner */}
         <RefreshSpinner
           isVisible={isVisible}
@@ -165,16 +167,17 @@ const Community = () => {
             )}
           </div>
         )}
-      </div>
+        </div>
 
-      {/* Create Post Modal - only show if user has active subscription and program not completed */}
-      {userProgram && !isCompleted && (
-        <CreatePostModal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onCreatePost={handleCreatePost}
-        />
-      )}
+        {/* Create Post Modal - only show if user has active subscription and program not completed */}
+        {userProgram && !isCompleted && (
+          <CreatePostModal
+            isOpen={showCreateModal}
+            onClose={() => setShowCreateModal(false)}
+            onCreatePost={handleCreatePost}
+          />
+        )}
+      </PageContainer>
     </Layout>
   );
 };

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Shield, HelpCircle, LogOut, FileText, Scale, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import ProfileCard from '@/components/settings/ProfileCard';
@@ -159,10 +160,12 @@ const Settings = () => {
   }
 
   return (
-    <Layout containerVariant="narrow">
-      <Header title="Settings" />
-      
-      <div className="space-y-8 py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <Layout noContainer>
+      <div className="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+        <PageContainer>
+          <Header title="Settings" />
+          
+          <div className="space-y-8 py-6">
         {/* Profile Card */}
         <ProfileCard userProfile={transformedProfile} />
 
@@ -195,6 +198,8 @@ const Settings = () => {
         <div className="text-center text-sm text-slate-500 font-medium">
           Yogi v1.0.0
         </div>
+          </div>
+        </PageContainer>
       </div>
     </Layout>
   );

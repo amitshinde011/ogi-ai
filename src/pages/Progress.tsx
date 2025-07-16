@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
 import CurrentProgramCard from '@/components/progress/CurrentProgramCard';
 import NoProgramCard from '@/components/progress/NoProgramCard';
@@ -158,12 +159,13 @@ const ProgressPage = () => {
   }
 
   return (
-    <Layout containerVariant="full">
-      <Header title="Your Progress" />
-      {showBanner && <SubscriptionBanner />}
-      
+    <Layout noContainer>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="py-4">
+        <PageContainer>
+          <Header title="Your Progress" />
+          {showBanner && <SubscriptionBanner />}
+          
+          <div className="py-4">
           <Tabs defaultValue="today" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm">
               <TabsTrigger value="today" className="flex items-center gap-2">
@@ -211,7 +213,8 @@ const ProgressPage = () => {
               />
             </TabsContent>
           </Tabs>
-        </div>
+          </div>
+        </PageContainer>
       </div>
     </Layout>
   );
