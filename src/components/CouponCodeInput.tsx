@@ -36,7 +36,7 @@ export const CouponCodeInput: React.FC<CouponCodeInputProps> = ({
 
   if (appliedCoupon) {
     return (
-      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+      <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg max-w-md mx-auto">
         <div className="flex items-center space-x-2">
           <Tag className="w-4 h-4 text-green-600" />
           <span className="text-sm font-medium text-green-800">
@@ -59,7 +59,7 @@ export const CouponCodeInput: React.FC<CouponCodeInputProps> = ({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 max-w-md mx-auto">
       <label className="text-sm font-medium text-gray-700">
         Have a coupon code?
       </label>

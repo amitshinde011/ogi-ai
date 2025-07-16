@@ -66,7 +66,6 @@ export const PostEditForm: React.FC<PostEditFormProps> = ({
           size="sm"
           onClick={onSave}
           disabled={isSubmitting}
-          className="bg-sage hover:bg-sage/90"
         >
           {isSubmitting ? 'Saving...' : 'Save'}
         </Button>

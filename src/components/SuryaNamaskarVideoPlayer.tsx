@@ -64,7 +64,7 @@ const SuryaNamaskarVideoPlayer = () => {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl w-full">
+        <DialogContent className="max-w-md mx-auto w-full">
           <DialogHeader>
             <DialogTitle>
               Surya Namaskar Tutorial

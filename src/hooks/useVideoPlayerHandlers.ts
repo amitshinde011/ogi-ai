@@ -1,5 +1,5 @@
 
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { VideoPlayerState } from '@/types/videoPlayer';
 import { VIDEO_SOURCES_SEQUENCE } from '@/constants/videoSources';
@@ -146,9 +146,9 @@ export const useVideoPlayerHandlers = ({
     }
   };
 
-  const setIsPlaying = (isPlaying: boolean) => {
+  const setIsPlaying = useCallback((isPlaying: boolean) => {
     setState(prev => ({ ...prev, isPlaying }));
-  };
+  }, [setState]);
 
   return {
     handlePlayPause,

@@ -8,6 +8,8 @@ import BasicInfoFields from '@/components/profile-setup/BasicInfoFields';
 import PhysicalActivitySection from '@/components/profile-setup/PhysicalActivitySection';
 import HealthIssuesField from '@/components/profile-setup/HealthIssuesField';
 import { useProfileSetup } from '@/hooks/useProfileSetup';
+import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 
 const ProfileSetup = () => {
   const {
@@ -65,8 +67,9 @@ const ProfileSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
-      <div className="max-w-2xl mx-auto">
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-peaceful py-4">
+        <ContentContainer variant="legal">
         <Card className="bg-white border border-gray-200 shadow-xl">
           <ProfileSetupHeader />
           <CardContent className="space-y-8">
@@ -128,7 +131,7 @@ const ProfileSetup = () => {
 
               <Button 
                 type="submit" 
-                className="w-full bg-sage hover:bg-sage/90 text-white py-3 text-lg font-medium" 
+                className="w-full py-3 text-lg font-medium" 
                 disabled={loading || uploading}
               >
                 {loading ? 'Saving...' : uploading ? 'Uploading Photo...' : 'Continue to Subscriptions'}
@@ -136,8 +139,9 @@ const ProfileSetup = () => {
             </form>
           </CardContent>
         </Card>
+        </ContentContainer>
       </div>
-    </div>
+    </Layout>
   );
 };
 

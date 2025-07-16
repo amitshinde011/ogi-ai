@@ -6,6 +6,7 @@ import { Plus, Minus, Droplets } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { GoalCompletionMessage } from './GoalCompletionMessage';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface WaterTrackerProps {
   waterLitres: number;
@@ -36,7 +37,7 @@ export const WaterTracker: React.FC<WaterTrackerProps> = ({
 
   // Check if goal was achieved today and store in localStorage
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const storageKey = `water_goal_achieved_${today}`;
     const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
     

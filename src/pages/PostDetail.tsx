@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 
 interface Comment {
   id: string;
@@ -179,10 +180,11 @@ const PostDetail = () => {
   }
 
   return (
-    <Layout>
-      <Header title="Post" showBack />
+    <Layout noContainer>
+      <PageContainer>
+        <Header title="Post" showBack />
       
-      <div className="max-w-md mx-auto pb-4">
+      <div className="pb-4">
         {/* Post Content */}
         <Card className="mx-4 overflow-hidden animate-fade-in">
           <CardContent className="p-0">
@@ -339,7 +341,8 @@ const PostDetail = () => {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </PageContainer>
     </Layout>
   );
 };

@@ -6,13 +6,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Share2, Users, ExternalLink, ArrowRight, Trophy, TrendingUp } from 'lucide-react';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { useR2Upload } from '@/hooks/useR2Upload';
 import html2canvas from 'html2canvas';
+import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface AssessmentData {
   id?: string;
@@ -35,17 +38,17 @@ const Comparison = () => {
   const [finalAssessment, setFinalAssessment] = useState<AssessmentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const checkAccessAndFetchAssessments = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           navigate('/login');
           return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         
         // Get active subscription that has ended (completed program)
         const { data: subscription } = await supabase
@@ -85,11 +88,10 @@ const Comparison = () => {
     };
 
     checkAccessAndFetchAssessments();
-  }, [navigate]);
+  }, [navigate, user]);
 
   const fetchAssessments = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/login');
         return;
@@ -132,7 +134,7 @@ const Comparison = () => {
 
     try {
       const canvas = await html2canvas(photoComparisonRef.current, {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'hsl(var(--background))',
         scale: 2,
         useCORS: true,
         allowTaint: true,
@@ -160,7 +162,6 @@ const Comparison = () => {
 
   const createCommunityPost = async (imageUrl: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
       const programName = completedSubscription?.programs?.name || 'Wellness Program';
@@ -221,7 +222,6 @@ Before vs After Progress - Your dedication and consistency can create amazing re
     try {
       setSharing(true);
 
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       // Capture the before/after photos comparison
@@ -353,10 +353,11 @@ Before vs After Progress - Your dedication and consistency can create amazing re
   }
 
   return (
-    <Layout>
-      <Header title="Your Amazing Transformation!" />
-      
-      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <ContentContainer variant="wide" className="px-0">
+          <Header title="Your Amazing Transformation!" />
+          <div className="space-y-6 py-4 bg-light-gray min-h-screen">
         {/* Celebration Header */}
         <Card className="bg-gradient-sage text-white text-center">
           <CardContent className="p-6">
@@ -589,6 +590,8 @@ Before vs After Progress - Your dedication and consistency can create amazing re
             </Button>
           </CardContent>
         </Card>
+          </div>
+        </ContentContainer>
       </div>
     </Layout>
   );

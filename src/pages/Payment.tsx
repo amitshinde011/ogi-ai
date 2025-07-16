@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Shield, CreditCard } from 'lucide-react';
+import { Shield, CreditCard } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,10 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { Link } from 'react-router-dom';
 import { createPaymentSession, handleRazorpayPayment } from '@/utils/paymentGateway';
+import { useAuth } from '@/contexts/AuthContext';
+import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
+import Header from '@/components/Header';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -22,7 +26,9 @@ const Payment = () => {
   const { trackPayment, trackEvent } = useAnalytics();
   
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const { user } = useAuth();
+  const [userWithProfile, setUserWithProfile] = useState<any>(null);
 
 
   // Get data from location state
@@ -32,23 +38,22 @@ const Payment = () => {
   const userLocation = location.state?.userLocation || '';
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (!authUser) {
-          navigate('/login');
-          return;
-        }
+    const fetchUserProfile = async () => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
 
+      try {
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('*')
-          .eq('user_id', authUser.id)
+          .eq('user_id', user.id)
           .single();
 
-        setUser({ ...authUser, profile });
+        setUserWithProfile({ ...user, profile });
       } catch (error) {
-        console.error('Error fetching user:', error);
+        console.error('Error fetching user profile:', error);
         toast({
           title: "Error",
           description: "Failed to load user information",
@@ -58,8 +63,8 @@ const Payment = () => {
       }
     };
 
-    fetchUser();
-  }, [navigate, toast]);
+    fetchUserProfile();
+  }, [user, navigate, toast]);
 
   // Redirect if no program data
   useEffect(() => {
@@ -70,10 +75,21 @@ const Payment = () => {
     }
   }, [program, pricing, navigate]);
 
-  if (loading || !program || !pricing || !user) {
+  if (loading || !program || !pricing || !userWithProfile) {
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <Loader size="lg" />
+      </div>
+    );
+  }
+
+  if (paymentSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
+        <div className="text-center">
+          <Loader size="lg" />
+          <p className="mt-4 text-lg font-medium">Redirecting to your intro video...</p>
+        </div>
       </div>
     );
   }
@@ -84,6 +100,7 @@ const Payment = () => {
   const couponDiscountPercentage = pricing.couponDiscountPercentage || 0;
 
   const handlePaymentSuccess = async (orderId: string, transactionId: string) => {
+    setPaymentSuccess(true);
     try {
       // Verify payment with backend
       const { error: verifyError } = await supabase.functions.invoke('process-payment', {
@@ -121,6 +138,7 @@ const Payment = () => {
       navigate('/intro-video');
     } catch (error) {
       console.error('Payment verification error:', error);
+      setPaymentSuccess(false);
       toast({
         title: "Payment Verification Failed",
         description: "Your payment was processed but there was an issue verifying it. Please contact support.",
@@ -158,7 +176,7 @@ const Payment = () => {
         const { error: subscriptionError } = await supabase
           .from('user_subscriptions')
           .insert({
-            user_id: user.id,
+            user_id: userWithProfile.id,
             program_id: program.id,
             start_date: null,
             end_date: null,
@@ -185,12 +203,13 @@ const Payment = () => {
           description: `You've successfully got free access to ${program.name}`,
         });
 
-        navigate('/intro-video');
+        setPaymentSuccess(true);
+        setTimeout(() => navigate('/intro-video'), 500);
         return;
       }
 
       // Create payment session
-      const sessionData = await createPaymentSession(program, 'razorpay');
+      const sessionData = await createPaymentSession(program, userWithProfile, 'razorpay');
       
       console.log('Payment session created:', sessionData);
 
@@ -221,19 +240,11 @@ const Payment = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mr-4 p-2 hover:bg-white/20"
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <h1 className="text-2xl font-bold text-slate-900">Complete Payment</h1>
-        </div>
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <Header title="Complete Your Purchase" showBack />
+        <ContentContainer variant="legal">
+          <div className="min-h-screen bg-gradient-peaceful py-4">
 
         {/* Single Combined Card */}
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
@@ -377,8 +388,10 @@ const Payment = () => {
             </div>
           </CardContent>
         </Card>
+          </div>
+        </ContentContainer>
       </div>
-    </div>
+    </Layout>
   );
 };
 

@@ -182,7 +182,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || uploading}
-              className="w-full bg-sage hover:bg-sage/90"
+              className="w-full"
             >
               {isSubmitting || uploading ? 'Creating Post...' : 'Share Post'}
             </Button>

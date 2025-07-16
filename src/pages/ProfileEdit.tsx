@@ -5,9 +5,11 @@ import { useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
 import { Camera, User, Upload } from 'lucide-react';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
 import ProfileForm from '@/components/ProfileForm';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileFormData {
   name: string;
@@ -24,6 +26,7 @@ const ProfileEdit = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileImage, setProfileImage] = useState<string>('');
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
+  const { user } = useAuth();
   
   const form = useForm<ProfileFormData>({
     defaultValues: {
@@ -39,7 +42,6 @@ const ProfileEdit = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: profile } = await supabase
             .from('user_profiles')
@@ -73,7 +75,7 @@ const ProfileEdit = () => {
     };
 
     fetchUserProfile();
-  }, [form]);
+  }, [form, user]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -89,7 +91,6 @@ const ProfileEdit = () => {
   const onSubmit = async (data: ProfileFormData) => {
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
 
       const profileData = {
@@ -139,60 +140,61 @@ const ProfileEdit = () => {
   };
 
   return (
-    <Layout>
-      <Header title="Edit Profile" showBack />
-      
-      <div className="p-6 max-w-lg mx-auto bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
-        <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-          <CardHeader className="text-center pb-6">
-            <div className="relative w-28 h-28 mx-auto mb-6">
-              <img
-                src={profileImage}
-                alt="Profile"
-                className="w-28 h-28 rounded-3xl shadow-xl object-cover border-4 border-white"
-              />
-              <div className="absolute -bottom-2 -right-2 flex gap-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="user"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="profile-camera"
+    <Layout noContainer>
+      <div className="py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+        <PageContainer>
+          <Header title="Edit Profile" showBack />
+            <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <CardHeader className="text-center pb-6">
+                <div className="relative w-28 h-28 mx-auto mb-6">
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="w-28 h-28 rounded-3xl shadow-xl object-cover border-4 border-white"
+                  />
+                  <div className="absolute -bottom-2 -right-2 flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="user"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="profile-camera"
+                    />
+                    <label htmlFor="profile-camera" className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-3 cursor-pointer hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                      <Camera size={16} className="text-white" />
+                    </label>
+                    
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="profile-gallery"
+                    />
+                    <label htmlFor="profile-gallery" className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-3 cursor-pointer hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                      <Upload size={16} className="text-white" />
+                    </label>
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
+                  <User className="w-6 h-6 inline mr-2" />
+                  Update Profile
+                </CardTitle>
+                <p className="text-slate-600 font-medium">
+                  Keep your information current for the best experience
+                </p>
+              </CardHeader>
+              <CardContent className="p-8">
+                <ProfileForm
+                  form={form}
+                  onSubmit={onSubmit}
+                  onCancel={() => navigate('/settings')}
+                  isLoading={isLoading}
                 />
-                <label htmlFor="profile-camera" className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-3 cursor-pointer hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                  <Camera size={16} className="text-white" />
-                </label>
-                
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="profile-gallery"
-                />
-                <label htmlFor="profile-gallery" className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-3 cursor-pointer hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                  <Upload size={16} className="text-white" />
-                </label>
-              </div>
-            </div>
-            <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
-              <User className="w-6 h-6 inline mr-2" />
-              Update Profile
-            </CardTitle>
-            <p className="text-slate-600 font-medium">
-              Keep your information current for the best experience
-            </p>
-          </CardHeader>
-          <CardContent className="p-8">
-            <ProfileForm
-              form={form}
-              onSubmit={onSubmit}
-              onCancel={() => navigate('/settings')}
-              isLoading={isLoading}
-            />
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+        </PageContainer>
       </div>
     </Layout>
   );

@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface WellnessData {
   id?: string;
@@ -14,7 +16,7 @@ interface WellnessData {
 
 export const useWellnessTracking = () => {
   const [wellnessData, setWellnessData] = useState<WellnessData>({
-    date: new Date().toISOString().split('T')[0],
+    date: getLocalDateString(),
     water_litres: 0,
     surya_namaskar_count: 0,
     meditation_minutes: 0,
@@ -22,10 +24,11 @@ export const useWellnessTracking = () => {
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
   const lastFetchRef = useRef<string>('');
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     // Only fetch if date changed or first load
     if (lastFetchRef.current !== today) {
       fetchTodayWellness();
@@ -35,10 +38,9 @@ export const useWellnessTracking = () => {
 
   const fetchTodayWellness = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       const { data, error } = await supabase
         .from('daily_wellness')
         .select('*')
@@ -67,11 +69,10 @@ export const useWellnessTracking = () => {
 
   const updateWellnessData = async (updates: Partial<WellnessData>) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const updatedData = { ...wellnessData, ...updates };
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
 
       // Optimistic update
       setWellnessData(updatedData);

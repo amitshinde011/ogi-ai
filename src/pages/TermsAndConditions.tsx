@@ -4,24 +4,18 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
+import Header from '@/components/Header';
 
 const TermsAndConditions = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mr-4 p-2 hover:bg-white/20"
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <h1 className="text-2xl font-bold text-slate-900">Terms and Conditions</h1>
-        </div>
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-peaceful py-4">
+        <PageContainer>
+          <Header title="Terms and Conditions" showBack />
 
         {/* Content */}
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
@@ -178,8 +172,9 @@ const TermsAndConditions = () => {
             </section>
           </CardContent>
         </Card>
+        </PageContainer>
       </div>
-    </div>
+    </Layout>
   );
 };
 

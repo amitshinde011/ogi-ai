@@ -1,20 +1,26 @@
 
 import React from 'react';
-import { Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface PostActionsProps {
   isLiked?: boolean;
   likeCount: number;
+  commentCount: number;
   onLike: () => void;
   onToggleComments: () => void;
+  onReport?: () => void;
+  hasReported?: boolean;
 }
 
 export const PostActions: React.FC<PostActionsProps> = ({
   isLiked,
   likeCount,
+  commentCount,
   onLike,
-  onToggleComments
+  onToggleComments,
+  onReport,
+  hasReported
 }) => {
   return (
     <div className="space-y-3">
@@ -41,13 +47,33 @@ export const PostActions: React.FC<PostActionsProps> = ({
         >
           <MessageCircle size={40} strokeWidth={1.5} />
         </Button>
+        {onReport && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onReport}
+            className={`p-2 hover:bg-transparent ${
+              hasReported ? 'text-red-600' : 'text-gray-700'
+            }`}
+            title={hasReported ? "You've reported this post" : "Report this post"}
+          >
+            <Flag size={40} strokeWidth={1.5} />
+          </Button>
+        )}
       </div>
 
-      {likeCount > 0 && (
-        <p className="text-sm font-semibold">
-          {likeCount} {likeCount === 1 ? 'like' : 'likes'}
-        </p>
-      )}
+      <div className="flex items-center gap-4">
+        {likeCount > 0 && (
+          <p className="text-sm font-semibold">
+            {likeCount} {likeCount === 1 ? 'like' : 'likes'}
+          </p>
+        )}
+        {commentCount > 0 && (
+          <p className="text-sm font-semibold">
+            {commentCount} {commentCount === 1 ? 'comment' : 'comments'}
+          </p>
+        )}
+      </div>
     </div>
   );
 };

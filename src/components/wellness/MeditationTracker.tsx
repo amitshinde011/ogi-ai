@@ -6,6 +6,7 @@ import { Brain } from 'lucide-react';
 import MeditationAudioPlayer from '../MeditationAudioPlayer';
 import { GoalCompletionMessage } from './GoalCompletionMessage';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface MeditationTrackerProps {
   meditationCompleted: boolean;
@@ -34,7 +35,7 @@ export const MeditationTracker: React.FC<MeditationTrackerProps> = ({
 
   // Check if goal was achieved today and store in localStorage
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const storageKey = `meditation_goal_achieved_${today}`;
     const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
     

@@ -1,5 +1,7 @@
 
+import { NavigateFunction } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 export interface OnboardingState {
   profile_completed?: boolean;
@@ -14,34 +16,49 @@ export interface ProgramCompletionState {
   hasFinalAssessment: boolean;
 }
 
-export const determineLandingPage = async (): Promise<string> => {
+export const determineLandingPage = async (userId?: string, isAuthenticated?: boolean): Promise<string> => {
   try {
-    console.log('Landing page router: Starting redirect logic');
+    console.log('Landing page router: Starting redirect logic', { userId, isAuthenticated });
     
-    // Use getSession instead of getUser for better error handling
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-    if (sessionError) {
-      console.error('Session error:', sessionError);
-      // If there's a session error, redirect to login
+    // If explicitly not authenticated, go to login
+    if (isAuthenticated === false) {
+      console.log('Not authenticated, redirecting to login');
       return '/login';
     }
+    
+    // If we have a userId, use it; otherwise check session
+    let user_id = userId;
+    if (!user_id && isAuthenticated !== true) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        return '/login';
+      }
 
-    if (!session || !session.user) {
-      console.log('No session found, redirecting to login');
+      if (!session?.user) {
+        console.log('No session found, redirecting to login');
+        return '/login';
+      }
+      
+      user_id = session.user.id;
+    }
+    
+    // If still no user_id and not explicitly authenticated, redirect to login
+    if (!user_id && isAuthenticated !== true) {
+      console.log('No user ID found, redirecting to login');
       return '/login';
     }
-
-    const user = session.user;
-    console.log('User found:', user.id);
+    
+    console.log('User found:', user_id);
 
     // Get onboarding state
     const { data: onboardingData } = await supabase
       .from('user_onboarding')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', user_id)
       .maybeSingle();
-
+    console.log('Onboarding data:', onboardingData);
     const onboardingState: OnboardingState = onboardingData || {};
     console.log('Onboarding state:', onboardingState);
 
@@ -70,12 +87,12 @@ export const determineLandingPage = async (): Promise<string> => {
     }
 
     // Get program completion state ONLY after before assessment is completed
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     
     const { data: currentSubscription } = await supabase
       .from('user_subscriptions')
       .select('*, programs(*)')
-      .eq('user_id', user.id)
+      .eq('user_id', user_id)
       .eq('status', 'active')
       .or('start_date.is.null,start_date.lte.' + today)
       .or('end_date.is.null,end_date.gte.' + today)
@@ -104,7 +121,7 @@ export const determineLandingPage = async (): Promise<string> => {
         const { data: finalAssessment } = await supabase
           .from('final_assessments')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('user_id', user_id)
           .eq('subscription_id', currentSubscription.id)
           .maybeSingle();
         

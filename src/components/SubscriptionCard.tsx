@@ -33,13 +33,26 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   onSubscribe
 }) => {
   const pricingConfig = usePricingConfig();
-  const { 
-    appliedCoupon, 
-    isValidating, 
-    validateCoupon, 
-    removeCoupon, 
-    getDiscountPercentage 
+  const {
+    appliedCoupon,
+    isValidating,
+    validateCoupon,
+    removeCoupon,
+    getDiscountPercentage
   } = useCouponCode();
+
+  const getTransformationImage = () => {
+    switch (program.duration_days) {
+      case 21:
+        return '/lovable-uploads/21days.webp';
+      case 49:
+        return '/lovable-uploads/49days.webp';
+      case 108:
+        return '/lovable-uploads/108days.webp';
+      default:
+        return null;
+    }
+  };
 
   const getDisplayPrice = () => {
     if (isIndiaUser && program.price_inr) {
@@ -77,15 +90,14 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   const currencySymbol = getCurrencySymbol();
 
   return (
-    <Card className={`relative h-full flex flex-col bg-white border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 w-full ${
-      isPopular ? 'border-yellow-400 shadow-lg' : 'border-gray-200'
-    }`}>
+    <Card className={`relative h-full flex flex-col bg-white border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 w-full ${isPopular ? 'border-primary shadow-lg' : 'border-gray-200'
+      }`}>
       {isPopular && (
-        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-          <Badge className="bg-yellow-400 text-yellow-900 px-2 sm:px-4 py-1 rounded-full font-semibold flex items-center gap-1 text-xs sm:text-sm">
-            <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+          <Badge className="bg-primary text-primary-foreground px-4 py-1 rounded-full font-semibold flex items-center justify-center gap-2 text-sm whitespace-nowrap">
+            <Star className="w-4 h-4 fill-current" />
             Most Popular
-            <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
+            <Star className="w-4 h-4 fill-current" />
           </Badge>
         </div>
       )}
@@ -94,25 +106,36 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           {program.name}
         </h3>
-        
-          <div className="space-y-2">
-            <div className="flex items-baseline justify-center gap-1">
-              <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-                {currencySymbol}{originalPrice}
-              </span>
-              <span className="text-xs sm:text-sm text-gray-500">
-                /<span className="font-semibold">{program.duration_days} days</span>
-              </span>
-            </div>
-            
-            <p className="text-gray-600 text-xs sm:text-sm px-2 sm:px-4 leading-relaxed">
-              {program.description}
-            </p>
-            
-            <div className="text-xs text-gray-400 bg-gray-50 px-2 sm:px-3 py-1 rounded-full inline-block">
-              Payment via <span className="font-medium">Razorpay</span>
-            </div>
+
+        {/* Transformation Image */}
+        {getTransformationImage() && (
+          <div className="mb-4">
+            <img
+              src={getTransformationImage()!}
+              alt={`${program.duration_days} days transformation`}
+              className="w-full object-cover rounded-lg border border-gray-200"
+            />
           </div>
+        )}
+
+        <div className="space-y-2">
+          <div className="flex items-baseline justify-center gap-1">
+            <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
+              {currencySymbol}{originalPrice}
+            </span>
+            <span className="text-xs sm:text-sm text-gray-500">
+              /<span className="font-semibold">{program.duration_days} days</span>
+            </span>
+          </div>
+
+          <p className="text-gray-800 text-xs sm:text-sm px-2 sm:px-4 leading-relaxed">
+            {program.description}
+          </p>
+
+          <div className="text-xs text-gray-400 bg-gray-50 px-2 sm:px-3 py-1 rounded-full inline-block">
+            Payment via <span className="font-medium">Razorpay</span>
+          </div>
+        </div>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col space-y-4 sm:space-y-6 px-4 sm:px-6 pb-4 sm:pb-6">
@@ -152,8 +175,9 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
                 const highlightedFeature = feature
                   .replace(/(\d+[\s-]*(?:Day|Days|Minute|Minutes|Hour|Hours))/gi, '<strong>$1</strong>')
                   .replace(/(Daily|Morning|Evening|Weekly|Monthly|Guided|Personal|Complete|Ultimate|Premium|Advanced|Basic|Fundamental)/gi, '<strong>$1</strong>')
-                  .replace(/(Yoga|Meditation|Diet|Recipes|Routine|Plan|Tracker|Community)/gi, '<strong>$1</strong>');
-                
+                  .replace(/(Yoga|Meditation|Diet|Recipes|Routine|Plan|Tracker|Community)/gi, '<strong>$1</strong>')
+                  .replace(/(Foundational|Yogic|Wisdom|Level|Intermediate|Yogic|Science|2|1|3|Mastery)/gi, '<strong>$1</strong>')
+                  .replace(/(Vibrant|Motivating|Holistic|Satvic|Protocol|Prescriptive|Lifestyle)/gi, '<strong>$1</strong>');
                 return (
                   <div key={index} className="flex items-start text-xs sm:text-sm text-gray-700">
                     <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
@@ -171,12 +195,31 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             </h4>
             <div className="space-y-1 sm:space-y-2">
               {program.benefits.map((benefit, index) => {
-                // Highlight important words in benefits
-                const highlightedBenefit = benefit
-                  .replace(/(Mental|Physical|Emotional|Spiritual|Health|Wellness|Energy|Strength|Flexibility|Balance|Focus|Clarity|Peace|Calm|Confidence|Vitality|Recovery)/gi, '<strong>$1</strong>')
-                  .replace(/(Improved|Enhanced|Increased|Reduced|Better|Optimal|Maximum|Complete|Total|Deep|Profound|Significant)/gi, '<strong>$1</strong>')
-                  .replace(/(\d+%|\d+x|dramatically|significantly|substantially)/gi, '<strong>$1</strong>');
-                
+                // 1. Consolidate all keywords into a single array.
+                const keywords = [
+                  'Mental', 'Physical', 'Emotional', 'Spiritual', 'Health', 'Wellness', 'Energy', 'Strength',
+                  'Flexibility', 'Balance', 'Focus', 'Clarity', 'Peace', 'Calm', 'Confidence', 'Vitality',
+                  'Recovery', 'Improved', 'Enhanced', 'Increased', 'Reduced', 'Better', 'Optimal', 'Maximum',
+                  'Complete', 'Total', 'Deep', 'Profound', 'Significant', 'dramatically', 'significantly',
+                  'substantially', 'Calmness', 'Restorative', 'Sleep', 'Sharpened', 'Awakened', 'Vibrant',
+                  'Active', 'Body', 'Initial', 'Hormonal', 'Harmony', 'Bloating', 'Digestion', 'Measurable',
+                  'Leap', 'Rooted', 'Optimized', 'Cycles', 'Cognitive', 'Function', 'Weight', 'Correction',
+                  'regular', 'cycles', 'PMS', 'calmer', 'nervous', 'system', 'lowering', 'cortisol', 'Alleviation',
+                  'Chronic', 'Aches', 'Exuberant', 'Joyful', 'Being', 'Embodying', 'True', 'Confident', 'Metabolic',
+                  'Healing', 'Mastery', 'Over', 'Form', 'Recomposition', 'Superconscious', 'Intuition', 'Peak',
+                  'Performance', 'Unshakeable', 'Inner', 'Bliss', 'Energetic', 'Realignment'
+                  // Note: No need to include '%', 'x' as they aren't whole words.
+                ];
+
+                // 2. Create one powerful regex to find all keywords as whole words.
+                const highlightRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
+
+                // 3. Use the callback version of .replace() to safely wrap each match.
+                // This runs only once and never breaks HTML.
+                const highlightedBenefit = benefit.replace(highlightRegex, (match) => {
+                  return `<strong>${match}</strong>`;
+                });
+
                 return (
                   <div key={index} className="flex items-start text-xs sm:text-sm text-gray-700">
                     <Check className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
@@ -190,16 +233,14 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
 
         {/* CTA Button */}
         <div className="mt-auto pt-4 sm:pt-6">
-          <Button 
-            className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 text-white ${
-              isPopular 
-                ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 shadow-lg hover:shadow-xl' 
-                : 'bg-gray-900 hover:bg-gray-800'
-            }`}
-            style={{ color: 'white !important' }}
+          <Button
+            className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 text-primary-foreground ${isPopular
+                ? 'bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl'
+                : 'bg-green-600 hover:bg-green-500'
+              }`}
             onClick={handleSubscribe}
           >
-            <span className="truncate text-white">
+            <span className="truncate">
               {isFree ? '🎉 Get Free Access' : `Pay ${currencySymbol}${Math.round(pricing.finalPrice)}`}
             </span>
           </Button>

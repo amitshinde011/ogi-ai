@@ -5,14 +5,17 @@ import Loader from '@/components/ui/loader';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import { useQuery } from '@tanstack/react-query';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SavedRecipes = () => {
   const { savedRecipeIds, isLoading: savedRecipesLoading } = useSavedRecipes();
+  const { user } = useAuth();
 
   // Fetch the actual recipe data for saved recipes
   const { data: savedRecipes = [], isLoading: recipesLoading } = useQuery({
@@ -35,14 +38,7 @@ const SavedRecipes = () => {
     enabled: savedRecipeIds.length > 0,
   });
 
-  // Check if user is authenticated
-  const { data: user } = useQuery({
-    queryKey: ['current-user'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
+  // User is available from useAuth hook
 
   const isLoading = savedRecipesLoading || recipesLoading;
 
@@ -62,7 +58,7 @@ const SavedRecipes = () => {
     return (
       <Layout>
         <Header title="Saved Recipes" showBack />
-        <div className="max-w-md mx-auto p-4">
+        <div className="py-4">
           <div className="text-center py-12">
             <Heart size={48} strokeWidth={1.5} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">Please log in</h3>
@@ -80,11 +76,12 @@ const SavedRecipes = () => {
   }
 
   return (
-    <Layout>
-      <Header title="Saved Recipes" showBack />
-      
-      <div className="max-w-md mx-auto p-4">
-        {savedRecipes.length === 0 ? (
+    <Layout noContainer>
+      <PageContainer>
+        <Header title="Saved Recipes" showBack />
+        
+        <div className="py-4">
+          {savedRecipes.length === 0 ? (
           <div className="text-center py-12">
             <Heart size={48} strokeWidth={1.5} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">No saved recipes yet</h3>
@@ -103,7 +100,7 @@ const SavedRecipes = () => {
             </p>
             
             {savedRecipes.map((recipe) => (
-              <Link key={recipe.id} to={`/recipes/${recipe.id}`}>
+              <Link key={recipe.id} to={`/recipe/${recipe.id}`}>
                 <Card className="hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex space-x-4">
@@ -140,9 +137,10 @@ const SavedRecipes = () => {
                 </Card>
               </Link>
             ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      </PageContainer>
     </Layout>
   );
 };

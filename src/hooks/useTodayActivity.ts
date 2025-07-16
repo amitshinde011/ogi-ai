@@ -1,6 +1,8 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface ActivityData {
   mealsLogged: number;
@@ -14,6 +16,7 @@ const cache = new Map<string, { data: ActivityData; timestamp: number }>();
 const CACHE_DURATION = 30000; // 30 seconds
 
 export const useTodayActivity = () => {
+  const { user } = useAuth();
   const [activityData, setActivityData] = useState<ActivityData>({
     mealsLogged: 0,
     suryaNamaskarCount: 0,
@@ -22,34 +25,22 @@ export const useTodayActivity = () => {
     steps: 0
   });
   const [loading, setLoading] = useState(true);
+  const isInitialLoad = useRef(true);
   const lastFetchRef = useRef<number>(0);
 
-  useEffect(() => {
-    const now = Date.now();
-    // Only fetch if enough time has passed since last fetch
-    if (now - lastFetchRef.current > CACHE_DURATION) {
-      fetchTodayActivity();
-      lastFetchRef.current = now;
-    } else {
-      setLoading(false);
+  const fetchTodayActivity = useCallback(async () => {
+    // Only set loading state for initial load
+    if (isInitialLoad.current) {
+      setLoading(true);
     }
-  }, []);
-
-  const fetchTodayActivity = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       const cacheKey = `${user.id}-${today}`;
       
-      // Check cache first
-      const cached = cache.get(cacheKey);
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        setActivityData(cached.data);
-        setLoading(false);
-        return;
-      }
+      // Clear cache to ensure fresh data
+      cache.delete(cacheKey);
 
       // Fetch all data in parallel
       const [mealsResult, wellnessResult, stepsResult] = await Promise.all([
@@ -92,9 +83,25 @@ export const useTodayActivity = () => {
     } catch (error) {
       console.error('Error fetching today activity:', error);
     } finally {
-      setLoading(false);
+      // Only update loading state if it was an initial load
+      if (isInitialLoad.current) {
+        setLoading(false);
+        isInitialLoad.current = false;
+      }
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    const now = Date.now();
+    // Only fetch if enough time has passed since last fetch
+    if (now - lastFetchRef.current > CACHE_DURATION) {
+      fetchTodayActivity();
+      lastFetchRef.current = now;
+    } else if (isInitialLoad.current) {
+      setLoading(false);
+      isInitialLoad.current = false;
+    }
+  }, [fetchTodayActivity]);
 
   return { activityData, loading, refetch: fetchTodayActivity };
 };

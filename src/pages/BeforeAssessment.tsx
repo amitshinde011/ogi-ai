@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Header from '@/components/Header';
 import Loader from '@/components/ui/loader';
 import PhotoUpload from '@/components/PhotoUpload';
@@ -15,6 +16,8 @@ import { useOnboarding } from '@/hooks/useOnboarding';
 import ComfortQuestionsSection from '@/components/assessment/ComfortQuestionsSection';
 import HealthConditionsSection from '@/components/assessment/HealthConditionsSection';
 import { useR2Upload } from '@/hooks/useR2Upload';
+import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString, createLocalDate } from '@/utils/dateUtils';
 
 interface AssessmentFormData {
   walk_10km_comfort: number;
@@ -37,6 +40,7 @@ const BeforeAssessment = () => {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [fieldMessages, setFieldMessages] = useState<{[key: string]: string}>({});
   const { uploadToR2, uploading } = useR2Upload();
+  const { user } = useAuth();
 
   const form = useForm<AssessmentFormData>({
     defaultValues: {
@@ -59,14 +63,14 @@ const BeforeAssessment = () => {
   }, [showDateSelection, assessmentCompleted]);
 
   const checkSubscriptionAndAssessment = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/login');
-        return;
-      }
       console.log('In BA page');
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateString();
       console.log('In BA pager: ',today);
       // Get active subscription
       const { data: subscription } = await supabase
@@ -108,9 +112,9 @@ const BeforeAssessment = () => {
         if (!subscription.start_date) {
           setShowDateSelection(true);
         } else {
-          // Check if start date has arrived
-          const startDate = new Date(subscription.start_date + 'T00:00:00');
-          const todayDate = new Date(today + 'T00:00:00');
+          // Check if start date has arrived using local dates
+          const startDate = createLocalDate(subscription.start_date);
+          const todayDate = createLocalDate(today);
           
           if (todayDate >= startDate) {
             // Update onboarding and navigate to journey start
@@ -193,10 +197,10 @@ const BeforeAssessment = () => {
   };
 
   const handleSubmitAssessment = async (data: AssessmentFormData) => {
+    if (!user || !currentSubscription) return;
+    
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !currentSubscription) return;
 
       let imageUrl = null;
       if (selectedImage) {
@@ -256,9 +260,8 @@ const BeforeAssessment = () => {
       return;
     }
 
-    const selectedDate = new Date(selectedStartDate + 'T00:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const selectedDate = createLocalDate(selectedStartDate);
+    const today = createLocalDate(getLocalDateString());
 
     if (selectedDate < today) {
       toast({
@@ -269,8 +272,8 @@ const BeforeAssessment = () => {
       return;
     }
 
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 7);
+    const maxDateStr = getMaxDate();
+    const maxDate = createLocalDate(maxDateStr);
     if (selectedDate > maxDate) {
       toast({
         title: "Invalid Date",
@@ -282,18 +285,17 @@ const BeforeAssessment = () => {
 
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user || !currentSubscription) return;
 
-      // Calculate end date (inclusive - so duration_days from start date)
-      const endDate = new Date(selectedDate);
-      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days);
+      // Calculate end date (inclusive - add duration_days - 1 to make it inclusive)
+      const endDate = createLocalDate(selectedStartDate);
+      endDate.setDate(endDate.getDate() + currentSubscription.programs.duration_days - 1);
 
       const { error } = await supabase
         .from('user_subscriptions')
         .update({
           start_date: selectedStartDate,
-          end_date: endDate.toISOString().split('T')[0]
+          end_date: getLocalDateString(endDate)
         })
         .eq('id', currentSubscription.id);
 
@@ -308,7 +310,7 @@ const BeforeAssessment = () => {
       });
 
       // Check if start date is today
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
       if (selectedStartDate === todayStr) {
         navigate('/journey-start');
       } else {
@@ -329,32 +331,32 @@ const BeforeAssessment = () => {
 
   const getDaysUntilStart = () => {
     if (!selectedStartDate) return 0;
-    const startDate = new Date(selectedStartDate);
-    const today = new Date();
+    const startDate = createLocalDate(selectedStartDate);
+    const today = createLocalDate(getLocalDateString());
     const diffTime = startDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, diffDays);
   };
 
   const getMinDate = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
+    return getLocalDateString();
   };
 
   const getMaxDate = () => {
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 7);
-    return maxDate.toISOString().split('T')[0];
+    const today = createLocalDate(getLocalDateString());
+    today.setDate(today.getDate() + 7);
+    return getLocalDateString(today);
   };
 
   if (showDateSelection && assessmentCompleted) {
     const daysUntil = getDaysUntilStart();
     
     return (
-      <Layout>
-        <Header title="Schedule Your Journey" />
-        
-        <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+      <Layout noContainer>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <ContentContainer variant="legal" className="px-0">
+            <Header title="Schedule Your Journey" />
+        <div className="space-y-6 py-4 bg-light-gray min-h-screen">
           {/* Sacred Journey Message */}
           <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200/60 rounded-2xl p-8 shadow-lg backdrop-blur-sm">
             <div className="text-center mb-8">
@@ -446,7 +448,7 @@ const BeforeAssessment = () => {
                     <div className="flex items-center gap-2 text-blue-700">
                       <Clock className="w-5 h-5" />
                       <span className="font-medium">
-                        {daysUntil} {daysUntil === 1 ? 'day' : 'days'} until your journey begins
+                        {daysUntil} {daysUntil === 1 ? 'day' : 'days'} until your journey begins. Come back on your start date to unlock your journey.
                       </span>
                     </div>
                   </div>
@@ -491,6 +493,8 @@ const BeforeAssessment = () => {
               </div>
             </CardContent>
           </Card>
+            </div>
+          </ContentContainer>
         </div>
       </Layout>
     );
@@ -498,39 +502,43 @@ const BeforeAssessment = () => {
 
   if (assessmentCompleted) {
     return (
-      <Layout>
-        <Header title="Assessment Complete" />
-        
-        <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
-          <Card className="text-center">
-            <CardContent className="p-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <ArrowRight className="w-8 h-8 text-green-600" />
-              </div>
-              <h2 className="text-xl font-semibold mb-2">Assessment Complete!</h2>
-              <p className="text-gray-600 mb-4">
-                Your journey will begin soon. Please wait for your start date.
-              </p>
-              {currentSubscription?.start_date && (
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    Journey starts: {new Date(currentSubscription.start_date).toLocaleDateString()}
+      <Layout noContainer>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <ContentContainer variant="legal" className="px-0">
+            <Header title="Assessment Complete" />
+            
+            <div className="space-y-6 py-4 bg-light-gray min-h-screen">
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <ArrowRight className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold mb-2">Assessment Complete!</h2>
+                  <p className="text-gray-600 mb-4">
+                    Your journey will begin soon. Please wait for your start date.
                   </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  {currentSubscription?.start_date && (
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        Journey starts: {new Date(currentSubscription.start_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </ContentContainer>
         </div>
       </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <Header title="Before Assessment" />
-      
-      <div className="min-h-screen bg-gradient-peaceful p-4">
-        <div className="max-w-md mx-auto">
+    <Layout noContainer>
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+          <ContentContainer variant="legal" className="px-0">
+            <Header title="Before Assessment" />
+      <div className="min-h-screen bg-gradient-peaceful py-4">
           <Card className="bg-white shadow-xl border-0">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel right now?</CardTitle>
@@ -558,7 +566,7 @@ const BeforeAssessment = () => {
                           {fieldMessages.photo}
                         </p>
                       </div>
-                    )}
+                     )}
                   </div>
 
                   {/* Comfort Level Questions with Sliders */}
@@ -586,9 +594,10 @@ const BeforeAssessment = () => {
               </Form>
             </CardContent>
           </Card>
-        </div>
       </div>
-    </div>
+          </ContentContainer>
+        </div>
+      </Layout>
   );
 };
 

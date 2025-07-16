@@ -7,10 +7,12 @@ import Loader from '@/components/ui/loader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { getLocalDateString, createLocalDate } from '@/utils/dateUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const JourneyStart = () => {
   const navigate = useNavigate();
@@ -18,14 +20,14 @@ const JourneyStart = () => {
   const { updateOnboardingState } = useOnboarding();
   const [loading, setLoading] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     checkJourneyStart();
-  }, []);
+  }, [user]);
 
   const checkJourneyStart = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/login');
         return;
@@ -148,12 +150,13 @@ const JourneyStart = () => {
   };
 
   return (
-    <Layout>
-      <Header title="Your Journey Begins!" />
-
-      <div className="p-4 space-y-6 max-w-md mx-auto bg-light-gray min-h-screen">
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <Header title="Your Journey Starts Today!" />
+        <ContentContainer variant="wide">
+          <div className="space-y-6 py-4 bg-light-gray min-h-screen">
         {/* Welcome Card */}
-        <Card className="text-center bg-gradient-sage text-white">
+        <Card className="text-center bg-primary text-primary-foreground">
           <CardContent className="p-8">
             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Star className="w-10 h-10 text-yellow-300" />
@@ -161,7 +164,7 @@ const JourneyStart = () => {
             <h1 className="text-2xl font-bold mb-4">
               Welcome to Your Wellness Journey!
             </h1>
-            <p className="text-white/90 text-lg">
+            <p className="text-primary-foreground/90 text-lg">
               Today marks the beginning of your transformation with {subscription.programs?.name}
             </p>
           </CardContent>
@@ -243,7 +246,7 @@ const JourneyStart = () => {
             <Button
               onClick={handleStartJourney}
               disabled={loading}
-              className="w-full h-12 text-lg bg-gradient-sage text-white hover:opacity-90"
+              className="w-full h-12 text-lg bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {loading ? (
                 <>
@@ -259,6 +262,8 @@ const JourneyStart = () => {
             </Button>
           </CardContent>
         </Card>
+          </div>
+        </ContentContainer>
       </div>
     </Layout>
   );

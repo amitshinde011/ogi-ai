@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import ContentContainer from '../ContentContainer';
 
 interface LegalLayoutProps {
   children: React.ReactNode;
@@ -10,7 +11,7 @@ interface LegalLayoutProps {
 const LegalLayout = ({ children, lastUpdated }: LegalLayoutProps) => {
   return (
     <div className="min-h-screen bg-gradient-peaceful p-4">
-      <div className="max-w-4xl mx-auto">
+      <ContentContainer variant="legal">
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-8 space-y-6">
             <div className="text-sm text-slate-600 mb-4">
@@ -19,7 +20,7 @@ const LegalLayout = ({ children, lastUpdated }: LegalLayoutProps) => {
             {children}
           </CardContent>
         </Card>
-      </div>
+      </ContentContainer>
     </div>
   );
 };

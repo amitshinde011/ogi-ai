@@ -13,8 +13,11 @@ interface DailyProgressCardProps {
 const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initialWalkScore }: DailyProgressCardProps) => {
   console.log('📊 DailyProgressCard: Component rendered with props:', { mealsLogged, initialSteps, initialWalkScore });
   
+  // Calculate walk score from steps on initial load
+  const calculatedWalkScore = Math.min(Math.floor((initialSteps / 5000) * 5), 5);
+  
   const [currentSteps, setCurrentSteps] = useState(initialSteps);
-  const [currentWalkScore, setCurrentWalkScore] = useState(initialWalkScore);
+  const [currentWalkScore, setCurrentWalkScore] = useState(calculatedWalkScore);
 
   // Listen for step updates from StepTracker
   useEffect(() => {
@@ -23,9 +26,9 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
       const newSteps = event.detail.steps;
       setCurrentSteps(newSteps);
       
-      // Calculate walk score: 1000 steps = 1km, so 5km = 5,000 steps
-      // Score out of 5: each 1000 steps = 1 point
-      const newWalkScore = Math.min(Math.floor(newSteps / 1000), 5);
+      // Calculate walk score: Based on 5000 steps = 5 stars goal
+      // Score out of 5: (steps / 5000) * 5 stars
+      const newWalkScore = Math.min(Math.floor((newSteps / 5000) * 5), 5);
       setCurrentWalkScore(newWalkScore);
       
       console.log('📊 DailyProgressCard: Updated steps and walk score:', { 
@@ -45,20 +48,15 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
 
   // Sync with props when they change
   useEffect(() => {
-    console.log('🔄 DailyProgressCard: Props updated, syncing:', { 
-      initialSteps, 
-      initialWalkScore,
-      currentSteps,
-      currentWalkScore
-    });
+    console.log('🔄 DailyProgressCard: Props updated, syncing state.');
     
-    if (initialSteps !== currentSteps) {
-      setCurrentSteps(initialSteps);
-    }
-    if (initialWalkScore !== currentWalkScore) {
-      setCurrentWalkScore(initialWalkScore);
-    }
-  }, [initialSteps, initialWalkScore, currentSteps, currentWalkScore]);
+    // This effect now correctly syncs state ONLY when the props change.
+    setCurrentSteps(initialSteps);
+    
+    const calculatedWalkScore = Math.min(Math.floor((initialSteps / 5000) * 5), 5);
+    setCurrentWalkScore(calculatedWalkScore);
+    
+  }, [initialSteps, initialWalkScore]);
 
   const stepsProgress = Math.min((currentSteps / 5000) * 100, 100); // 5,000 steps = 100%
   const kmWalked = (currentSteps / 1000).toFixed(1); // 1000 steps ≈ 1km
@@ -124,7 +122,7 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
               </div>
             </div>
             <div className="text-white/80 text-sm mt-1">
-              {(currentWalkScore * 1000).toLocaleString()} / 5,000 steps to 5km
+              {currentSteps.toLocaleString()} / 5,000 steps to 5km
             </div>
           </div>
         </div>

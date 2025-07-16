@@ -5,11 +5,13 @@ import Loader from '@/components/ui/loader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
+import ContentContainer from '@/components/ContentContainer';
 import { useParams } from 'react-router-dom';
 import { useRecipe } from '@/hooks/useRecipes';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { toast } from '@/hooks/use-toast';
 import { getCloudflareImageUrl } from '@/utils/cloudflareImages';
+import Layout from '@/components/Layout';
 
 const RecipeDetail = () => {
   const { id } = useParams();
@@ -109,10 +111,11 @@ const RecipeDetail = () => {
   const nutritionItems = getNutritionItems();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10 no-yellow">
-      <Header title="Recipe" showBack />
-      
-      <div className="max-w-md mx-auto">
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10 no-yellow">
+        <Header title="Recipe" showBack />
+        
+        <ContentContainer variant="legal">
         {/* Hero Image */}
         <div className="relative">
           <img
@@ -176,7 +179,7 @@ const RecipeDetail = () => {
                 <h3 className="font-semibold text-primary mb-4">Nutrition per serving</h3>
                 <div className={`grid gap-3 ${nutritionItems.length === 1 ? 'grid-cols-1' : nutritionItems.length === 2 ? 'grid-cols-2' : nutritionItems.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
                   {nutritionItems.map((item, index) => (
-                    <div key={index} className="text-center p-3 bg-sage/5 rounded-lg">
+                    <div key={index} className="text-center p-3 bg-primary/5 rounded-lg">
                       <div className="text-lg font-bold text-primary">{item.value}</div>
                       <div className="text-sm text-muted-foreground">{item.label}</div>
                     </div>
@@ -270,8 +273,9 @@ const RecipeDetail = () => {
             </Button>
           </div>
         </div>
+        </ContentContainer>
       </div>
-    </div>
+    </Layout>
   );
 };
 

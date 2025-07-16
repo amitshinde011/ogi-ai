@@ -26,7 +26,7 @@ interface ProfileFormProps {
 const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) => {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
         <FormField
           control={form.control}
           name="name"
@@ -159,7 +159,7 @@ const ProfileForm = ({ form, onSubmit, onCancel, isLoading }: ProfileFormProps) 
           </Button>
           <Button
             type="submit"
-            className="flex-1 rounded-xl bg-sage hover:bg-sage/90 text-white"
+            className="flex-1 rounded-xl"
             disabled={isLoading}
           >
             {isLoading ? 'Saving...' : 'Save Changes'}

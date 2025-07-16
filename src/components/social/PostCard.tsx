@@ -46,7 +46,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
   const getMealTypeDisplay = (mealType: string | null) => {
     if (!mealType) return null;
     return (
-      <span className="inline-block bg-sage/20 text-sage text-xs px-2 py-1 rounded-full mb-2">
+      <span className="inline-block bg-primary/20 text-primary text-xs px-2 py-1 rounded-full mb-2">
         {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
       </span>
     );

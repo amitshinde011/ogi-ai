@@ -9,9 +9,9 @@ interface PaymentSessionData {
 
 export const createPaymentSession = async (
   program: any,
+  user: any,
   gateway: 'razorpay'
 ): Promise<PaymentSessionData> => {
-  const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     throw new Error('User not authenticated');
   }

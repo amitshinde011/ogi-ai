@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Shield, HelpCircle, LogOut, FileText, Scale, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import ProfileCard from '@/components/settings/ProfileCard';
@@ -12,6 +13,8 @@ import SettingsSection from '@/components/settings/SettingsSection';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserData } from '@/contexts/UserDataContext';
 
 interface SubscriptionHistory {
   id: string;
@@ -26,107 +29,49 @@ interface SubscriptionHistory {
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [subscriptionHistory, setSubscriptionHistory] = useState<SubscriptionHistory[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
+  const { user, signOut } = useAuth();
+  const { userProfile, userSubscriptions, loading } = useUserData();
+  
+  // Transform user data for the profile card
+  const transformedProfile = userProfile && user ? {
+    id: user.id,
+    name: userProfile.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+    email: user.email,
+    avatar: userProfile.profile_photo_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`,
+    age: userProfile.age,
+    gender: userProfile.gender,
+    weight: userProfile.weight,
+    height: userProfile.height,
+    health_issues: userProfile.health_issues,
+    physical_activity_basic: userProfile.physical_activity_basic,
+    physical_activity_medium: userProfile.physical_activity_medium,
+    physical_activity_intense: userProfile.physical_activity_intense
+  } : null;
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-          setUserProfile({
-            id: user.id,
-            name: profile?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-            email: user.email,
-            avatar: profile?.profile_photo_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`,
-            age: profile?.age,
-            gender: profile?.gender,
-            weight: profile?.weight,
-            height: profile?.height,
-            health_issues: profile?.health_issues,
-            physical_activity_basic: profile?.physical_activity_basic,
-            physical_activity_medium: profile?.physical_activity_medium,
-            physical_activity_intense: profile?.physical_activity_intense
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching user profile:', error);
-      }
-    };
-
-    const fetchSubscriptionHistory = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: subscriptions, error } = await supabase
-            .from('user_subscriptions')
-            .select(`
-              id,
-              start_date,
-              end_date,
-              status,
-              payment_status,
-              created_at,
-              programs (
-                name
-              )
-            `)
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-
-          if (error) throw error;
-
-          const formattedHistory: SubscriptionHistory[] = subscriptions?.map(sub => ({
-            id: sub.id,
-            program_name: sub.programs?.name || 'Unknown Program',
-            start_date: sub.start_date || '',
-            end_date: sub.end_date || '',
-            status: sub.status || 'unknown',
-            payment_status: sub.payment_status || 'unknown',
-            created_at: sub.created_at || ''
-          })) || [];
-
-          setSubscriptionHistory(formattedHistory);
-        }
-      } catch (error) {
-        console.error('Error fetching subscription history:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load subscription history.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoadingHistory(false);
-      }
-    };
-
-    fetchUserProfile();
-    fetchSubscriptionHistory();
-  }, [toast]);
+  // Transform subscription data for the history card
+  const subscriptionHistory: SubscriptionHistory[] = userSubscriptions.map(sub => ({
+    id: sub.id,
+    program_name: sub.programs?.name || 'Unknown Program',
+    start_date: sub.start_date || '',
+    end_date: sub.end_date || '',
+    status: sub.status || 'unknown',
+    payment_status: sub.payment_status || 'unknown',
+    created_at: sub.created_at || ''
+  }));
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      const success = await signOut();
       
-      if (error) {
-        console.error('Error signing out:', error);
+      if (!success) {
         toast({
           title: "Error signing out",
-          description: error.message,
+          description: "Failed to sign out. Please try again.",
           variant: "destructive"
         });
         return;
       }
 
-      localStorage.removeItem('user');
-      
       toast({
         title: "Signed out successfully",
         description: "You have been logged out of your account."
@@ -203,29 +148,27 @@ const Settings = () => {
     }
   ];
 
-  if (!userProfile) {
-    return (
-      <Layout>
-        <Header title="Settings" />
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-          <Loader size="lg" />
-        </div>
-      </Layout>
-    );
-  }
 
   return (
-    <Layout>
-      <Header title="Settings" />
-      
-      <div className="p-6 space-y-8 max-w-lg mx-auto bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <Layout noContainer>
+      <div className="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+        <PageContainer>
+          <Header title="Settings" />
+          
+          <div className="space-y-8 py-6">
+        {!userProfile ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader size="lg" />
+          </div>
+        ) : (
+          <>
         {/* Profile Card */}
-        <ProfileCard userProfile={userProfile} />
+        <ProfileCard userProfile={transformedProfile} />
 
         {/* Subscription History */}
         <SubscriptionHistoryCard 
           subscriptionHistory={subscriptionHistory} 
-          loadingHistory={loadingHistory} 
+          loadingHistory={loading} 
         />
 
         {/* Settings Sections */}
@@ -249,8 +192,12 @@ const Settings = () => {
 
         {/* Version */}
         <div className="text-center text-sm text-slate-500 font-medium">
-          Yogi v1.0.0
+          Yogi v1.0.42
         </div>
+          </>
+        )}
+          </div>
+        </PageContainer>
       </div>
     </Layout>
   );

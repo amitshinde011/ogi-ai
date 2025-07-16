@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
+import ContentContainer from '@/components/ContentContainer';
 import LoginHeader from '@/components/auth/LoginHeader';
 import LoginForm from '@/components/auth/LoginForm';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
 import WellnessCarousel from '@/components/auth/WellnessCarousel';
 import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
+import Layout from '@/components/Layout';
+import Header from '@/components/Header';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -48,26 +51,22 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl mx-auto">
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
+        <ContentContainer variant="narrow">
         {/* Mobile Carousel - shown at top on mobile screens */}
         <div className="lg:hidden mb-6 flex justify-center">
-          <div className="w-full max-w-md">
-            <WellnessCarousel />
-          </div>
+          <WellnessCarousel />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-4 items-center justify-items-center">
           {/* Left side - Wellness Carousel (Desktop only) */}
           <div className="hidden lg:flex lg:justify-center w-full">
-            <div className="w-full max-w-md">
-              <WellnessCarousel />
-            </div>
+            <WellnessCarousel />
           </div>
 
           {/* Right side - Login Form */}
           <div className="w-full flex justify-center">
-            <div className="w-full max-w-md">
               <Card className="animate-fade-in shadow-lg border-gray-300 bg-white">
                 <CardHeader className="text-center">
                   <LoginHeader showVerificationMessage={showVerificationMessage} />
@@ -90,17 +89,17 @@ const Login = () => {
                   <div className="text-center text-xs text-gray-600 space-y-2">
                     <p>
                       By logging in, you agree to our{' '}
-                      <Link to="/privacy-policy" className="text-sage hover:underline">
+                      <Link to="/privacy-policy" className="text-black/60 hover:underline">
                         Privacy Policy
                       </Link>
                       {' '}and{' '}
-                      <Link to="/terms-and-conditions" className="text-sage hover:underline">
+                      <Link to="/terms-and-conditions" className="text-black/60 hover:underline">
                         Terms and Conditions
                       </Link>
                     </p>
                     <p>
                       Need help? Contact us at{' '}
-                      <Link to="/contact" className="text-sage hover:underline">
+                      <Link to="/contact" className="text-black/60 hover:underline">
                         support@yogi.care
                       </Link>
                     </p>
@@ -116,18 +115,18 @@ const Login = () => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
           </div>
         </div>
 
         {/* Testimonials Section */}
         <div className="mt-16 flex justify-center">
-          <div className="w-full max-w-4xl">
+          <ContentContainer variant="legal">
             <TestimonialsCarousel />
-          </div>
+          </ContentContainer>
         </div>
+        </ContentContainer>
       </div>
-    </div>
+    </Layout>
   );
 };
 

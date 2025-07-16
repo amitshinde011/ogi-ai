@@ -16,14 +16,18 @@ import {
 interface JourneyProgressData {
   totalDays: number;
   completedDays: number;
+  activeDays: number;
   averageScore: number;
   totalScore: number;
   programName: string;
   startDate: string;
   endDate: string;
+  currentStreak: number;
+  bestStreak: number;
   milestones: Array<{
     day: number;
     score: number;
+    cumulativeScore: number;
     date: string;
   }>;
   suggestions: string[];
@@ -37,16 +41,23 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
   const progressPercentage = (data.completedDays / data.totalDays) * 100;
   
   const formatDate = (dateString: string) => {
-    return new Date(dateString + 'T00:00:00').toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
+    if (!dateString) return 'Not Set';
+    try {
+      const date = new Date(dateString + 'T00:00:00');
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'Invalid Date';
+    }
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return '#10B981';
-    if (score >= 60) return '#F59E0B';
-    return '#EF4444';
+    if (score >= 80) return 'hsl(var(--success))';
+    if (score >= 60) return 'hsl(var(--warning))';
+    return 'hsl(var(--destructive))';
   };
 
   const getJourneyMessage = () => {
@@ -59,15 +70,15 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
   };
 
   const chartData = data.milestones.map((milestone) => ({
-    day: `Day ${milestone.day}`,
-    score: Math.round(milestone.score),
+    day: milestone.day,
+    points: milestone.score, // Daily points, not cumulative
     date: milestone.date
   }));
 
   return (
     <div className="space-y-6">
       {/* Journey Overview */}
-      <Card className="bg-gradient-to-br from-sage to-sage/90 text-white border-0 shadow-lg">
+      <Card className="bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-0 shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             <Activity size={24} />
@@ -95,7 +106,7 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
       </Card>
 
       {/* Performance Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         {/* Overall Score */}
         <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
           <CardHeader className="text-center pb-2">
@@ -109,8 +120,8 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
                 styles={buildStyles({
                   textSize: '18px',
                   pathColor: getScoreColor(data.averageScore),
-                  textColor: '#374151',
-                  trailColor: '#F3F4F6',
+                  textColor: 'hsl(var(--foreground))',
+                  trailColor: 'hsl(var(--muted))',
                 })}
               />
             </div>
@@ -130,15 +141,45 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Completion</span>
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Target size={16} className="text-primary" />
+                Completion
+              </span>
               <span className="font-semibold text-gray-800">{Math.round(progressPercentage)}%</span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Days Remaining</span>
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Activity size={16} className="text-sage" />
+                Active Days
+              </span>
+              <span className="font-semibold text-gray-800">{data.activeDays} / {data.totalDays}</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Calendar size={16} className="text-muted-foreground" />
+                Days Remaining
+              </span>
               <span className="font-semibold text-gray-800">
                 {Math.max(0, data.totalDays - data.completedDays)} days
               </span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <TrendingUp size={16} className="text-orange-500" />
+                Current Streak
+              </span>
+              <span className="font-semibold text-gray-800">{data.currentStreak} days</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                <Award size={16} className="text-yellow-500" />
+                Best Streak
+              </span>
+              <span className="font-semibold text-gray-800">{data.bestStreak} days</span>
             </div>
             
             <div className="flex justify-between items-center">
@@ -147,11 +188,6 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
                 Total Points
               </span>
               <span className="font-semibold text-gray-800">{Math.round(data.totalScore)}</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Milestones</span>
-              <span className="font-semibold text-gray-800">{data.milestones.length}</span>
             </div>
           </CardContent>
         </Card>
@@ -163,32 +199,34 @@ const JourneyProgress: React.FC<JourneyProgressProps> = ({ data }) => {
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <TrendingUp size={20} />
-              Milestone Progress
+              Daily Points Earned
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-48">
+            <div className="h-80 pb-4">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
+                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
                   <XAxis 
                     dataKey="day" 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
+                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                    label={{ value: 'Day', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fontSize: 12, fill: '#6B7280' }}
-                    domain={[0, 100]}
+                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                    label={{ value: 'Points Earned', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
+                    domain={[0, 70]}
                   />
                   <Line 
                     type="monotone" 
-                    dataKey="score" 
-                    stroke="#10B981" 
+                    dataKey="points" 
+                    stroke={getScoreColor(data.averageScore)}
                     strokeWidth={3}
-                    dot={{ fill: '#10B981', strokeWidth: 2, r: 6 }}
-                    activeDot={{ r: 8, fill: '#10B981' }}
+                    dot={{ fill: getScoreColor(data.averageScore), strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: getScoreColor(data.averageScore) }}
                   />
                 </LineChart>
               </ResponsiveContainer>

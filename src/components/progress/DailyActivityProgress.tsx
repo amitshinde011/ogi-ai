@@ -62,7 +62,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateMealsProgress(),
       weight: 30,
       unit: 'meals',
-      color: '#10B981'
+      color: 'hsl(var(--pastel-purple))'
     },
     {
       name: 'Surya Namaskar',
@@ -72,7 +72,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateSuryaNamaskarProgress(),
       weight: 20,
       unit: 'rounds',
-      color: '#F59E0B'
+      color: 'hsl(var(--pastel-lavender))'
     },
     {
       name: 'Dhatu Meditation',
@@ -82,7 +82,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateMeditationProgress(),
       weight: 20,
       unit: 'session',
-      color: '#8B5CF6'
+      color: 'hsl(var(--pastel-mint))'
     },
     {
       name: 'Water Intake',
@@ -92,7 +92,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateWaterProgress(),
       weight: 15,
       unit: 'liters',
-      color: '#06B6D4'
+      color: 'hsl(var(--pastel-blue))'
     },
     {
       name: 'Steps',
@@ -102,7 +102,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       progress: calculateStepsProgress(),
       weight: 15,
       unit: 'steps',
-      color: '#EF4444'
+      color: 'hsl(var(--pastel-peach))'
     }
   ];
 
@@ -120,10 +120,10 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
               text={`${Math.round(totalProgress)}%`}
               styles={buildStyles({
                 textSize: '16px',
-                pathColor: totalProgress >= 80 ? '#10B981' : totalProgress >= 50 ? '#F59E0B' : '#EF4444',
-                textColor: '#374151',
-                trailColor: '#F3F4F6',
-                backgroundColor: '#F9FAFB',
+                pathColor: totalProgress >= 80 ? 'hsl(var(--success))' : totalProgress >= 50 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))',
+                textColor: 'hsl(var(--foreground))',
+                trailColor: 'hsl(var(--muted))',
+                backgroundColor: 'hsl(var(--background))',
               })}
             />
           </div>
@@ -145,10 +145,9 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
                     <div 
-                      className="p-2 rounded-full"
-                      style={{ backgroundColor: `${activity.color}20` }}
+                      className="p-2 rounded-full bg-primary/10"
                     >
-                      <Icon size={20} style={{ color: activity.color }} />
+                      <Icon size={20} className="text-primary" style={{ color: activity.color }} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-800">{activity.name}</h3>
@@ -158,7 +157,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-bold" style={{ color: activity.color }}>
+                    <div className="text-lg font-bold text-primary" style={{ color: activity.color }}>
                       {Math.round(activity.progress)}/{activity.weight}
                     </div>
                     <div className="text-xs text-gray-500">points</div>

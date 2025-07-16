@@ -6,6 +6,7 @@ import Loader from '@/components/ui/loader';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import RecipeSearchWithSuggestions from '@/components/RecipeSearchWithSuggestions';
 import ProgramInfoCard from '@/components/recipes/ProgramInfoCard';
 import SavedRecipesCard from '@/components/recipes/SavedRecipesCard';
@@ -46,53 +47,52 @@ const Recipes = () => {
 
   const isLoading = programLoading || recipesLoading;
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <Header title="Recipes" />
-        <div className="flex items-center justify-center h-64">
-          <Loader size="lg" className="mx-auto" />
-        </div>
-      </Layout>
-    );
-  }
 
   // Show message if user has no active program
   if (!userProgram) {
     return (
-      <Layout>
-        <Header title="Recipes" />
-        <div className="max-w-md mx-auto p-4">
-          <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">You need an active program to view recipes.</p>
-            <Link to="/subscriptions">
-              <Button>Browse Programs</Button>
-            </Link>
+      <Layout noContainer>
+        <PageContainer>
+          <Header title="Recipes" />
+          <div className="py-4">
+            <div className="text-center py-12">
+              <p className="text-gray-600 mb-4">You need an active program to view recipes.</p>
+              <Link to="/subscriptions">
+                <Button>Browse Programs</Button>
+              </Link>
+            </div>
           </div>
-        </div>
+        </PageContainer>
       </Layout>
     );
   }
 
   return (
-    <Layout>
-      <Header 
-        title="Recipes" 
-        rightElement={
-          <Link to="/saved-recipes">
-            <Button variant="ghost" size="sm" className="p-2">
-              <Heart size={20} strokeWidth={1.5} className={savedRecipeIds.length > 0 ? 'text-red-500 fill-current' : 'text-gray-400'} />
-              {savedRecipeIds.length > 0 && (
-                <span className="ml-1 text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] h-[18px] flex items-center justify-center">
-                  {savedRecipeIds.length}
-                </span>
-              )}
-            </Button>
-          </Link>
-        }
-      />
-      
-      <div className="p-4 space-y-6 max-w-md mx-auto">
+    <Layout noContainer>
+      <PageContainer>
+        <Header 
+          title="Recipes" 
+          rightElement={
+            <Link to="/saved-recipes">
+              <Button variant="ghost" size="sm" className="p-2">
+                <Heart size={20} strokeWidth={1.5} className={savedRecipeIds.length > 0 ? 'text-red-500 fill-current' : 'text-gray-400'} />
+                {savedRecipeIds.length > 0 && (
+                  <span className="ml-1 text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5 min-w-[18px] h-[18px] flex items-center justify-center">
+                    {savedRecipeIds.length}
+                  </span>
+                )}
+              </Button>
+            </Link>
+          }
+        />
+        
+        <div className="space-y-6 py-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader size="lg" className="mx-auto" />
+          </div>
+        ) : (
+          <>
         <ProgramInfoCard programName={userProgram.programs?.name} />
         <SavedRecipesCard savedRecipesCount={savedRecipeIds.length} />
         
@@ -112,7 +112,10 @@ const Recipes = () => {
           savedRecipeIds={savedRecipeIds}
           totalProgramRecipes={programRecipes?.length || 0}
         />
-      </div>
+          </>
+        )}
+        </div>
+      </PageContainer>
     </Layout>
   );
 };

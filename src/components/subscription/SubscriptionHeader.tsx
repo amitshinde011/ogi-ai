@@ -15,7 +15,7 @@ export const SubscriptionHeader: React.FC<SubscriptionHeaderProps> = ({
 }) => {
   return (
     <div className="text-center mb-8 sm:mb-12 lg:mb-16 mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+      <div className="max-w-md mx-auto space-y-4 sm:space-y-6">
         <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
           {showAchievementBanner ? (
             <>Choose Your <span className="text-primary">Next Journey</span></>

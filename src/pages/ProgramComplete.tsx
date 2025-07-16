@@ -5,23 +5,26 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trophy, Star, Sparkles, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 const ProgramComplete = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     // Check if final assessment is already completed
     const checkFinalAssessmentStatus = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           navigate('/login');
           return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         
         // Get active subscription that has ended (completed program)
         const { data: subscription } = await supabase
@@ -59,14 +62,14 @@ const ProgramComplete = () => {
     };
 
     checkFinalAssessmentStatus();
-  }, [navigate]);
+  }, [navigate, user]);
 
   return (
-    <Layout>
+    <Layout noContainer>
       <Header title="Congratulations!" />
       
-      <div className="min-h-screen bg-gradient-peaceful p-4">
-        <div className="max-w-md mx-auto">
+      <div className="min-h-screen bg-gradient-peaceful py-4">
+        <ContentContainer variant="legal">
           <Card className="text-center bg-gradient-sage text-white animate-scale-in">
             <CardContent className="p-8">
               <div className="flex justify-center mb-6">
@@ -109,7 +112,7 @@ const ProgramComplete = () => {
               </Button>
             </CardContent>
           </Card>
-        </div>
+        </ContentContainer>
       </div>
     </Layout>
   );

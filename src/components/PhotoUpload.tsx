@@ -64,7 +64,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`space-y-2 max-w-md mx-auto ${className}`}>
       <Label className="text-dark-text font-medium">{title} (Optional)</Label>
       <div
         className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 cursor-pointer

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -54,10 +55,11 @@ const Profile = () => {
   const isOwnProfile = currentUser?.id === profileUser.id;
 
   return (
-    <Layout>
-      <Header title={profileUser.name || 'Profile'} showBack />
-      
-      <div className="p-4 max-w-md mx-auto">
+    <Layout noContainer>
+      <PageContainer>
+        <Header title={profileUser.name || 'Profile'} showBack />
+        
+      <div className="py-4">
         {/* Profile Header */}
         <div className="text-center mb-6">
           <Avatar className="w-24 h-24 mx-auto mb-4">
@@ -93,8 +95,9 @@ const Profile = () => {
               className={`${
                 isFollowing 
                   ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
-                  : 'bg-sage hover:bg-sage/90 text-white'
+                  : ''
               }`}
+              variant={isFollowing ? 'secondary' : 'default'}
             >
               {isFollowing ? 'Unfollow' : 'Follow'}
             </Button>
@@ -119,7 +122,8 @@ const Profile = () => {
             <p className="text-gray-500">No posts yet</p>
           </div>
         )}
-      </div>
+        </div>
+      </PageContainer>
     </Layout>
   );
 };

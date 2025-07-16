@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
 import WellnessTracker from '@/components/WellnessTracker';
 import ProgramCompletionBanner from '@/components/ProgramCompletionBanner';
@@ -8,18 +9,19 @@ import DailyProgressCard from '@/components/DailyProgressCard';
 import QuickActions from '@/components/QuickActions';
 import TodayMeals from '@/components/TodayMeals';
 import WeeklyStreak from '@/components/WeeklyStreak';
-import StepTracker from '@/components/StepTracker';
+import StepTracker from '@/components/wellness/StepTracker';
 import DailySpecialTracking from '@/components/DailySpecialTracking';
 import SubscriptionBanner from '@/components/SubscriptionBanner';
 import { useNavigate } from 'react-router-dom';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import ProfileMenu from '@/components/ProfileMenu';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useOptimizedHomeData } from '@/hooks/useOptimizedHomeData';
 import { useOptimizedWellness } from '@/hooks/useOptimizedWellness';
 import { useAnalytics } from '@/hooks/useAnalytics';
+
 import Loader from '@/components/ui/loader';
 
 const Home = () => {
@@ -66,7 +68,7 @@ const Home = () => {
       console.log('🧹 Home: Cleaning up steps updated listener');
       window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
     };
-  }, []); // Remove trackEvent from dependencies to prevent loops
+  }, []);
 
   // Auth check effect - always called, but logic is conditional
   useEffect(() => {
@@ -84,7 +86,7 @@ const Home = () => {
       console.log('✅ Home: User authenticated successfully:', user.id);
       trackEvent('home_page_view', 'Navigation', 'Authenticated Access');
     }
-  }, [navigate, user, isAuthenticated, authLoading]); // Remove trackEvent from dependencies
+  }, [navigate, user, isAuthenticated, authLoading]);
 
   // Track user engagement on home page - always called
   useEffect(() => {
@@ -101,18 +103,19 @@ const Home = () => {
         clearTimeout(engagementTimer);
       };
     }
-  }, [authLoading, isAuthenticated]); // Remove trackUserEngagement from dependencies
+  }, [authLoading, isAuthenticated]);
 
   // Track meals completion - always called
   useEffect(() => {
     if (mealsLogged > 0) {
       trackEvent('daily_meals_count', 'Nutrition', `${mealsLogged} meals logged`);
     }
-  }, [mealsLogged]); // Remove trackEvent from dependencies
+  }, [mealsLogged]);
 
-  // Show loading screen while checking auth or fetching data
-  if (authLoading || homeLoading) {
-    console.log('⏳ Home: Showing loading state');
+
+  // Early return for missing user while auth is loading
+  if (authLoading || !user) {
+    console.log('⏳ Home: Showing auth loading state');
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <Loader size="lg" />
@@ -120,10 +123,14 @@ const Home = () => {
     );
   }
 
-  // Early return for missing auth - but hooks have already been called
-  if (!user || !userProfile) {
-    console.log('❌ Home: Missing user or profile data');
-    return null;
+  // Early return for missing profile but don't show full-page loader for data fetching
+  if (!userProfile) {
+    console.log('❌ Home: Missing user profile data');
+    return (
+      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
+        <Loader size="lg" />
+      </div>
+    );
   }
 
   console.log('🍽️ Home: Meals logged today:', mealsLogged);
@@ -156,16 +163,26 @@ const Home = () => {
   console.log('🎨 Home: Rendering home page with all components');
 
   return (
-    <Layout>
-      <Header title="Home" rightElement={profileElement} />
-      {showBanner && (
-        <>
-          <SubscriptionBanner />
-          {console.log('📢 Home: Subscription banner displayed')}
-        </>
-      )}
-      
-      <div className="p-4 space-y-6 max-w-md mx-auto">
+    <Layout noContainer>
+      <PageContainer>
+        <Header title="Home" rightElement={profileElement} />
+        {showBanner && (
+          <>
+            <SubscriptionBanner />
+            {console.log('📢 Home: Subscription banner displayed')}
+          </>
+        )}
+        
+        <div className="space-y-6 py-4">
+        {homeLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <Loader size="lg" className="mx-auto mb-4" />
+              <p className="text-gray-600">Loading your wellness data...</p>
+            </div>
+          </div>
+        ) : (
+          <>
         {isCompleted && completedSubscription && (
           <>
             <ProgramCompletionBanner completedSubscription={completedSubscription} />
@@ -214,7 +231,10 @@ const Home = () => {
         />
 
         <WeeklyStreak streak={homeData.weeklyStreak} />
-      </div>
+          </>
+        )}
+        </div>
+      </PageContainer>
     </Layout>
   );
 };

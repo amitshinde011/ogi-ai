@@ -1,14 +1,15 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useCommunityUser = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const { user } = useAuth();
 
   const fetchCurrentUser = async () => {
     try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
+      if (!user) return;
       
       if (user) {
         const { data: profile } = await supabase
@@ -31,7 +32,7 @@ export const useCommunityUser = () => {
 
   useEffect(() => {
     fetchCurrentUser();
-  }, []);
+  }, [user]);
 
   return { currentUser, fetchCurrentUser };
 };

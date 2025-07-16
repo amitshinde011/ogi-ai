@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import Loader from '@/components/ui/loader';
 import { Input } from '@/components/ui/input';
 import { useComments } from '@/hooks/useComments';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { CommentItem } from './CommentItem';
 
 interface CommentSectionProps {

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, Settings } from 'lucide-react';
 import {
   DropdownMenu,
@@ -111,7 +111,7 @@ const VideoPlayerControls = ({
             onClick={handleProgressClick}
           >
             <div 
-              className="h-full bg-indigo-500 rounded-full transition-all duration-200"
+              className="h-full bg-primary rounded-full transition-all duration-200 relative"
               style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
             />
           </div>
@@ -153,7 +153,7 @@ const VideoPlayerControls = ({
                   title="Video quality"
                 >
                   <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-xs sm:text-sm hidden sm:inline">
+                  <span className="text-xs text-white/80 sm:text-sm hidden sm:inline">
                     {getQualityLabel(currentQuality)}
                   </span>
                 </button>
@@ -209,4 +209,4 @@ const VideoPlayerControls = ({
   );
 };
 
-export default VideoPlayerControls;
+export default memo(VideoPlayerControls);

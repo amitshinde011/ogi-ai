@@ -15,8 +15,10 @@ import { CommentSection } from './CommentSection';
 import { PostHeader } from './PostHeader';
 import { PostActions } from './PostActions';
 import { PostEditForm } from './PostEditForm';
+import { ReportPostModal } from './ReportPostModal';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useReportPost } from '@/hooks/useReportPost';
 
 interface PostCardProps {
   post: CommunityPost;
@@ -40,6 +42,9 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [editCaption, setEditCaption] = useState(post.caption || '');
   const [editCategory, setEditCategory] = useState(post.category || 'general');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+
+  const { reportData, submitReport } = useReportPost(post.id, post.report_count, post.user_has_reported);
 
   const isOwner = currentUserId === post.author_id;
 
@@ -114,9 +119,18 @@ export const PostCard: React.FC<PostCardProps> = ({
     }
   };
 
+  const handleReport = () => {
+    setShowReportModal(true);
+  };
+
+  const handleReportSubmitted = () => {
+    // The report hook will handle the toast notification
+    setShowReportModal(false);
+  };
+
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-6 max-w-md mx-auto">
         <PostHeader
           authorId={post.author_id}
           authorName={post.author?.name}
@@ -144,8 +158,11 @@ export const PostCard: React.FC<PostCardProps> = ({
           <PostActions
             isLiked={post.is_liked}
             likeCount={post.like_count}
+            commentCount={post.comment_count}
             onLike={() => onLike(post.id)}
             onToggleComments={() => setShowComments(!showComments)}
+            onReport={!isOwner ? handleReport : undefined}
+            hasReported={reportData.hasReported}
           />
 
           {isEditing ? (
@@ -201,6 +218,13 @@ export const PostCard: React.FC<PostCardProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ReportPostModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        postId={post.id}
+        onReportSubmitted={handleReportSubmitted}
+      />
     </>
   );
 };

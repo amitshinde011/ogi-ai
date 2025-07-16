@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { getLocalDateString } from '@/utils/dateUtils';
 
@@ -24,6 +25,7 @@ interface HomeData {
 }
 
 export const useOptimizedHomeData = () => {
+  const { user } = useAuth();
   console.log('🏠 useOptimizedHomeData: Hook initialized');
   
   const [data, setData] = useState<HomeData>({
@@ -44,71 +46,54 @@ export const useOptimizedHomeData = () => {
     }
   });
   const [loading, setLoading] = useState(true);
+//  const [initialLoad, setInitialLoad] = useState(false);
   const { trackEvent } = useAnalytics();
   const fetchingRef = useRef(false);
   const lastFetchRef = useRef<number>(0);
-
-  // Listen for step updates and sync with data
-  useEffect(() => {
-    const handleStepsUpdated = (event: CustomEvent) => {
-      console.log('📢 useOptimizedHomeData: External steps update received:', event.detail);
-      const newSteps = event.detail.steps;
-      
-      setData(prev => {
-        const newWalkScore = Math.min(Math.floor(newSteps / 1000), 5);
-        const updatedData = {
-          ...prev,
-          todayProgress: {
-            ...prev.todayProgress,
-            steps: newSteps,
-            walkScore: newWalkScore
-          }
-        };
-        
-        console.log('📊 useOptimizedHomeData: Data updated with new steps:', {
-          oldSteps: prev.todayProgress.steps,
-          newSteps,
-          oldWalkScore: prev.todayProgress.walkScore,
-          newWalkScore
-        });
-        
-        return updatedData;
-      });
-    };
-
-    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
-    
-    return () => {
-      console.log('🧹 useOptimizedHomeData: Cleaning up steps listener');
-      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
-    };
-  }, []);
-
+  const isInitialLoad = useRef(true);
   const fetchAllData = useCallback(async () => {
+    if (!user) {
+      console.log('👤 useOptimizedHomeData: Waiting for user authentication');
+      setLoading(false);
+      return;
+    }
+
     const now = Date.now();
     
-    // Prevent duplicate fetches within 5 seconds
-    if (fetchingRef.current || (now - lastFetchRef.current < 5000)) {
+    // Reset stuck fetching flag if it's been too long (30 seconds)
+    if (fetchingRef.current && (now - lastFetchRef.current > 30000)) {
+      console.log('🔄 useOptimizedHomeData: Resetting stuck fetching flag');
+      fetchingRef.current = false;
+    }
+    
+    // Prevent duplicate fetches within 2 seconds (reduced from 5)
+    if (fetchingRef.current || (now - lastFetchRef.current < 2000)) {
       console.log('🚫 useOptimizedHomeData: Preventing duplicate fetch');
       return;
     }
 
     fetchingRef.current = true;
     lastFetchRef.current = now;
+    if (isInitialLoad.current) {
+      setLoading(true);
+    }
     
     console.log('📡 useOptimizedHomeData: Starting data fetch');
     const startTime = performance.now();
     
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.warn('⚠️ useOptimizedHomeData: No authenticated user found');
         trackEvent('home_data_error', 'Error', 'No User');
+        setLoading(false);
         return;
       }
 
       console.log('👤 useOptimizedHomeData: User authenticated:', user.id);
+      
+      // Use local date ensuring consistency with step tracker
       const today = getLocalDateString();
+      console.log('📅 useOptimizedHomeData: Using date:', today);
       
       // Calculate week dates once using local time
       const currentDay = new Date().getDay();
@@ -125,8 +110,76 @@ export const useOptimizedHomeData = () => {
 
       console.log('📅 useOptimizedHomeData: Calculated week dates:', { today, weekDates });
 
-      // Execute all queries in parallel - single batch request
-      console.log('🔄 useOptimizedHomeData: Executing single batch query');
+      // Try optimized query first, fallback to original if needed
+      console.log('🔄 useOptimizedHomeData: Trying optimized materialized view query');
+      
+      // First refresh materialized views to get latest data
+      try {
+        await supabase.rpc('refresh_materialized_views');
+        console.log('✅ useOptimizedHomeData: Materialized views refreshed');
+      } catch (refreshError) {
+        console.warn('⚠️ useOptimizedHomeData: Failed to refresh materialized views:', refreshError);
+      }
+
+      const { data: optimizedData, error: rpcError } = await supabase.rpc('get_home_data', {
+        p_user_id: user.id,
+        p_date: today
+      });
+
+      if (!rpcError && optimizedData && optimizedData.length > 0) {
+        console.log('✅ useOptimizedHomeData: Using optimized materialized view data');
+        const data = optimizedData[0];
+        
+        // Get weekly wellness for streak calculation
+        const { data: weeklyWellnessResult } = await supabase
+          .from('daily_wellness')
+          .select('date, meditation_completed, water_litres, surya_namaskar_count')
+          .eq('user_id', user.id)
+          .in('date', weekDates);
+
+        // Process streak data
+        const weeklyWellness = weeklyWellnessResult || [];
+        const streak = weekDates.map(date => {
+          const dayData = weeklyWellness.find(w => w.date === date);
+          return !!(dayData?.meditation_completed || 
+                   (dayData?.water_litres && dayData.water_litres > 0) || 
+                   (dayData?.surya_namaskar_count && dayData.surya_namaskar_count > 0));
+        });
+
+        const finalData = {
+          todayProgress: {
+            breakfast: data.has_breakfast,
+            lunch: data.has_lunch,
+            dinner: data.has_dinner,
+            steps: data.steps_count,
+            walkScore: data.walk_score,
+            saladBowl: data.has_salad_bowl,
+            kanji: data.has_kanji
+          },
+          weeklyStreak: streak,
+          wellnessData: {
+            water_litres: data.water_litres || 0,
+            surya_namaskar_count: data.surya_namaskar_count || 0,
+            meditation_completed: data.meditation_completed || false
+          }
+        };
+
+        setData(finalData);
+        
+        // Don't dispatch stepsUpdated events to prevent page reload loops
+        console.log('✅ useOptimizedHomeData: Data updated (no stepsUpdated event dispatched to prevent loops)');
+
+        const endTime = performance.now();
+        const loadTime = endTime - startTime;
+        console.log(`✅ useOptimizedHomeData: Data fetch completed in ${loadTime.toFixed(2)}ms (optimized)`);
+        trackEvent('home_data_loaded_optimized', 'Performance', `Load Time: ${Math.round(loadTime)}ms`);
+        
+        // Mark initial load as complete (done outside fetchAllData to avoid circular dependency)
+        return;
+      }
+
+      // Fallback to original queries
+      console.log('🔄 useOptimizedHomeData: Falling back to original queries');
       const [mealsResult, stepsResult, wellnessResult, weeklyWellnessResult] = await Promise.all([
         supabase
           .from('meal_tracking')
@@ -182,7 +235,7 @@ export const useOptimizedHomeData = () => {
       );
 
       const todaySteps = stepsResult.data?.steps_count || 0;
-      const walkScore = Math.min(Math.floor(todaySteps / 1000), 5); // Updated: 1000 steps = 1 point for 5km goal
+      const walkScore = Math.min(Math.floor((todaySteps / 5000) * 5), 5); // Updated: Based on 5000 steps = 5 stars goal
       
       console.log('👟 useOptimizedHomeData: Steps processed:', {
         todaySteps,
@@ -213,7 +266,7 @@ export const useOptimizedHomeData = () => {
         totalDays: streak.length
       });
 
-      const finalData = {
+      const fetchedData = {
         todayProgress: {
           breakfast: mealTypes.includes('breakfast'),
           lunch: mealTypes.includes('lunch'),
@@ -227,13 +280,10 @@ export const useOptimizedHomeData = () => {
         wellnessData
       };
 
-      setData(finalData);
+      setData(fetchedData);
 
-      // Dispatch step count update event
-      console.log('📢 useOptimizedHomeData: Dispatching steps update event');
-      window.dispatchEvent(new CustomEvent('stepsUpdated', { 
-        detail: { steps: todaySteps, lastUpdated: new Date() } 
-      }));
+      // Don't dispatch stepsUpdated events to prevent page reload loops
+      console.log('✅ useOptimizedHomeData: Data updated (no stepsUpdated event dispatched to prevent loops)');
 
       const endTime = performance.now();
       const loadTime = endTime - startTime;
@@ -241,21 +291,91 @@ export const useOptimizedHomeData = () => {
       
       // Track analytics
       trackEvent('home_data_loaded', 'Performance', `Load Time: ${Math.round(loadTime)}ms`);
+      
+      // Mark initial load as complete (done outside fetchAllData to avoid circular dependency)
 
     } catch (error) {
       console.error('❌ useOptimizedHomeData: Error fetching home data:', error);
       trackEvent('home_data_error', 'Error', 'Fetch Failed');
     } finally {
-      setLoading(false);
+      if (isInitialLoad.current) {
+        setLoading(false);
+        isInitialLoad.current = false;
+        console.log('🏁 useOptimizedHomeData: Initial load completed');
+      }
       fetchingRef.current = false;
       console.log('🏁 useOptimizedHomeData: Loading state updated to false');
     }
-  }, []); // Remove trackEvent from dependencies to prevent loops
+  }, [user, trackEvent]); // Fixed dependencies
+
+  // Listen for step updates and meal logging events
+  useEffect(() => {
+    const handleStepsUpdated = (event: CustomEvent) => {
+      console.log('📢 useOptimizedHomeData: External steps update received:', event.detail);
+      const newSteps = event.detail.steps;
+      
+      setData(prev => {
+        const newWalkScore = Math.min(Math.floor((newSteps / 5000) * 5), 5);
+        const updatedData = {
+          ...prev,
+          todayProgress: {
+            ...prev.todayProgress,
+            steps: newSteps,
+            walkScore: newWalkScore
+          }
+        };
+        
+        console.log('📊 useOptimizedHomeData: Data updated with new steps:', {
+          oldSteps: prev.todayProgress.steps,
+          newSteps,
+          oldWalkScore: prev.todayProgress.walkScore,
+          newWalkScore
+        });
+        
+        return updatedData;
+      });
+    };
+
+    const handleMealLogged = (event: CustomEvent) => {
+      console.log('📢 useOptimizedHomeData: Meal logged event received:', event.detail);
+      const { mealType, mealData } = event.detail;
+      
+      // Update state immediately for instant UI feedback
+      setData(prev => ({
+        ...prev,
+        todayProgress: {
+          ...prev.todayProgress,
+          [mealType]: true
+        }
+      }));
+      
+      // Use current ref to ensure we have the latest function
+      setTimeout(() => {
+        if (fetchingRef.current) {
+          console.log('🔄 useOptimizedHomeData: Skipping refetch - already fetching');
+          return;
+        }
+        fetchAllData();
+      }, 500); // Small delay to ensure database is updated
+    };
+
+    window.addEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+    window.addEventListener('mealLogged', handleMealLogged as EventListener);
+    
+    return () => {
+      console.log('🧹 useOptimizedHomeData: Cleaning up listeners');
+      window.removeEventListener('stepsUpdated', handleStepsUpdated as EventListener);
+      window.removeEventListener('mealLogged', handleMealLogged as EventListener);
+    };
+  }, [fetchAllData]); // Remove fetchAllData dependency to prevent circular dependency
 
   useEffect(() => {
-    console.log('🔄 useOptimizedHomeData: useEffect triggered, calling fetchAllData');
-    fetchAllData();
-  }, [fetchAllData]);
+    console.log('🔄 useOptimizedHomeData: useEffect triggered, user:', !!user);
+    if (user) {
+      fetchAllData();
+      //setInitialLoad(false);
+    }
+  }, [user, fetchAllData]); // Fixed: Include fetchAllData in dependency array
 
   console.log('📊 useOptimizedHomeData: Current state:', { 
     loading, 

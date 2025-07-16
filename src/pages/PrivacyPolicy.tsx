@@ -4,13 +4,19 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
+import Header from '@/components/Header';
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
-      <div className="max-w-4xl mx-auto">
+    <Layout noContainer>
+      <Header title="Privacy Policy" showBack />
+      
+      <div className="min-h-screen bg-gradient-peaceful py-4">
+        <ContentContainer variant="legal">
         {/* Header */}
         <div className="flex items-center mb-6">
           <Button
@@ -152,8 +158,9 @@ const PrivacyPolicy = () => {
             </section>
           </CardContent>
         </Card>
+        </ContentContainer>
       </div>
-    </div>
+    </Layout>
   );
 };
 

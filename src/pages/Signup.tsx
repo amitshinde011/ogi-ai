@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import ContentContainer from '@/components/ContentContainer';
 import { IMAGES } from '@/constants/images';
 
 const Signup = () => {
@@ -103,7 +104,8 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md animate-fade-in shadow-lg border-gray-200 bg-white">
+      <ContentContainer variant="narrow">
+        <Card className="w-full animate-fade-in shadow-lg border-gray-200 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
             <div className="w-32 h-32 mx-auto flex items-center justify-center mb-4">
@@ -113,7 +115,7 @@ const Signup = () => {
                 className="w-full h-full object-contain"
               />
             </div>
-            <p className="text-black">Start your wellness journey today</p>
+            <p className="text-black/60">Start your wellness journey today</p>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -153,7 +155,7 @@ const Signup = () => {
             </div>
             <Button 
               type="submit" 
-              className="w-full rounded-xl bg-sage hover:bg-sage/90 text-white shadow-md"
+              className="w-full rounded-xl shadow-md"
               disabled={isLoading}
             >
               {isLoading ? "Creating Account..." : "Create Account"}
@@ -163,36 +165,37 @@ const Signup = () => {
           <div className="text-center text-xs text-gray-600 space-y-2">
             <p>
               By signing up, you agree to our{' '}
-              <Link to="/privacy-policy" className="text-sage hover:underline">
+              <Link to="/privacy-policy" className="text-black/60 hover:underline">
                 Privacy Policy
               </Link>
               ,{' '}
-              <Link to="/terms-and-conditions" className="text-sage hover:underline">
+              <Link to="/terms-and-conditions" className="text-black/60 hover:underline">
                 Terms and Conditions
               </Link>
               {' '}and{' '}
-              <Link to="/cancellations-refunds" className="text-sage hover:underline">
+              <Link to="/cancellations-refunds" className="text-black/60 hover:underline">
                 Cancellations and Refunds
               </Link>
             </p>
             <p>
               Need help? Contact us at{' '}
-              <a href="mailto:support@yogi.care" className="text-sage hover:underline">
+              <a href="mailto:support@yogi.care" className="text-black/60 hover:underline">
                 support@yogi.care
               </a>
             </p>
           </div>
 
           <div className="text-center">
-            <span className="text-sm text-black">
+            <span className="text-sm text-black/60">
               Already have an account?{' '}
-              <Link to="/login" className="text-sage hover:underline font-medium">
+              <Link to="/login" className="text-black/60 hover:underline font-medium">
                 Sign in
               </Link>
             </span>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </ContentContainer>
     </div>
   );
 };

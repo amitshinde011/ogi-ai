@@ -5,30 +5,30 @@
 @layer utilities {
   /* Modern gradient backgrounds using HSL */
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(239, 68%, 68%) 0%, hsl(251, 83%, 68%) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)) 100%);
   }
 
   .gradient-success {
-    background: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(160, 84%, 39%) 100%);
+    background: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--success)) 100%);
   }
 
   .gradient-warning {
-    background: linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(43, 96%, 56%) 100%);
+    background: linear-gradient(135deg, hsl(var(--warning)) 0%, hsl(var(--warning)) 100%);
   }
 
   .gradient-surface {
-    background: linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(220, 13%, 98%) 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--surface-secondary)) 100%);
   }
 
   /* Peaceful gradient */
   .bg-gradient-peaceful {
-    background: linear-gradient(135deg, hsl(220, 13%, 98%) 0%, hsl(214, 20%, 95%) 100%) !important;
+    background: linear-gradient(135deg, hsl(var(--surface-secondary)) 0%, hsl(var(--surface-secondary)) 100%) !important;
   }
 
   /* Text utilities with HSL format */
-  .text-primary { color: hsl(220, 39%, 11%) !important; }
-  .text-secondary { color: hsl(215, 25%, 27%) !important; }
-  .text-tertiary { color: hsl(215, 16%, 47%) !important; }
+  .text-primary { color: hsl(var(--text-primary)) !important; }
+  .text-secondary { color: hsl(var(--text-secondary)) !important; }
+  .text-tertiary { color: hsl(var(--text-tertiary)) !important; }
   
   /* Enhanced animations */
   .animate-fade-in {
@@ -60,21 +60,21 @@
 
   /* Navigation specific with better contrast */
   .nav-item {
-    color: hsl(215, 25%, 27%) !important;
+    color: hsl(var(--text-secondary)) !important;
     transition: all 0.2s ease;
     border-radius: 0.75rem;
     padding: 0.5rem;
   }
   
   .nav-item.active {
-    color: hsl(239, 68%, 68%) !important;
-    background: hsla(239, 68%, 68%, 0.1);
+    color: hsl(var(--primary)) !important;
+    background: hsl(var(--primary) / 0.1);
     transform: scale(1.05);
   }
   
   .nav-item:hover {
-    color: hsl(239, 68%, 68%) !important;
-    background: hsla(239, 68%, 68%, 0.05);
+    color: hsl(var(--primary)) !important;
+    background: hsl(var(--primary) / 0.05);
     transform: translateY(-2px);
   }
 
@@ -86,7 +86,7 @@
 
   .interactive:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px hsla(220, 39%, 11%, 0.15);
+    box-shadow: 0 4px 12px hsl(var(--foreground) / 0.15);
   }
 
   .interactive:active {
@@ -97,45 +97,45 @@
   .bg-yellow-400, .bg-yellow-500, 
   .from-yellow-400, .to-yellow-400,
   *[class*="bg-yellow-"], *[class*="from-yellow-"], *[class*="to-yellow-"] {
-    background: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(160, 84%, 39%) 100%) !important;
-    color: hsl(0, 0%, 100%) !important;
+    background: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--success)) 100%) !important;
+    color: hsl(var(--primary-foreground)) !important;
   }
 
   .border-yellow-400, .border-yellow-500,
   *[class*="border-yellow-"] {
-    border-color: hsl(142, 76%, 36%) !important;
+    border-color: hsl(var(--success)) !important;
   }
 
   /* Keep amber for star ratings only */
   .text-yellow-300, .text-yellow-400, .text-yellow-500 {
-    color: hsl(38, 92%, 50%) !important;
+    color: hsl(var(--warning)) !important;
   }
 
   /* Override problematic yellow text */
   .text-yellow-50, .text-yellow-100, .text-yellow-200,
   .text-yellow-600, .text-yellow-700, .text-yellow-800, .text-yellow-900 {
-    color: hsl(220, 39%, 11%) !important;
+    color: hsl(var(--foreground)) !important;
   }
 
   /* Essential color overrides using HSL */
   .bg-white {
-    background-color: hsl(0, 0%, 100%) !important;
-    color: hsl(220, 39%, 11%) !important;
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
   }
 
   .text-white {
-    color: hsl(0, 0%, 100%) !important;
+    color: hsl(var(--primary-foreground)) !important;
   }
 
   .text-muted-foreground {
-    color: hsl(215, 16%, 47%) !important;
+    color: hsl(var(--muted-foreground)) !important;
   }
 
   .border-gray-300 {
-    border-color: hsl(220, 13%, 91%) !important;
+    border-color: hsl(var(--border)) !important;
   }
 
   .placeholder\:text-gray-500::placeholder {
-    color: hsl(215, 16%, 47%) !important;
+    color: hsl(var(--muted-foreground)) !important;
   }
 }

@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import SuryaNamaskarVideoPlayer from '../SuryaNamaskarVideoPlayer';
 import { GoalCompletionMessage } from './GoalCompletionMessage';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface SuryaNamaskarTrackerProps {
   suryaNamaskarCount: number;
@@ -37,7 +38,7 @@ export const SuryaNamaskarTracker: React.FC<SuryaNamaskarTrackerProps> = ({
 
   // Check if goal was achieved today and store in localStorage
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const storageKey = `surya_namaskar_goal_achieved_${today}`;
     const wasAchievedToday = localStorage.getItem(storageKey) === 'true';
     

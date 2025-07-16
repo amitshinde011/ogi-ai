@@ -8,10 +8,9 @@ import ContactInfo from '@/components/legal/ContactInfo';
 const CancellationsRefunds = () => {
   return (
     <div className="min-h-screen bg-gradient-peaceful p-4">
-      <div className="max-w-4xl mx-auto">
-        <LegalHeader title="Cancellations and Refunds" />
-        
-        <LegalLayout lastUpdated="December 2024">
+      <LegalHeader title="Cancellations and Refunds" />
+      
+      <LegalLayout lastUpdated="December 2024">
           <LegalSection title="1. Subscription Cancellation">
             <p>
               You can cancel your subscription at any time through your account settings or by contacting our support team.
@@ -145,7 +144,6 @@ const CancellationsRefunds = () => {
             </p>
           </LegalSection>
         </LegalLayout>
-      </div>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
 import CurrentProgramCard from '@/components/progress/CurrentProgramCard';
 import NoProgramCard from '@/components/progress/NoProgramCard';
@@ -15,9 +16,10 @@ import Loader from '@/components/ui/loader';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { calculateProgramProgress, getLocalDateString } from '@/utils/dateUtils';
 import { useTodayActivity } from '@/hooks/useTodayActivity';
-import { useProgressData } from '@/hooks/useProgressData';
+import { useOptimizedProgressData } from '@/hooks/useOptimizedProgressData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProgramData {
   id: string;
@@ -36,16 +38,47 @@ const ProgressPage = () => {
   const [historicalPrograms, setHistoricalPrograms] = useState<ProgramData[]>([]);
   const [loading, setLoading] = useState(true);
   const { showBanner } = useSubscriptionBanner();
-  const { activityData, loading: activityLoading } = useTodayActivity();
-  const { weeklyData, journeyData, loading: progressLoading } = useProgressData();
+  const { activityData, loading: activityLoading, refetch: refetchActivityData } = useTodayActivity();
+  const { data: progressData, loading: progressLoading, refetch: refetchProgressData } = useOptimizedProgressData();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchProgressData();
-  }, []);
+  }, [user]);
+
+  // Listen for activity updates to refresh progress data
+  useEffect(() => {
+    const handleActivityUpdate = () => {
+      console.log('📈 Progress: Activity updated, refreshing data');
+      refetchActivityData();
+      refetchProgressData();
+    };
+
+    const handleStepsUpdated = () => {
+      console.log('👟 Progress: Steps updated, refreshing data');
+      refetchActivityData();
+      refetchProgressData();
+    };
+
+    const handleMealLogged = () => {
+      console.log('🍽️ Progress: Meal logged, refreshing data');
+      refetchActivityData();
+      refetchProgressData();
+    };
+
+    window.addEventListener('wellnessUpdated', handleActivityUpdate);
+    window.addEventListener('stepsUpdated', handleStepsUpdated);
+    window.addEventListener('mealLogged', handleMealLogged);
+
+    return () => {
+      window.removeEventListener('wellnessUpdated', handleActivityUpdate);
+      window.removeEventListener('stepsUpdated', handleStepsUpdated);
+      window.removeEventListener('mealLogged', handleMealLogged);
+    };
+  }, [refetchActivityData, refetchProgressData]);
 
   const fetchProgressData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/login');
         return;
@@ -110,28 +143,23 @@ const ProgressPage = () => {
     navigate('/comparison', { state: { subscriptionId: programId } });
   };
 
-  if (loading || activityLoading || progressLoading) {
-    return (
-      <Layout>
-        <Header title="Progress" />
-        {showBanner && <SubscriptionBanner />}
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-          <div className="text-center">
-            <Loader size="lg" className="mx-auto mb-4" />
-            <p className="text-gray-600">Loading your progress...</p>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
-    <Layout>
-      <Header title="Your Progress" />
-      {showBanner && <SubscriptionBanner />}
-      
+    <Layout noContainer>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="p-4 max-w-4xl mx-auto">
+        <PageContainer>
+          <Header title="Your Progress" />
+          {showBanner && <SubscriptionBanner />}
+          
+          <div className="py-4">
+          {(loading || activityLoading || progressLoading) ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Loader size="lg" className="mx-auto mb-4" />
+                <p className="text-gray-600">Loading your progress...</p>
+              </div>
+            </div>
+          ) : (
           <Tabs defaultValue="today" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm">
               <TabsTrigger value="today" className="flex items-center gap-2">
@@ -157,11 +185,11 @@ const ProgressPage = () => {
             </TabsContent>
 
             <TabsContent value="weekly" className="space-y-6">
-              <WeeklyProgress data={weeklyData} />
+              <WeeklyProgress data={progressData.weeklyData} />
             </TabsContent>
 
             <TabsContent value="journey" className="space-y-6">
-              <JourneyProgress data={journeyData} />
+              <JourneyProgress data={progressData.journeyData} />
             </TabsContent>
 
             <TabsContent value="program" className="space-y-6">
@@ -179,7 +207,9 @@ const ProgressPage = () => {
               />
             </TabsContent>
           </Tabs>
-        </div>
+          )}
+          </div>
+        </PageContainer>
       </div>
     </Layout>
   );

@@ -1,8 +1,10 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { getLocalDateString } from '@/utils/dateUtils';
 
 interface WellnessData {
   id?: string;
@@ -12,6 +14,7 @@ interface WellnessData {
 }
 
 export const useOptimizedWellness = (initialData: WellnessData) => {
+  const { user } = useAuth();
   console.log('🌟 useOptimizedWellness: Hook initialized with data:', initialData);
   
   const [wellnessData, setWellnessData] = useState<WellnessData>(initialData);
@@ -38,9 +41,8 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
         newData: initialData
       });
       setWellnessData(initialData);
-      trackEvent('wellness_data_sync', 'Data Management', 'Initial Data Updated');
     }
-  }, [initialData.id, initialData.water_litres, initialData.surya_namaskar_count, initialData.meditation_completed]); // Remove wellnessData and trackEvent from dependencies
+  }, [initialData.id, initialData.water_litres, initialData.surya_namaskar_count, initialData.meditation_completed]);
 
   const debouncedUpdate = useCallback(async (updates: Partial<WellnessData>) => {
     const now = Date.now();
@@ -97,14 +99,13 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
       console.log('📦 useOptimizedWellness: Processing accumulated updates:', allPendingUpdates);
 
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           console.error('❌ useOptimizedWellness: No authenticated user found');
           trackEvent('wellness_update_error', 'Error', 'No User');
           return;
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateString();
         const updatedData = { ...wellnessData, ...allPendingUpdates };
         console.log('📊 useOptimizedWellness: Prepared data for API update:', { 
           today, 
@@ -112,57 +113,33 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
           hasId: !!updatedData.id 
         });
 
-        if (updatedData.id) {
-          // Update existing record
-          console.log('🔄 useOptimizedWellness: Updating existing record with ID:', updatedData.id);
-          const { error } = await supabase
-            .from('daily_wellness')
-            .update({
-              water_litres: updatedData.water_litres,
-              surya_namaskar_count: updatedData.surya_namaskar_count,
-              meditation_completed: updatedData.meditation_completed
-            })
-            .eq('id', updatedData.id);
+        // Use optimized upsert function
+        console.log('🚀 useOptimizedWellness: Using optimized upsert function');
+        const { data, error } = await supabase.rpc('upsert_wellness_data', {
+          p_user_id: user.id,
+          p_date: today,
+          p_water_litres: allPendingUpdates.water_litres !== undefined ? updatedData.water_litres : null,
+          p_surya_namaskar_count: allPendingUpdates.surya_namaskar_count !== undefined ? updatedData.surya_namaskar_count : null,
+          p_meditation_completed: allPendingUpdates.meditation_completed !== undefined ? updatedData.meditation_completed : null,
+          p_meditation_minutes: 0
+        });
 
-          if (error) {
-            console.error('❌ useOptimizedWellness: Error updating record:', error);
-            throw error;
-          }
+        if (error) {
+          console.error('❌ useOptimizedWellness: Error with upsert function:', error);
+          throw error;
+        }
 
-          console.log('✅ useOptimizedWellness: Successfully updated existing record');
-          trackEvent('wellness_update_success', 'Wellness', 'Update Existing');
-        } else {
-          // Create new record
-          console.log('➕ useOptimizedWellness: Creating new wellness record');
-          const { data, error } = await supabase
-            .from('daily_wellness')
-            .upsert(
-              {
-                user_id: user.id,
-                date: today,
-                water_litres: updatedData.water_litres,
-                surya_namaskar_count: updatedData.surya_namaskar_count,
-                meditation_completed: updatedData.meditation_completed,
-                meditation_minutes: 0
-              },
-              { 
-                onConflict: 'user_id,date',
-                ignoreDuplicates: false 
-              }
-            )
-            .select()
-            .single();
-
-          if (error) {
-            console.error('❌ useOptimizedWellness: Error creating record:', error);
-            throw error;
-          }
-
-          if (data) {
-            console.log('✅ useOptimizedWellness: Successfully created new record with ID:', data.id);
-            setWellnessData(prev => ({ ...prev, id: data.id }));
-            trackEvent('wellness_create_success', 'Wellness', 'Create New');
-          }
+        if (data && data.length > 0) {
+          const result = data[0];
+          console.log('✅ useOptimizedWellness: Successfully upserted wellness data:', result);
+          setWellnessData(prev => ({ 
+            ...prev, 
+            id: result.id,
+            water_litres: result.water_litres,
+            surya_namaskar_count: result.surya_namaskar_count,
+            meditation_completed: result.meditation_completed
+          }));
+          trackEvent('wellness_upsert_success', 'Wellness', 'Optimized Upsert');
         }
 
         // Track specific wellness actions
@@ -191,7 +168,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
         console.log('🏁 useOptimizedWellness: Update process completed');
       }
     }, 2000); // Increased debounce delay to 2 seconds
-  }, [wellnessData, toast]); // Remove trackEvent from dependencies
+  }, [wellnessData, toast, user]);
 
   const updateWater = useCallback((delta: number) => {
     const newValue = Math.max(0, wellnessData.water_litres + delta);
@@ -202,7 +179,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('water_intake_action', 'UI', delta > 0 ? 'Increase' : 'Decrease', Math.abs(delta));
     debouncedUpdate({ water_litres: newValue });
-  }, [wellnessData.water_litres, debouncedUpdate]); // Remove trackEvent from dependencies
+  }, [wellnessData.water_litres, debouncedUpdate, trackEvent]);
 
   const updateSuryaNamaskar = useCallback((delta: number) => {
     const newValue = Math.max(0, wellnessData.surya_namaskar_count + delta);
@@ -213,7 +190,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('surya_namaskar_action', 'UI', delta > 0 ? 'Increase' : 'Decrease', Math.abs(delta));
     debouncedUpdate({ surya_namaskar_count: newValue });
-  }, [wellnessData.surya_namaskar_count, debouncedUpdate]); // Remove trackEvent from dependencies
+  }, [wellnessData.surya_namaskar_count, debouncedUpdate, trackEvent]);
 
   const toggleMeditation = useCallback(() => {
     const newValue = !wellnessData.meditation_completed;
@@ -223,7 +200,7 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
     });
     trackEvent('meditation_action', 'UI', newValue ? 'Complete' : 'Incomplete');
     debouncedUpdate({ meditation_completed: newValue });
-  }, [wellnessData.meditation_completed, debouncedUpdate]); // Remove trackEvent from dependencies
+  }, [wellnessData.meditation_completed, debouncedUpdate, trackEvent]);
 
   // Cleanup timeout on unmount
   useEffect(() => {

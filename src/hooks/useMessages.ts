@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Message {
   id: string;
@@ -29,25 +30,25 @@ export const useMessages = () => {
   const [otherUser, setOtherUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const { user } = useAuth();
 
   // Fetch current user
   const fetchCurrentUser = async () => {
+    if (!user) return;
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
 
-        setCurrentUser({
-          id: profile?.id,
-          user_id: user.id,
-          name: profile?.name || user.email?.split('@')[0] || 'User',
-          profile_photo_url: profile?.profile_photo_url
-        });
-      }
+      setCurrentUser({
+        id: profile?.id,
+        user_id: user.id,
+        name: profile?.name || user.email?.split('@')[0] || 'User',
+        profile_photo_url: profile?.profile_photo_url
+      });
     } catch (error) {
       console.error('Error fetching current user:', error);
     }

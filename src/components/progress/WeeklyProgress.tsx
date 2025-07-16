@@ -9,7 +9,8 @@ import {
   TrendingUp, 
   Target,
   Flame,
-  Star
+  Star,
+  Activity
 } from 'lucide-react';
 
 interface WeeklyProgressData {
@@ -46,9 +47,9 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
   }));
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return '#10B981';
-    if (score >= 60) return '#F59E0B';
-    return '#EF4444';
+    if (score >= 80) return 'hsl(var(--success))';
+    if (score >= 60) return 'hsl(var(--warning))';
+    return 'hsl(var(--destructive))';
   };
 
   const getPerformanceMessage = () => {
@@ -60,7 +61,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
   return (
     <div className="space-y-6">
       {/* Weekly Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         {/* Weekly Score Circle */}
         <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
           <CardHeader className="text-center pb-2">
@@ -74,8 +75,8 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
                 styles={buildStyles({
                   textSize: '18px',
                   pathColor: getScoreColor(data.averageScore),
-                  textColor: '#374151',
-                  trailColor: '#F3F4F6',
+                  textColor: 'hsl(var(--foreground))',
+                  trailColor: 'hsl(var(--muted))',
                 })}
               />
             </div>
@@ -95,7 +96,10 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Active Days</span>
+              <span className="text-sm text-gray-600 flex items-center gap-1">
+                <Activity size={16} className="text-green-500" />
+                Active Days
+              </span>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-800">{data.activeDays}/7</span>
                 <div className="w-16">
@@ -128,25 +132,27 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-800">Daily Performance</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-48">
+        <CardContent className="pb-8">
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <XAxis 
                   dataKey="day" 
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6B7280' }}
+                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: 'Day', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
                 />
                 <YAxis 
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fontSize: 12, fill: '#6B7280' }}
+                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                   domain={[0, 100]}
+                  label={{ value: 'Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
                 />
                 <Bar 
                   dataKey="score" 
-                  fill="#10B981" 
+                  fill="hsl(var(--success))" 
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
