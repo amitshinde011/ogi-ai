@@ -63,7 +63,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
       {/* Weekly Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Weekly Score Circle */}
-        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg max-w-md mx-auto">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-xl font-bold text-gray-800">Weekly Score</CardTitle>
           </CardHeader>
@@ -87,7 +87,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
         </Card>
 
         {/* Weekly Stats */}
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="bg-white border-0 shadow-sm max-w-md mx-auto">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <Calendar size={20} />
@@ -128,7 +128,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
       </div>
 
       {/* Daily Scores Chart */}
-      <Card className="bg-white border-0 shadow-sm">
+      <Card className="bg-white border-0 shadow-sm max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-800">Daily Performance</CardTitle>
         </CardHeader>

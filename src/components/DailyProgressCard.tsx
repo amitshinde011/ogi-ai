@@ -69,7 +69,7 @@ const DailyProgressCard = ({ mealsLogged, steps: initialSteps, walkScore: initia
   });
 
   return (
-    <Card className="gradient-primary text-white shadow-xl border-0 animate-slide-up interactive">
+    <Card className="gradient-primary text-white shadow-xl border-0 animate-slide-up interactive max-w-md mx-auto">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-white">Today's Progress</h2>

@@ -8,8 +8,8 @@ const QuickActions = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <Card className="interactive shadow-lg border-slate-200 hover:shadow-xl transition-all duration-300 cursor-pointer group" 
+    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+      <Card className="interactive shadow-lg border-slate-200 hover:shadow-xl transition-all duration-300 cursor-pointer group"
             onClick={() => navigate('/upload')}>
         <CardContent className="p-6 text-center">
           <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200">

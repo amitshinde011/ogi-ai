@@ -13,7 +13,7 @@ const SavedRecipesCard = ({ savedRecipesCount }: SavedRecipesCardProps) => {
 
   return (
     <Link to="/saved-recipes">
-      <Card className="bg-gradient-to-r from-red-50 to-pink-50 border-red-200 hover:shadow-md transition-shadow">
+      <Card className="bg-gradient-to-r from-red-50 to-pink-50 border-red-200 hover:shadow-md transition-shadow max-w-md mx-auto">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
