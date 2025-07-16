@@ -153,7 +153,7 @@ const VideoPlayerControls = ({
                   title="Video quality"
                 >
                   <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-xs sm:text-sm hidden sm:inline">
+                  <span className="text-xs text-white/80 sm:text-sm hidden sm:inline">
                     {getQualityLabel(currentQuality)}
                   </span>
                 </button>
