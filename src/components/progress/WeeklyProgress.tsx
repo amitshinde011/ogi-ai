@@ -133,7 +133,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
           <CardTitle className="text-lg font-semibold text-gray-800">Daily Performance</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-48">
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <XAxis 
