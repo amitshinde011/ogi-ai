@@ -28,6 +28,7 @@ import RecipeDetail from "./pages/RecipeDetail";
 import SavedRecipes from "./pages/SavedRecipes";
 import Community from "./pages/Community";
 import PostDetail from "./pages/PostDetail";
+import MyPosts from "./pages/MyPosts";
 import Messages from "./pages/Messages";
 import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
@@ -102,6 +103,7 @@ const App = () => {
               <Route path="/saved-recipes" element={<ProtectedRoute requiresActiveSubscription={true}><SavedRecipes /></ProtectedRoute>} />
               <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
               <Route path="/post/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
+              <Route path="/my-posts" element={<ProtectedRoute><MyPosts /></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
