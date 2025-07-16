@@ -29,7 +29,7 @@ const Community = () => {
     loadMore
   } = useOptimizedCommunityFeed();
   
-  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { isCompleted } = useProgramCompletion();
   const { data: userProgram } = useUserProgram();
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -101,18 +101,6 @@ const Community = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [loadMore]);
-
-  // Show loading state while authentication is being checked
-  if (authLoading) {
-    return (
-      <Layout>
-        <Header title="Community" />
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </Layout>
-    );
-  }
 
   if (!isAuthenticated || !user) {
     return (
