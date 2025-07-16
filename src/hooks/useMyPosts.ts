@@ -12,9 +12,9 @@ export interface MyPost {
   like_count: number;
   comment_count: number;
   created_at: string;
-  report_count?: number;
-  is_reported?: boolean;
-  report_threshold_reached?: boolean;
+  report_count: number;
+  is_reported: boolean;
+  report_threshold_reached: boolean;
   author?: {
     name: string | null;
     profile_photo_url: string | null;

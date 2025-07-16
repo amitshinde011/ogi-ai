@@ -44,7 +44,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
 
-  const { reportData, submitReport } = useReportPost(post.id);
+  const { reportData, submitReport } = useReportPost(post.id, post.report_count);
 
   const isOwner = currentUserId === post.author_id;
 

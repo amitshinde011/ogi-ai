@@ -12,10 +12,10 @@ interface ReportData {
   };
 }
 
-export const useReportPost = (postId: number) => {
+export const useReportPost = (postId: number, initialReportCount = 0) => {
   const [reportData, setReportData] = useState<ReportData>({
     hasReported: false,
-    reportCount: 0
+    reportCount: initialReportCount
   });
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +28,7 @@ export const useReportPost = (postId: number) => {
         return;
       }
 
-      // Check if user has already reported this post
+      // Only check if user has already reported this post - report count comes from props
       const { data: userReport } = await supabase
         .from('post_reports')
         .select('reason, description, created_at')
@@ -36,16 +36,9 @@ export const useReportPost = (postId: number) => {
         .eq('reporter_id', user.id)
         .maybeSingle();
 
-      // Get total report count for this post
-      const { data: postData } = await supabase
-        .from('posts')
-        .select('report_count')
-        .eq('id', postId)
-        .maybeSingle();
-
       setReportData({
         hasReported: !!userReport,
-        reportCount: postData?.report_count || 0,
+        reportCount: initialReportCount,
         userReport: userReport || undefined
       });
     } catch (error) {
@@ -94,8 +87,12 @@ export const useReportPost = (postId: number) => {
           description: "Thank you for reporting this post. We'll review it shortly.",
         });
         
-        // Refresh report status
-        await fetchReportStatus();
+        // Update report data optimistically
+        setReportData(prev => ({
+          ...prev,
+          hasReported: true,
+          reportCount: prev.reportCount + 1
+        }));
         return true;
       }
     } catch (error) {
@@ -132,8 +129,12 @@ export const useReportPost = (postId: number) => {
         description: "Your report has been removed.",
       });
       
-      // Refresh report status
-      await fetchReportStatus();
+      // Update report data optimistically
+      setReportData(prev => ({
+        ...prev,
+        hasReported: false,
+        reportCount: Math.max(0, prev.reportCount - 1)
+      }));
       return true;
     } catch (error) {
       console.error('Error removing report:', error);
@@ -149,6 +150,14 @@ export const useReportPost = (postId: number) => {
   useEffect(() => {
     fetchReportStatus();
   }, [postId]);
+
+  // Update report count when initial count changes
+  useEffect(() => {
+    setReportData(prev => ({
+      ...prev,
+      reportCount: initialReportCount
+    }));
+  }, [initialReportCount]);
 
   return {
     reportData,
