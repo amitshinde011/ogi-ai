@@ -41,6 +41,19 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
     getDiscountPercentage 
   } = useCouponCode();
 
+  const getTransformationImage = () => {
+    switch (program.duration_days) {
+      case 21:
+        return '/lovable-uploads/51db591c-55ea-4e0a-a02c-fe3b4a2a3908.png';
+      case 49:
+        return '/lovable-uploads/c50b2bf3-abf2-4e37-b77b-995db9f5a4c0.png';
+      case 108:
+        return '/lovable-uploads/7ce890e3-0d84-44ae-a1e1-a4b91bc3b569.png';
+      default:
+        return null;
+    }
+  };
+
   const getDisplayPrice = () => {
     if (isIndiaUser && program.price_inr) {
       return program.price_inr;
@@ -94,6 +107,17 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           {program.name}
         </h3>
+        
+        {/* Transformation Image */}
+        {getTransformationImage() && (
+          <div className="mb-4">
+            <img 
+              src={getTransformationImage()!} 
+              alt={`${program.duration_days} days transformation`}
+              className="w-full h-32 sm:h-40 object-cover rounded-lg border border-gray-200"
+            />
+          </div>
+        )}
         
           <div className="space-y-2">
             <div className="flex items-baseline justify-center gap-1">
