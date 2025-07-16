@@ -68,7 +68,7 @@ const ProgramComplete = () => {
       <Header title="Congratulations!" />
       
       <div className="min-h-screen bg-gradient-peaceful py-4">
-        <div className="max-w-md mx-auto px-4">
+        <div className="max-w-4xl mx-auto px-4">
           <Card className="text-center bg-gradient-sage text-white animate-scale-in">
             <CardContent className="p-8">
               <div className="flex justify-center mb-6">

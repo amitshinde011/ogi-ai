@@ -130,10 +130,11 @@ const Upload = () => {
   };
 
   return (
-    <Layout containerVariant="narrow">
+    <Layout containerVariant="full" noContainer>
       <Header title="Log Your Meal" showBack />
       
-      <div className="space-y-6 py-4">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="space-y-6 py-4">
         {/* Meal Type Selection */}
         <Card className="shadow-lg border-lavender/20">
           <CardContent className="p-4">
@@ -266,6 +267,7 @@ const Upload = () => {
             </div>
           )}
         </Button>
+        </div>
       </div>
     </Layout>
   );

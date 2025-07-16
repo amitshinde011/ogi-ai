@@ -114,7 +114,7 @@ const RecipeDetail = () => {
       <div className="min-h-screen bg-gradient-to-br from-cream to-sage/10 no-yellow">
         <Header title="Recipe" showBack />
         
-        <div className="max-w-md mx-auto">
+        <div className="max-w-4xl mx-auto px-4">
         {/* Hero Image */}
         <div className="relative">
           <img
