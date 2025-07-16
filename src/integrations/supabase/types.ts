@@ -1068,6 +1068,7 @@ export type Database = {
           report_count: number
           is_reported: boolean
           report_threshold_reached: boolean
+          user_has_reported: boolean
         }[]
       }
       get_home_data: {

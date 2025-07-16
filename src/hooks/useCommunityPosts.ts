@@ -46,6 +46,7 @@ export const useCommunityPosts = (currentUser: any) => {
 
       const postsWithAuthors = postsData?.map(post => ({
         ...post,
+        user_has_reported: false, // This hook doesn't handle reporting
         author: profileMap.get(post.author_id) || {
           name: 'Anonymous User',
           profile_photo_url: null

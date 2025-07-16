@@ -12,14 +12,20 @@ interface ReportData {
   };
 }
 
-export const useReportPost = (postId: number, initialReportCount = 0) => {
+export const useReportPost = (postId: number, initialReportCount = 0, initialHasReported = false) => {
   const [reportData, setReportData] = useState<ReportData>({
-    hasReported: false,
+    hasReported: initialHasReported,
     reportCount: initialReportCount
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // No loading needed since we have initial data
 
   const fetchReportStatus = async () => {
+    // Only fetch if we don't already have the report status
+    if (!initialHasReported) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -28,7 +34,7 @@ export const useReportPost = (postId: number, initialReportCount = 0) => {
         return;
       }
 
-      // Only check if user has already reported this post - report count comes from props
+      // Only fetch user report details if they have reported
       const { data: userReport } = await supabase
         .from('post_reports')
         .select('reason, description, created_at')
@@ -37,7 +43,7 @@ export const useReportPost = (postId: number, initialReportCount = 0) => {
         .maybeSingle();
 
       setReportData({
-        hasReported: !!userReport,
+        hasReported: initialHasReported,
         reportCount: initialReportCount,
         userReport: userReport || undefined
       });
@@ -148,16 +154,20 @@ export const useReportPost = (postId: number, initialReportCount = 0) => {
   };
 
   useEffect(() => {
-    fetchReportStatus();
-  }, [postId]);
+    // Only fetch report details if the user has reported the post
+    if (initialHasReported) {
+      fetchReportStatus();
+    }
+  }, [postId, initialHasReported]);
 
-  // Update report count when initial count changes
+  // Update report data when initial values change
   useEffect(() => {
     setReportData(prev => ({
       ...prev,
+      hasReported: initialHasReported,
       reportCount: initialReportCount
     }));
-  }, [initialReportCount]);
+  }, [initialReportCount, initialHasReported]);
 
   return {
     reportData,

@@ -15,6 +15,7 @@ export interface MyPost {
   report_count: number;
   is_reported: boolean;
   report_threshold_reached: boolean;
+  user_has_reported: boolean;
   author?: {
     name: string | null;
     profile_photo_url: string | null;
@@ -105,6 +106,7 @@ export const useMyPosts = () => {
       // Process posts with author info
       const processedPosts = postsData.map(post => ({
         ...post,
+        user_has_reported: false, // User can't report their own posts
         author: {
           name: profile?.name || user.email?.split('@')[0] || 'Anonymous',
           profile_photo_url: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`

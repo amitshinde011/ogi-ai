@@ -16,6 +16,7 @@ export interface CommunityPost {
   report_count: number;
   is_reported: boolean;
   report_threshold_reached: boolean;
+  user_has_reported: boolean;
   author?: {
     name: string | null;
     profile_photo_url: string | null;
@@ -113,6 +114,7 @@ export const useOptimizedCommunityFeed = () => {
         report_count: post.report_count,
         is_reported: post.is_reported,
         report_threshold_reached: post.report_threshold_reached,
+        user_has_reported: post.user_has_reported,
         author: {
           name: post.author_name,
           profile_photo_url: post.author_avatar
@@ -189,6 +191,7 @@ export const useOptimizedCommunityFeed = () => {
         report_count: data.report_count || 0,
         is_reported: data.is_reported || false,
         report_threshold_reached: data.report_threshold_reached || false,
+        user_has_reported: false, // User can't report their own posts
         author: {
           name: currentUser.name || 'Unknown User',
           profile_photo_url: currentUser.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.id}`
@@ -320,6 +323,7 @@ export const useOptimizedCommunityFeed = () => {
                 report_count: postData.report_count || 0,
                 is_reported: postData.is_reported || false,
                 report_threshold_reached: postData.report_threshold_reached || false,
+                user_has_reported: false, // Will be false for new posts
                 author: {
                   name: profile?.name || 'Anonymous User',
                   profile_photo_url: profile?.profile_photo_url || null
