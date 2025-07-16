@@ -177,7 +177,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
                   .replace(/(\d+[\s-]*(?:Day|Days|Minute|Minutes|Hour|Hours))/gi, '<strong>$1</strong>')
                   .replace(/(Daily|Morning|Evening|Weekly|Monthly|Guided|Personal|Complete|Ultimate|Premium|Advanced|Basic|Fundamental)/gi, '<strong>$1</strong>')
                   .replace(/(Yoga|Meditation|Diet|Recipes|Routine|Plan|Tracker|Community)/gi, '<strong>$1</strong>')
-                  .replace(/(Foundational Yogic Wisdom (Level 1)|Intermediate Yogic Science (Level 2)|Mastery of Yogic Science (Level 3))/gi, '<strong>$1</strong>')
+                  .replace(/(Foundational|Yogic|Wisdom|Level|Intermediate|Yogic|Science|2|1|3|Mastery|)/gi, '<strong>$1</strong>')
                   .replace(/(Vibrant|Motivating|Holistic|Satvic|Protocol|Prescriptive|Lifestyle)/gi, '<strong>$1</strong>');
                 return (
                   <div key={index} className="flex items-start text-xs sm:text-sm text-gray-700">
@@ -202,8 +202,8 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
                   .replace(/(Improved|Enhanced|Increased|Reduced|Better|Optimal|Maximum|Complete|Total|Deep|Profound|Significant)/gi, '<strong>$1</strong>')
                   .replace(/(\d+%|\d+x|dramatically|significantly|substantially)/gi, '<strong>$1</strong>')
                   .replace(/(Calmness|Restorative Sleep|Sharpened|Awakened|Vibrant, Active Body|Initial Hormonal Harmony|Bloating|Digestion|Measurable Leap in|Rooted|Optimized Sleep Cycles|Cognitive Function)/gi, '<strong>$1</strong>')
-                  .replace(/(Weight Correction|Hormonal|regular cycles|PMS|calmer nervous system|lowering cortisol|Alleviation of Chronic Aches|Exuberant & Joyful Being|Embodying Your True, Confident Self|Hormonal & Metabolic Healing|Mastery Over Your Physical Form|Body Recomposition)/gi, '<strong>$1</strong>')
-                  .replace(/(Superconscious Focus & Intuition|Peak Sleep Performance|Unshakeable Inner Peace & Bliss|Total Energetic Realignment)/gi, '<strong>$1</strong>');
+                  .replace(/(Weight|Correction|Hormonal|regular|cycles|PMS|calmer|nervous|system|lowering|cortisol|Alleviation|Chronic|Aches|Exuberant|Joyful|Being|Embodying|True|Confident||Hormonal|Metabolic|Healing|Mastery|Over|Physical|Form|Body|Recomposition)/gi, '<strong>$1</strong>')
+                  .replace(/(Superconscious||Intuition|Peak|Performance|Unshakeable|Inner|Bliss|Energetic|Realignment)/gi, '<strong>$1</strong>');
                 return (
                   <div key={index} className="flex items-start text-xs sm:text-sm text-gray-700">
                     <Check className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
