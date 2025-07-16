@@ -120,7 +120,7 @@ const RecipeDetail = () => {
           <img
             src={getCloudflareImageUrl(recipe.cloudflare_image_id, recipe.image_url)}
             alt={recipe.name}
-            className="w-full h-64 object-cover"
+            className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg"
           />
           <div className="absolute top-4 right-4 flex space-x-2">
             <Button 
