@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 interface ContentContainerProps {
   children: React.ReactNode;
-  variant?: 'narrow' | 'wide' | 'full';
+  variant?: 'narrow' | 'wide' | 'full' | 'legal';
   className?: string;
 }
 
@@ -18,6 +18,8 @@ const ContentContainer = ({
         return 'max-w-md'; // 28rem (~448px) - for mobile-first content like home, profile
       case 'wide':
         return 'max-w-2xl'; // 42rem (~672px) - for content that needs more space like community
+      case 'legal':
+        return 'max-w-4xl'; // 56rem (~896px) - for legal documents and text-heavy content
       case 'full':
         return 'max-w-6xl'; // 72rem (~1152px) - for full-width layouts
       default:

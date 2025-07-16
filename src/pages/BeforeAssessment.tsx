@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { useToast } from '@/components/ui/use-toast';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Header from '@/components/Header';
 import Loader from '@/components/ui/loader';
 import PhotoUpload from '@/components/PhotoUpload';
@@ -353,7 +354,7 @@ const BeforeAssessment = () => {
     return (
       <Layout noContainer>
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="max-w-4xl mx-auto px-4">
+          <ContentContainer variant="legal" className="px-0">
             <Header title="Schedule Your Journey" />
         <div className="space-y-6 py-4 bg-light-gray min-h-screen">
           {/* Sacred Journey Message */}
@@ -493,7 +494,7 @@ const BeforeAssessment = () => {
             </CardContent>
           </Card>
             </div>
-          </div>
+          </ContentContainer>
         </div>
       </Layout>
     );
@@ -503,7 +504,7 @@ const BeforeAssessment = () => {
     return (
       <Layout noContainer>
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="max-w-4xl mx-auto px-4">
+          <ContentContainer variant="legal" className="px-0">
             <Header title="Assessment Complete" />
             
             <div className="space-y-6 py-4 bg-light-gray min-h-screen">
@@ -526,7 +527,7 @@ const BeforeAssessment = () => {
                 </CardContent>
               </Card>
             </div>
-          </div>
+          </ContentContainer>
         </div>
       </Layout>
     );
@@ -535,7 +536,7 @@ const BeforeAssessment = () => {
   return (
     <Layout noContainer>
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="max-w-4xl mx-auto px-4">
+          <ContentContainer variant="legal" className="px-0">
             <Header title="Before Assessment" />
       <div className="min-h-screen bg-gradient-peaceful py-4">
           <Card className="bg-white shadow-xl border-0">
@@ -565,7 +566,7 @@ const BeforeAssessment = () => {
                           {fieldMessages.photo}
                         </p>
                       </div>
-                    )}
+                     )}
                   </div>
 
                   {/* Comfort Level Questions with Sliders */}
@@ -594,9 +595,9 @@ const BeforeAssessment = () => {
             </CardContent>
           </Card>
       </div>
-          </div>
+          </ContentContainer>
         </div>
-    </Layout>
+      </Layout>
   );
 };
 

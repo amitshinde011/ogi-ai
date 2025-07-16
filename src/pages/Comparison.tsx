@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Share2, Users, ExternalLink, ArrowRight, Trophy, TrendingUp } from 'lucide-react';
 import Layout from '@/components/Layout';
+import ContentContainer from '@/components/ContentContainer';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { useR2Upload } from '@/hooks/useR2Upload';
 import html2canvas from 'html2canvas';
@@ -354,9 +355,9 @@ Before vs After Progress - Your dedication and consistency can create amazing re
   return (
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="max-w-2xl mx-auto px-4">
+        <ContentContainer variant="wide" className="px-0">
           <Header title="Your Amazing Transformation!" />
-      <div className="space-y-6 py-4 bg-light-gray min-h-screen">
+          <div className="space-y-6 py-4 bg-light-gray min-h-screen">
         {/* Celebration Header */}
         <Card className="bg-gradient-sage text-white text-center">
           <CardContent className="p-6">
@@ -589,8 +590,8 @@ Before vs After Progress - Your dedication and consistency can create amazing re
             </Button>
           </CardContent>
         </Card>
-      </div>
-        </div>
+          </div>
+        </ContentContainer>
       </div>
     </Layout>
   );
