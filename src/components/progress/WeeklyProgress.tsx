@@ -61,7 +61,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
   return (
     <div className="space-y-6">
       {/* Weekly Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         {/* Weekly Score Circle */}
         <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
           <CardHeader className="text-center pb-2">
