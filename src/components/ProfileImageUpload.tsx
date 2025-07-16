@@ -80,7 +80,7 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
             <img 
               src={selectedImage} 
               alt="Profile preview" 
-              className="w-32 h-32 object-cover mx-auto rounded-2xl shadow-lg border-4 border-white"
+              className="w-full max-w-md mx-auto aspect-square object-cover rounded-2xl shadow-lg border-4 border-white"
             />
             <Button
               type="button"

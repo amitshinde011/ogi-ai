@@ -91,7 +91,7 @@ const PhotoUploadSection = ({ formData, setFormData }: PhotoUploadSectionProps) 
             <img
               src={imagePreview}
               alt="Preview"
-              className="w-full h-64 object-cover rounded-lg"
+              className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg"
             />
             <Button
               type="button"

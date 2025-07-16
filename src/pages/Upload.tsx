@@ -218,7 +218,7 @@ const Upload = () => {
                 <img
                   src={imagePreview}
                   alt="Meal"
-                  className="w-full h-48 object-cover rounded-xl shadow-md"
+                  className="w-full max-w-md mx-auto aspect-square object-cover rounded-xl shadow-md"
                 />
                 <Button
                   onClick={() => {

@@ -84,7 +84,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({
             <img 
               src={selectedImage} 
               alt="Preview" 
-              className="w-40 h-56 object-cover mx-auto rounded-xl shadow-lg border-2 border-white"
+              className="w-full max-w-md mx-auto aspect-square object-cover rounded-xl shadow-lg border-2 border-white"
             />
             <Button
               type="button"

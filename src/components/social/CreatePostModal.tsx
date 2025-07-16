@@ -146,7 +146,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
               <img
                 src={imagePreview}
                 alt="Selected"
-                className="w-full h-64 object-cover rounded-lg"
+                className="w-full max-w-md mx-auto aspect-square object-cover rounded-lg"
               />
               <Button
                 onClick={() => {
