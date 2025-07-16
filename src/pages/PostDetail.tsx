@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 
 interface Comment {
   id: string;
@@ -179,8 +180,9 @@ const PostDetail = () => {
   }
 
   return (
-    <Layout containerVariant="narrow">
-      <Header title="Post" showBack />
+    <Layout noContainer>
+      <PageContainer>
+        <Header title="Post" showBack />
       
       <div className="pb-4">
         {/* Post Content */}
@@ -339,7 +341,8 @@ const PostDetail = () => {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </PageContainer>
     </Layout>
   );
 };

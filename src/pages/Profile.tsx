@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -54,9 +55,10 @@ const Profile = () => {
   const isOwnProfile = currentUser?.id === profileUser.id;
 
   return (
-    <Layout containerVariant="narrow">
-      <Header title={profileUser.name || 'Profile'} showBack />
-      
+    <Layout noContainer>
+      <PageContainer>
+        <Header title={profileUser.name || 'Profile'} showBack />
+        
       <div className="py-4">
         {/* Profile Header */}
         <div className="text-center mb-6">
@@ -120,7 +122,8 @@ const Profile = () => {
             <p className="text-gray-500">No posts yet</p>
           </div>
         )}
-      </div>
+        </div>
+      </PageContainer>
     </Layout>
   );
 };

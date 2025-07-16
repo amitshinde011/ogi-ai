@@ -5,6 +5,7 @@ import Loader from '@/components/ui/loader';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import { useQuery } from '@tanstack/react-query';
 import { useSavedRecipes } from '@/hooks/useSavedRecipes';
 import { supabase } from '@/integrations/supabase/client';
@@ -75,11 +76,12 @@ const SavedRecipes = () => {
   }
 
   return (
-    <Layout containerVariant="narrow">
-      <Header title="Saved Recipes" showBack />
-      
-      <div className="py-4">
-        {savedRecipes.length === 0 ? (
+    <Layout noContainer>
+      <PageContainer>
+        <Header title="Saved Recipes" showBack />
+        
+        <div className="py-4">
+          {savedRecipes.length === 0 ? (
           <div className="text-center py-12">
             <Heart size={48} strokeWidth={1.5} className="mx-auto text-gray-300 mb-4" />
             <h3 className="text-lg font-semibold text-gray-600 mb-2">No saved recipes yet</h3>
@@ -135,9 +137,10 @@ const SavedRecipes = () => {
                 </Card>
               </Link>
             ))}
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      </PageContainer>
     </Layout>
   );
 };
