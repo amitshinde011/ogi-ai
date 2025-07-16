@@ -5,6 +5,7 @@ import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { AchievementBanner } from '@/components/AchievementBanner';
 import { SubscriptionHeader } from '@/components/subscription/SubscriptionHeader';
 import { SubscriptionGrid } from '@/components/subscription/SubscriptionGrid';
+import { TransformationJourney } from '@/components/subscription/TransformationJourney';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
 import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
 import Loader from '@/components/ui/loader';
@@ -56,6 +57,8 @@ const Subscriptions = () => {
           isIndiaUser={isIndiaUser}
           userLocation={userLocation}
         />
+
+        <TransformationJourney />
 
         <SubscriptionGrid
           programs={programs}
