@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -130,10 +131,9 @@ const Upload = () => {
   };
 
   return (
-    <Layout containerVariant="full" noContainer>
-      <Header title="Log Your Meal" showBack />
-      
-      <div className="max-w-4xl mx-auto px-4">
+    <Layout noContainer>
+      <PageContainer>
+        <Header title="Log Your Meal" showBack />
         <div className="space-y-6 py-4">
         {/* Meal Type Selection */}
         <Card className="shadow-lg border-lavender/20">
@@ -268,7 +268,7 @@ const Upload = () => {
           )}
         </Button>
         </div>
-      </div>
+      </PageContainer>
     </Layout>
   );
 };

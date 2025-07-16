@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
 
 const Contact = () => {
@@ -80,21 +81,9 @@ const Contact = () => {
 
   return (
     <Layout noContainer>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="max-w-4xl mx-auto px-4">
-          <Header title="Contact Us" showBack />
       <div className="min-h-screen bg-gradient-peaceful py-4">
-        {/* Header */}
-        <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="mr-4 p-2 hover:bg-white/20"
-          >
-            <ArrowLeft size={20} />
-          </Button>
-          <h1 className="text-2xl font-bold text-slate-900">Contact Us</h1>
-        </div>
+        <PageContainer>  
+          <Header title="Contact Us" showBack />
 
         {/* Contact Info Card */}
         <Card className="mb-6 bg-white/95 backdrop-blur-sm border-0 shadow-lg">
@@ -191,8 +180,7 @@ const Contact = () => {
             </form>
           </CardContent>
         </Card>
-      </div>
-        </div>
+        </PageContainer>
       </div>
     </Layout>
   );

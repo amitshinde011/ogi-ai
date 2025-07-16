@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
 import { Camera, User, Upload } from 'lucide-react';
 import Layout from '@/components/Layout';
+import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
 import ProfileForm from '@/components/ProfileForm';
 import { supabase } from '@/integrations/supabase/client';
@@ -140,10 +141,9 @@ const ProfileEdit = () => {
 
   return (
     <Layout noContainer>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="max-w-md mx-auto px-4">
+      <div className="py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+        <PageContainer>
           <Header title="Edit Profile" showBack />
-          <div className="py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
             <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
               <CardHeader className="text-center pb-6">
                 <div className="relative w-28 h-28 mx-auto mb-6">
@@ -194,8 +194,7 @@ const ProfileEdit = () => {
                 />
               </CardContent>
             </Card>
-          </div>
-        </div>
+        </PageContainer>
       </div>
     </Layout>
   );
