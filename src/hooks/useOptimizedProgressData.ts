@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
@@ -67,12 +67,13 @@ export const useOptimizedProgressData = () => {
     },
   });
   const [loading, setLoading] = useState(true);
+  const isInitialLoad = useRef(true);
 
-  useEffect(() => {
-    fetchProgressData();
-  }, []);
-
-  const fetchProgressData = async () => {
+  const fetchProgressData = useCallback(async () => {
+    // Only set loading state for initial load
+    if (isInitialLoad.current) {
+      setLoading(true);
+    }
     try {
       if (!user) return;
 
@@ -86,9 +87,13 @@ export const useOptimizedProgressData = () => {
     } catch (error) {
       console.error('Error fetching progress data:', error);
     } finally {
-      setLoading(false);
+      // Only update loading state if it was an initial load
+      if (isInitialLoad.current) {
+        setLoading(false);
+        isInitialLoad.current = false;
+      }
     }
-  };
+  }, [user]);
 
   const fetchProgressDataOptimized = async (userId: string, cacheKey: string) => {
     // Use optimized database functions in parallel
@@ -326,6 +331,12 @@ export const useOptimizedProgressData = () => {
       return { currentStreak: 0, bestStreak: 0, activeDays: 0, streak: 0 };
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      fetchProgressData();
+    }
+  }, [user, fetchProgressData]);
 
   return { data, loading, refetch: fetchProgressData };
 };
