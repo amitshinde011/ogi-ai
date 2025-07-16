@@ -47,7 +47,7 @@ const ProgramHistorySection = ({ programs, onItemClick }: ProgramHistorySectionP
   };
 
   return (
-    <Card>
+    <Card className="max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <History className="w-5 h-5 text-primary" />

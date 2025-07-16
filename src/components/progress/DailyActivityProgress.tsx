@@ -107,7 +107,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Overall Progress Circle */}
       <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
         <CardHeader className="text-center pb-2">
@@ -134,37 +134,35 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       </Card>
 
       {/* Individual Activity Cards */}
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {activities.map((activity) => {
           const Icon = activity.icon;
           const completionPercentage = (activity.progress / activity.weight) * 100;
           
           return (
-            <Card key={activity.name} className="bg-white border-0 shadow-sm hover:shadow-md transition-all duration-200">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="p-2 rounded-full bg-primary/10"
-                    >
-                      <Icon size={20} className="text-primary" style={{ color: activity.color }} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800">{activity.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        {activity.current} / {activity.target} {activity.unit}
-                      </p>
-                    </div>
+            <Card key={activity.name} className="bg-white border-0 shadow-sm hover:shadow-md transition-all duration-200 max-w-md mx-auto">
+              <CardContent className="p-4 text-center">
+                <div className="flex flex-col items-center space-y-3 mb-4">
+                  <div 
+                    className="p-3 rounded-full bg-primary/10"
+                  >
+                    <Icon size={24} className="text-primary" style={{ color: activity.color }} />
                   </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-primary" style={{ color: activity.color }}>
+                  <div className="text-center">
+                    <h3 className="font-semibold text-gray-800 mb-1">{activity.name}</h3>
+                    <p className="text-sm text-gray-500 mb-2">
+                      {activity.current} / {activity.target} {activity.unit}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-primary mb-1" style={{ color: activity.color }}>
                       {Math.round(activity.progress)}/{activity.weight}
                     </div>
                     <div className="text-xs text-gray-500">points</div>
                   </div>
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-2 w-full">
                   <Progress 
                     value={completionPercentage} 
                     className="h-2"
@@ -184,7 +182,7 @@ const DailyActivityProgress: React.FC<DailyActivityProgressProps> = ({ activityD
       </div>
 
       {/* Progress Insights */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-0">
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-0 max-w-md mx-auto">
         <CardContent className="p-4">
           <h3 className="font-semibold text-gray-800 mb-2">Progress Insights</h3>
           <div className="text-sm text-gray-600 space-y-1">

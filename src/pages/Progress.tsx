@@ -180,19 +180,19 @@ const ProgressPage = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="today" className="space-y-6">
+            <TabsContent value="today" className="space-y-4">
               <DailyActivityProgress activityData={activityData} />
             </TabsContent>
 
-            <TabsContent value="weekly" className="space-y-6">
+            <TabsContent value="weekly" className="space-y-4">
               <WeeklyProgress data={progressData.weeklyData} />
             </TabsContent>
 
-            <TabsContent value="journey" className="space-y-6">
+            <TabsContent value="journey" className="space-y-4">
               <JourneyProgress data={progressData.journeyData} />
             </TabsContent>
 
-            <TabsContent value="program" className="space-y-6">
+            <TabsContent value="program" className="space-y-4">
               {/* Current Program or No Program */}
               {currentProgram ? (
                 <CurrentProgramCard program={currentProgram} />

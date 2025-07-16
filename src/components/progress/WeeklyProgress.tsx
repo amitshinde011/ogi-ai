@@ -59,11 +59,11 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Weekly Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Weekly Score Circle */}
-        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-0 shadow-lg max-w-md mx-auto">
           <CardHeader className="text-center pb-2">
             <CardTitle className="text-xl font-bold text-gray-800">Weekly Score</CardTitle>
           </CardHeader>
@@ -87,7 +87,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
         </Card>
 
         {/* Weekly Stats */}
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="bg-white border-0 shadow-sm max-w-md mx-auto">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <Calendar size={20} />
@@ -128,7 +128,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
       </div>
 
       {/* Daily Scores Chart */}
-      <Card className="bg-white border-0 shadow-sm">
+      <Card className="bg-white border-0 shadow-sm max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-800">Daily Performance</CardTitle>
         </CardHeader>
@@ -160,7 +160,7 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
       </Card>
 
       {/* Suggestions */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-0">
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-0 max-w-md mx-auto">
         <CardContent className="p-4">
           <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
             <Star size={18} className="text-blue-600" />
