@@ -141,12 +141,14 @@ const WeeklyProgress: React.FC<WeeklyProgressProps> = ({ data }) => {
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: 'Day', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
                 />
                 <YAxis 
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                   domain={[0, 100]}
+                  label={{ value: 'Score', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: '12px', fill: 'hsl(var(--muted-foreground))' } }}
                 />
                 <Bar 
                   dataKey="score" 
