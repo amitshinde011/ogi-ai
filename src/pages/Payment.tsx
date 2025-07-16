@@ -25,6 +25,7 @@ const Payment = () => {
   const { trackPayment, trackEvent } = useAnalytics();
   
   const [loading, setLoading] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const { user } = useAuth();
   const [userWithProfile, setUserWithProfile] = useState<any>(null);
 
@@ -81,12 +82,24 @@ const Payment = () => {
     );
   }
 
+  if (paymentSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
+        <div className="text-center">
+          <Loader size="lg" />
+          <p className="mt-4 text-lg font-medium">Redirecting to your intro video...</p>
+        </div>
+      </div>
+    );
+  }
+
   const currencySymbol = isIndiaUser ? '₹' : '$';
   const finalPrice = Math.round(pricing.finalPrice || program.finalPrice || program.displayPrice);
   // Use the coupon discount from the subscription page, not the local state
   const couponDiscountPercentage = pricing.couponDiscountPercentage || 0;
 
   const handlePaymentSuccess = async (orderId: string, transactionId: string) => {
+    setPaymentSuccess(true);
     try {
       // Verify payment with backend
       const { error: verifyError } = await supabase.functions.invoke('process-payment', {
@@ -124,6 +137,7 @@ const Payment = () => {
       navigate('/intro-video');
     } catch (error) {
       console.error('Payment verification error:', error);
+      setPaymentSuccess(false);
       toast({
         title: "Payment Verification Failed",
         description: "Your payment was processed but there was an issue verifying it. Please contact support.",
@@ -188,7 +202,8 @@ const Payment = () => {
           description: `You've successfully got free access to ${program.name}`,
         });
 
-        navigate('/intro-video');
+        setPaymentSuccess(true);
+        setTimeout(() => navigate('/intro-video'), 500);
         return;
       }
 
