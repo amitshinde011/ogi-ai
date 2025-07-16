@@ -353,7 +353,7 @@ const BeforeAssessment = () => {
     return (
       <Layout noContainer>
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="max-w-2xl mx-auto px-4">
+          <div className="max-w-4xl mx-auto px-4">
             <Header title="Schedule Your Journey" />
         <div className="space-y-6 py-4 bg-light-gray min-h-screen">
           {/* Sacred Journey Message */}
@@ -503,7 +503,7 @@ const BeforeAssessment = () => {
     return (
       <Layout noContainer>
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="max-w-2xl mx-auto px-4">
+          <div className="max-w-4xl mx-auto px-4">
             <Header title="Assessment Complete" />
             
             <div className="space-y-6 py-4 bg-light-gray min-h-screen">
@@ -535,10 +535,9 @@ const BeforeAssessment = () => {
   return (
     <Layout noContainer>
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-          <div className="max-w-2xl mx-auto px-4">
+          <div className="max-w-4xl mx-auto px-4">
             <Header title="Before Assessment" />
       <div className="min-h-screen bg-gradient-peaceful py-4">
-        <div className="max-w-md mx-auto px-4">
           <Card className="bg-white shadow-xl border-0">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel right now?</CardTitle>
@@ -594,7 +593,6 @@ const BeforeAssessment = () => {
               </Form>
             </CardContent>
           </Card>
-        </div>
       </div>
           </div>
         </div>

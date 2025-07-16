@@ -72,17 +72,16 @@ const FinalAssessment = () => {
   return (
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="max-w-2xl mx-auto px-4">
+        <div className="max-w-4xl mx-auto px-4">
           <Header title="Final Assessment" />
           <div className="min-h-screen bg-gradient-peaceful py-4">
-            <div className="max-w-md mx-auto px-4">
-              <Card className="bg-white shadow-xl border-0">
-                <CardHeader className="text-center pb-6">
-                  <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel now?</CardTitle>
-                  <p className="text-gray-600">
-                    Let's capture your amazing transformation!
-                  </p>
-                </CardHeader>
+            <Card className="bg-white shadow-xl border-0">
+              <CardHeader className="text-center pb-6">
+                <CardTitle className="text-2xl font-bold text-primary mb-2">How do you feel now?</CardTitle>
+                <p className="text-gray-600">
+                  Let's capture your amazing transformation!
+                </p>
+              </CardHeader>
                 <CardContent>
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -134,8 +133,7 @@ const FinalAssessment = () => {
             </div>
           </div>
         </div>
-      </div>
-    </Layout>
+      </Layout>
   );
 };
 
