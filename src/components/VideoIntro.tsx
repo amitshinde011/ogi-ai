@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React from 'react';
 import { Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -25,4 +25,4 @@ const VideoIntro = ({ onShowVideo }: VideoIntroProps) => {
   );
 };
 
-export default memo(VideoIntro);
+export default VideoIntro;

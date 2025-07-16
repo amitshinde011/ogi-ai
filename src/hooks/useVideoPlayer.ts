@@ -1,5 +1,5 @@
 
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect } from 'react';
 import { VideoPlayerHookProps } from '@/types/videoPlayer';
 import { VIDEO_SOURCES_SEQUENCE } from '@/constants/videoSources';
 import { detectNetworkSpeed, shouldReduceQuality } from '@/utils/videoQualityDetector';
@@ -15,7 +15,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Get current video sources
-  const currentVideoSources = useMemo(() => VIDEO_SOURCES_SEQUENCE[state.currentVideoIndex], [state.currentVideoIndex]);
+  const currentVideoSources = VIDEO_SOURCES_SEQUENCE[state.currentVideoIndex];
 
   const handlers = useVideoPlayerHandlers({
     state,
@@ -42,16 +42,22 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
   useEffect(() => {
     const quality = detectNetworkSpeed();
     setState(prev => ({ ...prev, currentQuality: quality }));
-  }, [setState]);
+  }, []);
 
   // Video time update listener
   useEffect(() => {
     return setupVideoTimeListeners(videoRef, setState, state.videoLoaded);
-  }, [state.videoLoaded, setState]);
+  }, [state.videoLoaded]);
 
   // Monitor showVideo state changes and reload video when sources change
   useEffect(() => {
+    console.log('showVideo state changed:', state.showVideo);
     if (state.showVideo && videoRef.current) {
+      console.log('Video element exists after showVideo=true:', videoRef.current);
+      console.log('Current video index:', state.currentVideoIndex);
+      console.log('Current video sources:', currentVideoSources);
+      console.log('Will load video with source:', currentVideoSources[state.currentQuality]);
+      
       // Force reload the video element
       videoRef.current.load();
     }
@@ -61,15 +67,16 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
   useEffect(() => {
     if (state.loadingStartTime && state.videoLoaded) {
       const loadingTime = Date.now() - state.loadingStartTime;
+      console.log('Video loading time:', loadingTime, 'ms');
       
       const newQuality = shouldReduceQuality(loadingTime, state.currentQuality);
       if (newQuality) {
         setState(prev => ({ ...prev, currentQuality: newQuality }));
       }
     }
-  }, [state.videoLoaded, state.loadingStartTime, state.currentQuality, setState]);
+  }, [state.videoLoaded, state.loadingStartTime, state.currentQuality]);
 
-  const allVideosWatched = useMemo(() => videoWatchedStates.every(watched => watched), [videoWatchedStates]);
+  const allVideosWatched = videoWatchedStates.every(watched => watched);
 
   return {
     // State

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, Settings } from 'lucide-react';
 import {
   DropdownMenu,
@@ -209,4 +209,4 @@ const VideoPlayerControls = ({
   );
 };
 
-export default memo(VideoPlayerControls);
+export default VideoPlayerControls;

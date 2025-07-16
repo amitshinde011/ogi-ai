@@ -447,7 +447,7 @@ const BeforeAssessment = () => {
                     <div className="flex items-center gap-2 text-blue-700">
                       <Clock className="w-5 h-5" />
                       <span className="font-medium">
-                        {daysUntil} {daysUntil === 1 ? 'day' : 'days'} until your journey begins. Come back on your start date to unlock your journey.
+                        {daysUntil} {daysUntil === 1 ? 'day' : 'days'} until your journey begins
                       </span>
                     </div>
                   </div>

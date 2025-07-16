@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play } from 'lucide-react';
@@ -23,28 +23,39 @@ const IntroVideo = () => {
   const { user } = useAuth();
   
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
+    const checkAuthAndRedirect = async () => {
+      try {
+        if (!user) {
+          navigate('/login');
+          return;
+        }
 
-    // Only redirect if intro video is already completed
-    if (onboardingState?.intro_video_watched) {
-      navigate('/before-assessment');
-      return;
-    }
-  }, [onboardingState?.intro_video_watched, navigate, user]);
+        // Only redirect if intro video is already completed
+        if (onboardingState?.intro_video_watched) {
+          console.log('Intro video already completed, redirecting to before-assessment');
+          navigate('/before-assessment');
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+      }
+    };
 
-  const handleVideoComplete = useCallback(() => {
+    if (onboardingState !== null) {
+    checkAuthAndRedirect();
+    }
+  }, [onboardingState, navigate, user]);
+
+  const handleVideoComplete = () => {
     setVideoWatched(true);
     trackVideoComplete('Intro Video Sequence');
     toast({
       title: "All Videos Completed!",
       description: "You have completed the sacred video sequence. You can now proceed to the next step.",
     });
-  }, [trackVideoComplete, toast]);
+  };
 
-  const handleContinue = useCallback(async () => {
+  const handleContinue = async () => {
     trackButtonClick('Continue to Assessment', 'Intro Video Page');
     
     try {
@@ -58,7 +69,7 @@ const IntroVideo = () => {
         variant: "destructive",
       });
     }
-  }, [trackButtonClick, updateOnboardingState, navigate, toast]);
+  };
 
   // Show loading while checking onboarding state
   if (onboardingState === null) {

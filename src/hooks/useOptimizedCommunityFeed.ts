@@ -170,19 +170,12 @@ export const useOptimizedCommunityFeed = () => {
 
       if (error) throw error;
 
-      // Add new post to the beginning of the list with correct structure
+      // Add new post to the beginning of the list
       const newPost: CommunityPost = {
-        id: data.id,
-        image_url: data.image_url,
-        caption: data.caption,
-        category: data.category,
-        created_at: data.created_at,
-        like_count: data.like_count,
-        comment_count: data.comment_count,
-        author_id: data.author_id,
+        ...data,
         author: {
-          name: currentUser.name || 'Unknown User',
-          profile_photo_url: currentUser.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.id}`
+          name: currentUser.name,
+          profile_photo_url: currentUser.profile_photo_url
         },
         is_liked: false
       };
@@ -349,8 +342,8 @@ export const useOptimizedCommunityFeed = () => {
         console.log('Tab became visible, reconnecting realtime...');
         // Don't refresh data to prevent re-rendering on tab focus
         // refreshPosts();
-        // Don't reconnect realtime subscription on visibility change
-        // setupRealtimeSubscription();
+        // Reconnect realtime subscription
+        setupRealtimeSubscription();
       }
     };
 
@@ -366,7 +359,7 @@ export const useOptimizedCommunityFeed = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, [currentUser]);
+  }, [currentUser, refreshPosts]);
 
   return {
     posts,

@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,7 +19,11 @@ export const useOnboarding = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchOnboardingState = useCallback(async () => {
+  useEffect(() => {
+    fetchOnboardingState();
+  }, []);
+
+  const fetchOnboardingState = async () => {
     try {
       if (!user) return;
 
@@ -81,15 +85,9 @@ export const useOnboarding = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, toast]);
+  };
 
-  useEffect(() => {
-    if (user) {
-      fetchOnboardingState();
-    }
-  }, [user, fetchOnboardingState]);
-
-  const updateOnboardingState = useCallback(async (updates: Partial<OnboardingState>) => {
+  const updateOnboardingState = async (updates: Partial<OnboardingState>) => {
     try {
       if (!user || !onboardingState) return;
 
@@ -109,12 +107,12 @@ export const useOnboarding = () => {
         variant: "destructive",
       });
     }
-  }, [user, onboardingState, toast]);
+  };
 
-  return useMemo(() => ({
+  return {
     onboardingState,
     loading,
     updateOnboardingState,
     fetchOnboardingState
-  }), [onboardingState, loading, updateOnboardingState, fetchOnboardingState]);
+  };
 };

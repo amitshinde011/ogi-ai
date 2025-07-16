@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React from 'react';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import VideoIntro from '@/components/VideoIntro';
 import VideoPlayerCore from '@/components/VideoPlayerCore';
@@ -45,7 +45,7 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
     setIsPlaying
   } = useVideoPlayer({ onVideoComplete, videoWatched });
 
-  
+  console.log('VideoPlayer render - showVideo:', showVideo, 'videoLoaded:', videoLoaded, 'videoError:', videoError);
 
   return (
     <div className="space-y-6">
@@ -73,9 +73,11 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
               currentVideoIndex={currentVideoIndex}
               onEnded={handleVideoEnd}
               onPlay={() => {
+                console.log('Video started playing');
                 setIsPlaying(true);
               }}
               onPause={() => {
+                console.log('Video paused');
                 setIsPlaying(false);
               }}
               onLoadedData={handleVideoLoadedData}
@@ -113,4 +115,4 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
   );
 };
 
-export default memo(VideoPlayer);
+export default VideoPlayer;
