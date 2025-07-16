@@ -144,14 +144,16 @@ const ProfileEdit = () => {
         <div className="max-w-2xl mx-auto px-4">
           <Header title="Edit Profile" showBack />
           <div className="py-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
-            <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+            <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 max-w-md mx-auto">
               <CardHeader className="text-center pb-6">
                 <div className="relative w-28 h-28 mx-auto mb-6">
-                  <img
-                    src={profileImage}
-                    alt="Profile"
-                    className="w-28 h-28 rounded-3xl shadow-xl object-cover border-4 border-white"
-                  />
+                  <div className="w-full h-full">
+                    <img
+                      src={profileImage}
+                      alt="Profile"
+                      className="w-full h-full rounded-3xl shadow-xl object-cover border-4 border-white"
+                    />
+                  </div>
                   <div className="absolute -bottom-2 -right-2 flex gap-2">
                     <input
                       type="file"

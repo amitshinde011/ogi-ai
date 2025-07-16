@@ -186,7 +186,7 @@ const PostDetail = () => {
       
       <div className="pb-4">
         {/* Post Content */}
-        <Card className="mx-4 overflow-hidden animate-fade-in">
+        <Card className="mx-4 overflow-hidden animate-fade-in max-w-md mx-auto">
           <CardContent className="p-0">
             {/* Post Header */}
             <div className="p-4 flex items-center justify-between">
@@ -208,12 +208,14 @@ const PostDetail = () => {
             </div>
 
             {/* Post Image */}
-            <div className="relative">
-              <img
-                src={post.image}
-                alt="Meal"
-                className="w-full h-64 object-cover"
-              />
+            <div className="px-4 pt-2 pb-4">
+              <div className="aspect-square w-full">
+                <img
+                  src={post.image}
+                  alt="Meal"
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              </div>
             </div>
 
             {/* Post Actions */}

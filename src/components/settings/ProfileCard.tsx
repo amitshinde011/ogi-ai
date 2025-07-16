@@ -24,15 +24,17 @@ const ProfileCard = ({ userProfile }: ProfileCardProps) => {
   const navigate = useNavigate();
 
   return (
-    <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+    <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 max-w-md mx-auto">
       <CardContent className="p-6">
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <img
-              src={userProfile.avatar}
-              alt="Profile"
-              className="w-20 h-20 rounded-2xl shadow-md object-cover"
-            />
+            <div className="w-20 h-20">
+              <img
+                src={userProfile.avatar}
+                alt="Profile"
+                className="w-full h-full rounded-2xl shadow-md object-cover"
+              />
+            </div>
             <Button
               variant="ghost"
               size="sm"
