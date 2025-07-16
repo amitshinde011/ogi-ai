@@ -146,7 +146,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           setShowPopover={setShowPopover}
         />
 
-        <div className="aspect-square">
+        <div className="aspect-square max-w-md mx-auto">
           <img 
             src={post.image_url} 
             alt="Post content" 

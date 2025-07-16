@@ -92,7 +92,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
       </div>
 
       {/* Image */}
-      <div className="aspect-square">
+      <div className="aspect-square max-w-md mx-auto">
         <img 
           src={post.image_url} 
           alt="Post" 
