@@ -981,7 +981,10 @@ export type Database = {
           created_at: string | null
           id: number | null
           image_url: string | null
+          is_reported: boolean | null
           like_count: number | null
+          report_count: number | null
+          report_threshold_reached: boolean | null
         }
         Relationships: []
       }
@@ -1062,6 +1065,9 @@ export type Database = {
           author_name: string
           author_avatar: string
           user_has_liked: boolean
+          report_count: number
+          is_reported: boolean
+          report_threshold_reached: boolean
         }[]
       }
       get_home_data: {
