@@ -198,30 +198,41 @@ async function convertAndUploadToR2(imageBlob: Blob, recipeName: string): Promis
 }
 
 async function convertToWebP(imageBlob: Blob): Promise<Blob> {
-  // Create a canvas and context
-  const canvas = new OffscreenCanvas(1024, 1024);
-  const ctx = canvas.getContext('2d');
-  
-  if (!ctx) {
-    throw new Error('Failed to get canvas context');
+  try {
+    // Check if OffscreenCanvas is available in Deno
+    if (typeof OffscreenCanvas === 'undefined') {
+      console.log('⚠️ OffscreenCanvas not available, skipping WebP conversion');
+      return imageBlob; // Return original blob if conversion isn't available
+    }
+
+    // Create a canvas and context
+    const canvas = new OffscreenCanvas(1024, 1024);
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      throw new Error('Failed to get canvas context');
+    }
+    
+    // Create image bitmap from blob
+    const imageBitmap = await createImageBitmap(imageBlob);
+    
+    // Set canvas size to match image
+    canvas.width = imageBitmap.width;
+    canvas.height = imageBitmap.height;
+    
+    // Draw image to canvas
+    ctx.drawImage(imageBitmap, 0, 0);
+    
+    // Convert to WebP with 85% quality
+    const webpBlob = await canvas.convertToBlob({
+      type: 'image/webp',
+      quality: 0.85,
+    });
+    
+    console.log(`✅ Converted image to WebP: ${imageBlob.size} bytes -> ${webpBlob.size} bytes`);
+    return webpBlob;
+  } catch (error) {
+    console.error('WebP conversion failed, using original image:', error);
+    return imageBlob; // Return original blob if conversion fails
   }
-  
-  // Create image bitmap from blob
-  const imageBitmap = await createImageBitmap(imageBlob);
-  
-  // Set canvas size to match image
-  canvas.width = imageBitmap.width;
-  canvas.height = imageBitmap.height;
-  
-  // Draw image to canvas
-  ctx.drawImage(imageBitmap, 0, 0);
-  
-  // Convert to WebP with 85% quality
-  const webpBlob = await canvas.convertToBlob({
-    type: 'image/webp',
-    quality: 0.85,
-  });
-  
-  console.log(`✅ Converted image to WebP: ${imageBlob.size} bytes -> ${webpBlob.size} bytes`);
-  return webpBlob;
 }

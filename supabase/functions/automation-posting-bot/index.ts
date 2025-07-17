@@ -124,7 +124,7 @@ async function generateMealImage(automationUser: AutomationUser, mealType: strin
   try {
     console.log(`🎨 Generating AI image for ${automationUser.name} - ${mealType}`)
     
-    // Call the OpenAI image generation function
+    // Call the AI image generation function
     const { data, error } = await supabase.functions.invoke('generate-meal-image', {
       body: {
         mealType: mealType,
@@ -146,21 +146,45 @@ async function generateMealImage(automationUser: AutomationUser, mealType: strin
     return data
   } catch (error) {
     console.error(`❌ Error in generateMealImage for ${automationUser.name}:`, error)
-    throw error
+    // Return fallback placeholder image instead of throwing
+    console.log(`🔄 Using fallback placeholder image for ${automationUser.name}`)
+    return getFallbackImage(mealType)
   }
 }
 
-// Fallback function removed - no more fallback images
-
+// Fallback function to provide placeholder images when AI generation fails
+async function getFallbackImage(mealType: string): Promise<{ imageUrl: string, recipe: any } | null> {
+  const fallbackImages = {
+    breakfast: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?q=80&w=1024&h=1024&fit=crop',
+    lunch: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?q=80&w=1024&h=1024&fit=crop', 
+    dinner: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?q=80&w=1024&h=1024&fit=crop',
+    snack: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=1024&h=1024&fit=crop'
+  }
+  
+  const imageUrl = fallbackImages[mealType as keyof typeof fallbackImages] || fallbackImages.lunch
+  
+  return {
+    imageUrl,
+    recipe: {
+      id: 'fallback',
+      name: `Healthy ${mealType.charAt(0).toUpperCase() + mealType.slice(1)}`,
+      category: 'Fallback'
+    }
+  }
+}
 
 async function createPost(automationUser: AutomationUser, mealType: string) {
   try {
-    // Generate AI image using actual recipe data
+    console.log(`🚀 Creating post for ${automationUser.name} - ${mealType}`)
+    
+    // Generate AI image using actual recipe data or fallback
     const imageResult = await generateMealImage(automationUser, mealType)
     if (!imageResult) {
-      console.log(`Failed to generate AI image for ${automationUser.name}`)
+      console.log(`❌ Failed to generate or get fallback image for ${automationUser.name}`)
       return false
     }
+
+    console.log(`📸 Using ${imageResult.recipe.id === 'fallback' ? 'fallback' : 'AI-generated'} image for ${automationUser.name}`)
 
     // Get caption template with fallback to other persona types
     let { data: captionOptions } = await supabase
