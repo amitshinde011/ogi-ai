@@ -133,19 +133,45 @@ async function generateMealImage(automationUser: AutomationUser, mealType: strin
     
     if (error) {
       console.error(`❌ Error generating image for ${automationUser.name}:`, error)
-      return null
+      // Use fallback image instead of failing
+      return getFallbackImage(mealType)
     }
     
     if (!data || !data.imageUrl) {
       console.error(`❌ No image generated for ${automationUser.name}:`, data)
-      return null
+      // Use fallback image instead of failing
+      return getFallbackImage(mealType)
     }
     
     console.log(`✅ Generated AI image for ${automationUser.name} using recipe: ${data.recipe?.name}`)
     return data
   } catch (error) {
     console.error(`❌ Error in generateMealImage for ${automationUser.name}:`, error)
-    return null
+    // Use fallback image instead of failing
+    return getFallbackImage(mealType)
+  }
+}
+
+function getFallbackImage(mealType: string): { imageUrl: string, recipe: any } {
+  const fallbackImages = {
+    breakfast: 'https://images.unsplash.com/photo-1571091655789-405eb7a3a3a8?w=800&h=600&fit=crop',
+    lunch: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=600&fit=crop', 
+    dinner: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&h=600&fit=crop',
+    snack: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=800&h=600&fit=crop'
+  }
+  
+  const fallbackRecipes = {
+    breakfast: { id: 'fallback-breakfast', name: 'Healthy Breakfast Bowl', category: 'breakfast' },
+    lunch: { id: 'fallback-lunch', name: 'Nutritious Lunch', category: 'lunch' },
+    dinner: { id: 'fallback-dinner', name: 'Wholesome Dinner', category: 'dinner' },
+    snack: { id: 'fallback-snack', name: 'Healthy Snack', category: 'snack' }
+  }
+  
+  console.log(`📸 Using fallback image for ${mealType}`)
+  
+  return {
+    imageUrl: fallbackImages[mealType as keyof typeof fallbackImages] || fallbackImages.lunch,
+    recipe: fallbackRecipes[mealType as keyof typeof fallbackRecipes] || fallbackRecipes.lunch
   }
 }
 
