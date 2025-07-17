@@ -121,7 +121,7 @@ function generateCaption(template: CaptionTemplate, mealContent: MealContent, pe
 
 async function generateMealImage(automationUser: AutomationUser, mealType: string): Promise<{ imageUrl: string, recipe: any } | null> {
   try {
-    console.log(`Generating AI image for ${automationUser.name} - ${mealType}`)
+    console.log(`🎨 Generating AI image for ${automationUser.name} - ${mealType}`)
     
     // Call the Google AI Studio image generation function
     const { data, error } = await supabase.functions.invoke('generate-meal-image', {
@@ -132,19 +132,19 @@ async function generateMealImage(automationUser: AutomationUser, mealType: strin
     })
     
     if (error) {
-      console.error(`Error generating image for ${automationUser.name}:`, error)
+      console.error(`❌ Error generating image for ${automationUser.name}:`, error)
       return null
     }
     
     if (!data || !data.imageUrl) {
-      console.error(`No image generated for ${automationUser.name}`)
+      console.error(`❌ No image generated for ${automationUser.name}:`, data)
       return null
     }
     
     console.log(`✅ Generated AI image for ${automationUser.name} using recipe: ${data.recipe?.name}`)
     return data
   } catch (error) {
-    console.error(`Error in generateMealImage for ${automationUser.name}:`, error)
+    console.error(`❌ Error in generateMealImage for ${automationUser.name}:`, error)
     return null
   }
 }
@@ -239,6 +239,7 @@ Deno.serve(async (req) => {
     const isManualTrigger = requestBody?.manual_trigger === true
     
     console.log(`🤖 Running automation posting bot... ${isManualTrigger ? '(Manual trigger)' : '(Scheduled)'}`)
+    console.log('Request body:', JSON.stringify(requestBody))
 
     // Get all active automation users
     const { data: automationUsers, error: usersError } = await supabase
@@ -275,7 +276,10 @@ Deno.serve(async (req) => {
 
       const postDecision = shouldPostNow(user.timezone, lastActivity?.created_at, isManualTrigger)
       
+      console.log(`📊 ${user.name} (${user.timezone}): hour=${getLocalTimeHour(user.timezone)}, shouldPost=${postDecision.shouldPost}, mealType=${postDecision.mealType}, lastPost=${lastActivity?.created_at || 'never'}`)
+      
       if (postDecision.shouldPost && postDecision.mealType) {
+        console.log(`🚀 Creating post for ${user.name} - ${postDecision.mealType}`)
         const success = await createPost(user, postDecision.mealType)
         if (success) {
           postsCreated++

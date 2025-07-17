@@ -90,8 +90,11 @@ async function getRandomRecipe(mealType: string): Promise<Recipe | null> {
 async function generateImageWithGoogle(recipe: Recipe): Promise<string> {
   const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY');
   if (!apiKey) {
+    console.error('❌ Google AI Studio API key not configured');
     throw new Error('Google AI Studio API key not configured');
   }
+  
+  console.log('🔑 Google AI Studio API key is configured');
 
   // Create a realistic mobile photography prompt
   const prompt = `A mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients visible: ${recipe.ingredients.substring(0, 200)}`;
