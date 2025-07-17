@@ -29,9 +29,15 @@ interface CaptionTemplate {
 }
 
 function getLocalTimeHour(timezone: string): number {
-  const now = new Date()
-  const localTime = new Date(now.toLocaleString("en-US", { timeZone: timezone }))
-  return localTime.getHours()
+  try {
+    const now = new Date()
+    const localTime = new Date(now.toLocaleString("en-US", { timeZone: timezone }))
+    return localTime.getHours()
+  } catch (error) {
+    console.error(`Invalid timezone: ${timezone}`, error)
+    // Fallback to UTC if timezone is invalid
+    return new Date().getUTCHours()
+  }
 }
 
 function shouldPostNow(timezone: string, lastPostTime?: string): { shouldPost: boolean, mealType?: string } {
@@ -90,167 +96,49 @@ function generateCaption(template: CaptionTemplate, mealContent: MealContent, pe
 
 async function generateAndUploadMealImage(automationUser: AutomationUser, mealContent: MealContent, mealType: string): Promise<string | null> {
   try {
-    // Generate a realistic mobile food photo based on meal content
-    const imageData = await generateMobileFoodPhoto(mealContent, mealType)
+    // Use placeholder images for now since OffscreenCanvas is not available in Deno
+    console.log(`Generating placeholder image for ${automationUser.name} - ${mealType}`)
     
-    // Convert to WebP format for compression (same as real users)
-    const webpBlob = await convertToWebP(imageData)
+    // Generate a simple placeholder URL based on meal content
+    const placeholderUrl = generatePlaceholderImageUrl(mealContent, mealType)
     
-    // Upload to R2 using the same system as real users
-    const uploadResult = await uploadToR2(automationUser.user_id, webpBlob, 'community')
-    
-    return uploadResult?.imageUrl || null
+    return placeholderUrl
   } catch (error) {
     console.error(`Error generating image for ${automationUser.name}:`, error)
-    return null
+    // Fallback to a generic food placeholder
+    return `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop&crop=center`
   }
 }
 
-async function generateMobileFoodPhoto(mealContent: MealContent, mealType: string): Promise<Blob> {
-  // Create a canvas to generate authentic-looking mobile food photo
-  const canvas = new OffscreenCanvas(800, 600) // Mobile photo dimensions
-  const ctx = canvas.getContext('2d')
+function generatePlaceholderImageUrl(mealContent: MealContent, mealType: string): string {
+  // Use Unsplash for high-quality food photos with specific search terms
+  const baseUrl = 'https://images.unsplash.com/'
   
-  if (!ctx) throw new Error('Could not get canvas context')
-  
-  // Generate background colors based on meal type and cuisine
-  const bgColor = getMealBackgroundColor(mealContent.cuisine_type, mealType)
-  ctx.fillStyle = bgColor
-  ctx.fillRect(0, 0, 800, 600)
-  
-  // Add some visual elements to simulate food
-  await addFoodVisualElements(ctx, mealContent, mealType)
-  
-  // Add mobile photo characteristics (slight blur, natural lighting)
-  await addMobilePhotoEffects(ctx)
-  
-  // Convert canvas to blob
-  return await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.85 })
-}
-
-function getMealBackgroundColor(cuisine: string, mealType: string): string {
-  const colorMap: Record<string, Record<string, string>> = {
+  // Map meal types and cuisines to appropriate search terms
+  const searchTerms: Record<string, Record<string, string>> = {
     indian: {
-      breakfast: '#FFF8E1', // Warm cream for breakfast
-      lunch: '#F3E5F5',     // Light purple for colorful curries
-      dinner: '#E8F5E8',    // Light green for vegetables
-      snack: '#FFECB3'      // Light yellow for snacks
+      breakfast: 'photo-1586201375761-83865001e31c', // Indian breakfast
+      lunch: 'photo-1565299624946-b28f40a0ca4b', // Indian curry
+      dinner: 'photo-1627662056862-9eb8705b8a77', // Indian dinner
+      snack: 'photo-1599487488170-d11ec9c172f0' // Indian snacks
     },
     mediterranean: {
-      breakfast: '#E3F2FD', // Light blue for fresh morning
-      lunch: '#F1F8E9',     // Light green for olive oil dishes
-      dinner: '#FFF3E0',    // Light orange for sunset meals
-      snack: '#FCE4EC'      // Light pink for light snacks
+      breakfast: 'photo-1533089860892-a7c6f0a88666', // Mediterranean breakfast
+      lunch: 'photo-1565299585323-38174c5ab96e', // Mediterranean salad
+      dinner: 'photo-1565958011703-44f9829ba187', // Mediterranean dinner
+      snack: 'photo-1551782450-a2132b4ba21d' // Mediterranean snacks
     }
   }
   
-  return colorMap[cuisine]?.[mealType] || '#F5F5F5' // Default light gray
+  // Get cuisine-specific photo or fallback to generic food photos
+  const cuisine = mealContent.cuisine_type.toLowerCase()
+  const photoId = searchTerms[cuisine]?.[mealType] || searchTerms.indian[mealType] || 'photo-1565299624946-b28f40a0ca4b'
+  
+  return `${baseUrl}${photoId}?w=800&h=600&fit=crop&crop=center`
 }
 
-async function addFoodVisualElements(ctx: OffscreenCanvasRenderingContext2D, mealContent: MealContent, mealType: string) {
-  // Add circular food shapes to simulate ingredients
-  const ingredients = mealContent.ingredients || []
-  
-  for (let i = 0; i < Math.min(ingredients.length, 5); i++) {
-    const x = 150 + (i * 120)
-    const y = 200 + (Math.sin(i) * 50)
-    const radius = 30 + (Math.random() * 20)
-    
-    // Generate ingredient-based colors
-    const color = getIngredientColor(ingredients[i])
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.arc(x, y, radius, 0, 2 * Math.PI)
-    ctx.fill()
-    
-    // Add some texture/grain
-    ctx.fillStyle = `rgba(0,0,0,0.1)`
-    ctx.fillRect(x - radius/2, y - radius/2, radius, radius)
-  }
-}
-
-function getIngredientColor(ingredient: string): string {
-  const colorMap: Record<string, string> = {
-    tomato: '#FF6B6B',
-    avocado: '#4ECDC4',
-    banana: '#FFE66D',
-    oats: '#D4A574',
-    quinoa: '#F4F3EE',
-    spinach: '#6BCF7F',
-    carrot: '#FF8E53',
-    default: '#95E1D3'
-  }
-  
-  const key = Object.keys(colorMap).find(k => ingredient.toLowerCase().includes(k))
-  return colorMap[key || 'default']
-}
-
-async function addMobilePhotoEffects(ctx: OffscreenCanvasRenderingContext2D) {
-  // Add slight vignette effect (darker edges)
-  const gradient = ctx.createRadialGradient(400, 300, 0, 400, 300, 500)
-  gradient.addColorStop(0, 'rgba(0,0,0,0)')
-  gradient.addColorStop(1, 'rgba(0,0,0,0.15)')
-  ctx.fillStyle = gradient
-  ctx.fillRect(0, 0, 800, 600)
-  
-  // Add some grain/noise for authentic mobile feel
-  for (let i = 0; i < 100; i++) {
-    const x = Math.random() * 800
-    const y = Math.random() * 600
-    const opacity = Math.random() * 0.1
-    ctx.fillStyle = `rgba(255,255,255,${opacity})`
-    ctx.fillRect(x, y, 1, 1)
-  }
-}
-
-async function convertToWebP(imageBlob: Blob): Promise<Blob> {
-  // Use same WebP conversion logic as real users
-  const canvas = new OffscreenCanvas(800, 600)
-  const ctx = canvas.getContext('2d')
-  
-  if (!ctx) throw new Error('Could not get canvas context')
-  
-  // Create image from blob
-  const imageBitmap = await createImageBitmap(imageBlob)
-  ctx.drawImage(imageBitmap, 0, 0)
-  
-  // Convert to WebP with 85% quality (same as real users)
-  return await canvas.convertToBlob({ type: 'image/webp', quality: 0.85 })
-}
-
-async function uploadToR2(userId: string, imageBlob: Blob, uploadType: string): Promise<{ imageUrl: string } | null> {
-  try {
-    // Create form data like real users do
-    const formData = new FormData()
-    const timestamp = Date.now()
-    const fileName = `bot_meal_${timestamp}.webp`
-    const file = new File([imageBlob], fileName, { type: 'image/webp' })
-    
-    formData.append('file', file)
-    formData.append('uploadType', uploadType)
-    
-    // Call the same R2 upload function that real users use
-    const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/upload-to-r2`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-      },
-      body: formData
-    })
-    
-    if (!response.ok) {
-      console.error('R2 upload failed:', await response.text())
-      return null
-    }
-    
-    const result = await response.json()
-    return result.success ? { imageUrl: result.imageUrl } : null
-    
-  } catch (error) {
-    console.error('Error uploading to R2:', error)
-    return null
-  }
-}
+// Removed the OffscreenCanvas-based image generation functions as they're not supported in Deno Edge Functions
+// Now using direct Unsplash URLs for meal images
 
 async function createPost(automationUser: AutomationUser, mealType: string) {
   try {
