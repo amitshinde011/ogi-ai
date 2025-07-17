@@ -156,10 +156,10 @@ async function createPost(automationUser: AutomationUser, mealType: string) {
     // Randomly select meal content
     const selectedMeal = mealOptions[Math.floor(Math.random() * mealOptions.length)]
 
-    // Generate authentic mobile food image and upload via R2
-    const imageUrl = await generateAndUploadMealImage(automationUser, selectedMeal, mealType)
+    // Use the meal content image directly
+    const imageUrl = selectedMeal.image_url || generatePlaceholderImageUrl(selectedMeal, mealType)
     if (!imageUrl) {
-      console.log(`Failed to generate image for ${automationUser.name}`)
+      console.log(`Failed to get image for ${automationUser.name}`)
       return false
     }
 
