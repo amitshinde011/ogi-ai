@@ -38,8 +38,8 @@ serve(async (req) => {
 
     console.log(`Selected recipe: ${recipe.name} (${recipe.category})`);
     
-    // Generate image using Google AI Studio
-    const imageUrl = await generateImageWithGoogle(recipe);
+    // Generate image using OpenAI
+    const imageUrl = await generateImageWithOpenAI(recipe);
     
     return new Response(JSON.stringify({ 
       imageUrl,
@@ -93,85 +93,51 @@ async function getRandomRecipe(mealType: string): Promise<Recipe | null> {
   return allRecipes[randomIndex];
 }
 
-async function generateImageWithGoogle(recipe: Recipe): Promise<string> {
-  const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY');
+async function generateImageWithOpenAI(recipe: Recipe): Promise<string> {
+  const apiKey = Deno.env.get('OPENAI_API_KEY');
   if (!apiKey) {
-    console.error('❌ Google AI Studio API key not configured');
-    throw new Error('Google AI Studio API key not configured');
+    console.error('❌ OpenAI API key not configured');
+    throw new Error('OpenAI API key not configured');
   }
   
-  console.log('🔑 Google AI Studio API key is configured');
+  console.log('🔑 OpenAI API key is configured');
 
   // Create a realistic mobile photography prompt
-  const prompt = `Generate an image: A mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients visible: ${recipe.ingredients.substring(0, 200)}`;
+  const prompt = `A mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients visible: ${recipe.ingredients.substring(0, 200)}`;
 
   console.log('Generated prompt:', prompt);
 
-  // Use the correct Gemini 1.5 Pro model and API endpoint
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`, {
+  // Use OpenAI's image generation API
+  const response = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
     headers: {
+      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
     },
-    // Use the correct Gemini API request format
     body: JSON.stringify({
-      "contents": [
-        {
-          "parts": [
-            { "text": "Generate an image with the following prompt, do not add any text or commentary, just generate the image." },
-            { "text": prompt }
-          ]
-        }
-      ],
-      "tools": [
-        {
-          "function_declarations": [
-            {
-              "name": "image_generator",
-              "description": "Generates an image based on a textual prompt.",
-              "parameters": {
-                "type": "OBJECT",
-                "properties": {
-                  "prompt": {
-                    "type": "STRING",
-                    "description": "The textual prompt to generate the image from."
-                  }
-                },
-                "required": ["prompt"]
-              }
-            }
-          ]
-        }
-      ],
-      "tool_config": {
-        "function_calling_config": {
-          "mode": "ANY",
-          "allowed_function_names": ["image_generator"]
-        }
-      }
+      model: 'dall-e-3',
+      prompt: prompt,
+      n: 1,
+      size: '1024x1024',
+      quality: 'standard'
     })
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Google AI Studio API error:', errorText);
-    throw new Error(`Google AI Studio API error: ${response.status} ${errorText}`);
+    console.error('OpenAI API error:', errorText);
+    throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
   }
 
   const data = await response.json();
-  console.log('Google AI Studio response:', JSON.stringify(data, null, 2));
+  console.log('OpenAI response received');
 
-  // Update response parsing for the Gemini API format
-  const imageDataPart = data.candidates?.[0]?.content?.parts?.[0];
-  if (!imageDataPart || !imageDataPart.fileData || !imageDataPart.fileData.fileUri) {
-     console.error('No image data in response:', JSON.stringify(data, null, 2));
-     throw new Error('No image generated from Google AI Studio');
+  if (!data.data || !data.data[0] || !data.data[0].url) {
+    console.error('No image data in response:', JSON.stringify(data, null, 2));
+    throw new Error('No image generated from OpenAI');
   }
 
-  // The image data is in fileUri as a base64 string
-  const base64Data = imageDataPart.fileData.fileUri.replace('data:image/jpeg;base64,', '');
-  const imageUrl = `data:image/jpeg;base64,${base64Data}`;
-
+  const imageUrl = data.data[0].url;
   console.log('✅ Successfully generated image for recipe:', recipe.name);
   return imageUrl;
 }
