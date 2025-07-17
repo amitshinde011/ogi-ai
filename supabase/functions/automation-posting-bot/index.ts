@@ -96,47 +96,18 @@ function generateCaption(template: CaptionTemplate, mealContent: MealContent, pe
 
 async function generateAndUploadMealImage(automationUser: AutomationUser, mealContent: MealContent, mealType: string): Promise<string | null> {
   try {
-    // Use placeholder images for now since OffscreenCanvas is not available in Deno
-    console.log(`Generating placeholder image for ${automationUser.name} - ${mealType}`)
+    // Use the actual image URL from meal content to ensure image matches the caption
+    console.log(`Using meal content image for ${automationUser.name} - ${mealType}: ${mealContent.image_url}`)
     
-    // Generate a simple placeholder URL based on meal content
-    const placeholderUrl = generatePlaceholderImageUrl(mealContent, mealType)
-    
-    return placeholderUrl
+    // Return the image URL directly from the meal content
+    return mealContent.image_url || `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop`
   } catch (error) {
-    console.error(`Error generating image for ${automationUser.name}:`, error)
-    // Fallback to a generic food placeholder
+    console.error(`Error getting image for ${automationUser.name}:`, error)
+    // Fallback to a generic healthy food placeholder
     return `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop`
   }
 }
 
-function generatePlaceholderImageUrl(mealContent: MealContent, mealType: string): string {
-  // Use working Unsplash URLs with proper format
-  const searchTerms: Record<string, Record<string, string>> = {
-    indian: {
-      breakfast: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&h=600&fit=crop',
-      lunch: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop',
-      dinner: 'https://images.unsplash.com/photo-1627662056862-9eb8705b8a77?w=800&h=600&fit=crop',
-      snack: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=800&h=600&fit=crop'
-    },
-    mediterranean: {
-      breakfast: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&h=600&fit=crop',
-      lunch: 'https://images.unsplash.com/photo-1565299585323-38174c5ab96e?w=800&h=600&fit=crop',
-      dinner: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&h=600&fit=crop',
-      snack: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=800&h=600&fit=crop'
-    }
-  }
-  
-  // Get cuisine-specific photo or fallback to generic food photos
-  const cuisine = mealContent.cuisine_type.toLowerCase()
-  const imageUrl = searchTerms[cuisine]?.[mealType] || searchTerms.indian[mealType] || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop'
-  
-  console.log(`Generated image URL for ${cuisine} ${mealType}: ${imageUrl}`)
-  return imageUrl
-}
-
-// Removed the OffscreenCanvas-based image generation functions as they're not supported in Deno Edge Functions
-// Now using direct Unsplash URLs for meal images
 
 async function createPost(automationUser: AutomationUser, mealType: string) {
   try {
@@ -156,7 +127,7 @@ async function createPost(automationUser: AutomationUser, mealType: string) {
     const selectedMeal = mealOptions[Math.floor(Math.random() * mealOptions.length)]
 
     // Use the meal content image directly
-    const imageUrl = selectedMeal.image_url || generatePlaceholderImageUrl(selectedMeal, mealType)
+    const imageUrl = selectedMeal.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop'
     if (!imageUrl) {
       console.log(`Failed to get image for ${automationUser.name}`)
       return false
