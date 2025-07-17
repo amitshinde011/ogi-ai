@@ -149,13 +149,13 @@ async function generateImageWithGoogleAI(recipe: Recipe): Promise<string> {
   const base64Data = imagePart.inlineData.data;
   const mimeType = imagePart.inlineData.mimeType;
   
-  console.log('✅ Generated AI image, now converting to WebP and uploading to R2...');
+  console.log('✅ Generated AI image, now converting and uploading to R2...');
   
   // Convert base64 to blob
   const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
   const imageBlob = new Blob([imageBytes], { type: mimeType });
   
-  // Convert to WebP and upload to R2
+  // Upload to R2 (WebP conversion will be handled differently)
   const uploadedImageUrl = await convertAndUploadToR2(imageBlob, recipe.name);
   
   console.log('✅ Successfully generated and uploaded image for recipe:', recipe.name);
@@ -164,14 +164,24 @@ async function generateImageWithGoogleAI(recipe: Recipe): Promise<string> {
 
 async function convertAndUploadToR2(imageBlob: Blob, recipeName: string): Promise<string> {
   try {
-    // Convert to WebP using canvas
-    const webpBlob = await convertToWebP(imageBlob);
+    console.log(`📦 Preparing to upload image for recipe: ${recipeName}`);
+    console.log(`📊 Original image size: ${imageBlob.size} bytes, type: ${imageBlob.type}`);
+    
+    // Since OffscreenCanvas is not available in Deno, we'll upload the original image
+    // The upload-to-r2 function can handle WebP conversion if needed
     
     // Create FormData for upload
     const formData = new FormData();
-    const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.webp`;
-    formData.append('file', webpBlob, fileName);
+    
+    // Generate filename based on original type
+    const fileExtension = imageBlob.type === 'image/webp' ? 'webp' : 
+                         imageBlob.type === 'image/png' ? 'png' : 'jpg';
+    const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.${fileExtension}`;
+    
+    formData.append('file', imageBlob, fileName);
     formData.append('uploadType', 'meal');
+    
+    console.log(`📤 Uploading image as: ${fileName}`);
     
     // Upload to R2 using the upload function
     const { data, error } = await supabase.functions.invoke('upload-to-r2', {
@@ -179,60 +189,20 @@ async function convertAndUploadToR2(imageBlob: Blob, recipeName: string): Promis
     });
     
     if (error) {
-      console.error('Error uploading to R2:', error);
+      console.error('❌ Error uploading to R2:', error);
       throw new Error(`R2 upload failed: ${error.message}`);
     }
     
     if (!data.success || !data.imageUrl) {
-      console.error('R2 upload unsuccessful:', data);
+      console.error('❌ R2 upload unsuccessful:', data);
       throw new Error(data.error || 'R2 upload failed');
     }
     
-    console.log('✅ Successfully uploaded WebP image to R2:', data.imageUrl);
+    console.log('✅ Successfully uploaded image to R2:', data.imageUrl);
     return data.imageUrl;
     
   } catch (error) {
-    console.error('Error in convertAndUploadToR2:', error);
+    console.error('❌ Error in convertAndUploadToR2:', error);
     throw error;
-  }
-}
-
-async function convertToWebP(imageBlob: Blob): Promise<Blob> {
-  try {
-    // Check if OffscreenCanvas is available in Deno
-    if (typeof OffscreenCanvas === 'undefined') {
-      console.log('⚠️ OffscreenCanvas not available, skipping WebP conversion');
-      return imageBlob; // Return original blob if conversion isn't available
-    }
-
-    // Create a canvas and context
-    const canvas = new OffscreenCanvas(1024, 1024);
-    const ctx = canvas.getContext('2d');
-    
-    if (!ctx) {
-      throw new Error('Failed to get canvas context');
-    }
-    
-    // Create image bitmap from blob
-    const imageBitmap = await createImageBitmap(imageBlob);
-    
-    // Set canvas size to match image
-    canvas.width = imageBitmap.width;
-    canvas.height = imageBitmap.height;
-    
-    // Draw image to canvas
-    ctx.drawImage(imageBitmap, 0, 0);
-    
-    // Convert to WebP with 85% quality
-    const webpBlob = await canvas.convertToBlob({
-      type: 'image/webp',
-      quality: 0.85,
-    });
-    
-    console.log(`✅ Converted image to WebP: ${imageBlob.size} bytes -> ${webpBlob.size} bytes`);
-    return webpBlob;
-  } catch (error) {
-    console.error('WebP conversion failed, using original image:', error);
-    return imageBlob; // Return original blob if conversion fails
   }
 }
