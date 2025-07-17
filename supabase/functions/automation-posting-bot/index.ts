@@ -140,16 +140,15 @@ function generatePlaceholderImageUrl(mealContent: MealContent, mealType: string)
 
 async function createPost(automationUser: AutomationUser, mealType: string) {
   try {
-    // Get suitable meal content
+    // Get suitable meal content with flexible cuisine matching
     const { data: mealOptions } = await supabase
       .from('automation_meal_content')
       .select('*')
       .eq('meal_type', mealType)
-      .in('cuisine_type', automationUser.cuisine_specialty)
-      .limit(10)
+      .limit(20)
 
     if (!mealOptions || mealOptions.length === 0) {
-      console.log(`No meal content found for ${automationUser.name}, meal type: ${mealType}`)
+      console.log(`No meal content found for meal type: ${mealType}`)
       return false
     }
 
@@ -163,16 +162,27 @@ async function createPost(automationUser: AutomationUser, mealType: string) {
       return false
     }
 
-    // Get caption template
-    const { data: captionOptions } = await supabase
+    // Get caption template with fallback to other persona types
+    let { data: captionOptions } = await supabase
       .from('automation_captions')
       .select('*')
       .eq('meal_type', mealType)
       .eq('persona_type', automationUser.persona_type)
       .limit(5)
 
+    // If no exact match, try any persona type for this meal type
     if (!captionOptions || captionOptions.length === 0) {
-      console.log(`No caption templates found for ${automationUser.name}`)
+      const { data: fallbackOptions } = await supabase
+        .from('automation_captions')
+        .select('*')
+        .eq('meal_type', mealType)
+        .limit(10)
+      
+      captionOptions = fallbackOptions
+    }
+
+    if (!captionOptions || captionOptions.length === 0) {
+      console.log(`No caption templates found for meal type: ${mealType}`)
       return false
     }
 
