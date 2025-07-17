@@ -79,7 +79,8 @@ export default function AutomationAdmin() {
   const triggerFunction = async (functionName: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke(functionName);
+      const body = functionName === 'automation-posting-bot' ? { manual_trigger: true } : {};
+      const { error } = await supabase.functions.invoke(functionName, { body });
       if (error) throw error;
       
       toast({

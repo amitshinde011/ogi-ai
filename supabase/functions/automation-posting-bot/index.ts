@@ -44,8 +44,33 @@ function shouldPostNow(timezone: string, lastPostTime?: string, isManualTrigger 
   const hour = getLocalTimeHour(timezone)
   const now = new Date()
   
+  // For manual triggers, always post if not posted in last 10 minutes
+  if (isManualTrigger) {
+    if (lastPostTime) {
+      const lastPost = new Date(lastPostTime)
+      const minutesSinceLastPost = (now.getTime() - lastPost.getTime()) / (1000 * 60)
+      if (minutesSinceLastPost < 10) {
+        return { shouldPost: false }
+      }
+    }
+    
+    // Force post with appropriate meal type for manual triggers
+    if (hour >= 6 && hour <= 9) {
+      return { shouldPost: true, mealType: 'breakfast' }
+    } else if (hour >= 12 && hour <= 14) {
+      return { shouldPost: true, mealType: 'lunch' }
+    } else if (hour >= 18 && hour <= 20) {
+      return { shouldPost: true, mealType: 'dinner' }
+    } else if (hour >= 15 && hour <= 17) {
+      return { shouldPost: true, mealType: 'snack' }
+    } else {
+      // Default to lunch for manual triggers outside meal times
+      return { shouldPost: true, mealType: 'lunch' }
+    }
+  }
+  
   // Check if already posted in the last 1 hour (reduced cooldown) - skip for manual triggers
-  if (!isManualTrigger && lastPostTime) {
+  if (lastPostTime) {
     const lastPost = new Date(lastPostTime)
     const hoursSinceLastPost = (now.getTime() - lastPost.getTime()) / (1000 * 60 * 60)
     if (hoursSinceLastPost < 1) {
