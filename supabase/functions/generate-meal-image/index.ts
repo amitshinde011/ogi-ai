@@ -61,30 +61,35 @@ serve(async (req) => {
 });
 
 async function getRandomRecipe(mealType: string): Promise<Recipe | null> {
-  let categoryFilter = '';
-  
-  if (mealType === 'breakfast') {
-    categoryFilter = `category = 'Salads'`;
-  } else if (mealType === 'lunch' || mealType === 'dinner') {
-    categoryFilter = `category NOT IN ('Sweets & Desserts')`;
-  } else {
-    categoryFilter = `category NOT IN ('Sweets & Desserts')`;
-  }
-  
-  const { data, error } = await supabase
+  let query = supabase
     .from('recipes')
-    .select('id, name, ingredients, category, instructions')
-    .raw(categoryFilter)
-    .order('RANDOM()')
-    .limit(1)
-    .single();
+    .select('id, name, ingredients, category, instructions');
+
+  // Apply filters based on mealType
+  if (mealType === 'breakfast') {
+    // Get breakfast appropriate recipes (changed from just Salads)
+    query = query.in('category', ['Breakfast', 'Salads', 'Smoothies']);
+  } else {
+    // For lunch, dinner, or any other type - exclude desserts
+    query = query.not('category', 'eq', 'Sweets & Desserts');
+  }
+
+  // Get all matching recipes first, then pick random one
+  const { data: allRecipes, error } = await query;
   
   if (error) {
-    console.error('Error fetching recipe:', error);
+    console.error('Error fetching recipes:', error);
     return null;
   }
   
-  return data;
+  if (!allRecipes || allRecipes.length === 0) {
+    console.error(`No recipes found for meal type: ${mealType}`);
+    return null;
+  }
+  
+  // Pick a random recipe from the results
+  const randomIndex = Math.floor(Math.random() * allRecipes.length);
+  return allRecipes[randomIndex];
 }
 
 async function generateImageWithGoogle(recipe: Recipe): Promise<string> {
@@ -97,32 +102,53 @@ async function generateImageWithGoogle(recipe: Recipe): Promise<string> {
   console.log('🔑 Google AI Studio API key is configured');
 
   // Create a realistic mobile photography prompt
-  const prompt = `A mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients visible: ${recipe.ingredients.substring(0, 200)}`;
+  const prompt = `Generate an image: A mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients visible: ${recipe.ingredients.substring(0, 200)}`;
 
   console.log('Generated prompt:', prompt);
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${apiKey}`, {
+  // Use the correct Gemini 1.5 Pro model and API endpoint
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
+    // Use the correct Gemini API request format
     body: JSON.stringify({
-      prompt: prompt,
-      generationConfig: {
-        aspectRatio: "1:1",
-        negativePrompt: "professional food photography, studio lighting, perfect plating, restaurant quality, artificial lighting, too perfect",
-        outputOptions: {
-          mimeType: "image/jpeg",
-          compressionQuality: 80
-        }
-      },
-      safetySettings: [
+      "contents": [
         {
-          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-          threshold: "BLOCK_ONLY_HIGH"
+          "parts": [
+            { "text": "Generate an image with the following prompt, do not add any text or commentary, just generate the image." },
+            { "text": prompt }
+          ]
         }
-      ]
-    }),
+      ],
+      "tools": [
+        {
+          "function_declarations": [
+            {
+              "name": "image_generator",
+              "description": "Generates an image based on a textual prompt.",
+              "parameters": {
+                "type": "OBJECT",
+                "properties": {
+                  "prompt": {
+                    "type": "STRING",
+                    "description": "The textual prompt to generate the image from."
+                  }
+                },
+                "required": ["prompt"]
+              }
+            }
+          ]
+        }
+      ],
+      "tool_config": {
+        "function_calling_config": {
+          "mode": "ANY",
+          "allowed_function_names": ["image_generator"]
+        }
+      }
+    })
   });
 
   if (!response.ok) {
@@ -132,15 +158,19 @@ async function generateImageWithGoogle(recipe: Recipe): Promise<string> {
   }
 
   const data = await response.json();
-  
-  if (!data.candidates || !data.candidates[0] || !data.candidates[0].image) {
-    throw new Error('No image generated from Google AI Studio');
+  console.log('Google AI Studio response:', JSON.stringify(data, null, 2));
+
+  // Update response parsing for the Gemini API format
+  const imageDataPart = data.candidates?.[0]?.content?.parts?.[0];
+  if (!imageDataPart || !imageDataPart.fileData || !imageDataPart.fileData.fileUri) {
+     console.error('No image data in response:', JSON.stringify(data, null, 2));
+     throw new Error('No image generated from Google AI Studio');
   }
 
-  // Convert base64 to blob URL for temporary use
-  const base64Data = data.candidates[0].image.imageBytes;
+  // The image data is in fileUri as a base64 string
+  const base64Data = imageDataPart.fileData.fileUri.replace('data:image/jpeg;base64,', '');
   const imageUrl = `data:image/jpeg;base64,${base64Data}`;
-  
-  console.log('Successfully generated image for recipe:', recipe.name);
+
+  console.log('✅ Successfully generated image for recipe:', recipe.name);
   return imageUrl;
 }
