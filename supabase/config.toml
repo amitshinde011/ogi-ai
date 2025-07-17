@@ -76,3 +76,6 @@ verify_jwt = false
 
 [functions.automation-engagement-bot]
 verify_jwt = false
+
+[functions.automation-cleanup]
+verify_jwt = false
