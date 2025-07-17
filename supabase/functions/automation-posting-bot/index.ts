@@ -94,42 +94,43 @@ function generateCaption(template: CaptionTemplate, mealContent: MealContent, pe
   return caption
 }
 
-async function generateAndUploadMealImage(automationUser: AutomationUser, mealContent: MealContent, mealType: string): Promise<string | null> {
+async function generateMealImage(automationUser: AutomationUser, mealType: string): Promise<{ imageUrl: string, recipe: any } | null> {
   try {
-    // Use the actual image URL from meal content to ensure image matches the caption
-    console.log(`Using meal content image for ${automationUser.name} - ${mealType}: ${mealContent.image_url}`)
+    console.log(`Generating AI image for ${automationUser.name} - ${mealType}`)
     
-    // Return the image URL directly from the meal content
-    return mealContent.image_url || `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop`
+    // Call the Google AI Studio image generation function
+    const { data, error } = await supabase.functions.invoke('generate-meal-image', {
+      body: {
+        mealType: mealType,
+        userId: automationUser.user_id
+      }
+    })
+    
+    if (error) {
+      console.error(`Error generating image for ${automationUser.name}:`, error)
+      return null
+    }
+    
+    if (!data || !data.imageUrl) {
+      console.error(`No image generated for ${automationUser.name}`)
+      return null
+    }
+    
+    console.log(`✅ Generated AI image for ${automationUser.name} using recipe: ${data.recipe?.name}`)
+    return data
   } catch (error) {
-    console.error(`Error getting image for ${automationUser.name}:`, error)
-    // Fallback to a generic healthy food placeholder
-    return `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop`
+    console.error(`Error in generateMealImage for ${automationUser.name}:`, error)
+    return null
   }
 }
 
 
 async function createPost(automationUser: AutomationUser, mealType: string) {
   try {
-    // Get suitable meal content with flexible cuisine matching
-    const { data: mealOptions } = await supabase
-      .from('automation_meal_content')
-      .select('*')
-      .eq('meal_type', mealType)
-      .limit(20)
-
-    if (!mealOptions || mealOptions.length === 0) {
-      console.log(`No meal content found for meal type: ${mealType}`)
-      return false
-    }
-
-    // Randomly select meal content
-    const selectedMeal = mealOptions[Math.floor(Math.random() * mealOptions.length)]
-
-    // Use the meal content image directly
-    const imageUrl = selectedMeal.image_url || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop'
-    if (!imageUrl) {
-      console.log(`Failed to get image for ${automationUser.name}`)
+    // Generate AI image using actual recipe data
+    const imageResult = await generateMealImage(automationUser, mealType)
+    if (!imageResult) {
+      console.log(`Failed to generate AI image for ${automationUser.name}`)
       return false
     }
 
@@ -158,14 +159,24 @@ async function createPost(automationUser: AutomationUser, mealType: string) {
     }
 
     const selectedCaption = captionOptions[Math.floor(Math.random() * captionOptions.length)]
-    const finalCaption = generateCaption(selectedCaption, selectedMeal, automationUser.persona_type)
+    
+    // Create mock meal content for caption generation using recipe data
+    const mealContentForCaption: MealContent = {
+      id: imageResult.recipe.id,
+      image_url: imageResult.imageUrl,
+      meal_type: mealType,
+      cuisine_type: imageResult.recipe.category || 'healthy',
+      ingredients: imageResult.recipe.name ? [imageResult.recipe.name] : ['healthy ingredients']
+    }
+    
+    const finalCaption = generateCaption(selectedCaption, mealContentForCaption, automationUser.persona_type)
 
     // Create the post
     const { error: postError } = await supabase
       .from('posts')
       .insert({
         author_id: automationUser.user_id,
-        image_url: imageUrl,
+        image_url: imageResult.imageUrl,
         caption: finalCaption,
         category: mealType
       })
@@ -183,7 +194,7 @@ async function createPost(automationUser: AutomationUser, mealType: string) {
         activity_type: 'post'
       })
 
-    console.log(`✅ Created post for ${automationUser.name} (${mealType})`)
+    console.log(`✅ Created post for ${automationUser.name} (${mealType}) using recipe: ${imageResult.recipe.name}`)
     return true
 
   } catch (error) {
