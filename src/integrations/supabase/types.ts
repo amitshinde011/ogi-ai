@@ -79,6 +79,185 @@ export type Database = {
           },
         ]
       }
+      automation_activity_log: {
+        Row: {
+          activity_type: string
+          automation_user_id: string | null
+          created_at: string | null
+          id: string
+          target_comment_id: number | null
+          target_post_id: number | null
+        }
+        Insert: {
+          activity_type: string
+          automation_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          target_comment_id?: number | null
+          target_post_id?: number | null
+        }
+        Update: {
+          activity_type?: string
+          automation_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          target_comment_id?: number | null
+          target_post_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_activity_log_automation_user_id_fkey"
+            columns: ["automation_user_id"]
+            isOneToOne: false
+            referencedRelation: "automation_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_activity_log_target_comment_id_fkey"
+            columns: ["target_comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_activity_log_target_post_id_fkey"
+            columns: ["target_post_id"]
+            isOneToOne: false
+            referencedRelation: "community_feed_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_activity_log_target_post_id_fkey"
+            columns: ["target_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_captions: {
+        Row: {
+          created_at: string | null
+          id: string
+          meal_type: string
+          persona_type: string
+          template_text: string
+          variables: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          meal_type: string
+          persona_type: string
+          template_text: string
+          variables?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          meal_type?: string
+          persona_type?: string
+          template_text?: string
+          variables?: string[] | null
+        }
+        Relationships: []
+      }
+      automation_comments: {
+        Row: {
+          comment_type: string
+          context_tags: string[] | null
+          created_at: string | null
+          id: string
+          persona_type: string
+          template_text: string
+        }
+        Insert: {
+          comment_type: string
+          context_tags?: string[] | null
+          created_at?: string | null
+          id?: string
+          persona_type: string
+          template_text: string
+        }
+        Update: {
+          comment_type?: string
+          context_tags?: string[] | null
+          created_at?: string | null
+          id?: string
+          persona_type?: string
+          template_text?: string
+        }
+        Relationships: []
+      }
+      automation_meal_content: {
+        Row: {
+          created_at: string | null
+          cuisine_type: string
+          dietary_tags: string[] | null
+          id: string
+          image_url: string
+          ingredients: string[] | null
+          meal_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          cuisine_type: string
+          dietary_tags?: string[] | null
+          id?: string
+          image_url: string
+          ingredients?: string[] | null
+          meal_type: string
+        }
+        Update: {
+          created_at?: string | null
+          cuisine_type?: string
+          dietary_tags?: string[] | null
+          id?: string
+          image_url?: string
+          ingredients?: string[] | null
+          meal_type?: string
+        }
+        Relationships: []
+      }
+      automation_users: {
+        Row: {
+          created_at: string | null
+          cuisine_specialty: string[] | null
+          id: string
+          is_active: boolean | null
+          name: string
+          persona_type: string
+          profile_photo_url: string | null
+          timezone: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cuisine_specialty?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          persona_type: string
+          profile_photo_url?: string | null
+          timezone?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cuisine_specialty?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          persona_type?: string
+          profile_photo_url?: string | null
+          timezone?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           author_id: string | null

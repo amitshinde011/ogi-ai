@@ -1,0 +1,239 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.9'
+import { corsHeaders } from '../_shared/cors.ts'
+
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+)
+
+interface AutomationUser {
+  id: string
+  user_id: string
+  name: string
+  timezone: string
+  persona_type: string
+  cuisine_specialty: string[]
+}
+
+interface MealContent {
+  id: string
+  image_url: string
+  meal_type: string
+  cuisine_type: string
+  ingredients: string[]
+}
+
+interface CaptionTemplate {
+  template_text: string
+  variables: string[]
+}
+
+function getLocalTimeHour(timezone: string): number {
+  const now = new Date()
+  const localTime = new Date(now.toLocaleString("en-US", { timeZone: timezone }))
+  return localTime.getHours()
+}
+
+function shouldPostNow(timezone: string, lastPostTime?: string): { shouldPost: boolean, mealType?: string } {
+  const hour = getLocalTimeHour(timezone)
+  const now = new Date()
+  
+  // Check if already posted in the last 3 hours
+  if (lastPostTime) {
+    const lastPost = new Date(lastPostTime)
+    const hoursSinceLastPost = (now.getTime() - lastPost.getTime()) / (1000 * 60 * 60)
+    if (hoursSinceLastPost < 3) {
+      return { shouldPost: false }
+    }
+  }
+
+  // Determine meal time and add randomness
+  const randomOffset = Math.random() * 60 - 30 // ±30 minutes
+  const effectiveHour = hour + randomOffset / 60
+
+  if (effectiveHour >= 6 && effectiveHour <= 9) {
+    return { shouldPost: Math.random() > 0.7, mealType: 'breakfast' } // 30% chance
+  } else if (effectiveHour >= 12 && effectiveHour <= 14) {
+    return { shouldPost: Math.random() > 0.6, mealType: 'lunch' } // 40% chance
+  } else if (effectiveHour >= 18 && effectiveHour <= 20) {
+    return { shouldPost: Math.random() > 0.5, mealType: 'dinner' } // 50% chance
+  } else if (effectiveHour >= 15 && effectiveHour <= 17) {
+    return { shouldPost: Math.random() > 0.9, mealType: 'snack' } // 10% chance
+  }
+
+  return { shouldPost: false }
+}
+
+function generateCaption(template: CaptionTemplate, mealContent: MealContent, persona: string): string {
+  let caption = template.template_text
+
+  // Simple variable replacement based on meal content
+  const replacements: Record<string, string> = {
+    meal: mealContent.meal_type,
+    ingredient: mealContent.ingredients[0] || 'healthy ingredient',
+    ingredient1: mealContent.ingredients[0] || 'protein',
+    ingredient2: mealContent.ingredients[1] || 'fiber',
+    nutrients: mealContent.ingredients.slice(0, 2).join(' and '),
+    benefit: 'sustained energy and nutrition',
+    meal_time: mealContent.meal_type === 'breakfast' ? 'starting the day' : 
+              mealContent.meal_type === 'lunch' ? 'midday fuel' : 'evening nourishment'
+  }
+
+  // Replace variables in template
+  template.variables?.forEach(variable => {
+    const replacement = replacements[variable] || variable
+    caption = caption.replace(`{${variable}}`, replacement)
+  })
+
+  return caption
+}
+
+async function createPost(automationUser: AutomationUser, mealType: string) {
+  try {
+    // Get suitable meal content
+    const { data: mealOptions } = await supabase
+      .from('automation_meal_content')
+      .select('*')
+      .eq('meal_type', mealType)
+      .in('cuisine_type', automationUser.cuisine_specialty)
+      .limit(10)
+
+    if (!mealOptions || mealOptions.length === 0) {
+      console.log(`No meal content found for ${automationUser.name}, meal type: ${mealType}`)
+      return false
+    }
+
+    // Randomly select meal content
+    const selectedMeal = mealOptions[Math.floor(Math.random() * mealOptions.length)]
+
+    // Get caption template
+    const { data: captionOptions } = await supabase
+      .from('automation_captions')
+      .select('*')
+      .eq('meal_type', mealType)
+      .eq('persona_type', automationUser.persona_type)
+      .limit(5)
+
+    if (!captionOptions || captionOptions.length === 0) {
+      console.log(`No caption templates found for ${automationUser.name}`)
+      return false
+    }
+
+    const selectedCaption = captionOptions[Math.floor(Math.random() * captionOptions.length)]
+    const finalCaption = generateCaption(selectedCaption, selectedMeal, automationUser.persona_type)
+
+    // Create the post
+    const { error: postError } = await supabase
+      .from('posts')
+      .insert({
+        author_id: automationUser.user_id,
+        image_url: selectedMeal.image_url,
+        caption: finalCaption,
+        category: mealType
+      })
+
+    if (postError) {
+      console.error(`Error creating post for ${automationUser.name}:`, postError)
+      return false
+    }
+
+    // Log the activity
+    await supabase
+      .from('automation_activity_log')
+      .insert({
+        automation_user_id: automationUser.id,
+        activity_type: 'post'
+      })
+
+    console.log(`✅ Created post for ${automationUser.name} (${mealType})`)
+    return true
+
+  } catch (error) {
+    console.error(`Error in createPost for ${automationUser.name}:`, error)
+    return false
+  }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
+  }
+
+  try {
+    console.log('🤖 Running automation posting bot...')
+
+    // Get all active automation users
+    const { data: automationUsers, error: usersError } = await supabase
+      .from('automation_users')
+      .select('*')
+      .eq('is_active', true)
+
+    if (usersError) {
+      throw usersError
+    }
+
+    if (!automationUsers || automationUsers.length === 0) {
+      return new Response(
+        JSON.stringify({ message: 'No automation users found' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log(`Found ${automationUsers.length} automation users`)
+
+    let postsCreated = 0
+    const results = []
+
+    for (const user of automationUsers) {
+      // Get last post time for this user
+      const { data: lastActivity } = await supabase
+        .from('automation_activity_log')
+        .select('created_at')
+        .eq('automation_user_id', user.id)
+        .eq('activity_type', 'post')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      const postDecision = shouldPostNow(user.timezone, lastActivity?.created_at)
+      
+      if (postDecision.shouldPost && postDecision.mealType) {
+        const success = await createPost(user, postDecision.mealType)
+        if (success) {
+          postsCreated++
+          results.push({ user: user.name, mealType: postDecision.mealType, success: true })
+        } else {
+          results.push({ user: user.name, mealType: postDecision.mealType, success: false })
+        }
+      } else {
+        console.log(`⏭️ Skipping ${user.name} (timezone: ${user.timezone}, hour: ${getLocalTimeHour(user.timezone)})`)
+      }
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: `Posting automation completed`,
+        stats: {
+          total_users: automationUsers.length,
+          posts_created: postsCreated,
+          results
+        }
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
+    )
+
+  } catch (error) {
+    console.error('Error in automation posting bot:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      }
+    )
+  }
+})
