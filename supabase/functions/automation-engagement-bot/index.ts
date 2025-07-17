@@ -153,38 +153,33 @@ async function commentOnPost(automationUser: AutomationUser, post: CommunityPost
     // Analyze post content
     const postTags = analyzePostContent(post)
     
-    // Find suitable comment template
+    // Find suitable comment template for this specific bot
     const { data: commentTemplates } = await supabase
       .from('automation_comments')
       .select('*')
+      .eq('bot_identifier', automationUser.persona_type)
       .eq('persona_type', automationUser.persona_type)
-      .limit(20)
 
     if (!commentTemplates || commentTemplates.length === 0) {
-      console.log(`No comment templates found for ${automationUser.name}`)
+      console.log(`No comment templates found for bot ${automationUser.name} (${automationUser.persona_type})`)
       return false
     }
 
-    // Prefer meal identification comments for posts with food context
-    let suitableTemplates = commentTemplates.filter(template => 
-      template.comment_type === 'meal_identification' &&
+    // Prefer templates that match the post context  
+    let suitableTemplates = commentTemplates.filter(template =>
       template.context_tags.some((tag: string) => postTags.includes(tag))
     )
 
-    // Fallback to any suitable template
+    // If no matching context, use any template from this bot's collection
     if (suitableTemplates.length === 0) {
-      suitableTemplates = commentTemplates.filter(template =>
-        template.context_tags.some((tag: string) => postTags.includes(tag))
-      )
+      suitableTemplates = commentTemplates
     }
 
-    // Final fallback to any template
-    if (suitableTemplates.length === 0) {
-      suitableTemplates = commentTemplates.slice(0, 5)
-    }
-
+    // Select a random template from the bot's specific collection
     const selectedTemplate = suitableTemplates[Math.floor(Math.random() * suitableTemplates.length)]
-    const commentText = generateMealIdentificationComment(post, selectedTemplate)
+    
+    // Use the template text directly (no more placeholder replacement needed)
+    const commentText = selectedTemplate.template_text
 
     // Create comment
     const { error } = await supabase
