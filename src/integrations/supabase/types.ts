@@ -195,7 +195,7 @@ export type Database = {
           cuisine_type: string
           dietary_tags: string[] | null
           id: string
-          image_url: string
+          image_url: string | null
           ingredients: string[] | null
           meal_type: string
         }
@@ -204,7 +204,7 @@ export type Database = {
           cuisine_type: string
           dietary_tags?: string[] | null
           id?: string
-          image_url: string
+          image_url?: string | null
           ingredients?: string[] | null
           meal_type: string
         }
@@ -213,7 +213,7 @@ export type Database = {
           cuisine_type?: string
           dietary_tags?: string[] | null
           id?: string
-          image_url?: string
+          image_url?: string | null
           ingredients?: string[] | null
           meal_type?: string
         }
