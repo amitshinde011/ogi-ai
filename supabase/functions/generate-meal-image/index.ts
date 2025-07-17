@@ -38,8 +38,8 @@ serve(async (req) => {
 
     console.log(`Selected recipe: ${recipe.name} (${recipe.category})`);
     
-    // Generate image using OpenAI
-    const imageUrl = await generateImageWithOpenAI(recipe);
+    // Generate image using Google AI Studio
+    const imageUrl = await generateImageWithGoogleAI(recipe);
     
     return new Response(JSON.stringify({ 
       imageUrl,
@@ -93,51 +93,63 @@ async function getRandomRecipe(mealType: string): Promise<Recipe | null> {
   return allRecipes[randomIndex];
 }
 
-async function generateImageWithOpenAI(recipe: Recipe): Promise<string> {
-  const apiKey = Deno.env.get('OPENAI_API_KEY');
+async function generateImageWithGoogleAI(recipe: Recipe): Promise<string> {
+  const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY');
   if (!apiKey) {
-    console.error('❌ OpenAI API key not configured');
-    throw new Error('OpenAI API key not configured');
+    console.error('❌ Google AI Studio API key not configured');
+    throw new Error('Google AI Studio API key not configured');
   }
   
-  console.log('🔑 OpenAI API key is configured');
+  console.log('🔑 Google AI Studio API key is configured');
 
   // Create a realistic mobile photography prompt
-  const prompt = `A mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients visible: ${recipe.ingredients.substring(0, 200)}`;
+  const prompt = `Generate a realistic mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients visible: ${recipe.ingredients.substring(0, 200)}`;
 
   console.log('Generated prompt:', prompt);
 
-  // Use OpenAI's image generation API
-  const response = await fetch('https://api.openai.com/v1/images/generations', {
+  // Use Google AI Studio's image generation API
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'dall-e-3',
-      prompt: prompt,
-      n: 1,
-      size: '1024x1024',
-      quality: 'standard'
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }],
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"]
+      }
     })
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('OpenAI API error:', errorText);
-    throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
+    console.error('Google AI Studio API error:', errorText);
+    throw new Error(`Google AI Studio API error: ${response.status} ${errorText}`);
   }
 
   const data = await response.json();
-  console.log('OpenAI response received');
+  console.log('Google AI Studio response received');
 
-  if (!data.data || !data.data[0] || !data.data[0].url) {
-    console.error('No image data in response:', JSON.stringify(data, null, 2));
-    throw new Error('No image generated from OpenAI');
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+    console.error('No content in response:', JSON.stringify(data, null, 2));
+    throw new Error('No content generated from Google AI Studio');
   }
 
-  const imageUrl = data.data[0].url;
+  // Find the image part in the response
+  const imagePart = data.candidates[0].content.parts.find((part: any) => part.inlineData);
+  if (!imagePart || !imagePart.inlineData || !imagePart.inlineData.data) {
+    console.error('No image data in response:', JSON.stringify(data, null, 2));
+    throw new Error('No image generated from Google AI Studio');
+  }
+
+  // Convert base64 to blob URL (you may want to upload this to storage instead)
+  const base64Data = imagePart.inlineData.data;
+  const imageUrl = `data:${imagePart.inlineData.mimeType};base64,${base64Data}`;
+  
   console.log('✅ Successfully generated image for recipe:', recipe.name);
   return imageUrl;
 }
