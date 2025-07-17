@@ -40,12 +40,12 @@ function getLocalTimeHour(timezone: string): number {
   }
 }
 
-function shouldPostNow(timezone: string, lastPostTime?: string): { shouldPost: boolean, mealType?: string } {
+function shouldPostNow(timezone: string, lastPostTime?: string, isManualTrigger = false): { shouldPost: boolean, mealType?: string } {
   const hour = getLocalTimeHour(timezone)
   const now = new Date()
   
-  // Check if already posted in the last 1 hour (reduced cooldown)
-  if (lastPostTime) {
+  // Check if already posted in the last 1 hour (reduced cooldown) - skip for manual triggers
+  if (!isManualTrigger && lastPostTime) {
     const lastPost = new Date(lastPostTime)
     const hoursSinceLastPost = (now.getTime() - lastPost.getTime()) / (1000 * 60 * 60)
     if (hoursSinceLastPost < 1) {
@@ -217,7 +217,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('🤖 Running automation posting bot...')
+    // Check if this is a manual trigger
+    const requestBody = req.method === 'POST' ? await req.json().catch(() => ({})) : {}
+    const isManualTrigger = requestBody?.manual_trigger === true
+    
+    console.log(`🤖 Running automation posting bot... ${isManualTrigger ? '(Manual trigger)' : '(Scheduled)'}`)
 
     // Get all active automation users
     const { data: automationUsers, error: usersError } = await supabase
@@ -252,7 +256,7 @@ Deno.serve(async (req) => {
         .limit(1)
         .single()
 
-      const postDecision = shouldPostNow(user.timezone, lastActivity?.created_at)
+      const postDecision = shouldPostNow(user.timezone, lastActivity?.created_at, isManualTrigger)
       
       if (postDecision.shouldPost && postDecision.mealType) {
         const success = await createPost(user, postDecision.mealType)
