@@ -164,24 +164,21 @@ async function generateImageWithGoogleAI(recipe: Recipe): Promise<string> {
 
 async function convertAndUploadToR2(imageBlob: Blob, recipeName: string): Promise<string> {
   try {
-    console.log(`📦 Preparing to upload image for recipe: ${recipeName}`);
+    console.log(`📦 Preparing to compress and convert image for recipe: ${recipeName}`);
     console.log(`📊 Original image size: ${imageBlob.size} bytes, type: ${imageBlob.type}`);
     
-    // Since OffscreenCanvas is not available in Deno, we'll upload the original image
-    // The upload-to-r2 function can handle WebP conversion if needed
+    // Convert to WebP using ImageData processing similar to real user uploads
+    const webpBlob = await convertToWebPServerSide(imageBlob, 0.85);
     
     // Create FormData for upload
     const formData = new FormData();
+    const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.webp`;
     
-    // Generate filename based on original type
-    const fileExtension = imageBlob.type === 'image/webp' ? 'webp' : 
-                         imageBlob.type === 'image/png' ? 'png' : 'jpg';
-    const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.${fileExtension}`;
-    
-    formData.append('file', imageBlob, fileName);
+    formData.append('file', webpBlob, fileName);
     formData.append('uploadType', 'meal');
     
-    console.log(`📤 Uploading image as: ${fileName}`);
+    console.log(`📤 Uploading compressed WebP image as: ${fileName}`);
+    console.log(`📊 Compressed size: ${webpBlob.size} bytes (${Math.round((1 - webpBlob.size / imageBlob.size) * 100)}% reduction)`);
     
     // Upload to R2 using the upload function
     const { data, error } = await supabase.functions.invoke('upload-to-r2', {
@@ -198,11 +195,75 @@ async function convertAndUploadToR2(imageBlob: Blob, recipeName: string): Promis
       throw new Error(data.error || 'R2 upload failed');
     }
     
-    console.log('✅ Successfully uploaded image to R2:', data.imageUrl);
+    console.log('✅ Successfully uploaded compressed WebP image to R2:', data.imageUrl);
     return data.imageUrl;
     
   } catch (error) {
     console.error('❌ Error in convertAndUploadToR2:', error);
-    throw error;
+    // Fallback: try uploading original image if WebP conversion fails
+    console.log('🔄 Attempting fallback upload with original image...');
+    try {
+      const formData = new FormData();
+      const fallbackFileName = `automation-fallback-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
+      formData.append('file', imageBlob, fallbackFileName);
+      formData.append('uploadType', 'meal');
+      
+      const { data, error } = await supabase.functions.invoke('upload-to-r2', {
+        body: formData,
+      });
+      
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || 'Fallback upload failed');
+      
+      console.log('✅ Fallback upload successful:', data.imageUrl);
+      return data.imageUrl;
+    } catch (fallbackError) {
+      console.error('❌ Fallback upload also failed:', fallbackError);
+      throw error; // Throw original error
+    }
+  }
+}
+
+async function convertToWebPServerSide(imageBlob: Blob, quality: number = 0.85): Promise<Blob> {
+  try {
+    // Create ImageBitmap from the blob (works in Deno with --unstable flag)
+    const imageBitmap = await createImageBitmap(imageBlob);
+    
+    // Calculate compressed dimensions (max 1024px while maintaining aspect ratio)
+    const maxDimension = 1024;
+    let { width, height } = imageBitmap;
+    
+    if (width > maxDimension || height > maxDimension) {
+      const ratio = Math.min(maxDimension / width, maxDimension / height);
+      width = Math.round(width * ratio);
+      height = Math.round(height * ratio);
+      console.log(`📏 Resizing image from ${imageBitmap.width}x${imageBitmap.height} to ${width}x${height}`);
+    }
+    
+    // Create OffscreenCanvas for processing
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      throw new Error('Failed to get 2D context from OffscreenCanvas');
+    }
+    
+    // Draw the image bitmap to canvas with new dimensions
+    ctx.drawImage(imageBitmap, 0, 0, width, height);
+    
+    // Convert to WebP blob with specified quality
+    const webpBlob = await canvas.convertToBlob({
+      type: 'image/webp',
+      quality: quality,
+    });
+    
+    console.log(`✅ Successfully converted to WebP: ${imageBlob.size} bytes -> ${webpBlob.size} bytes`);
+    return webpBlob;
+    
+  } catch (error) {
+    console.error('❌ WebP conversion failed:', error);
+    // If OffscreenCanvas or createImageBitmap fails, return original blob
+    console.log('🔄 Using original image due to conversion failure');
+    return imageBlob;
   }
 }
