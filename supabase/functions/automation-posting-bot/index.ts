@@ -106,35 +106,33 @@ async function generateAndUploadMealImage(automationUser: AutomationUser, mealCo
   } catch (error) {
     console.error(`Error generating image for ${automationUser.name}:`, error)
     // Fallback to a generic food placeholder
-    return `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop&crop=center`
+    return `https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop`
   }
 }
 
 function generatePlaceholderImageUrl(mealContent: MealContent, mealType: string): string {
-  // Use Unsplash for high-quality food photos with specific search terms
-  const baseUrl = 'https://images.unsplash.com/'
-  
-  // Map meal types and cuisines to appropriate search terms
+  // Use working Unsplash URLs with proper format
   const searchTerms: Record<string, Record<string, string>> = {
     indian: {
-      breakfast: 'photo-1586201375761-83865001e31c', // Indian breakfast
-      lunch: 'photo-1565299624946-b28f40a0ca4b', // Indian curry
-      dinner: 'photo-1627662056862-9eb8705b8a77', // Indian dinner
-      snack: 'photo-1599487488170-d11ec9c172f0' // Indian snacks
+      breakfast: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=800&h=600&fit=crop',
+      lunch: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop',
+      dinner: 'https://images.unsplash.com/photo-1627662056862-9eb8705b8a77?w=800&h=600&fit=crop',
+      snack: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=800&h=600&fit=crop'
     },
     mediterranean: {
-      breakfast: 'photo-1533089860892-a7c6f0a88666', // Mediterranean breakfast
-      lunch: 'photo-1565299585323-38174c5ab96e', // Mediterranean salad
-      dinner: 'photo-1565958011703-44f9829ba187', // Mediterranean dinner
-      snack: 'photo-1551782450-a2132b4ba21d' // Mediterranean snacks
+      breakfast: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&h=600&fit=crop',
+      lunch: 'https://images.unsplash.com/photo-1565299585323-38174c5ab96e?w=800&h=600&fit=crop',
+      dinner: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&h=600&fit=crop',
+      snack: 'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=800&h=600&fit=crop'
     }
   }
   
   // Get cuisine-specific photo or fallback to generic food photos
   const cuisine = mealContent.cuisine_type.toLowerCase()
-  const photoId = searchTerms[cuisine]?.[mealType] || searchTerms.indian[mealType] || 'photo-1565299624946-b28f40a0ca4b'
+  const imageUrl = searchTerms[cuisine]?.[mealType] || searchTerms.indian[mealType] || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop'
   
-  return `${baseUrl}${photoId}?w=800&h=600&fit=crop&crop=center`
+  console.log(`Generated image URL for ${cuisine} ${mealType}: ${imageUrl}`)
+  return imageUrl
 }
 
 // Removed the OffscreenCanvas-based image generation functions as they're not supported in Deno Edge Functions
