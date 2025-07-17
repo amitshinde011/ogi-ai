@@ -1,0 +1,39 @@
+name: Setup Automation Users and Content
+on:
+  workflow_dispatch:  # Manual trigger only
+    inputs:
+      setup_users:
+        description: 'Create automation users'
+        required: true
+        default: 'true'
+        type: boolean
+      populate_content:
+        description: 'Populate content library'
+        required: true
+        default: 'true'
+        type: boolean
+
+jobs:
+  setup-automation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create automation users
+        if: ${{ github.event.inputs.setup_users == 'true' }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            https://mxigbftmmkqnhmocyeeo.supabase.co/functions/v1/create-automation-users
+        continue-on-error: true
+      
+      - name: Populate content library
+        if: ${{ github.event.inputs.populate_content == 'true' }}
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            https://mxigbftmmkqnhmocyeeo.supabase.co/functions/v1/populate-content-library
+        continue-on-error: true
+      
+      - name: Log setup completion
+        run: echo "Automation setup completed at $(date)"
