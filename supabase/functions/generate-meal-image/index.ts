@@ -146,10 +146,82 @@ async function generateImageWithGoogleAI(recipe: Recipe): Promise<string> {
     throw new Error('No image generated from Google AI Studio');
   }
 
-  // Convert base64 to blob URL (you may want to upload this to storage instead)
   const base64Data = imagePart.inlineData.data;
-  const imageUrl = `data:${imagePart.inlineData.mimeType};base64,${base64Data}`;
+  const mimeType = imagePart.inlineData.mimeType;
   
-  console.log('✅ Successfully generated image for recipe:', recipe.name);
-  return imageUrl;
+  console.log('✅ Generated AI image, now converting to WebP and uploading to R2...');
+  
+  // Convert base64 to blob
+  const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+  const imageBlob = new Blob([imageBytes], { type: mimeType });
+  
+  // Convert to WebP and upload to R2
+  const uploadedImageUrl = await convertAndUploadToR2(imageBlob, recipe.name);
+  
+  console.log('✅ Successfully generated and uploaded image for recipe:', recipe.name);
+  return uploadedImageUrl;
+}
+
+async function convertAndUploadToR2(imageBlob: Blob, recipeName: string): Promise<string> {
+  try {
+    // Convert to WebP using canvas
+    const webpBlob = await convertToWebP(imageBlob);
+    
+    // Create FormData for upload
+    const formData = new FormData();
+    const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.webp`;
+    formData.append('file', webpBlob, fileName);
+    formData.append('uploadType', 'meal');
+    
+    // Upload to R2 using the upload function
+    const { data, error } = await supabase.functions.invoke('upload-to-r2', {
+      body: formData,
+    });
+    
+    if (error) {
+      console.error('Error uploading to R2:', error);
+      throw new Error(`R2 upload failed: ${error.message}`);
+    }
+    
+    if (!data.success || !data.imageUrl) {
+      console.error('R2 upload unsuccessful:', data);
+      throw new Error(data.error || 'R2 upload failed');
+    }
+    
+    console.log('✅ Successfully uploaded WebP image to R2:', data.imageUrl);
+    return data.imageUrl;
+    
+  } catch (error) {
+    console.error('Error in convertAndUploadToR2:', error);
+    throw error;
+  }
+}
+
+async function convertToWebP(imageBlob: Blob): Promise<Blob> {
+  // Create a canvas and context
+  const canvas = new OffscreenCanvas(1024, 1024);
+  const ctx = canvas.getContext('2d');
+  
+  if (!ctx) {
+    throw new Error('Failed to get canvas context');
+  }
+  
+  // Create image bitmap from blob
+  const imageBitmap = await createImageBitmap(imageBlob);
+  
+  // Set canvas size to match image
+  canvas.width = imageBitmap.width;
+  canvas.height = imageBitmap.height;
+  
+  // Draw image to canvas
+  ctx.drawImage(imageBitmap, 0, 0);
+  
+  // Convert to WebP with 85% quality
+  const webpBlob = await canvas.convertToBlob({
+    type: 'image/webp',
+    quality: 0.85,
+  });
+  
+  console.log(`✅ Converted image to WebP: ${imageBlob.size} bytes -> ${webpBlob.size} bytes`);
+  return webpBlob;
 }
