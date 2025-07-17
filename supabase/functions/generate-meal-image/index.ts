@@ -224,7 +224,7 @@ async function convertAndUploadToR2(imageBlob: Blob, recipeName: string): Promis
   }
 }
 
-async function convertToWebPServerSide(imageBlob: Blob, quality: number = 0.85): Promise<Blob> {
+async function convertToWebPServerSide(imageBlob, quality = 0.85) {
   try {
     // Create ImageBitmap from the blob (works in Deno with --unstable flag)
     const imageBitmap = await createImageBitmap(imageBlob);
@@ -232,7 +232,6 @@ async function convertToWebPServerSide(imageBlob: Blob, quality: number = 0.85):
     // Calculate compressed dimensions (max 1024px while maintaining aspect ratio)
     const maxDimension = 1024;
     let { width, height } = imageBitmap;
-    
     if (width > maxDimension || height > maxDimension) {
       const ratio = Math.min(maxDimension / width, maxDimension / height);
       width = Math.round(width * ratio);
@@ -243,23 +242,27 @@ async function convertToWebPServerSide(imageBlob: Blob, quality: number = 0.85):
     // Create OffscreenCanvas for processing
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
-    
     if (!ctx) {
       throw new Error('Failed to get 2D context from OffscreenCanvas');
     }
     
     // Draw the image bitmap to canvas with new dimensions
     ctx.drawImage(imageBitmap, 0, 0, width, height);
-    
+
+    // 💡 FIX: Force canvas data to RGBA format before encoding.
+    // This step reads the pixel data into a standard RGBA buffer and writes it back.
+    const imageData = ctx.getImageData(0, 0, width, height);
+    ctx.putImageData(imageData, 0, 0);
+
     // Convert to WebP blob with specified quality
     const webpBlob = await canvas.convertToBlob({
       type: 'image/webp',
-      quality: quality,
+      quality: quality
     });
     
     console.log(`✅ Successfully converted to WebP: ${imageBlob.size} bytes -> ${webpBlob.size} bytes`);
     return webpBlob;
-    
+
   } catch (error) {
     console.error('❌ WebP conversion failed:', error);
     // If OffscreenCanvas or createImageBitmap fails, return original blob
