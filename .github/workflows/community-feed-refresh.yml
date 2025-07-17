@@ -1,0 +1,20 @@
+name: Community Feed Refresh
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  refresh-community-feed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger community feed refresh
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            https://mxigbftmmkqnhmocyeeo.supabase.co/functions/v1/refresh-community-feed
+        continue-on-error: true
+      
+      - name: Log feed refresh execution
+        run: echo "Community feed refreshed at $(date)"
