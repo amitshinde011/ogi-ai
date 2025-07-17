@@ -164,6 +164,7 @@ export type Database = {
       }
       automation_comments: {
         Row: {
+          bot_identifier: string
           comment_type: string
           context_tags: string[] | null
           created_at: string | null
@@ -172,6 +173,7 @@ export type Database = {
           template_text: string
         }
         Insert: {
+          bot_identifier?: string
           comment_type: string
           context_tags?: string[] | null
           created_at?: string | null
@@ -180,6 +182,7 @@ export type Database = {
           template_text: string
         }
         Update: {
+          bot_identifier?: string
           comment_type?: string
           context_tags?: string[] | null
           created_at?: string | null
