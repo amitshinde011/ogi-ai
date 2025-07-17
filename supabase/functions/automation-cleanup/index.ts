@@ -104,15 +104,29 @@ async function cleanupAutomationPosts() {
     // Get automation posts older than 5 days
     const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
     
+    // First get all automation user IDs
+    const { data: automationUsers, error: usersError } = await supabase
+      .from('automation_users')
+      .select('user_id, name')
+      .eq('is_active', true)
+    
+    if (usersError) {
+      console.error('❌ Error fetching automation users:', usersError)
+      return { success: false, error: usersError.message }
+    }
+
+    if (!automationUsers || automationUsers.length === 0) {
+      console.log('✅ No automation users found')
+      return { success: true, message: 'No automation users found', deleted: 0 }
+    }
+
+    const automationUserIds = automationUsers.map(u => u.user_id)
+    
+    // Get old posts from automation users
     const { data: oldPosts, error: fetchError } = await supabase
       .from('posts')
-      .select(`
-        id,
-        author_id,
-        image_url,
-        created_at,
-        automation_users!inner(name)
-      `)
+      .select('id, author_id, image_url, created_at')
+      .in('author_id', automationUserIds)
       .lt('created_at', fiveDaysAgo)
     
     if (fetchError) {
@@ -133,10 +147,16 @@ async function cleanupAutomationPosts() {
 
     for (const post of oldPosts) {
       try {
-        // Delete image from R2 storage
-        const imageDeleted = await deleteImageFromR2(post.image_url)
-        if (imageDeleted) {
-          deletedImages++
+        // Get the automation user name for logging
+        const automationUser = automationUsers.find(u => u.user_id === post.author_id)
+        const botName = automationUser?.name || 'Unknown Bot'
+
+        // Delete image from R2 storage if it's a Cloudflare image
+        if (post.image_url && post.image_url.includes('assets.yogiai.in')) {
+          const imageDeleted = await deleteImageFromR2(post.image_url)
+          if (imageDeleted) {
+            deletedImages++
+          }
         }
 
         // Delete associated comments first (foreign key constraint)
@@ -183,17 +203,20 @@ async function cleanupAutomationPosts() {
           errors.push(`Post deletion failed for post ${post.id}: ${postError.message}`)
         } else {
           deletedPosts++
-          console.log(`✅ Deleted automation post ${post.id} from ${post.automation_users.name}`)
+          console.log(`✅ Deleted automation post ${post.id} from ${botName}`)
         }
 
         // Log the cleanup activity
-        await supabase
-          .from('automation_activity_log')
-          .insert({
-            automation_user_id: (oldPosts as any).find((p: any) => p.author_id === post.author_id)?.automation_users?.id,
-            activity_type: 'cleanup',
-            target_post_id: post.id
-          })
+        const automationUserRecord = automationUsers.find(u => u.user_id === post.author_id)
+        if (automationUserRecord) {
+          await supabase
+            .from('automation_activity_log')
+            .insert({
+              automation_user_id: automationUserRecord.user_id,
+              activity_type: 'cleanup',
+              target_post_id: post.id
+            })
+        }
 
       } catch (error) {
         console.error(`❌ Error processing post ${post.id}:`, error)
