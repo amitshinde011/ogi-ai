@@ -44,27 +44,27 @@ function shouldPostNow(timezone: string, lastPostTime?: string): { shouldPost: b
   const hour = getLocalTimeHour(timezone)
   const now = new Date()
   
-  // Check if already posted in the last 3 hours
+  // Check if already posted in the last 1 hour (reduced cooldown)
   if (lastPostTime) {
     const lastPost = new Date(lastPostTime)
     const hoursSinceLastPost = (now.getTime() - lastPost.getTime()) / (1000 * 60 * 60)
-    if (hoursSinceLastPost < 3) {
+    if (hoursSinceLastPost < 1) {
       return { shouldPost: false }
     }
   }
 
   // Determine meal time and add randomness
-  const randomOffset = Math.random() * 60 - 30 // ±30 minutes
+  const randomOffset = Math.random() * 30 - 15 // ±15 minutes
   const effectiveHour = hour + randomOffset / 60
 
   if (effectiveHour >= 6 && effectiveHour <= 9) {
-    return { shouldPost: Math.random() > 0.7, mealType: 'breakfast' } // 30% chance
+    return { shouldPost: Math.random() > 0.3, mealType: 'breakfast' } // 70% chance
   } else if (effectiveHour >= 12 && effectiveHour <= 14) {
-    return { shouldPost: Math.random() > 0.6, mealType: 'lunch' } // 40% chance
+    return { shouldPost: Math.random() > 0.2, mealType: 'lunch' } // 80% chance
   } else if (effectiveHour >= 18 && effectiveHour <= 20) {
-    return { shouldPost: Math.random() > 0.5, mealType: 'dinner' } // 50% chance
+    return { shouldPost: Math.random() > 0.1, mealType: 'dinner' } // 90% chance
   } else if (effectiveHour >= 15 && effectiveHour <= 17) {
-    return { shouldPost: Math.random() > 0.9, mealType: 'snack' } // 10% chance
+    return { shouldPost: Math.random() > 0.7, mealType: 'snack' } // 30% chance
   }
 
   return { shouldPost: false }
