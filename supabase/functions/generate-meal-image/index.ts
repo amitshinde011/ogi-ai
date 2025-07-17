@@ -226,17 +226,16 @@ async function convertAndUploadToR2(imageBlob: Blob, recipeName: string): Promis
 
 async function convertToWebPServerSide(imageBlob, quality = 0.85) {
   try {
-    // Create ImageBitmap from the blob (works in Deno with --unstable flag)
+    // Create ImageBitmap from the blob
     const imageBitmap = await createImageBitmap(imageBlob);
     
-    // Calculate compressed dimensions (max 1024px while maintaining aspect ratio)
+    // Calculate compressed dimensions
     const maxDimension = 1024;
     let { width, height } = imageBitmap;
     if (width > maxDimension || height > maxDimension) {
       const ratio = Math.min(maxDimension / width, maxDimension / height);
       width = Math.round(width * ratio);
       height = Math.round(height * ratio);
-      console.log(`📏 Resizing image from ${imageBitmap.width}x${imageBitmap.height} to ${width}x${height}`);
     }
     
     // Create OffscreenCanvas for processing
@@ -246,26 +245,26 @@ async function convertToWebPServerSide(imageBlob, quality = 0.85) {
       throw new Error('Failed to get 2D context from OffscreenCanvas');
     }
     
-    // Draw the image bitmap to canvas with new dimensions
+    // Draw the image bitmap to the canvas
     ctx.drawImage(imageBitmap, 0, 0, width, height);
 
     // 💡 FIX: Force canvas data to RGBA format before encoding.
-    // This step reads the pixel data into a standard RGBA buffer and writes it back.
+    // This cycle reads the pixel data into a standard RGBA buffer and writes it back.
     const imageData = ctx.getImageData(0, 0, width, height);
     ctx.putImageData(imageData, 0, 0);
 
-    // Convert to WebP blob with specified quality
+    // Now, convert to a WebP blob with the corrected buffer
     const webpBlob = await canvas.convertToBlob({
       type: 'image/webp',
       quality: quality
     });
     
-    console.log(`✅ Successfully converted to WebP: ${imageBlob.size} bytes -> ${webpBlob.size} bytes`);
+    console.log(`✅ Successfully converted to WebP.`);
     return webpBlob;
 
   } catch (error) {
     console.error('❌ WebP conversion failed:', error);
-    // If OffscreenCanvas or createImageBitmap fails, return original blob
+    // Fallback to original image if conversion fails
     console.log('🔄 Using original image due to conversion failure');
     return imageBlob;
   }
