@@ -65,10 +65,10 @@ async function getRandomRecipe(mealType: string): Promise<Recipe | null> {
     .from('recipes')
     .select('id, name, ingredients, category, instructions');
 
-  // Apply filters based on mealType
+  // Apply filters based on mealType using actual database categories
   if (mealType === 'breakfast') {
-    // Get breakfast appropriate recipes (changed from just Salads)
-    query = query.in('category', ['Breakfast', 'Salads', 'Smoothies']);
+    // Get breakfast appropriate recipes using actual category names
+    query = query.in('category', ['Breads & Breakfast Dishes', 'Salads', 'Beverages']);
   } else {
     // For lunch, dinner, or any other type - exclude desserts
     query = query.not('category', 'eq', 'Sweets & Desserts');
@@ -89,6 +89,7 @@ async function getRandomRecipe(mealType: string): Promise<Recipe | null> {
   
   // Pick a random recipe from the results
   const randomIndex = Math.floor(Math.random() * allRecipes.length);
+  console.log(`Found ${allRecipes.length} recipes for ${mealType}, selected: ${allRecipes[randomIndex].name}`);
   return allRecipes[randomIndex];
 }
 
