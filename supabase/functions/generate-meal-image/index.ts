@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { ImagePool } from 'https://esm.sh/@squoosh/lib@0.6.0';
+import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -181,61 +181,46 @@ async function convertAndUploadToR2(imageBlob, recipeName) {
 }
 
 async function convertToWebPServerSide(imageBlob, quality = 85) {
-  // Use a new ImagePool for each conversion to ensure clean state
-  const imagePool = new ImagePool();
-
   try {
-    console.log('📦 Converting image with Squoosh...');
+    console.log('📦 Converting image with ImageScript...');
     
-    // Ingest the image from the blob
-    const image = imagePool.ingestImage(await imageBlob.arrayBuffer());
-
-    // Get original dimensions for resizing
-    const { width: originalWidth, height: originalHeight } = await image.decoded;
+    // Convert blob to array buffer
+    const arrayBuffer = await imageBlob.arrayBuffer();
+    
+    // Load image with ImageScript
+    const image = await Image.decode(new Uint8Array(arrayBuffer));
+    
+    // Get original dimensions
+    const originalWidth = image.width;
+    const originalHeight = image.height;
     const maxDimension = 1024;
-    let newWidth = originalWidth;
-    let newHeight = originalHeight;
-
-    // Calculate new dimensions while maintaining aspect ratio
+    
+    let resizedImage = image;
+    
+    // Resize if necessary while maintaining aspect ratio
     if (originalWidth > maxDimension || originalHeight > maxDimension) {
       const ratio = Math.min(maxDimension / originalWidth, maxDimension / originalHeight);
-      newWidth = Math.round(originalWidth * ratio);
-      newHeight = Math.round(originalHeight * ratio);
+      const newWidth = Math.round(originalWidth * ratio);
+      const newHeight = Math.round(originalHeight * ratio);
+      
       console.log(`📏 Resizing image from ${originalWidth}x${originalHeight} to ${newWidth}x${newHeight}`);
+      resizedImage = image.resize(newWidth, newHeight);
     }
-
-    // Preprocess the image (resize)
-    await image.preprocess({
-      resize: {
-        enabled: true,
-        width: newWidth,
-        height: newHeight,
-      },
-    });
-
-    // Encode the image to WebP format
-    await image.encode({
-      webp: {
-        quality: quality,
-      },
-    });
-
-    // Get the raw binary data of the converted image
-    const { binary } = await image.encodedWith.webp;
     
-    // Create a new blob from the WebP data
-    const webpBlob = new Blob([binary], { type: 'image/webp' });
-
-    console.log(`✅ Successfully converted to WebP with Squoosh`);
+    // Encode to WebP format
+    const webpBuffer = await resizedImage.encodeWebP(quality);
+    
+    // Create blob from the WebP data
+    const webpBlob = new Blob([webpBuffer], { type: 'image/webp' });
+    
+    console.log(`✅ Successfully converted to WebP with ImageScript`);
+    console.log(`📊 Original size: ${arrayBuffer.byteLength} bytes | WebP size: ${webpBuffer.byteLength} bytes`);
+    
     return webpBlob;
 
   } catch (error) {
-    console.error('❌ Squoosh conversion failed:', error);
+    console.error('❌ ImageScript conversion failed:', error);
     console.log('🔄 Using original image due to conversion failure');
     return imageBlob; // Fallback to the original image
-    
-  } finally {
-    // IMPORTANT: Always close the image pool to free up memory
-    await imagePool.close();
   }
 }
