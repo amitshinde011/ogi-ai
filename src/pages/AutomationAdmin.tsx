@@ -3,10 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, Play, Users, BarChart3, Database, RefreshCw } from 'lucide-react';
+import { AlertCircle, Play, Users, BarChart3, Database, RefreshCw, Download } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { convertToWebP } from '@/utils/imageConversion';
+import { toast } from 'sonner';
 
 interface AutomationStats {
   activeUsers: number;
@@ -29,7 +31,9 @@ export default function AutomationAdmin() {
   const [stats, setStats] = useState<AutomationStats | null>(null);
   const [users, setUsers] = useState<AutomationUser[]>([]);
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  const [converting, setConverting] = useState(false);
+  const [jpegPosts, setJpegPosts] = useState<any[]>([]);
+  const { toast: useToastHook } = useToast();
 
   const fetchStats = async () => {
     try {
@@ -56,6 +60,13 @@ export default function AutomationAdmin() {
         .order('created_at', { ascending: false })
         .limit(1);
 
+      // Fetch JPEG posts for conversion
+      const { data: jpegPostsData } = await supabase
+        .from('posts')
+        .select('*')
+        .like('image_url', '%.jpg')
+        .order('created_at', { ascending: false });
+
       setStats({
         activeUsers: activeUsersData?.length || 0,
         totalPosts: totalPostsData?.length || 0,
@@ -66,9 +77,10 @@ export default function AutomationAdmin() {
       });
 
       setUsers(activeUsersData || []);
+      setJpegPosts(jpegPostsData || []);
     } catch (error) {
       console.error('Error fetching stats:', error);
-      toast({
+      useToastHook({
         title: "Error",
         description: "Failed to fetch automation statistics",
         variant: "destructive"
@@ -83,7 +95,7 @@ export default function AutomationAdmin() {
       const { error } = await supabase.functions.invoke(functionName, { body });
       if (error) throw error;
       
-      toast({
+      useToastHook({
         title: "Success",
         description: `${functionName} triggered successfully`,
       });
@@ -92,13 +104,87 @@ export default function AutomationAdmin() {
       setTimeout(fetchStats, 2000);
     } catch (error) {
       console.error(`Error triggering ${functionName}:`, error);
-      toast({
+      useToastHook({
         title: "Error",
         description: `Failed to trigger ${functionName}`,
         variant: "destructive"
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const convertJpegToWebP = async () => {
+    if (jpegPosts.length === 0) {
+      toast("No JPEG images found to convert");
+      return;
+    }
+
+    setConverting(true);
+    let converted = 0;
+    let failed = 0;
+
+    try {
+      for (const post of jpegPosts) {
+        try {
+          console.log(`Converting post ${post.id}: ${post.image_url}`);
+          
+          // Fetch the JPEG image
+          const response = await fetch(post.image_url);
+          if (!response.ok) throw new Error(`Failed to fetch image: ${response.status}`);
+          
+          const blob = await response.blob();
+          
+          // Convert to WebP
+          const file = new File([blob], 'temp.jpg', { type: blob.type });
+          const webpFile = await convertToWebP(file, 0.8);
+          
+          // Generate new filename
+          const originalFilename = post.image_url.split('/').pop();
+          const webpFilename = originalFilename?.replace(/\.(jpg|jpeg)$/i, '.webp') || `converted-${Date.now()}.webp`;
+          
+          // Upload WebP version
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('bot-posts')
+            .upload(webpFilename, webpFile, {
+              contentType: 'image/webp',
+              cacheControl: '3600'
+            });
+
+          if (uploadError) throw uploadError;
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('bot-posts')
+            .getPublicUrl(webpFilename);
+
+          // Update post with WebP URL
+          const { error: updateError } = await supabase
+            .from('posts')
+            .update({ image_url: publicUrl })
+            .eq('id', post.id);
+
+          if (updateError) throw updateError;
+
+          converted++;
+          console.log(`✅ Converted post ${post.id} to WebP`);
+          
+        } catch (error) {
+          console.error(`❌ Failed to convert post ${post.id}:`, error);
+          failed++;
+        }
+      }
+
+      toast(`Conversion complete: ${converted} succeeded, ${failed} failed`);
+      
+      // Refresh data
+      fetchStats();
+      
+    } catch (error) {
+      console.error('Conversion process error:', error);
+      toast("Conversion process failed");
+    } finally {
+      setConverting(false);
     }
   };
 
@@ -112,7 +198,7 @@ export default function AutomationAdmin() {
       // Then populate content
       await supabase.functions.invoke('populate-content-library');
       
-      toast({
+      useToastHook({
         title: "Success",
         description: "Automation system setup completed",
       });
@@ -120,7 +206,7 @@ export default function AutomationAdmin() {
       setTimeout(fetchStats, 3000);
     } catch (error) {
       console.error('Error setting up automation:', error);
-      toast({
+      useToastHook({
         title: "Error", 
         description: "Failed to setup automation system",
         variant: "destructive"
@@ -264,6 +350,46 @@ export default function AutomationAdmin() {
                   <Play className="h-4 w-4 mr-2" />
                   Trigger Cleanup
                 </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  Image Conversion
+                </CardTitle>
+                <CardDescription>
+                  Convert existing JPEG images to WebP format
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Badge variant="outline">
+                    {jpegPosts.length} JPEG images found
+                  </Badge>
+                  <Button 
+                    onClick={convertJpegToWebP}
+                    disabled={converting || jpegPosts.length === 0}
+                    variant="default"
+                    className="w-full"
+                  >
+                    {converting ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Converting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Convert to WebP
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  This will convert all JPEG images to WebP format, re-upload them, and update the database records.
+                </p>
               </CardContent>
             </Card>
           </div>

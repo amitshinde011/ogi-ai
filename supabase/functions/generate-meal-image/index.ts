@@ -65,34 +65,6 @@ async function getRandomRecipe(mealType) {
   return allRecipes[randomIndex];
 }
 
-async function convertImageViaWorker(imageBlob) {
-  const WORKER_URL = 'https://image-converter-worker.amitshinde011.workers.dev';
-  
-  try {
-    console.log('🔄 Converting JPEG to WebP via Cloudflare Worker...');
-    
-    const response = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': imageBlob.type,
-      },
-      body: imageBlob,
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Cloudflare Worker failed: ${errorText}`);
-    }
-
-    const webpBlob = await response.blob();
-    console.log('✅ Successfully converted to WebP via Cloudflare Worker');
-    return webpBlob;
-    
-  } catch (error) {
-    console.error('❌ WebP conversion failed:', error.message);
-    throw error;
-  }
-}
 
 async function generateImageWithGoogleAI(recipe) {
   const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY');
@@ -121,14 +93,8 @@ async function generateImageWithGoogleAI(recipe) {
   const imageBytes = Uint8Array.from(atob(imagePart.inlineData.data), c => c.charCodeAt(0));
   const imageBlob = new Blob([imageBytes], { type: imagePart.inlineData.mimeType });
 
-  // Try to convert to WebP using Cloudflare Worker
-  try {
-    const webpBlob = await convertImageViaWorker(imageBlob);
-    return await convertAndUploadToSupabase(webpBlob, recipe.name, 'webp');
-  } catch (error) {
-    console.log('⚠️ WebP conversion failed, using original JPEG:', error.message);
-    return await convertAndUploadToSupabase(imageBlob, recipe.name, 'jpg');
-  }
+  // Upload original JPEG (WebP conversion will be handled by admin interface)
+  return await convertAndUploadToSupabase(imageBlob, recipe.name, 'jpg');
 }
 
 async function convertAndUploadToSupabase(imageBlob, recipeName, fileExtension = 'jpg') {
