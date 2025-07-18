@@ -124,94 +124,33 @@ async function generateMealImage(automationUser: AutomationUser, mealType: strin
   try {
     console.log(`🎨 Generating AI image for ${automationUser.name} - ${mealType}`)
     
-    // Get random meal content for this meal type
-    const { data: mealContents } = await supabase
-      .from('automation_meal_content')
-      .select('*')
-      .eq('meal_type', mealType)
-      .limit(10)
-
-    if (!mealContents || mealContents.length === 0) {
-      console.error(`❌ No meal content found for ${mealType}`)
-      return null
-    }
-
-    const selectedMeal = mealContents[Math.floor(Math.random() * mealContents.length)]
-
-    // Generate AI image using Google AI Studio
-    const prompt = `A beautiful, appetizing ${mealType} dish featuring ${selectedMeal.ingredients?.join(', ') || 'healthy ingredients'}. ${selectedMeal.cuisine_type} cuisine style. Professional food photography, well-lit, appetizing, restaurant quality.`
-    console.log(`✅ Generated AI image prompt: ${prompt}`)
-    const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY')
-    if (!apiKey) {
-      throw new Error('Google AI Studio API key not configured')
-    }
-
-    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `Generate a realistic food image: ${prompt}`
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-        }
-      })
+    // Call the dedicated generate-meal-image function
+    const { data, error } = await supabase.functions.invoke('generate-meal-image', {
+      body: {
+        mealType: mealType,
+        userId: automationUser.user_id
+      }
     })
 
-    if (!response.ok) {
-      throw new Error(`Google AI Studio API error: ${response.status}`)
+    if (error) {
+      console.error(`❌ Error calling generate-meal-image function:`, error)
+      throw new Error(`generate-meal-image failed: ${error.message}`)
     }
 
-    const result = await response.json()
-    
-    // For this implementation, we'll use a placeholder approach since Google AI Studio 
-    // doesn't directly generate images. Instead, we'll upload the existing image to Supabase storage
-    if (selectedMeal.image_url) {
-      // Download the existing image
-      const imageResponse = await fetch(selectedMeal.image_url)
-      if (!imageResponse.ok) {
-        throw new Error(`Failed to fetch image: ${imageResponse.status}`)
-      }
-      
-      const imageBuffer = await imageResponse.arrayBuffer()
-      const timestamp = Date.now()
-      const fileName = `bot-${automationUser.id}-${mealType}-${timestamp}.jpg`
-      
-      // Upload to Supabase storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('bot-posts')
-        .upload(fileName, imageBuffer, {
-          contentType: 'image/jpeg',
-          upsert: false
-        })
+    if (!data || !data.imageUrl) {
+      console.error(`❌ No image URL returned from generate-meal-image function`)
+      throw new Error('No image URL returned from generate-meal-image function')
+    }
 
-      if (uploadError) {
-        console.error(`❌ Error uploading to Supabase storage:`, uploadError)
-        throw new Error(`Storage upload failed: ${uploadError.message}`)
-      }
-
-      // Get the public URL
-      const { data: urlData } = supabase.storage
-        .from('bot-posts')
-        .getPublicUrl(fileName)
-
-      console.log(`✅ Generated AI image for ${automationUser.name} using meal: ${selectedMeal.id}`)
-      return {
-        imageUrl: urlData.publicUrl,
-        recipe: {
-          id: selectedMeal.id,
-          name: `${selectedMeal.cuisine_type} ${mealType}`,
-          category: selectedMeal.cuisine_type
-        }
+    console.log(`✅ Generated AI image for ${automationUser.name} using meal: ${data.recipe?.id || 'unknown'}`)
+    return {
+      imageUrl: data.imageUrl,
+      recipe: data.recipe || {
+        id: 'generated',
+        name: `${mealType} dish`,
+        category: 'generated'
       }
     }
-    
-    throw new Error('No valid image URL found in meal content')
   } catch (error) {
     console.error(`❌ Error in generateMealImage for ${automationUser.name}:`, error)
     return null
