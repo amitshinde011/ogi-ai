@@ -1,7 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { Image } from "https://deno.land/x/imagescript@1.2.15/mod.ts";
+// ✅ Correctly import Squoosh from npm for deployment
+import { ImagePool } from 'npm:@squoosh/lib@0.6.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,14 +22,12 @@ serve(async (req) => {
     const { mealType, userId } = await req.json();
     console.log(`Generating image for meal type: ${mealType}, user: ${userId}`);
     
-    // Get a random recipe based on meal type
     const recipe = await getRandomRecipe(mealType);
     if (!recipe) {
       throw new Error(`No recipe found for meal type: ${mealType}`);
     }
     console.log(`Selected recipe: ${recipe.name} (${recipe.category})`);
 
-    // Generate image using Google AI Studio
     const imageUrl = await generateImageWithGoogleAI(recipe);
     
     return new Response(JSON.stringify({
@@ -39,21 +38,13 @@ serve(async (req) => {
         category: recipe.category
       }
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error generating meal image:', error);
-    return new Response(JSON.stringify({
-      error: error.message
-    }), {
+    console.error('Error generating meal image:', error.message);
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });
@@ -61,40 +52,25 @@ serve(async (req) => {
 async function getRandomRecipe(mealType) {
   let query = supabase.from('recipes').select('id, name, ingredients, category, instructions');
 
-  // Apply filters based on mealType using actual database categories
   if (mealType === 'breakfast') {
     query = query.in('category', ['Breads & Breakfast Dishes', 'Salads', 'Beverages']);
   } else {
-    // For lunch, dinner, or any other type - exclude desserts
     query = query.not('category', 'eq', 'Sweets & Desserts');
   }
 
-  // Get all matching recipes first, then pick random one
   const { data: allRecipes, error } = await query;
-  if (error) {
-    console.error('Error fetching recipes:', error);
-    return null;
-  }
-  if (!allRecipes || allRecipes.length === 0) {
-    console.error(`No recipes found for meal type: ${mealType}`);
-    return null;
-  }
+  if (error) throw new Error('Error fetching recipes: ' + error.message);
+  if (!allRecipes || allRecipes.length === 0) throw new Error(`No recipes found for meal type: ${mealType}`);
 
-  // Pick a random recipe from the results
   const randomIndex = Math.floor(Math.random() * allRecipes.length);
-  console.log(`Found ${allRecipes.length} recipes for ${mealType}, selected: ${allRecipes[randomIndex].name}`);
   return allRecipes[randomIndex];
 }
 
 async function generateImageWithGoogleAI(recipe) {
   const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY');
-  if (!apiKey) {
-    throw new Error('Google AI Studio API key not configured');
-  }
-  console.log('🔑 Google AI Studio API key is configured');
+  if (!apiKey) throw new Error('Google AI Studio API key not configured');
 
   const prompt = `Generate a realistic mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients visible: ${recipe.ingredients.substring(0, 200)}`;
-  console.log('Generated prompt:', prompt);
 
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${apiKey}`, {
     method: 'POST',
@@ -111,116 +87,76 @@ async function generateImageWithGoogleAI(recipe) {
   }
 
   const data = await response.json();
-  if (!data.candidates?.[0]?.content?.parts) {
-    throw new Error('No content generated from Google AI Studio');
-  }
+  const imagePart = data.candidates?.[0]?.content?.parts.find(part => part.inlineData);
+  if (!imagePart?.inlineData?.data) throw new Error('No image generated from Google AI Studio');
 
-  const imagePart = data.candidates[0].content.parts.find(part => part.inlineData);
-  if (!imagePart?.inlineData?.data) {
-    throw new Error('No image generated from Google AI Studio');
-  }
+  const imageBytes = Uint8Array.from(atob(imagePart.inlineData.data), c => c.charCodeAt(0));
+  const imageBlob = new Blob([imageBytes], { type: imagePart.inlineData.mimeType });
 
-  const base64Data = imagePart.inlineData.data;
-  const mimeType = imagePart.inlineData.mimeType;
-  console.log('✅ Generated AI image, now converting and uploading...');
-
-  const imageBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-  const imageBlob = new Blob([imageBytes], { type: mimeType });
-
-  const uploadedImageUrl = await convertAndUploadToR2(imageBlob, recipe.name);
-  console.log('✅ Successfully generated and uploaded image for recipe:', recipe.name);
-  return uploadedImageUrl;
+  return await convertAndUploadToR2(imageBlob, recipe.name);
 }
 
 async function convertAndUploadToR2(imageBlob, recipeName) {
   try {
-    console.log(`📦 Preparing to compress and convert image for recipe: ${recipeName}`);
-    
     const webpBlob = await convertToWebPServerSide(imageBlob, 85);
-
-    const formData = new FormData();
     const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.webp`;
+    
+    const formData = new FormData();
     formData.append('file', webpBlob, fileName);
     formData.append('uploadType', 'meal');
 
-    console.log(`📤 Uploading compressed WebP image as: ${fileName}`);
-    console.log(`📊 Original size: ${imageBlob.size} bytes | Compressed size: ${webpBlob.size} bytes`);
-
     const { data, error } = await supabase.functions.invoke('upload-to-r2', { body: formData });
+    if (error) throw new Error(`R2 upload failed: ${error.message}`);
+    if (!data.success || !data.imageUrl) throw new Error(data.error || 'R2 upload unsuccessful');
 
-    if (error) {
-      throw new Error(`R2 upload failed: ${error.message}`);
-    }
-    if (!data.success || !data.imageUrl) {
-      throw new Error(data.error || 'R2 upload unsuccessful');
-    }
-    
     console.log('✅ Successfully uploaded compressed WebP image to R2:', data.imageUrl);
     return data.imageUrl;
   } catch (error) {
-    console.error('❌ Error in convertAndUploadToR2:', error);
-    // As a final fallback, try uploading the original, unconverted image.
+    console.error('❌ Conversion or upload failed:', error.message);
     console.log('🔄 Attempting fallback upload with original image...');
-    try {
-      const formData = new FormData();
-      const fallbackFileName = `automation-fallback-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
-      formData.append('file', imageBlob, fallbackFileName);
-      formData.append('uploadType', 'meal');
-      
-      const { data, error: fallbackError } = await supabase.functions.invoke('upload-to-r2', { body: formData });
-      if (fallbackError) throw fallbackError;
-      if (!data.success) throw new Error(data.error || 'Fallback upload failed');
-      
-      console.log('✅ Fallback upload successful:', data.imageUrl);
-      return data.imageUrl;
-    } catch (fallbackError) {
-      console.error('❌ Fallback upload also failed:', fallbackError);
-      throw error; // Throw original error
-    }
+    return await fallbackUpload(imageBlob, recipeName);
   }
 }
 
+async function fallbackUpload(imageBlob, recipeName) {
+    const fallbackFileName = `automation-fallback-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
+    const formData = new FormData();
+    formData.append('file', imageBlob, fallbackFileName);
+    formData.append('uploadType', 'meal');
+
+    const { data, error } = await supabase.functions.invoke('upload-to-r2', { body: formData });
+    if (error) throw new Error(`Fallback upload also failed: ${error.message}`);
+    if (!data.success) throw new Error(data.error || 'Fallback upload failed');
+    
+    console.log('✅ Fallback upload successful:', data.imageUrl);
+    return data.imageUrl;
+}
+
 async function convertToWebPServerSide(imageBlob, quality = 85) {
+  const imagePool = new ImagePool();
   try {
-    console.log('📦 Converting image with ImageScript...');
+    console.log('📦 Converting image with Squoosh...');
+    const image = imagePool.ingestImage(await imageBlob.arrayBuffer());
     
-    // Convert blob to array buffer
-    const arrayBuffer = await imageBlob.arrayBuffer();
-    
-    // Load image with ImageScript
-    const image = await Image.decode(new Uint8Array(arrayBuffer));
-    
-    // Get original dimensions
-    const originalWidth = image.width;
-    const originalHeight = image.height;
+    const { width: originalWidth, height: originalHeight } = await image.decoded;
     const maxDimension = 1024;
-    
-    let resizedImage = image;
-    
-    // Resize if necessary while maintaining aspect ratio
+    let newWidth = originalWidth;
+    let newHeight = originalHeight;
+
     if (originalWidth > maxDimension || originalHeight > maxDimension) {
       const ratio = Math.min(maxDimension / originalWidth, maxDimension / originalHeight);
-      const newWidth = Math.round(originalWidth * ratio);
-      const newHeight = Math.round(originalHeight * ratio);
-      
-      console.log(`📏 Resizing image from ${originalWidth}x${originalHeight} to ${newWidth}x${newHeight}`);
-      resizedImage = image.resize(newWidth, newHeight);
+      newWidth = Math.round(originalWidth * ratio);
+      newHeight = Math.round(originalHeight * ratio);
     }
-    
-    // Encode to WebP format
-    const webpBuffer = await resizedImage.encodeWebP(quality);
-    
-    // Create blob from the WebP data
-    const webpBlob = new Blob([webpBuffer], { type: 'image/webp' });
-    
-    console.log(`✅ Successfully converted to WebP with ImageScript`);
-    console.log(`📊 Original size: ${arrayBuffer.byteLength} bytes | WebP size: ${webpBuffer.byteLength} bytes`);
-    
-    return webpBlob;
 
+    await image.preprocess({ resize: { enabled: true, width: newWidth, height: newHeight } });
+    await image.encode({ webp: { quality: quality } });
+    
+    const { binary } = await image.encodedWith.webp;
+    return new Blob([binary], { type: 'image/webp' });
   } catch (error) {
-    console.error('❌ ImageScript conversion failed:', error);
-    console.log('🔄 Using original image due to conversion failure');
-    return imageBlob; // Fallback to the original image
+    throw new Error(`Squoosh conversion failed: ${error.message}`);
+  } finally {
+    await imagePool.close();
   }
 }
