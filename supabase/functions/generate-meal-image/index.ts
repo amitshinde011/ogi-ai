@@ -1,8 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-// ✅ Correctly import Squoosh from npm for deployment
-import { ImagePool } from 'npm:@squoosh/lib@0.4.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -96,15 +94,16 @@ async function generateImageWithGoogleAI(recipe) {
   return await convertAndUploadToSupabase(imageBlob, recipe.name);
 }
 
+// ✅ Updated to handle JPEG
 async function convertAndUploadToSupabase(imageBlob, recipeName) {
   try {
-    const webpBlob = await convertToWebPServerSide(imageBlob, 85);
-    const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.webp`;
+    const resizedJpegBlob = await resizeImageAsJpeg(imageBlob, 85);
+    const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
     
     const { data, error } = await supabase.storage
       .from('bot-posts')
-      .upload(fileName, webpBlob, {
-        contentType: 'image/webp',
+      .upload(fileName, resizedJpegBlob, {
+        contentType: 'image/jpeg',
         upsert: false
       });
 
@@ -114,7 +113,7 @@ async function convertAndUploadToSupabase(imageBlob, recipeName) {
       .from('bot-posts')
       .getPublicUrl(fileName);
 
-    console.log('✅ Successfully uploaded compressed WebP image to Supabase:', publicUrl);
+    console.log('✅ Successfully uploaded resized JPEG image to Supabase:', publicUrl);
     return publicUrl;
   } catch (error) {
     console.error('❌ Conversion or upload failed:', error.message);
@@ -123,6 +122,7 @@ async function convertAndUploadToSupabase(imageBlob, recipeName) {
   }
 }
 
+// ✅ Fallback also uses JPEG
 async function fallbackSupabaseUpload(imageBlob, recipeName) {
   const fallbackFileName = `automation-fallback-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
   
@@ -143,31 +143,33 @@ async function fallbackSupabaseUpload(imageBlob, recipeName) {
   return publicUrl;
 }
 
-async function convertToWebPServerSide(imageBlob, quality = 85) {
-  const imagePool = new ImagePool();
+// ✅ Replaced Squoosh/WebP logic with reliable Canvas/JPEG logic
+async function resizeImageAsJpeg(imageBlob, quality = 0.85) {
   try {
-    console.log('📦 Converting image with Squoosh...');
-    const image = imagePool.ingestImage(await imageBlob.arrayBuffer());
-    
-    const { width: originalWidth, height: originalHeight } = await image.decoded;
-    const maxDimension = 1024;
-    let newWidth = originalWidth;
-    let newHeight = originalHeight;
+    const imageBitmap = await createImageBitmap(imageBlob);
 
-    if (originalWidth > maxDimension || originalHeight > maxDimension) {
-      const ratio = Math.min(maxDimension / originalWidth, maxDimension / originalHeight);
-      newWidth = Math.round(originalWidth * ratio);
-      newHeight = Math.round(originalHeight * ratio);
+    const maxDimension = 1024;
+    let { width, height } = imageBitmap;
+    if (width > maxDimension || height > maxDimension) {
+      const ratio = Math.min(maxDimension / width, maxDimension / height);
+      width = Math.round(width * ratio);
+      height = Math.round(height * ratio);
     }
 
-    await image.preprocess({ resize: { enabled: true, width: newWidth, height: newHeight } });
-    await image.encode({ webp: { quality: quality } });
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Failed to get 2D context');
+
+    ctx.drawImage(imageBitmap, 0, 0, width, height);
     
-    const { binary } = await image.encodedWith.webp;
-    return new Blob([binary], { type: 'image/webp' });
+    const jpegBlob = await canvas.convertToBlob({
+      type: 'image/jpeg',
+      quality: quality
+    });
+
+    console.log('✅ Successfully resized image to JPEG.');
+    return jpegBlob;
   } catch (error) {
-    throw new Error(`Squoosh conversion failed: ${error.message}`);
-  } finally {
-    await imagePool.close();
+    throw new Error(`JPEG resizing failed: ${error.message}`);
   }
 }
