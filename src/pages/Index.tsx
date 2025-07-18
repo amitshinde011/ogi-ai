@@ -33,7 +33,7 @@ const Index = () => {
           hasRedirected = true;
           navigate('/login', { replace: true });
         }
-      }, 10000); // 10 second timeout
+      }, 3000); // 3 second timeout
       
       return () => {
         if (fallbackTimeoutId) {
@@ -45,42 +45,25 @@ const Index = () => {
     const handleRedirect = async () => {
       // Prevent multiple redirects
       if (hasRedirected) {
-        console.log('Redirect already handled, skipping');
         return;
       }
 
       try {
-        console.log('Index: Checking redirect with auth state:', { 
-          userId: user?.id, 
-          isAuthenticated, 
-          userExists: !!user 
-        });
+        // Mark as redirected immediately to prevent race conditions
+        hasRedirected = true;
         
-        const redirectPath = await determineLandingPage(user?.id, isAuthenticated);
-        console.log('Index: Received redirect path:', redirectPath);
-        
-        if (!redirectPath) {
-          console.error('Index: No redirect path received, falling back to login');
-          hasRedirected = true;
+        // If not authenticated, go to login
+        if (!isAuthenticated || !user?.id) {
           navigate('/login', { replace: true });
           return;
         }
         
-        // Mark as redirected before navigation
-        hasRedirected = true;
-        
-        // Add a small delay to prevent rapid redirects
-        timeoutId = setTimeout(() => {
-          console.log('Index: Executing navigation to:', redirectPath);
-          navigate(redirectPath, { replace: true });
-        }, 100);
+        // For authenticated users, navigate to home by default
+        // The individual pages will handle their own onboarding checks
+        navigate('/home', { replace: true });
       } catch (error) {
         console.error('Error during redirect:', error);
-        // Fallback redirect
-        if (!hasRedirected) {
-          hasRedirected = true;
-          navigate('/login', { replace: true });
-        }
+        navigate('/login', { replace: true });
       }
     };
 
