@@ -140,7 +140,7 @@ async function generateMealImage(automationUser: AutomationUser, mealType: strin
 
     // Generate AI image using Google AI Studio
     const prompt = `A beautiful, appetizing ${mealType} dish featuring ${selectedMeal.ingredients?.join(', ') || 'healthy ingredients'}. ${selectedMeal.cuisine_type} cuisine style. Professional food photography, well-lit, appetizing, restaurant quality.`
-    
+    console.log(`✅ Generated AI image prompt: ${prompt}`)
     const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY')
     if (!apiKey) {
       throw new Error('Google AI Studio API key not configured')
