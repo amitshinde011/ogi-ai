@@ -121,62 +121,41 @@ export default function AutomationAdmin() {
     }
 
     setConverting(true);
-    let converted = 0;
-    let failed = 0;
 
     try {
-      for (const post of jpegPosts) {
-        try {
-          console.log(`Converting post ${post.id}: ${post.image_url}`);
-          
-          // Fetch the JPEG image
-          const response = await fetch(post.image_url);
-          if (!response.ok) throw new Error(`Failed to fetch image: ${response.status}`);
-          
-          const blob = await response.blob();
-          
-          // Convert to WebP
-          const file = new File([blob], 'temp.jpg', { type: blob.type });
-          const webpFile = await convertToWebP(file, 0.8);
-          
-          // Generate new filename
-          const originalFilename = post.image_url.split('/').pop();
-          const webpFilename = originalFilename?.replace(/\.(jpg|jpeg)$/i, '.webp') || `converted-${Date.now()}.webp`;
-          
-          // Upload WebP version
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('bot-posts')
-            .upload(webpFilename, webpFile, {
-              contentType: 'image/webp',
-              cacheControl: '3600'
-            });
+      const postIds = jpegPosts
+        .filter(post => post.image_url.match(/\.(jpg|jpeg)$/i))
+        .map(post => post.id);
 
-          if (uploadError) throw uploadError;
-
-          // Get public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('bot-posts')
-            .getPublicUrl(webpFilename);
-
-          // Update post with WebP URL
-          const { error: updateError } = await supabase
-            .from('posts')
-            .update({ image_url: publicUrl })
-            .eq('id', post.id);
-
-          if (updateError) throw updateError;
-
-          converted++;
-          console.log(`✅ Converted post ${post.id} to WebP`);
-          
-        } catch (error) {
-          console.error(`❌ Failed to convert post ${post.id}:`, error);
-          failed++;
-        }
+      if (postIds.length === 0) {
+        toast("No JPEG posts found to convert");
+        setConverting(false);
+        return;
       }
 
-      toast(`Conversion complete: ${converted} succeeded, ${failed} failed`);
+      // Call the Edge Function with service role permissions
+      const { data, error } = await supabase.functions.invoke('convert-image-to-webp', {
+        body: { post_ids: postIds }
+      });
+
+      if (error) throw error;
+
+      const results = data.results || [];
+      const converted = results.filter((r: any) => r.status === 'success').length;
+      const failed = results.filter((r: any) => r.status === 'error').length;
+      const skipped = results.filter((r: any) => r.status === 'skipped').length;
+
+      toast(`Conversion complete: ${converted} succeeded, ${failed} failed, ${skipped} skipped`);
       
+      // Log results for debugging
+      results.forEach((result: any) => {
+        if (result.status === 'success') {
+          console.log(`✅ Converted post ${result.post_id}`);
+        } else if (result.status === 'error') {
+          console.error(`❌ Failed to convert post ${result.post_id}:`, result.error);
+        }
+      });
+
       // Refresh data
       fetchStats();
       
