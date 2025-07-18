@@ -1,5 +1,4 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.9'
-import { hmac } from 'https://deno.land/x/hmac@v2.0.1/mod.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const supabase = createClient(
@@ -15,81 +14,39 @@ interface AutomationPost {
   bot_name: string
 }
 
-// AWS Signature V4 helper functions (same as upload-to-r2)
-async function sha256(data: ArrayBuffer): Promise<string> {
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-function hmacSha256(key: Uint8Array, data: string): Uint8Array {
-  return hmac('sha256', key, data) as Uint8Array
-}
-
-async function deleteImageFromR2(imageUrl: string): Promise<boolean> {
+async function deleteImageFromSupabase(imageUrl: string): Promise<boolean> {
   try {
-    // Extract the key from the image URL
-    // URL format: https://assets.yogiai.in/community/user_id/timestamp.webp
-    const urlParts = imageUrl.replace('https://assets.yogiai.in/', '').split('/')
-    if (urlParts.length < 3) {
-      console.error('Invalid image URL format:', imageUrl)
+    // Extract the file path from Supabase storage URL
+    // URL format: https://mxigbftmmkqnhmocyeeo.supabase.co/storage/v1/object/public/bot-posts/meals/filename.webp
+    const urlParts = imageUrl.split('/storage/v1/object/public/')
+    if (urlParts.length !== 2) {
+      console.error('Invalid Supabase storage URL format:', imageUrl)
       return false
     }
     
-    const key = urlParts.join('/') // community/user_id/timestamp.webp
+    const [bucketAndPath] = urlParts[1].split('/', 2)
+    const filePath = urlParts[1].substring(bucketAndPath.length + 1)
+    const bucketName = bucketAndPath
     
-    // AWS V4 signature for DELETE request
-    const accountId = Deno.env.get('CLOUDFLARE_ACCOUNT_ID')!
-    const accessKeyId = Deno.env.get('CLOUDFLARE_COMMUNITY_POST_ACCESS_KEY_ID')!
-    const secretAccessKey = Deno.env.get('CLOUDFLARE_COMMUNITY_POST_SECRET_ACCESS_KEY')!
-    const bucketName = 'wellness-images'
-
-    const host = `${accountId}.r2.cloudflarestorage.com`
-    const region = 'auto'
-    const service = 's3'
-    const amzDate = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '')
-    const dateStamp = amzDate.substring(0, 8)
-    
-    const canonicalURI = `/${bucketName}/${key}`
-    const hashedPayload = await sha256(new ArrayBuffer(0)) // Empty payload for DELETE
-    
-    const canonicalHeaders = `host:${host}\nx-amz-content-sha256:${hashedPayload}\nx-amz-date:${amzDate}\n`
-    const signedHeaders = 'host;x-amz-content-sha256;x-amz-date'
-    
-    const canonicalRequest = `DELETE\n${canonicalURI}\n\n${canonicalHeaders}\n${signedHeaders}\n${hashedPayload}`
-    const hashedCanonicalRequest = await sha256(new TextEncoder().encode(canonicalRequest))
-    
-    const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`
-    const stringToSign = `AWS4-HMAC-SHA256\n${amzDate}\n${credentialScope}\n${hashedCanonicalRequest}`
-
-    const kDate = hmacSha256(new TextEncoder().encode('AWS4' + secretAccessKey), dateStamp)
-    const kRegion = hmacSha256(kDate, region)
-    const kService = hmacSha256(kRegion, service)
-    const kSigning = hmacSha256(kService, 'aws4_request')
-    const signature = hmac('sha256', kSigning, stringToSign, 'utf8', 'hex')
-
-    const authorizationHeader = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`
-    
-    // Delete the file from R2
-    const deleteUrl = `https://${host}${canonicalURI}`
-    const response = await fetch(deleteUrl, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': authorizationHeader,
-        'x-amz-date': amzDate,
-        'x-amz-content-sha256': hashedPayload,
-      },
-    })
-
-    if (response.ok || response.status === 404) {
-      // 404 is OK - file already deleted
-      console.log(`✅ Successfully deleted image: ${key}`)
-      return true
-    } else {
-      const errorText = await response.text()
-      console.error(`❌ Failed to delete image ${key}:`, errorText)
+    if (!bucketName || !filePath) {
+      console.error('Could not extract bucket and file path from URL:', imageUrl)
       return false
     }
+    
+    console.log(`🗑️ Deleting image from bucket: ${bucketName}, path: ${filePath}`)
+    
+    // Delete the file from Supabase storage
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .remove([filePath])
+
+    if (error) {
+      console.error(`❌ Failed to delete image ${filePath}:`, error.message)
+      return false
+    }
+
+    console.log(`✅ Successfully deleted image: ${filePath}`)
+    return true
 
   } catch (error) {
     console.error(`❌ Error deleting image ${imageUrl}:`, error)
@@ -151,9 +108,9 @@ async function cleanupAutomationPosts() {
         const automationUser = automationUsers.find(u => u.user_id === post.author_id)
         const botName = automationUser?.name || 'Unknown Bot'
 
-        // Delete image from R2 storage if it's a Cloudflare image
-        if (post.image_url && post.image_url.includes('assets.yogiai.in')) {
-          const imageDeleted = await deleteImageFromR2(post.image_url)
+        // Delete image from Supabase storage if it's a Supabase storage image
+        if (post.image_url && post.image_url.includes('supabase.co/storage/v1/object/public/')) {
+          const imageDeleted = await deleteImageFromSupabase(post.image_url)
           if (imageDeleted) {
             deletedImages++
           }
