@@ -55,44 +55,54 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // --- FINAL FIX: Simplified useEffect to use onAuthStateChange as the single source of truth ---
-  useEffect(() => {
-    let mounted = true;
+  // Optimized useEffect to reduce duplicate calls and console noise
+  useEffect(() => {
+    let mounted = true;
+    let isInitialLoad = true;
 
-    // onAuthStateChange handles everything: initial session, sign in, sign out, etc.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
 
-      console.log('Auth state changed:', event, session);
+      // Reduce console noise - only log significant events
+      if (event !== 'TOKEN_REFRESHED' || isInitialLoad) {
+        console.log('Auth state changed:', event);
+      }
 
       // Set the user and session state from the event
-      setUser(session?.user ?? null);
-      setSession(session);
+      setUser(session?.user ?? null);
+      setSession(session);
 
-      // Fetch the user profile ONLY if a user exists
-      if (session?.user) {
-        // Fetch profile asynchronously without blocking UI updates
-        fetchUserProfile(session.user.id).then(profile => {
+      // Fetch profile only on sign in or initial load to prevent duplicate calls
+      if (session?.user && (event === 'SIGNED_IN' || isInitialLoad)) {
+        try {
+          const profile = await fetchUserProfile(session.user.id);
           if (mounted) {
             setUserProfile(profile);
           }
-        });
-      } else {
-        // Clear profile if there's no user
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          if (mounted) {
+            setUserProfile(null);
+          }
+        }
+      } else if (!session?.user) {
         setUserProfile(null);
       }
 
-      // The loading process is finished once the first auth event is handled.
-      setLoading(false);
-    });
+      // Set loading to false only on initial load
+      if (isInitialLoad) {
+        setLoading(false);
+        isInitialLoad = false;
+      }
+    });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const signOut = async (): Promise<boolean> => {
     try {

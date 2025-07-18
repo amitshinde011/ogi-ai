@@ -66,20 +66,24 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
   const [loading, setLoading] = useState(false);
 
   const fetchUserProfile = useCallback(async () => {
-    if (!user) return;
+    if (!user || loading) return;
     
+    setLoading(true);
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      if (error) throw error;
       setUserProfile(profile);
     } catch (error) {
       console.error('Error fetching user profile:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [user]);
+  }, [user, loading]);
 
   const fetchUserSubscriptions = useCallback(async () => {
     if (!user) return;
