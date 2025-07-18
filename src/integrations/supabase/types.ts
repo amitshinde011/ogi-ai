@@ -1328,6 +1328,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      update_profile_photos_from_automation: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       upsert_wellness_data: {
         Args: {
           p_user_id: string
