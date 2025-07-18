@@ -54,17 +54,36 @@ serve(async (req) => {
         
         const imageBlob = await imageResponse.blob()
 
-        // Convert to WebP using canvas (basic conversion)
-        // Note: This is a simplified conversion. For production, you might want
-        // to use a more robust image processing library
+        // Convert JPEG to WebP with compression
+        const imageArrayBuffer = await imageBlob.arrayBuffer()
         
         // Create a new filename
         const originalFilename = post.image_url.split('/').pop()
         const webpFilename = originalFilename?.replace(/\.(jpg|jpeg)$/i, '.webp') || `converted-${Date.now()}.webp`
 
-        // For now, we'll just rename and re-upload the file as WebP
-        // In a real implementation, you'd convert the image format here
-        const webpBlob = new Blob([await imageBlob.arrayBuffer()], { type: 'image/webp' })
+        // Convert to WebP using Canvas API in Deno
+        const imageData = new Uint8Array(imageArrayBuffer)
+        
+        // Create an Image object and canvas for conversion
+        const canvas = new OffscreenCanvas(1, 1)
+        const ctx = canvas.getContext('2d')
+        
+        // Create image bitmap from JPEG data
+        const imageBlob2 = new Blob([imageData], { type: 'image/jpeg' })
+        const imageBitmap = await createImageBitmap(imageBlob2)
+        
+        // Set canvas size to match image
+        canvas.width = imageBitmap.width
+        canvas.height = imageBitmap.height
+        
+        // Draw image to canvas
+        ctx?.drawImage(imageBitmap, 0, 0)
+        
+        // Convert to WebP with compression (quality 80%)
+        const webpBlob = await canvas.convertToBlob({
+          type: 'image/webp',
+          quality: 0.8
+        })
 
         // Upload WebP version
         const { data: uploadData, error: uploadError } = await supabaseClient.storage
