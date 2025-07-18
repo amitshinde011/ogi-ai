@@ -7,7 +7,7 @@ import { AlertCircle, Play, Users, BarChart3, Database, RefreshCw, Download } fr
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { convertToWebP } from '@/utils/imageConversion';
+import { convertImageElementToWebP } from '@/utils/imageConversion';
 import { toast } from 'sonner';
 
 interface AutomationStats {
@@ -123,39 +123,80 @@ export default function AutomationAdmin() {
     setConverting(true);
 
     try {
-      const postIds = jpegPosts
-        .filter(post => post.image_url.match(/\.(jpg|jpeg)$/i))
-        .map(post => post.id);
+      const jpegPostsToConvert = jpegPosts.filter(post => 
+        post.image_url.match(/\.(jpg|jpeg)$/i)
+      );
 
-      if (postIds.length === 0) {
+      if (jpegPostsToConvert.length === 0) {
         toast("No JPEG posts found to convert");
         setConverting(false);
         return;
       }
 
-      // Call the Edge Function with service role permissions
-      const { data, error } = await supabase.functions.invoke('convert-image-to-webp', {
-        body: { post_ids: postIds }
-      });
+      let converted = 0;
+      let failed = 0;
 
-      if (error) throw error;
+      for (const post of jpegPostsToConvert) {
+        try {
+          // Download the original JPEG image
+          const response = await fetch(post.image_url);
+          if (!response.ok) throw new Error('Failed to download image');
+          
+          const imageBlob = await response.blob();
+          
+          // Create image element for conversion
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(imageBlob);
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+          
+          // Convert to WebP using browser API
+          const webpBlob = await convertImageElementToWebP(img, 0.8);
+          
+          // Generate WebP filename
+          const originalFilename = post.image_url.split('/').pop();
+          const webpFilename = originalFilename?.replace(/\.(jpg|jpeg)$/i, '.webp') || `converted-${Date.now()}.webp`;
+          
+          // Upload WebP to Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('bot-posts')
+            .upload(webpFilename, webpBlob, {
+              contentType: 'image/webp',
+              cacheControl: '3600'
+            });
 
-      const results = data.results || [];
-      const converted = results.filter((r: any) => r.status === 'success').length;
-      const failed = results.filter((r: any) => r.status === 'error').length;
-      const skipped = results.filter((r: any) => r.status === 'skipped').length;
+          if (uploadError) throw uploadError;
 
-      toast(`Conversion complete: ${converted} succeeded, ${failed} failed, ${skipped} skipped`);
-      
-      // Log results for debugging
-      results.forEach((result: any) => {
-        if (result.status === 'success') {
-          console.log(`✅ Converted post ${result.post_id}`);
-        } else if (result.status === 'error') {
-          console.error(`❌ Failed to convert post ${result.post_id}:`, result.error);
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('bot-posts')
+            .getPublicUrl(webpFilename);
+
+          // Update post with WebP URL
+          const { error: updateError } = await supabase
+            .from('posts')
+            .update({ image_url: publicUrl })
+            .eq('id', post.id);
+
+          if (updateError) throw updateError;
+
+          converted++;
+          console.log(`✅ Converted post ${post.id}`);
+          
+          // Clean up object URL
+          URL.revokeObjectURL(img.src);
+          
+        } catch (error) {
+          failed++;
+          console.error(`❌ Failed to convert post ${post.id}:`, error);
         }
-      });
+      }
 
+      toast(`Conversion complete: ${converted} succeeded, ${failed} failed`);
+      
       // Refresh data
       fetchStats();
       
