@@ -91,33 +91,63 @@ async function generateImageWithGoogleAI(recipe) {
   const imageBytes = Uint8Array.from(atob(imagePart.inlineData.data), c => c.charCodeAt(0));
   const imageBlob = new Blob([imageBytes], { type: imagePart.inlineData.mimeType });
 
-  return await convertAndUploadToSupabase(imageBlob, recipe.name);
+  // Convert JPEG to WebP using dedicated conversion service
+  console.log('🔄 Converting image to WebP...');
+  const conversionResponse = await supabase.functions.invoke('convert-to-webp', {
+    body: { 
+      imageBase64: `data:image/jpeg;base64,${imagePart.inlineData.data}`,
+      quality: 0.8 
+    }
+  });
+
+  let finalImageBlob;
+  let fileExtension = 'jpg';
+  
+  if (conversionResponse.error) {
+    console.log('⚠️ WebP conversion failed, using original JPEG:', conversionResponse.error);
+    finalImageBlob = imageBlob;
+  } else {
+    console.log('✅ Successfully converted to WebP');
+    const { webpBase64 } = conversionResponse.data;
+    
+    // Convert WebP base64 back to blob
+    const webpData = webpBase64.replace(/^data:image\/webp;base64,/, '');
+    const webpBytes = Uint8Array.from(atob(webpData), c => c.charCodeAt(0));
+    finalImageBlob = new Blob([webpBytes], { type: 'image/webp' });
+    fileExtension = 'webp';
+  }
+
+  return await convertAndUploadToSupabase(finalImageBlob, recipe.name, fileExtension);
 }
 
-// ✅ Updated to handle JPEG
-async function convertAndUploadToSupabase(imageBlob, recipeName) {
+async function convertAndUploadToSupabase(imageBlob, recipeName, fileExtension = 'jpg') {
   try {
-    const resizedJpegBlob = await resizeImageAsJpeg(imageBlob, 85);
-    const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
+    console.log(`🔄 Uploading ${fileExtension.toUpperCase()} to Supabase...`);
+    
+    const fileName = `automation-${Date.now()}-${recipeName.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${fileExtension}`;
+    const contentType = fileExtension === 'webp' ? 'image/webp' : 'image/jpeg';
     
     const { data, error } = await supabase.storage
       .from('bot-posts')
-      .upload(fileName, resizedJpegBlob, {
-        contentType: 'image/jpeg',
-        upsert: false
+      .upload(fileName, imageBlob, {
+        contentType: contentType,
+        cacheControl: '3600'
       });
 
-    if (error) throw new Error(`Supabase upload failed: ${error.message}`);
+    if (error) {
+      console.log('⚠️ Upload failed, trying fallback...', error);
+      return await fallbackSupabaseUpload(imageBlob, recipeName);
+    }
 
     const { data: { publicUrl } } = supabase.storage
       .from('bot-posts')
       .getPublicUrl(fileName);
 
-    console.log('✅ Successfully uploaded resized JPEG image to Supabase:', publicUrl);
+    console.log(`✅ Successfully uploaded ${fileExtension.toUpperCase()} image to Supabase`);
     return publicUrl;
+
   } catch (error) {
-    console.error('❌ Conversion or upload failed:', error.message);
-    console.log('🔄 Attempting fallback upload with original image...');
+    console.error('❌ Upload failed:', error.message);
     return await fallbackSupabaseUpload(imageBlob, recipeName);
   }
 }

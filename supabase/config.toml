@@ -79,3 +79,6 @@ verify_jwt = false
 
 [functions.automation-cleanup]
 verify_jwt = false
+
+[functions.convert-to-webp]
+verify_jwt = false
