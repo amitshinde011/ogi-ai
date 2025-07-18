@@ -209,6 +209,8 @@ async function convertAndUploadToSupabase(imageBlob: Blob, recipeName: string): 
 
 async function convertToWebPServerSide(imageBlob: Blob, quality = 0.85): Promise<Blob> {
   try {
+    console.log(`🎨 Converting image to WebP format...`);
+    
     // Create ImageBitmap from the blob
     const imageBitmap = await createImageBitmap(imageBlob);
     
@@ -221,36 +223,46 @@ async function convertToWebPServerSide(imageBlob: Blob, quality = 0.85): Promise
       height = Math.round(height * ratio);
     }
     
-    // Create OffscreenCanvas for processing  
+    // Create canvas element for image processing
     const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d', { 
-      alpha: true,
-      colorSpace: 'srgb'
-    });
+    const ctx = canvas.getContext('2d');
     
     if (!ctx) {
       throw new Error('Failed to get 2D context from OffscreenCanvas');
     }
 
-    // Set white background to avoid transparency issues
-    ctx.fillStyle = '#ffffff';
+    // Fill with white background first (important for WebP conversion)
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, width, height);
     
-    // Draw the image bitmap onto the canvas
+    // Draw the image onto the canvas
     ctx.drawImage(imageBitmap, 0, 0, width, height);
     
-    // Convert to WebP blob with proper options
+    // Get ImageData to ensure proper pixel data
+    const imageData = ctx.getImageData(0, 0, width, height);
+    
+    // Clear canvas and redraw with proper ImageData
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, width, height);
+    ctx.putImageData(imageData, 0, 0);
+    
+    // Convert to WebP blob
     const webpBlob = await canvas.convertToBlob({
       type: 'image/webp',
       quality: quality
     });
     
-    console.log(`✅ Successfully converted to WebP. Size: ${webpBlob.size} bytes`);
+    // Verify the conversion worked
+    if (webpBlob.type !== 'image/webp') {
+      throw new Error(`WebP conversion failed: got ${webpBlob.type} instead of image/webp`);
+    }
+    
+    console.log(`✅ Successfully converted to WebP. Original: ${imageBlob.size} bytes → WebP: ${webpBlob.size} bytes (${Math.round((1 - webpBlob.size / imageBlob.size) * 100)}% reduction)`);
     return webpBlob;
+    
   } catch (error) {
-    console.error('WebP conversion error:', error);
-    // Return original blob as fallback to avoid breaking the whole flow
-    console.log('⚠️ Falling back to original image format');
-    return imageBlob;
+    console.error('❌ WebP conversion failed:', error);
+    throw new Error(`WebP conversion failed: ${error.message}`);
   }
 }
