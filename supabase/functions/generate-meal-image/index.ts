@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 // ✅ Correctly import Squoosh from npm for deployment
-import { ImagePool } from 'npm:@squoosh/lib@0.6.0';
+import { ImagePool } from 'npm:@squoosh/lib@0.4.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
