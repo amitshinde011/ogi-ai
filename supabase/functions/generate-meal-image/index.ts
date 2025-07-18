@@ -70,7 +70,7 @@ async function generateImageWithGoogleAI(recipe) {
   const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY');
   if (!apiKey) throw new Error('Google AI Studio API key not configured');
 
-  const prompt = `Generate a realistic mobile phone photo of ${recipe.name} served, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients visible: ${recipe.ingredients.substring(0, 200)}`;
+  const prompt = `Generate a realistic mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients: ${recipe.ingredients} process: ${recipe.instructions}`;
   console.log(`Prompt: ${prompt}`);
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${apiKey}`, {
     method: 'POST',
