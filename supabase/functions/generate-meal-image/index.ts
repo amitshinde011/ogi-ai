@@ -22,7 +22,10 @@ interface Recipe {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 200 
+    });
   }
 
   try {
@@ -204,39 +207,50 @@ async function convertAndUploadToSupabase(imageBlob: Blob, recipeName: string): 
   return urlData.publicUrl;
 }
 
-async function convertToWebPServerSide(imageBlob, quality = 0.85) {
-  // Create ImageBitmap from the blob
-  const imageBitmap = await createImageBitmap(imageBlob);
-  
-  // Calculate compressed dimensions
-  const maxDimension = 1024;
-  let { width, height } = imageBitmap;
-  if (width > maxDimension || height > maxDimension) {
-    const ratio = Math.min(maxDimension / width, maxDimension / height);
-    width = Math.round(width * ratio);
-    height = Math.round(height * ratio);
-  }
-  
-  // Create OffscreenCanvas for processing
-  const canvas = new OffscreenCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    throw new Error('Failed to get 2D context from OffscreenCanvas');
-  }
+async function convertToWebPServerSide(imageBlob: Blob, quality = 0.85): Promise<Blob> {
+  try {
+    // Create ImageBitmap from the blob
+    const imageBitmap = await createImageBitmap(imageBlob);
+    
+    // Calculate compressed dimensions
+    const maxDimension = 1024;
+    let { width, height } = imageBitmap;
+    if (width > maxDimension || height > maxDimension) {
+      const ratio = Math.min(maxDimension / width, maxDimension / height);
+      width = Math.round(width * ratio);
+      height = Math.round(height * ratio);
+    }
+    
+    // Create OffscreenCanvas for processing  
+    const canvas = new OffscreenCanvas(width, height);
+    const ctx = canvas.getContext('2d', { 
+      alpha: true,
+      colorSpace: 'srgb'
+    });
+    
+    if (!ctx) {
+      throw new Error('Failed to get 2D context from OffscreenCanvas');
+    }
 
-  // Force the canvas to have an RGBA context from the start
-  // by clearing it to a transparent state before drawing the image.
-  ctx.clearRect(0, 0, width, height);
-  
-  // Draw the image bitmap onto the now-transparent canvas
-  ctx.drawImage(imageBitmap, 0, 0, width, height);
-  
-  // Convert to WebP blob
-  const webpBlob = await canvas.convertToBlob({
-    type: 'image/webp',
-    quality: quality
-  });
-  
-  console.log(`✅ Successfully converted to WebP.`);
-  return webpBlob;
+    // Set white background to avoid transparency issues
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    
+    // Draw the image bitmap onto the canvas
+    ctx.drawImage(imageBitmap, 0, 0, width, height);
+    
+    // Convert to WebP blob with proper options
+    const webpBlob = await canvas.convertToBlob({
+      type: 'image/webp',
+      quality: quality
+    });
+    
+    console.log(`✅ Successfully converted to WebP. Size: ${webpBlob.size} bytes`);
+    return webpBlob;
+  } catch (error) {
+    console.error('WebP conversion error:', error);
+    // Return original blob as fallback to avoid breaking the whole flow
+    console.log('⚠️ Falling back to original image format');
+    return imageBlob;
+  }
 }
