@@ -1,10 +1,6 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.9'
 import { corsHeaders } from '../_shared/cors.ts'
-
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-)
+import { optimizedSupabase } from '../_shared/optimized-client.ts'
+import { rateLimiter, retryWithBackoff } from '../_shared/rate-limiter.ts'
 
 interface AutomationUser {
   id: string
@@ -13,203 +9,222 @@ interface AutomationUser {
   persona_type: string
 }
 
-interface CommunityPost {
-  id: number
-  author_id: string
-  caption: string
-  image_url: string
-  created_at: string
+interface EngagementTask {
+  user: AutomationUser
+  post: any
+  action: 'like' | 'comment'
+  priority: number
 }
 
-interface CommentTemplate {
-  id: string
-  template_text: string
-  comment_type: string
-  context_tags: string[]
-}
-
-function analyzePostContent(post: CommunityPost): string[] {
+function analyzePostContent(post: any): string[] {
   const content = (post.caption || '').toLowerCase()
   const tags = []
 
-  // Analyze caption for food indicators
   if (content.includes('breakfast') || content.includes('morning')) tags.push('breakfast')
   if (content.includes('lunch') || content.includes('midday')) tags.push('lunch')
   if (content.includes('dinner') || content.includes('evening')) tags.push('dinner')
   if (content.includes('healthy') || content.includes('nutrition')) tags.push('healthy')
-  if (content.includes('protein') || content.includes('quinoa') || content.includes('lentil')) tags.push('protein_rich')
-  if (content.includes('vegetable') || content.includes('salad') || content.includes('green')) tags.push('vegetables')
-  if (content.includes('spice') || content.includes('turmeric') || content.includes('ginger')) tags.push('spices')
-  if (content.includes('color') || content.includes('rainbow') || content.includes('vibrant')) tags.push('colorful')
-  if (content.includes('roast') || content.includes('grill') || content.includes('cook')) tags.push('cooked')
+  if (content.includes('protein') || content.includes('quinoa')) tags.push('protein_rich')
+  if (content.includes('vegetable') || content.includes('salad')) tags.push('vegetables')
+  if (content.includes('spice') || content.includes('turmeric')) tags.push('spices')
+  if (content.includes('color') || content.includes('rainbow')) tags.push('colorful')
 
   return tags
 }
 
-function generateMealIdentificationComment(post: CommunityPost, template: CommentTemplate): string {
-  let comment = template.template_text
-  
-  // Simple food identification based on common patterns
-  const replacements: Record<string, string[]> = {
-    identified_food: ['quinoa bowl', 'vegetable curry', 'grain salad', 'protein bowl', 'smoothie bowl'],
-    nutrient_benefit: ['complete protein', 'fiber', 'antioxidants', 'vitamins', 'minerals'],
-    spice_or_ingredient: ['turmeric', 'ginger', 'garlic', 'cumin', 'herbs'],
-    health_property: ['anti-inflammatory', 'digestive', 'immune-boosting', 'antioxidant'],
-    cooking_method: ['roasted', 'steamed', 'grilled', 'sautéed'],
-    description: ['caramelized', 'tender', 'crispy', 'golden']
-  }
-
-  // Replace placeholders with random appropriate values
-  Object.entries(replacements).forEach(([key, options]) => {
-    if (comment.includes(`{${key}}`)) {
-      const randomOption = options[Math.floor(Math.random() * options.length)]
-      comment = comment.replace(`{${key}}`, randomOption)
-    }
-  })
-
-  return comment
-}
-
-async function shouldEngageWithPost(automationUser: AutomationUser, post: CommunityPost): Promise<boolean> {
-  // Don't engage with own posts
-  if (post.author_id === automationUser.user_id) {
-    return false
-  }
-
-  // Check if already engaged with this post
-  const { data: existingLike } = await supabase
-    .from('likes')
-    .select('*')
-    .eq('user_id', automationUser.user_id)
-    .eq('post_id', post.id)
-    .single()
-
-  const { data: existingComment } = await supabase
-    .from('comments')
-    .select('*')
-    .eq('author_id', automationUser.user_id)
-    .eq('post_id', post.id)
-    .single()
-
-  // Don't engage if already liked or commented
-  if (existingLike || existingComment) {
-    return false
-  }
-
-  // Check daily engagement limits
+async function getEngagementLimits(userId: string): Promise<{ likes: number, comments: number }> {
   const today = new Date().toISOString().split('T')[0]
-  const { data: todayActivity } = await supabase
+  const { data } = await optimizedSupabase.supabase
     .from('automation_activity_log')
-    .select('*')
-    .eq('automation_user_id', automationUser.id)
+    .select('activity_type')
+    .eq('automation_user_id', userId)
     .gte('created_at', `${today}T00:00:00.000Z`)
     .lte('created_at', `${today}T23:59:59.999Z`)
 
-  const todayLikes = todayActivity?.filter(a => a.activity_type === 'like').length || 0
-  const todayComments = todayActivity?.filter(a => a.activity_type === 'comment').length || 0
+  const todayLikes = data?.filter(a => a.activity_type === 'like').length || 0
+  const todayComments = data?.filter(a => a.activity_type === 'comment').length || 0
 
-  // Daily limits: 30 likes, 20 comments
-  if (todayLikes >= 30 && todayComments >= 20) {
-    return false
-  }
-
-  return true
+  return { likes: todayLikes, comments: todayComments }
 }
 
-async function likePost(automationUser: AutomationUser, post: CommunityPost): Promise<boolean> {
-  try {
-    const { error } = await supabase
+async function checkExistingEngagements(userIds: string[], postIds: number[]): Promise<Map<string, Set<number>>> {
+  const engagementMap = new Map<string, Set<number>>()
+  
+  // Get existing likes and comments in parallel
+  const [likesResult, commentsResult] = await Promise.allSettled([
+    optimizedSupabase.supabase
       .from('likes')
-      .insert({
-        user_id: automationUser.user_id,
-        post_id: post.id
-      })
+      .select('user_id, post_id')
+      .in('user_id', userIds)
+      .in('post_id', postIds),
+    
+    optimizedSupabase.supabase
+      .from('comments')
+      .select('author_id, post_id')
+      .in('author_id', userIds)
+      .in('post_id', postIds)
+  ])
 
-    if (error) {
-      console.error(`Error liking post ${post.id} by ${automationUser.name}:`, error)
-      return false
+  // Process likes
+  if (likesResult.status === 'fulfilled' && likesResult.value.data) {
+    for (const like of likesResult.value.data) {
+      const key = `${like.user_id}_like`
+      if (!engagementMap.has(key)) engagementMap.set(key, new Set())
+      engagementMap.get(key)!.add(like.post_id)
     }
+  }
 
-    // Log activity
-    await supabase
-      .from('automation_activity_log')
-      .insert({
-        automation_user_id: automationUser.id,
-        activity_type: 'like',
-        target_post_id: post.id
-      })
+  // Process comments
+  if (commentsResult.status === 'fulfilled' && commentsResult.value.data) {
+    for (const comment of commentsResult.value.data) {
+      const key = `${comment.author_id}_comment`
+      if (!engagementMap.has(key)) engagementMap.set(key, new Set())
+      engagementMap.get(key)!.add(comment.post_id)
+    }
+  }
 
-    console.log(`👍 ${automationUser.name} liked post ${post.id}`)
-    return true
+  return engagementMap
+}
 
+async function planEngagements(users: AutomationUser[], posts: any[]): Promise<EngagementTask[]> {
+  const tasks: EngagementTask[] = []
+  const userIds = users.map(u => u.user_id)
+  const postIds = posts.map(p => p.id)
+
+  // Get engagement limits and existing engagements in parallel
+  const [limitsResults, existingEngagements] = await Promise.allSettled([
+    Promise.allSettled(users.map(user => getEngagementLimits(user.id))),
+    checkExistingEngagements(userIds, postIds)
+  ])
+
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i]
+    const limits = limitsResults.status === 'fulfilled' && limitsResults.value[i].status === 'fulfilled' 
+      ? limitsResults.value[i].value as { likes: number, comments: number }
+      : { likes: 0, comments: 0 }
+
+    // Skip if user has reached daily limits
+    if (limits.likes >= 30 && limits.comments >= 20) continue
+
+    // Shuffle posts for this user
+    const shuffledPosts = [...posts].sort(() => Math.random() - 0.5)
+    let userEngagements = 0
+
+    for (const post of shuffledPosts.slice(0, 15)) {
+      if (userEngagements >= 5) break // Max 5 engagements per user per run
+      if (post.author_id === user.user_id) continue // Don't engage with own posts
+
+      const existingMap = existingEngagements.status === 'fulfilled' ? existingEngagements.value : new Map()
+      const hasLiked = existingMap.get(`${user.user_id}_like`)?.has(post.id)
+      const hasCommented = existingMap.get(`${user.user_id}_comment`)?.has(post.id)
+
+      if (hasLiked || hasCommented) continue
+
+      // Calculate engagement priority based on post content
+      const postTags = analyzePostContent(post)
+      const priority = postTags.length * Math.random() * 100
+
+      // Decide action based on limits and randomness
+      let action: 'like' | 'comment' = 'like'
+      if (limits.comments < 20 && Math.random() < 0.3) {
+        action = 'comment'
+      }
+
+      if ((action === 'like' && limits.likes < 30) || (action === 'comment' && limits.comments < 20)) {
+        tasks.push({
+          user,
+          post,
+          action,
+          priority
+        })
+        userEngagements++
+      }
+    }
+  }
+
+  // Sort by priority (highest first)
+  return tasks.sort((a, b) => b.priority - a.priority)
+}
+
+async function executeLikes(likeTasks: EngagementTask[]): Promise<number> {
+  const likeData = likeTasks.map(task => ({
+    user_id: task.user.user_id,
+    post_id: task.post.id
+  }))
+
+  const activityLogs = likeTasks.map(task => ({
+    automation_user_id: task.user.id,
+    activity_type: 'like',
+    target_post_id: task.post.id
+  }))
+
+  try {
+    const [likesResult, logsResult] = await Promise.allSettled([
+      optimizedSupabase.batchInsert('likes', likeData, 20),
+      optimizedSupabase.batchInsert('automation_activity_log', activityLogs, 20)
+    ])
+
+    const successfulLikes = likesResult.status === 'fulfilled' 
+      ? likesResult.value.filter(r => r.status === 'fulfilled').length
+      : 0
+
+    console.log(`👍 Created ${successfulLikes} likes`)
+    return successfulLikes
   } catch (error) {
-    console.error(`Error in likePost:`, error)
-    return false
+    console.error('Error executing likes:', error)
+    return 0
   }
 }
 
-async function commentOnPost(automationUser: AutomationUser, post: CommunityPost): Promise<boolean> {
-  try {
-    // Analyze post content
-    const postTags = analyzePostContent(post)
-    
-    // Find suitable comment template for this specific bot
-    const { data: commentTemplates } = await supabase
-      .from('automation_comments')
-      .select('*')
-      .eq('bot_identifier', automationUser.persona_type)
-      .eq('persona_type', automationUser.persona_type)
-
-    if (!commentTemplates || commentTemplates.length === 0) {
-      console.log(`No comment templates found for bot ${automationUser.name} (${automationUser.persona_type})`)
-      return false
+async function executeComments(commentTasks: EngagementTask[]): Promise<number> {
+  // Get comment templates for each user type
+  const commentTemplates = await optimizedSupabase.cachedQuery(
+    'comment_templates',
+    async () => {
+      const { data } = await optimizedSupabase.supabase
+        .from('automation_comments')
+        .select('*')
+      return data || []
     }
+  )
 
-    // Prefer templates that match the post context  
-    let suitableTemplates = commentTemplates.filter(template =>
-      template.context_tags.some((tag: string) => postTags.includes(tag))
+  const commentData = commentTasks.map(task => {
+    const userTemplates = commentTemplates.filter(
+      t => t.persona_type === task.user.persona_type
     )
-
-    // If no matching context, use any template from this bot's collection
-    if (suitableTemplates.length === 0) {
-      suitableTemplates = commentTemplates
-    }
-
-    // Select a random template from the bot's specific collection
-    const selectedTemplate = suitableTemplates[Math.floor(Math.random() * suitableTemplates.length)]
     
-    // Use the template text directly (no more placeholder replacement needed)
-    const commentText = selectedTemplate.template_text
+    const template = userTemplates.length > 0 
+      ? userTemplates[Math.floor(Math.random() * userTemplates.length)]
+      : { template_text: 'Looking delicious! 😋' }
 
-    // Create comment
-    const { error } = await supabase
-      .from('comments')
-      .insert({
-        author_id: automationUser.user_id,
-        post_id: post.id,
-        text: commentText
-      })
-
-    if (error) {
-      console.error(`Error commenting on post ${post.id} by ${automationUser.name}:`, error)
-      return false
+    return {
+      author_id: task.user.user_id,
+      post_id: task.post.id,
+      text: template.template_text
     }
+  })
 
-    // Log activity
-    await supabase
-      .from('automation_activity_log')
-      .insert({
-        automation_user_id: automationUser.id,
-        activity_type: 'comment',
-        target_post_id: post.id
-      })
+  const activityLogs = commentTasks.map(task => ({
+    automation_user_id: task.user.id,
+    activity_type: 'comment',
+    target_post_id: task.post.id
+  }))
 
-    console.log(`💬 ${automationUser.name} commented on post ${post.id}: "${commentText}"`)
-    return true
+  try {
+    const [commentsResult, logsResult] = await Promise.allSettled([
+      optimizedSupabase.batchInsert('comments', commentData, 15),
+      optimizedSupabase.batchInsert('automation_activity_log', activityLogs, 15)
+    ])
 
+    const successfulComments = commentsResult.status === 'fulfilled' 
+      ? commentsResult.value.filter(r => r.status === 'fulfilled').length
+      : 0
+
+    console.log(`💬 Created ${successfulComments} comments`)
+    return successfulComments
   } catch (error) {
-    console.error(`Error in commentOnPost:`, error)
-    return false
+    console.error('Error executing comments:', error)
+    return 0
   }
 }
 
@@ -219,17 +234,23 @@ Deno.serve(async (req) => {
   }
 
   try {
-    console.log('🤖 Running automation engagement bot...')
+    console.log('🚀 Optimized automation engagement bot started')
 
-    // Get active automation users
-    const { data: automationUsers, error: usersError } = await supabase
-      .from('automation_users')
-      .select('*')
-      .eq('is_active', true)
+    // Get automation users with caching
+    const automationUsers = await optimizedSupabase.cachedQuery(
+      'active_automation_users',
+      async () => {
+        const { data, error } = await optimizedSupabase.supabase
+          .from('automation_users')
+          .select('*')
+          .eq('is_active', true)
 
-    if (usersError) throw usersError
+        if (error) throw error
+        return data || []
+      }
+    )
 
-    if (!automationUsers || automationUsers.length === 0) {
+    if (automationUsers.length === 0) {
       return new Response(
         JSON.stringify({ message: 'No automation users found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -238,12 +259,12 @@ Deno.serve(async (req) => {
 
     // Get recent posts (last 6 hours)
     const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
-    const { data: recentPosts, error: postsError } = await supabase
+    const { data: recentPosts, error: postsError } = await optimizedSupabase.supabase
       .from('posts')
       .select('*')
       .gte('created_at', sixHoursAgo)
       .order('created_at', { ascending: false })
-      .limit(50)
+      .limit(100)
 
     if (postsError) throw postsError
 
@@ -254,58 +275,37 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log(`Found ${recentPosts.length} recent posts to potentially engage with`)
+    console.log(`📊 Planning engagements for ${automationUsers.length} users on ${recentPosts.length} posts`)
 
-    let likesCreated = 0
-    let commentsCreated = 0
-    const results = []
+    // Plan all engagements efficiently
+    const engagementTasks = await planEngagements(automationUsers, recentPosts)
+    
+    // Separate likes and comments
+    const likeTasks = engagementTasks.filter(task => task.action === 'like')
+    const commentTasks = engagementTasks.filter(task => task.action === 'comment')
 
-    for (const user of automationUsers) {
-      // Randomly select posts to engage with
-      const shuffledPosts = recentPosts.sort(() => Math.random() - 0.5)
-      let userEngagements = 0
+    console.log(`🎯 Executing ${likeTasks.length} likes and ${commentTasks.length} comments`)
 
-      for (const post of shuffledPosts.slice(0, 10)) { // Limit to 10 posts per user per run
-        if (userEngagements >= 3) break // Max 3 engagements per user per run
+    // Execute likes and comments in parallel
+    const [likesCreated, commentsCreated] = await Promise.allSettled([
+      executeLikes(likeTasks),
+      executeComments(commentTasks)
+    ])
 
-        const shouldEngage = await shouldEngageWithPost(user, post)
-        if (!shouldEngage) continue
-
-        // Decide between like and comment (70% like, 30% comment)
-        const shouldComment = Math.random() < 0.3
-
-        if (shouldComment) {
-          const success = await commentOnPost(user, post)
-          if (success) {
-            commentsCreated++
-            userEngagements++
-            results.push({ user: user.name, action: 'comment', post_id: post.id })
-          }
-        } else {
-          const success = await likePost(user, post)
-          if (success) {
-            likesCreated++
-            userEngagements++
-            results.push({ user: user.name, action: 'like', post_id: post.id })
-          }
-        }
-
-        // Add small delay between engagements
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-    }
+    const finalLikes = likesCreated.status === 'fulfilled' ? likesCreated.value : 0
+    const finalComments = commentsCreated.status === 'fulfilled' ? commentsCreated.value : 0
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Engagement automation completed',
+        message: 'Optimized engagement automation completed',
         stats: {
           users_processed: automationUsers.length,
           posts_available: recentPosts.length,
-          likes_created: likesCreated,
-          comments_created: commentsCreated,
-          total_engagements: likesCreated + commentsCreated,
-          results: results.slice(0, 20) // Show first 20 results
+          likes_created: finalLikes,
+          comments_created: finalComments,
+          total_engagements: finalLikes + finalComments,
+          cache_stats: optimizedSupabase.getCacheStats()
         }
       }),
       {
@@ -315,7 +315,7 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error in automation engagement bot:', error)
+    console.error('Error in optimized automation engagement bot:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {

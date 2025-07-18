@@ -1,11 +1,7 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.9'
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
-
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-)
+import { optimizedSupabase } from '../_shared/optimized-client.ts'
+import { rateLimiter, retryWithBackoff } from '../_shared/rate-limiter.ts'
 
 interface AutomationUser {
   id: string
@@ -16,17 +12,10 @@ interface AutomationUser {
   cuisine_specialty: string[]
 }
 
-interface MealContent {
-  id: string
-  image_url: string
-  meal_type: string
-  cuisine_type: string
-  ingredients: string[]
-}
-
-interface CaptionTemplate {
-  template_text: string
-  variables: string[]
+interface PostCreationTask {
+  user: AutomationUser
+  mealType: string
+  shouldPost: boolean
 }
 
 function getLocalTimeHour(timezone: string): number {
@@ -36,7 +25,6 @@ function getLocalTimeHour(timezone: string): number {
     return localTime.getHours()
   } catch (error) {
     console.error(`Invalid timezone: ${timezone}`, error)
-    // Fallback to UTC if timezone is invalid
     return new Date().getUTCHours()
   }
 }
@@ -45,7 +33,6 @@ function shouldPostNow(timezone: string, lastPostTime?: string, isManualTrigger 
   const hour = getLocalTimeHour(timezone)
   const now = new Date()
   
-  // For manual triggers, always post if not posted in last 10 minutes
   if (isManualTrigger) {
     if (lastPostTime) {
       const lastPost = new Date(lastPostTime)
@@ -55,22 +42,13 @@ function shouldPostNow(timezone: string, lastPostTime?: string, isManualTrigger 
       }
     }
     
-    // Force post with appropriate meal type for manual triggers
-    if (hour >= 6 && hour <= 9) {
-      return { shouldPost: true, mealType: 'breakfast' }
-    } else if (hour >= 12 && hour <= 14) {
-      return { shouldPost: true, mealType: 'lunch' }
-    } else if (hour >= 18 && hour <= 20) {
-      return { shouldPost: true, mealType: 'dinner' }
-    } else if (hour >= 15 && hour <= 17) {
-      return { shouldPost: true, mealType: 'snack' }
-    } else {
-      // Default to lunch for manual triggers outside meal times
-      return { shouldPost: true, mealType: 'lunch' }
-    }
+    if (hour >= 6 && hour <= 9) return { shouldPost: true, mealType: 'breakfast' }
+    if (hour >= 12 && hour <= 14) return { shouldPost: true, mealType: 'lunch' }
+    if (hour >= 18 && hour <= 20) return { shouldPost: true, mealType: 'dinner' }
+    if (hour >= 15 && hour <= 17) return { shouldPost: true, mealType: 'snack' }
+    return { shouldPost: true, mealType: 'lunch' }
   }
   
-  // Check if already posted in the last 1 hour (reduced cooldown) - skip for manual triggers
   if (lastPostTime) {
     const lastPost = new Date(lastPostTime)
     const hoursSinceLastPost = (now.getTime() - lastPost.getTime()) / (1000 * 60 * 60)
@@ -79,243 +57,212 @@ function shouldPostNow(timezone: string, lastPostTime?: string, isManualTrigger 
     }
   }
 
-  // Determine meal time and add randomness
-  const randomOffset = Math.random() * 30 - 15 // ±15 minutes
+  const randomOffset = Math.random() * 30 - 15
   const effectiveHour = hour + randomOffset / 60
 
   if (effectiveHour >= 6 && effectiveHour <= 9) {
-    return { shouldPost: Math.random() > 0.3, mealType: 'breakfast' } // 70% chance
+    return { shouldPost: Math.random() > 0.3, mealType: 'breakfast' }
   } else if (effectiveHour >= 12 && effectiveHour <= 14) {
-    return { shouldPost: Math.random() > 0.2, mealType: 'lunch' } // 80% chance
+    return { shouldPost: Math.random() > 0.2, mealType: 'lunch' }
   } else if (effectiveHour >= 18 && effectiveHour <= 20) {
-    return { shouldPost: Math.random() > 0.1, mealType: 'dinner' } // 90% chance
+    return { shouldPost: Math.random() > 0.1, mealType: 'dinner' }
   } else if (effectiveHour >= 15 && effectiveHour <= 17) {
-    return { shouldPost: Math.random() > 0.7, mealType: 'snack' } // 30% chance
+    return { shouldPost: Math.random() > 0.7, mealType: 'snack' }
   }
 
   return { shouldPost: false }
 }
 
-function generateCaption(template: CaptionTemplate, mealContent: MealContent, persona: string): string {
-  let caption = template.template_text
+async function generateCaption(mealType: string, persona: string): Promise<string> {
+  const captionOptions = await optimizedSupabase.cachedQuery(
+    `captions_${mealType}_${persona}`,
+    async () => {
+      const { data } = await optimizedSupabase.supabase
+        .from('automation_captions')
+        .select('*')
+        .eq('meal_type', mealType)
+        .eq('persona_type', persona)
+        .limit(10)
+      return data || []
+    }
+  )
 
-  // Simple variable replacement based on meal content
-  const replacements: Record<string, string> = {
-    meal: mealContent.meal_type,
-    ingredient: mealContent.ingredients[0] || 'healthy ingredient',
-    ingredient1: mealContent.ingredients[0] || 'protein',
-    ingredient2: mealContent.ingredients[1] || 'fiber',
-    nutrients: mealContent.ingredients.slice(0, 2).join(' and '),
-    benefit: 'sustained energy and nutrition',
-    meal_time: mealContent.meal_type === 'breakfast' ? 'starting the day' : 
-              mealContent.meal_type === 'lunch' ? 'midday fuel' : 'evening nourishment'
+  if (captionOptions.length === 0) {
+    const fallbackOptions = await optimizedSupabase.cachedQuery(
+      `captions_${mealType}_fallback`,
+      async () => {
+        const { data } = await optimizedSupabase.supabase
+          .from('automation_captions')
+          .select('*')
+          .eq('meal_type', mealType)
+          .limit(10)
+        return data || []
+      }
+    )
+    
+    if (fallbackOptions.length > 0) {
+      return fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)].template_text
+    }
   }
 
-  // Replace variables in template
-  template.variables?.forEach(variable => {
-    const replacement = replacements[variable] || variable
-    caption = caption.replace(`{${variable}}`, replacement)
-  })
-
-  return caption
+  return captionOptions.length > 0 
+    ? captionOptions[Math.floor(Math.random() * captionOptions.length)].template_text
+    : `Enjoying this delicious ${mealType}! 🍽️ #HealthyEating #FoodLove`
 }
 
-async function generateMealImage(automationUser: AutomationUser, mealType: string): Promise<{ imageUrl: string, recipe: any } | null> {
+async function generateMealImage(user: AutomationUser, mealType: string): Promise<{ imageUrl: string, recipe: any } | null> {
   try {
-    console.log(`🎨 Generating AI image for ${automationUser.name} - ${mealType}`)
-    
-    // Call the dedicated generate-meal-image function
-    const { data, error } = await supabase.functions.invoke('generate-meal-image', {
-      body: {
-        mealType: mealType,
-        userId: automationUser.user_id
-      }
+    if (!rateLimiter.isAllowed(`image_generation_${user.id}`, 5)) {
+      console.log(`⚠️ Rate limit exceeded for image generation: ${user.name}`)
+      return null
+    }
+
+    const result = await retryWithBackoff(async () => {
+      const { data, error } = await optimizedSupabase.supabase.functions.invoke('generate-meal-image', {
+        body: { mealType, userId: user.user_id }
+      })
+
+      if (error) throw new Error(`generate-meal-image failed: ${error.message}`)
+      if (!data?.imageUrl) throw new Error('No image URL returned')
+      
+      return data
     })
 
-    if (error) {
-      console.error(`❌ Error calling generate-meal-image function:`, error)
-      throw new Error(`generate-meal-image failed: ${error.message}`)
-    }
-
-    if (!data || !data.imageUrl) {
-      console.error(`❌ No image URL returned from generate-meal-image function`)
-      throw new Error('No image URL returned from generate-meal-image function')
-    }
-
-    console.log(`✅ Generated AI image for ${automationUser.name} using meal: ${data.recipe?.id || 'unknown'}`)
     return {
-      imageUrl: data.imageUrl,
-      recipe: data.recipe || {
-        id: 'generated',
-        name: `${mealType} dish`,
-        category: 'generated'
-      }
+      imageUrl: result.imageUrl,
+      recipe: result.recipe || { id: 'generated', name: `${mealType} dish`, category: 'generated' }
     }
   } catch (error) {
-    console.error(`❌ Error in generateMealImage for ${automationUser.name}:`, error)
+    console.error(`❌ Error generating image for ${user.name}:`, error)
     return null
   }
 }
 
+async function createPostsBatch(tasks: PostCreationTask[]): Promise<{ success: number, failed: number }> {
+  const postData = await Promise.allSettled(
+    tasks.map(async (task) => {
+      if (!task.shouldPost) return null
 
-async function createPost(automationUser: AutomationUser, mealType: string) {
-  try {
-    console.log(`🚀 Creating post for ${automationUser.name} - ${mealType}`)
-    
-    // Generate AI image - if it fails, don't create post
-    const imageResult = await generateMealImage(automationUser, mealType)
-    if (!imageResult) {
-      console.log(`❌ Failed to generate AI image for ${automationUser.name}, skipping post`)
-      return false
-    }
+      const imageResult = await generateMealImage(task.user, task.mealType)
+      if (!imageResult) return null
 
-    console.log(`📸 Using AI-generated image for ${automationUser.name}`)
+      const caption = await generateCaption(task.mealType, task.user.persona_type)
 
-    // Get caption template with fallback to other persona types
-    let { data: captionOptions } = await supabase
-      .from('automation_captions')
-      .select('*')
-      .eq('meal_type', mealType)
-      .eq('persona_type', automationUser.persona_type)
-      .limit(5)
-
-    // If no exact match, try any persona type for this meal type
-    if (!captionOptions || captionOptions.length === 0) {
-      const { data: fallbackOptions } = await supabase
-        .from('automation_captions')
-        .select('*')
-        .eq('meal_type', mealType)
-        .limit(10)
-      
-      captionOptions = fallbackOptions
-    }
-
-    if (!captionOptions || captionOptions.length === 0) {
-      console.log(`No caption templates found for meal type: ${mealType}`)
-      return false
-    }
-
-    const selectedCaption = captionOptions[Math.floor(Math.random() * captionOptions.length)]
-    
-    // Create mock meal content for caption generation using recipe data
-    const mealContentForCaption: MealContent = {
-      id: imageResult.recipe.id,
-      image_url: imageResult.imageUrl,
-      meal_type: mealType,
-      cuisine_type: imageResult.recipe.category || 'healthy',
-      ingredients: imageResult.recipe.name ? [imageResult.recipe.name] : ['healthy ingredients']
-    }
-    
-    const finalCaption = generateCaption(selectedCaption, mealContentForCaption, automationUser.persona_type)
-
-    // Create the post
-    const { error: postError } = await supabase
-      .from('posts')
-      .insert({
-        author_id: automationUser.user_id,
+      return {
+        author_id: task.user.user_id,
         image_url: imageResult.imageUrl,
-        caption: finalCaption,
-        category: mealType
-      })
+        caption,
+        category: task.mealType,
+        user_name: task.user.name,
+        user_id: task.user.id
+      }
+    })
+  )
 
-    if (postError) {
-      console.error(`Error creating post for ${automationUser.name}:`, postError)
-      return false
-    }
+  const validPosts = postData
+    .filter(result => result.status === 'fulfilled' && result.value)
+    .map(result => (result as PromiseFulfilledResult<any>).value)
 
-    // Log the activity
-    await supabase
-      .from('automation_activity_log')
-      .insert({
-        automation_user_id: automationUser.id,
-        activity_type: 'post'
-      })
+  if (validPosts.length === 0) {
+    return { success: 0, failed: 0 }
+  }
 
-    console.log(`✅ Created post for ${automationUser.name} (${mealType}) using recipe: ${imageResult.recipe.name}`)
-    return true
+  try {
+    // Batch insert posts
+    const postResults = await optimizedSupabase.batchInsert('posts', validPosts, 10)
+    const successfulPosts = postResults.filter(r => r.status === 'fulfilled').length
 
+    // Batch insert activity logs
+    const activityLogs = validPosts.map(post => ({
+      automation_user_id: post.user_id,
+      activity_type: 'post'
+    }))
+
+    await optimizedSupabase.batchInsert('automation_activity_log', activityLogs)
+
+    return { success: successfulPosts, failed: validPosts.length - successfulPosts }
   } catch (error) {
-    console.error(`Error in createPost for ${automationUser.name}:`, error)
-    return false
+    console.error('Error in batch post creation:', error)
+    return { success: 0, failed: validPosts.length }
   }
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      headers: corsHeaders,
-      status: 200 
-    })
+    return new Response(null, { headers: corsHeaders, status: 200 })
   }
 
   try {
-    // Check if this is a manual trigger
     const requestBody = req.method === 'POST' ? await req.json().catch(() => ({})) : {}
     const isManualTrigger = requestBody?.manual_trigger === true
     
-    console.log(`🤖 Running automation posting bot... ${isManualTrigger ? '(Manual trigger)' : '(Scheduled)'}`)
-    console.log('Request body:', JSON.stringify(requestBody))
+    console.log(`🚀 Optimized automation posting bot started ${isManualTrigger ? '(Manual)' : '(Scheduled)'}`)
 
-    // Get all active automation users
-    const { data: automationUsers, error: usersError } = await supabase
-      .from('automation_users')
-      .select('*')
-      .eq('is_active', true)
+    // Get automation users with caching
+    const automationUsers = await optimizedSupabase.cachedQuery(
+      'active_automation_users',
+      async () => {
+        const { data, error } = await optimizedSupabase.supabase
+          .from('automation_users')
+          .select('*')
+          .eq('is_active', true)
 
-    if (usersError) {
-      throw usersError
-    }
+        if (error) throw error
+        return data || []
+      }
+    )
 
-    if (!automationUsers || automationUsers.length === 0) {
+    if (automationUsers.length === 0) {
       return new Response(
         JSON.stringify({ message: 'No automation users found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log(`Found ${automationUsers.length} automation users`)
+    // Get last activities in parallel
+    const lastActivities = await Promise.allSettled(
+      automationUsers.map(async (user) => {
+        const { data } = await optimizedSupabase.supabase
+          .from('automation_activity_log')
+          .select('created_at')
+          .eq('automation_user_id', user.id)
+          .eq('activity_type', 'post')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
 
-    let postsCreated = 0
-    const results = []
+        return { userId: user.id, lastActivity: data?.created_at }
+      })
+    )
 
-    for (const user of automationUsers) {
-      // Get last post time for this user
-      const { data: lastActivity } = await supabase
-        .from('automation_activity_log')
-        .select('created_at')
-        .eq('automation_user_id', user.id)
-        .eq('activity_type', 'post')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
-
-      const postDecision = shouldPostNow(user.timezone, lastActivity?.created_at, isManualTrigger)
+    // Process posting decisions
+    const tasks: PostCreationTask[] = automationUsers.map((user, index) => {
+      const lastActivity = lastActivities[index]
+      const lastPostTime = lastActivity.status === 'fulfilled' ? lastActivity.value.lastActivity : undefined
       
-      console.log(`📊 ${user.name} (${user.timezone}): hour=${getLocalTimeHour(user.timezone)}, shouldPost=${postDecision.shouldPost}, mealType=${postDecision.mealType}, lastPost=${lastActivity?.created_at || 'never'}`)
+      const decision = shouldPostNow(user.timezone, lastPostTime, isManualTrigger)
       
-      if (postDecision.shouldPost && postDecision.mealType) {
-        console.log(`🚀 Creating post for ${user.name} - ${postDecision.mealType}`)
-        const success = await createPost(user, postDecision.mealType)
-        if (success) {
-          postsCreated++
-          results.push({ user: user.name, mealType: postDecision.mealType, success: true })
-        } else {
-          results.push({ user: user.name, mealType: postDecision.mealType, success: false })
-        }
-      } else {
-        console.log(`⏭️ Skipping ${user.name} (timezone: ${user.timezone}, hour: ${getLocalTimeHour(user.timezone)})`)
+      return {
+        user,
+        mealType: decision.mealType || 'lunch',
+        shouldPost: decision.shouldPost
       }
-    }
+    })
+
+    console.log(`📊 Processing ${tasks.filter(t => t.shouldPost).length} posts out of ${tasks.length} users`)
+
+    // Create posts in batches
+    const results = await createPostsBatch(tasks.filter(t => t.shouldPost))
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Posting automation completed`,
+        message: 'Optimized posting automation completed',
         stats: {
           total_users: automationUsers.length,
-          posts_created: postsCreated,
-          results
+          posts_created: results.success,
+          posts_failed: results.failed,
+          cache_stats: optimizedSupabase.getCacheStats()
         }
       }),
       {
@@ -325,7 +272,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error in automation posting bot:', error)
+    console.error('Error in optimized automation posting bot:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {
