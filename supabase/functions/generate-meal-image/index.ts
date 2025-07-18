@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
@@ -64,6 +65,35 @@ async function getRandomRecipe(mealType) {
   return allRecipes[randomIndex];
 }
 
+async function convertImageViaWorker(imageBlob) {
+  const WORKER_URL = 'https://image-converter-worker.amitshinde011.workers.dev';
+  
+  try {
+    console.log('🔄 Converting JPEG to WebP via Cloudflare Worker...');
+    
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': imageBlob.type,
+      },
+      body: imageBlob,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Cloudflare Worker failed: ${errorText}`);
+    }
+
+    const webpBlob = await response.blob();
+    console.log('✅ Successfully converted to WebP via Cloudflare Worker');
+    return webpBlob;
+    
+  } catch (error) {
+    console.error('❌ WebP conversion failed:', error.message);
+    throw error;
+  }
+}
+
 async function generateImageWithGoogleAI(recipe) {
   const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY');
   if (!apiKey) throw new Error('Google AI Studio API key not configured');
@@ -91,8 +121,14 @@ async function generateImageWithGoogleAI(recipe) {
   const imageBytes = Uint8Array.from(atob(imagePart.inlineData.data), c => c.charCodeAt(0));
   const imageBlob = new Blob([imageBytes], { type: imagePart.inlineData.mimeType });
 
-  console.log('📸 Using JPEG image from Google AI (WebP conversion not supported in edge functions)');
-  return await convertAndUploadToSupabase(imageBlob, recipe.name, 'jpg');
+  // Try to convert to WebP using Cloudflare Worker
+  try {
+    const webpBlob = await convertImageViaWorker(imageBlob);
+    return await convertAndUploadToSupabase(webpBlob, recipe.name, 'webp');
+  } catch (error) {
+    console.log('⚠️ WebP conversion failed, using original JPEG:', error.message);
+    return await convertAndUploadToSupabase(imageBlob, recipe.name, 'jpg');
+  }
 }
 
 async function convertAndUploadToSupabase(imageBlob, recipeName, fileExtension = 'jpg') {
@@ -100,7 +136,7 @@ async function convertAndUploadToSupabase(imageBlob, recipeName, fileExtension =
     console.log(`🔄 Uploading ${fileExtension.toUpperCase()} to Supabase...`);
     
     const fileName = `automation-${Date.now()}-${recipeName.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${fileExtension}`;
-    const contentType = 'image/jpeg';
+    const contentType = fileExtension === 'webp' ? 'image/webp' : 'image/jpeg';
     
     const { data, error } = await supabase.storage
       .from('bot-posts')
@@ -111,30 +147,30 @@ async function convertAndUploadToSupabase(imageBlob, recipeName, fileExtension =
 
     if (error) {
       console.log('⚠️ Upload failed, trying fallback...', error);
-      return await fallbackSupabaseUpload(imageBlob, recipeName);
+      return await fallbackSupabaseUpload(imageBlob, recipeName, fileExtension);
     }
 
     const { data: { publicUrl } } = supabase.storage
       .from('bot-posts')
       .getPublicUrl(fileName);
 
-    console.log(`✅ Successfully uploaded JPEG image to Supabase`);
+    console.log(`✅ Successfully uploaded ${fileExtension.toUpperCase()} image to Supabase`);
     return publicUrl;
 
   } catch (error) {
     console.error('❌ Upload failed:', error.message);
-    return await fallbackSupabaseUpload(imageBlob, recipeName);
+    return await fallbackSupabaseUpload(imageBlob, recipeName, fileExtension);
   }
 }
 
-// ✅ Fallback also uses JPEG
-async function fallbackSupabaseUpload(imageBlob, recipeName) {
-  const fallbackFileName = `automation-fallback-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
+async function fallbackSupabaseUpload(imageBlob, recipeName, fileExtension = 'jpg') {
+  const fallbackFileName = `automation-fallback-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.${fileExtension}`;
+  const contentType = fileExtension === 'webp' ? 'image/webp' : 'image/jpeg';
   
   const { data, error } = await supabase.storage
     .from('bot-posts')
     .upload(fallbackFileName, imageBlob, {
-      contentType: 'image/jpeg',
+      contentType: contentType,
       upsert: false
     });
 
@@ -144,37 +180,6 @@ async function fallbackSupabaseUpload(imageBlob, recipeName) {
     .from('bot-posts')
     .getPublicUrl(fallbackFileName);
   
-  console.log('✅ Fallback upload successful:', publicUrl);
+  console.log(`✅ Fallback upload successful: ${fileExtension.toUpperCase()}`);
   return publicUrl;
-}
-
-// ✅ Replaced Squoosh/WebP logic with reliable Canvas/JPEG logic
-async function resizeImageAsJpeg(imageBlob, quality = 0.85) {
-  try {
-    const imageBitmap = await createImageBitmap(imageBlob);
-
-    const maxDimension = 1024;
-    let { width, height } = imageBitmap;
-    if (width > maxDimension || height > maxDimension) {
-      const ratio = Math.min(maxDimension / width, maxDimension / height);
-      width = Math.round(width * ratio);
-      height = Math.round(height * ratio);
-    }
-
-    const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Failed to get 2D context');
-
-    ctx.drawImage(imageBitmap, 0, 0, width, height);
-    
-    const jpegBlob = await canvas.convertToBlob({
-      type: 'image/jpeg',
-      quality: quality
-    });
-
-    console.log('✅ Successfully resized image to JPEG.');
-    return jpegBlob;
-  } catch (error) {
-    throw new Error(`JPEG resizing failed: ${error.message}`);
-  }
 }
