@@ -244,16 +244,15 @@ async function convertToWebPServerSide(imageBlob, quality = 0.85) {
     if (!ctx) {
       throw new Error('Failed to get 2D context from OffscreenCanvas');
     }
+
+    // 💡 FIX: Force the canvas to have an RGBA context from the start
+    // by clearing it to a transparent state before drawing the image.
+    ctx.clearRect(0, 0, width, height);
     
-    // Draw the image bitmap to the canvas
+    // Draw the image bitmap onto the now-transparent canvas
     ctx.drawImage(imageBitmap, 0, 0, width, height);
-
-    // 💡 FIX: Force canvas data to RGBA format before encoding.
-    // This cycle reads the pixel data into a standard RGBA buffer and writes it back.
-    const imageData = ctx.getImageData(0, 0, width, height);
-    ctx.putImageData(imageData, 0, 0);
-
-    // Now, convert to a WebP blob with the corrected buffer
+    
+    // Convert to WebP blob
     const webpBlob = await canvas.convertToBlob({
       type: 'image/webp',
       quality: quality
