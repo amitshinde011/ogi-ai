@@ -93,43 +93,54 @@ async function generateImageWithGoogleAI(recipe) {
   const imageBytes = Uint8Array.from(atob(imagePart.inlineData.data), c => c.charCodeAt(0));
   const imageBlob = new Blob([imageBytes], { type: imagePart.inlineData.mimeType });
 
-  return await convertAndUploadToR2(imageBlob, recipe.name);
+  return await convertAndUploadToSupabase(imageBlob, recipe.name);
 }
 
-async function convertAndUploadToR2(imageBlob, recipeName) {
+async function convertAndUploadToSupabase(imageBlob, recipeName) {
   try {
     const webpBlob = await convertToWebPServerSide(imageBlob, 85);
     const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.webp`;
     
-    const formData = new FormData();
-    formData.append('file', webpBlob, fileName);
-    formData.append('uploadType', 'meal');
+    const { data, error } = await supabase.storage
+      .from('bot-posts')
+      .upload(fileName, webpBlob, {
+        contentType: 'image/webp',
+        upsert: false
+      });
 
-    const { data, error } = await supabase.functions.invoke('upload-to-r2', { body: formData });
-    if (error) throw new Error(`R2 upload failed: ${error.message}`);
-    if (!data.success || !data.imageUrl) throw new Error(data.error || 'R2 upload unsuccessful');
+    if (error) throw new Error(`Supabase upload failed: ${error.message}`);
 
-    console.log('✅ Successfully uploaded compressed WebP image to R2:', data.imageUrl);
-    return data.imageUrl;
+    const { data: { publicUrl } } = supabase.storage
+      .from('bot-posts')
+      .getPublicUrl(fileName);
+
+    console.log('✅ Successfully uploaded compressed WebP image to Supabase:', publicUrl);
+    return publicUrl;
   } catch (error) {
     console.error('❌ Conversion or upload failed:', error.message);
     console.log('🔄 Attempting fallback upload with original image...');
-    return await fallbackUpload(imageBlob, recipeName);
+    return await fallbackSupabaseUpload(imageBlob, recipeName);
   }
 }
 
-async function fallbackUpload(imageBlob, recipeName) {
-    const fallbackFileName = `automation-fallback-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
-    const formData = new FormData();
-    formData.append('file', imageBlob, fallbackFileName);
-    formData.append('uploadType', 'meal');
+async function fallbackSupabaseUpload(imageBlob, recipeName) {
+  const fallbackFileName = `automation-fallback-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
+  
+  const { data, error } = await supabase.storage
+    .from('bot-posts')
+    .upload(fallbackFileName, imageBlob, {
+      contentType: 'image/jpeg',
+      upsert: false
+    });
 
-    const { data, error } = await supabase.functions.invoke('upload-to-r2', { body: formData });
-    if (error) throw new Error(`Fallback upload also failed: ${error.message}`);
-    if (!data.success) throw new Error(data.error || 'Fallback upload failed');
-    
-    console.log('✅ Fallback upload successful:', data.imageUrl);
-    return data.imageUrl;
+  if (error) throw new Error(`Fallback Supabase upload failed: ${error.message}`);
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('bot-posts')
+    .getPublicUrl(fallbackFileName);
+  
+  console.log('✅ Fallback upload successful:', publicUrl);
+  return publicUrl;
 }
 
 async function convertToWebPServerSide(imageBlob, quality = 85) {
