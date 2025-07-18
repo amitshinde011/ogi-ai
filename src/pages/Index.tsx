@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Loader from '@/components/ui/loader';
-import { determineLandingPage } from '@/utils/landingPageRouter';
+import { determineLandingPage } from '@/utils/determineLandingPage';
 import { IMAGES } from '@/constants/images';
 import { useAuth } from '@/contexts/AuthContext';
 

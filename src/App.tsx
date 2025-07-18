@@ -48,6 +48,7 @@ import NotFound from "./pages/NotFound";
 
 // Components
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -105,7 +106,7 @@ const App = () => {
               <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
               <Route path="/post/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
               <Route path="/my-posts" element={<ProtectedRoute><MyPosts /></ProtectedRoute>} />
-              <Route path="/automation-admin" element={<ProtectedRoute><AutomationAdmin /></ProtectedRoute>} />
+              <Route path="/automation-admin" element={<ProtectedRoute><AdminRoute><AutomationAdmin /></AdminRoute></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />

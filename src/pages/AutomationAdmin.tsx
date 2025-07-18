@@ -3,12 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, Play, Users, BarChart3, Database, RefreshCw, Download } from 'lucide-react';
+import { AlertCircle, Play, Users, BarChart3, Database, RefreshCw, Download, Shield } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { convertImageElementToWebP } from '@/utils/imageConversion';
 import { toast } from 'sonner';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AutomationStats {
   activeUsers: number;
@@ -34,6 +36,8 @@ export default function AutomationAdmin() {
   const [converting, setConverting] = useState(false);
   const [jpegPosts, setJpegPosts] = useState<any[]>([]);
   const { toast: useToastHook } = useToast();
+  const { userRole, isAdmin } = useUserRole();
+  const { user } = useAuth();
 
   const fetchStats = async () => {
     try {
@@ -244,8 +248,19 @@ export default function AutomationAdmin() {
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Automation Admin</h1>
-          <p className="text-muted-foreground">Monitor and test the automation system</p>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold">Automation Admin</h1>
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Shield className="h-3 w-3" />
+              {userRole}
+            </Badge>
+          </div>
+          <p className="text-muted-foreground">
+            Monitor and test the automation system
+            {user && (
+              <span className="ml-2 text-xs">• Logged in as: {user.email}</span>
+            )}
+          </p>
         </div>
         <Button onClick={fetchStats} disabled={loading}>
           <RefreshCw className="h-4 w-4 mr-2" />

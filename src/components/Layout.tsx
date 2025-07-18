@@ -6,6 +6,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import PostCompletionBanner from './PostCompletionBanner';
 import Footer from './Footer';
+import AdminNavigation from './admin/AdminNavigation';
 import { IMAGES } from '@/constants/images';
 
 interface LayoutProps {
@@ -71,6 +72,7 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
                 ? 'max-w-2xl' 
                 : 'max-w-6xl'
           }`}>
+            <AdminNavigation />
             {children}
           </div>
         )}
