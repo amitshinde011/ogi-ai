@@ -23,15 +23,15 @@ serve(async (req) => {
       }
     )
 
-    const { post_ids } = await req.json()
+    const { postIds } = await req.json()
 
-    if (!post_ids || !Array.isArray(post_ids)) {
-      throw new Error('post_ids array is required')
+    if (!postIds || !Array.isArray(postIds)) {
+      throw new Error('postIds array is required')
     }
 
     const results = []
 
-    for (const postId of post_ids) {
+    for (const postId of postIds) {
       try {
         // Get post data
         const { data: post, error: postError } = await supabaseClient

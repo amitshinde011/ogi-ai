@@ -121,18 +121,81 @@ export default function AutomationAdmin() {
     }
 
     setConverting(true);
+
     try {
-      // Use the edge function to convert images
-      const { data, error } = await supabase.functions.invoke('convert-image-to-webp', {
-        body: { 
-          convertAll: true,
-          postIds: jpegPosts.map(post => post.id)
+      const jpegPostsToConvert = jpegPosts.filter(post => 
+        post.image_url.match(/\.(jpg|jpeg)$/i)
+      );
+
+      if (jpegPostsToConvert.length === 0) {
+        toast("No JPEG posts found to convert");
+        setConverting(false);
+        return;
+      }
+
+      let converted = 0;
+      let failed = 0;
+
+      for (const post of jpegPostsToConvert) {
+        try {
+          // Download the original JPEG image
+          const response = await fetch(post.image_url);
+          if (!response.ok) throw new Error('Failed to download image');
+          
+          const imageBlob = await response.blob();
+          
+          // Create image element for conversion
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(imageBlob);
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+          
+          // Convert to WebP using browser API
+          const webpBlob = await convertImageElementToWebP(img, 0.8);
+          
+          // Generate WebP filename
+          const originalFilename = post.image_url.split('/').pop();
+          const webpFilename = originalFilename?.replace(/\.(jpg|jpeg)$/i, '.webp') || `converted-${Date.now()}.webp`;
+          
+          // Upload WebP to Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('bot-posts')
+            .upload(webpFilename, webpBlob, {
+              contentType: 'image/webp',
+              cacheControl: '3600'
+            });
+
+          if (uploadError) throw uploadError;
+
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('bot-posts')
+            .getPublicUrl(webpFilename);
+
+          // Update post with WebP URL (this will work now with permissive RLS)
+          const { error: updateError } = await supabase
+            .from('posts')
+            .update({ image_url: publicUrl })
+            .eq('id', post.id);
+
+          if (updateError) throw updateError;
+
+          converted++;
+          console.log(`✅ Converted post ${post.id}`);
+          
+          // Clean up object URL
+          URL.revokeObjectURL(img.src);
+          
+        } catch (error) {
+          failed++;
+          console.error(`❌ Failed to convert post ${post.id}:`, error);
         }
-      });
-      
-      if (error) throw error;
-      
-      toast(`Conversion complete: ${data?.converted || 0} images converted`);
+      }
+
+      toast(`Conversion complete: ${converted} succeeded, ${failed} failed`);
       
       // Refresh data
       fetchStats();
