@@ -163,121 +163,80 @@ async function generateImageWithGoogleAI(recipe: Recipe): Promise<string> {
 }
 
 async function convertAndUploadToSupabase(imageBlob: Blob, recipeName: string): Promise<string> {
-  try {
-    console.log(`📦 Preparing to compress and convert image for recipe: ${recipeName}`);
-    console.log(`📊 Original image size: ${imageBlob.size} bytes, type: ${imageBlob.type}`);
-    
-    // Convert to WebP using ImageData processing similar to real user uploads
-    const webpBlob = await convertToWebPServerSide(imageBlob, 0.85);
-    
-    // Create file path
-    const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.webp`;
-    const filePath = `meals/${fileName}`;
-    
-    console.log(`📤 Uploading compressed WebP image as: ${fileName}`);
-    console.log(`📊 Compressed size: ${webpBlob.size} bytes (${Math.round((1 - webpBlob.size / imageBlob.size) * 100)}% reduction)`);
-    
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from('bot-posts')
-      .upload(filePath, webpBlob, {
-        contentType: 'image/webp',
-        cacheControl: '3600',
-        upsert: true
-      });
-    
-    if (error) {
-      console.error('❌ Error uploading to Supabase Storage:', error);
-      throw new Error(`Supabase Storage upload failed: ${error.message}`);
-    }
-    
-    if (!data) {
-      console.error('❌ Supabase Storage upload unsuccessful: no data returned');
-      throw new Error('Supabase Storage upload failed: no data returned');
-    }
-    
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('bot-posts')
-      .getPublicUrl(filePath);
-    
-    console.log('✅ Successfully uploaded compressed WebP image to Supabase Storage:', urlData.publicUrl);
-    return urlData.publicUrl;
-    
-  } catch (error) {
-    console.error('❌ Error in convertAndUploadToSupabase:', error);
-    // Fallback: try uploading original image if WebP conversion fails
-    console.log('🔄 Attempting fallback upload with original image...');
-    try {
-      const fallbackFileName = `automation-fallback-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.jpg`;
-      const fallbackFilePath = `meals/${fallbackFileName}`;
-      
-      const { data, error } = await supabase.storage
-        .from('bot-posts')
-        .upload(fallbackFilePath, imageBlob, {
-          contentType: 'image/jpeg',
-          cacheControl: '3600',
-          upsert: true
-        });
-      
-      if (error) throw error;
-      if (!data) throw new Error('Fallback upload failed: no data returned');
-      
-      // Get public URL for fallback
-      const { data: urlData } = supabase.storage
-        .from('bot-posts')
-        .getPublicUrl(fallbackFilePath);
-      
-      console.log('✅ Fallback upload successful:', urlData.publicUrl);
-      return urlData.publicUrl;
-    } catch (fallbackError) {
-      console.error('❌ Fallback upload also failed:', fallbackError);
-      throw error; // Throw original error
-    }
+  console.log(`📦 Preparing to compress and convert image for recipe: ${recipeName}`);
+  console.log(`📊 Original image size: ${imageBlob.size} bytes, type: ${imageBlob.type}`);
+  
+  // Convert to WebP using ImageData processing similar to real user uploads
+  const webpBlob = await convertToWebPServerSide(imageBlob, 0.85);
+  
+  // Create file path
+  const fileName = `automation-${Date.now()}-${recipeName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}.webp`;
+  const filePath = `meals/${fileName}`;
+  
+  console.log(`📤 Uploading compressed WebP image as: ${fileName}`);
+  console.log(`📊 Compressed size: ${webpBlob.size} bytes (${Math.round((1 - webpBlob.size / imageBlob.size) * 100)}% reduction)`);
+  
+  // Upload to Supabase Storage
+  const { data, error } = await supabase.storage
+    .from('bot-posts')
+    .upload(filePath, webpBlob, {
+      contentType: 'image/webp',
+      cacheControl: '3600',
+      upsert: true
+    });
+  
+  if (error) {
+    console.error('❌ Error uploading to Supabase Storage:', error);
+    throw new Error(`Supabase Storage upload failed: ${error.message}`);
   }
+  
+  if (!data) {
+    console.error('❌ Supabase Storage upload unsuccessful: no data returned');
+    throw new Error('Supabase Storage upload failed: no data returned');
+  }
+  
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from('bot-posts')
+    .getPublicUrl(filePath);
+  
+  console.log('✅ Successfully uploaded compressed WebP image to Supabase Storage:', urlData.publicUrl);
+  return urlData.publicUrl;
 }
 
 async function convertToWebPServerSide(imageBlob, quality = 0.85) {
-  try {
-    // Create ImageBitmap from the blob
-    const imageBitmap = await createImageBitmap(imageBlob);
-    
-    // Calculate compressed dimensions
-    const maxDimension = 1024;
-    let { width, height } = imageBitmap;
-    if (width > maxDimension || height > maxDimension) {
-      const ratio = Math.min(maxDimension / width, maxDimension / height);
-      width = Math.round(width * ratio);
-      height = Math.round(height * ratio);
-    }
-    
-    // Create OffscreenCanvas for processing
-    const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Failed to get 2D context from OffscreenCanvas');
-    }
-
-    // 💡 FIX: Force the canvas to have an RGBA context from the start
-    // by clearing it to a transparent state before drawing the image.
-    ctx.clearRect(0, 0, width, height);
-    
-    // Draw the image bitmap onto the now-transparent canvas
-    ctx.drawImage(imageBitmap, 0, 0, width, height);
-    
-    // Convert to WebP blob
-    const webpBlob = await canvas.convertToBlob({
-      type: 'image/webp',
-      quality: quality
-    });
-    
-    console.log(`✅ Successfully converted to WebP.`);
-    return webpBlob;
-
-  } catch (error) {
-    console.error('❌ WebP conversion failed:', error);
-    // Fallback to original image if conversion fails
-    console.log('🔄 Using original image due to conversion failure');
-    return imageBlob;
+  // Create ImageBitmap from the blob
+  const imageBitmap = await createImageBitmap(imageBlob);
+  
+  // Calculate compressed dimensions
+  const maxDimension = 1024;
+  let { width, height } = imageBitmap;
+  if (width > maxDimension || height > maxDimension) {
+    const ratio = Math.min(maxDimension / width, maxDimension / height);
+    width = Math.round(width * ratio);
+    height = Math.round(height * ratio);
   }
+  
+  // Create OffscreenCanvas for processing
+  const canvas = new OffscreenCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Failed to get 2D context from OffscreenCanvas');
+  }
+
+  // Force the canvas to have an RGBA context from the start
+  // by clearing it to a transparent state before drawing the image.
+  ctx.clearRect(0, 0, width, height);
+  
+  // Draw the image bitmap onto the now-transparent canvas
+  ctx.drawImage(imageBitmap, 0, 0, width, height);
+  
+  // Convert to WebP blob
+  const webpBlob = await canvas.convertToBlob({
+    type: 'image/webp',
+    quality: quality
+  });
+  
+  console.log(`✅ Successfully converted to WebP.`);
+  return webpBlob;
 }
