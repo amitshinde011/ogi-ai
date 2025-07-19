@@ -103,7 +103,7 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
     if (fallbackOptions.length > 0) {
       selectedTemplate = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)].template_text
     } else {
-      selectedTemplate = `Enjoying this delicious ${mealType}! 🍽️ #IamAYogi #HealthyEating #FoodLove`
+      selectedTemplate = `Enjoying this delicious ${mealType}! 🍽️`
     }
   } else {
     selectedTemplate = captionOptions[Math.floor(Math.random() * captionOptions.length)].template_text
@@ -141,7 +141,7 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
 
    // Always include recipe name in the caption if available
   if (recipe && recipe.name) {
-    selectedTemplate = `${recipe.name} - ${selectedTemplate}`
+    selectedTemplate = `${recipe.name} - ${selectedTemplate} #IamAYogi #HealthyEating #FoodLove`
   }
 
   return selectedTemplate
