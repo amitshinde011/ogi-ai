@@ -70,7 +70,10 @@ async function generateImageWithGoogleAI(recipe) {
   const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY');
   if (!apiKey) throw new Error('Google AI Studio API key not configured');
 
-  const prompt = `Generate a realistic mobile phone photo of ${recipe.name} served on a simple white plate, natural indoor lighting, slightly imperfect angle, home kitchen setting, realistic food presentation, vegetarian healthy meal, casual phone camera quality, soft shadows, warm lighting, ingredients: ${recipe.ingredients} process: ${recipe.instructions}`;
+  const prompt = `A candid, high-quality mobile phone photo of a freshly made vegetarian meal, "${recipe.name}".
+The final dish should look exactly as if prepared following these instructions: "${recipe.instructions}".
+Present the meal realistically in an appropriate serving vessel as suggested by the recipe, for example: a deep bowl for soup, salad, or gravy; a glass for a smoothie or drink; a baking dish for a casserole; or a plate for main courses.
+The setting is a real home kitchen with warm, natural indoor lighting creating soft shadows. Capture the photo from a casual, slightly imperfect angle, as if taken by the person who just cooked it. Include a subtle, natural human element, like a hand resting near the dish or a fork partway through a bite. The food presentation should be appealing but not overly perfect, emphasizing its home-cooked nature. Make sure key visual ingredients like ${recipe.ingredients} are identifiable in the dish.`;
   console.log(`Prompt: ${prompt}`);
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${apiKey}`, {
     method: 'POST',
