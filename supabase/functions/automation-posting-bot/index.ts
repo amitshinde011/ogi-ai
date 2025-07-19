@@ -73,7 +73,7 @@ function shouldPostNow(timezone: string, lastPostTime?: string, isManualTrigger 
   return { shouldPost: false }
 }
 
-async function generateCaption(mealType: string, persona: string): Promise<string> {
+async function generateCaption(mealType: string, persona: string, recipe?: any): Promise<string> {
   const captionOptions = await optimizedSupabase.cachedQuery(
     `captions_${mealType}_${persona}`,
     async () => {
@@ -87,6 +87,8 @@ async function generateCaption(mealType: string, persona: string): Promise<strin
     }
   )
 
+  let selectedTemplate = ''
+  
   if (captionOptions.length === 0) {
     const fallbackOptions = await optimizedSupabase.cachedQuery(
       `captions_${mealType}_fallback`,
@@ -101,13 +103,45 @@ async function generateCaption(mealType: string, persona: string): Promise<strin
     )
     
     if (fallbackOptions.length > 0) {
-      return fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)].template_text
+      selectedTemplate = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)].template_text
+    } else {
+      selectedTemplate = `Enjoying this delicious ${mealType}! 🍽️ #HealthyEating #FoodLove`
     }
+  } else {
+    selectedTemplate = captionOptions[Math.floor(Math.random() * captionOptions.length)].template_text
   }
 
-  return captionOptions.length > 0 
-    ? captionOptions[Math.floor(Math.random() * captionOptions.length)].template_text
-    : `Enjoying this delicious ${mealType}! 🍽️ #HealthyEating #FoodLove`
+  // Replace placeholders with actual ingredients if recipe data is available
+  if (recipe && recipe.ingredients) {
+    const ingredients = recipe.ingredients.split(',').map((ing: string) => ing.trim())
+    
+    // Replace common placeholders
+    selectedTemplate = selectedTemplate
+      .replace(/\{ingredient1\}/g, ingredients[0] || 'fresh ingredients')
+      .replace(/\{ingredient2\}/g, ingredients[1] || 'nutritious vegetables')
+      .replace(/\{ingredient3\}/g, ingredients[2] || 'healthy proteins')
+      .replace(/\{main_ingredient\}/g, ingredients[0] || 'fresh ingredients')
+      .replace(/\{secondary_ingredient\}/g, ingredients[1] || 'vegetables')
+  } else {
+    // Fallback replacements for common meal types
+    const fallbackIngredients = {
+      breakfast: ['oats', 'berries', 'nuts'],
+      lunch: ['quinoa', 'vegetables', 'protein'],
+      dinner: ['lean protein', 'greens', 'grains'],
+      snack: ['fruits', 'nuts', 'seeds']
+    }
+    
+    const ingredients = fallbackIngredients[mealType as keyof typeof fallbackIngredients] || ['fresh ingredients', 'nutritious foods', 'healthy options']
+    
+    selectedTemplate = selectedTemplate
+      .replace(/\{ingredient1\}/g, ingredients[0])
+      .replace(/\{ingredient2\}/g, ingredients[1])
+      .replace(/\{ingredient3\}/g, ingredients[2])
+      .replace(/\{main_ingredient\}/g, ingredients[0])
+      .replace(/\{secondary_ingredient\}/g, ingredients[1])
+  }
+
+  return selectedTemplate
 }
 
 async function generateMealImage(user: AutomationUser, mealType: string): Promise<{ imageUrl: string, recipe: any } | null> {
@@ -146,7 +180,7 @@ async function createPostsBatch(tasks: PostCreationTask[]): Promise<{ success: n
       const imageResult = await generateMealImage(task.user, task.mealType)
       if (!imageResult) return null
 
-      const caption = await generateCaption(task.mealType, task.user.persona_type)
+      const caption = await generateCaption(task.mealType, task.user.persona_type, imageResult.recipe)
 
       return {
         author_id: task.user.user_id,
