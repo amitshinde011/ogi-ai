@@ -168,9 +168,20 @@ async function createPostsBatch(tasks: PostCreationTask[]): Promise<{ success: n
   }
 
   try {
-    // Batch insert posts
-    const postResults = await optimizedSupabase.batchInsert('posts', validPosts, 10)
-    const successfulPosts = postResults.filter(r => r.status === 'fulfilled').length
+    // Batch insert posts with explicit service role
+    console.log(`🔍 Inserting ${validPosts.length} posts to database...`)
+    const { data: insertedPosts, error: insertError } = await optimizedSupabase.supabase
+      .from('posts')
+      .insert(validPosts)
+      .select()
+
+    if (insertError) {
+      console.error('❌ Error inserting posts:', insertError)
+      throw insertError
+    }
+
+    console.log(`✅ Successfully inserted ${insertedPosts?.length || 0} posts`)
+    const successfulPosts = insertedPosts?.length || 0
 
     // Batch insert activity logs
     const activityLogs = validPosts.map(post => ({
