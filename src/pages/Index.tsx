@@ -1,85 +1,31 @@
-
 import React, { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Loader from '@/components/ui/loader';
-import { determineLandingPage } from '@/utils/determineLandingPage';
 import { IMAGES } from '@/constants/images';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { user, loading: authLoading, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    let fallbackTimeoutId: NodeJS.Timeout;
-    let hasRedirected = false;
-    
-    // Only run redirect logic if we're actually on the root path
-    if (location.pathname !== '/') {
-      console.log('Not on root path, skipping redirect logic');
-      return;
-    }
-
-    // Wait for auth to be resolved
+    // 1. Wait until the authentication state is fully resolved.
+    //    While authLoading is true, the component will just show the loader UI.
     if (authLoading) {
-      console.log('Still loading auth state...');
-      
-      // Fallback timeout to prevent infinite loading
-      fallbackTimeoutId = setTimeout(() => {
-        if (!hasRedirected) {
-          console.log('Auth loading timeout reached, redirecting to login');
-          hasRedirected = true;
-          navigate('/login', { replace: true });
-        }
-      }, 3000); // 3 second timeout
-      
-      return () => {
-        if (fallbackTimeoutId) {
-          clearTimeout(fallbackTimeoutId);
-        }
-      };
+      return; // Do nothing until loading is finished.
     }
 
-    const handleRedirect = async () => {
-      // Prevent multiple redirects
-      if (hasRedirected) {
-        return;
-      }
+    // 2. Once loading is false, make a navigation decision.
+    if (isAuthenticated && user) {
+      // User is authenticated, go to the main app.
+      navigate('/home', { replace: true });
+    } else {
+      // User is not authenticated, go to the login page.
+      navigate('/login', { replace: true });
+    }
+  }, [authLoading, isAuthenticated, user, navigate]);
 
-      try {
-        // Mark as redirected immediately to prevent race conditions
-        hasRedirected = true;
-        
-        // If not authenticated, go to login
-        if (!isAuthenticated || !user?.id) {
-          navigate('/login', { replace: true });
-          return;
-        }
-        
-        // For authenticated users, navigate to home by default
-        // The individual pages will handle their own onboarding checks
-        navigate('/home', { replace: true });
-      } catch (error) {
-        console.error('Error during redirect:', error);
-        navigate('/login', { replace: true });
-      }
-    };
-
-    handleRedirect();
-
-    return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      if (fallbackTimeoutId) {
-        clearTimeout(fallbackTimeoutId);
-      }
-    };
-  }, [location.pathname, user?.id, authLoading, isAuthenticated, navigate]);
-
-  // Show loading screen while checking
+  // Always show a loading screen while the useEffect hook determines where to go.
   return (
     <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
       <div className="text-center">
