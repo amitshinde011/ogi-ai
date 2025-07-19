@@ -14,14 +14,15 @@ import ContinueSection from '@/components/ContinueSection';
 import SacredNote from '@/components/SacredNote';
 import Loader from '@/components/ui/loader';
 import { useAuth } from '@/contexts/AuthContext';
+import { useVideoWatchedPersistence } from '@/hooks/useVideoWatchedPersistence';
 
 const IntroVideo = () => {
   const navigate = useNavigate();
   const { updateOnboardingState, onboardingState } = useOnboarding();
   const { toast } = useToast();
   const { trackVideoComplete, trackButtonClick } = useAnalytics();
-  const [videoWatched, setVideoWatched] = useState(false);
   const { user } = useAuth();
+  const { allVideosWatched } = useVideoWatchedPersistence();
   
   useEffect(() => {
     if (!user) {
@@ -37,7 +38,6 @@ const IntroVideo = () => {
   }, [onboardingState?.intro_video_watched, navigate, user]);
 
   const handleVideoComplete = useCallback(() => {
-    setVideoWatched(true);
     trackVideoComplete('Intro Video Sequence');
     toast({
       title: "All Videos Completed!",
@@ -93,7 +93,7 @@ const IntroVideo = () => {
             {/* Video Section */}
             <VideoPlayer 
               onVideoComplete={handleVideoComplete}
-              videoWatched={videoWatched}
+              videoWatched={allVideosWatched}
             />
 
             {/* Instructions Card */}
@@ -101,7 +101,7 @@ const IntroVideo = () => {
 
             {/* Continue Button */}
             <ContinueSection 
-              videoWatched={videoWatched}
+              videoWatched={allVideosWatched}
               onContinue={handleContinue}
             />
           </CardContent>
