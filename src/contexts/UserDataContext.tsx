@@ -66,7 +66,7 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
   const [loading, setLoading] = useState(false);
 
   const fetchUserProfile = useCallback(async () => {
-    if (!user || loading) return;
+    if (!user) return;
     
     setLoading(true);
     try {
@@ -83,7 +83,7 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
     } finally {
       setLoading(false);
     }
-  }, [user, loading]);
+  }, [user]); // Corrected: Removed 'loading' from dependencies
 
   const fetchUserSubscriptions = useCallback(async () => {
     if (!user) return;
