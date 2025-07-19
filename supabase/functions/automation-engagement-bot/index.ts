@@ -147,33 +147,42 @@ async function planEngagements(users: AutomationUser[], posts: any[]): Promise<E
 }
 
 async function executeLikes(likeTasks: EngagementTask[]): Promise<number> {
-  const likeData = likeTasks.map(task => ({
-    user_id: task.user.user_id,
-    post_id: task.post.id
-  }))
+  let successfulLikes = 0
 
-  const activityLogs = likeTasks.map(task => ({
-    automation_user_id: task.user.id,
-    activity_type: 'like',
-    target_post_id: task.post.id
-  }))
+  for (const task of likeTasks) {
+    try {
+      // Insert like
+      const { error: likeError } = await optimizedSupabase.supabase
+        .from('likes')
+        .insert({
+          user_id: task.user.user_id,
+          post_id: task.post.id
+        })
 
-  try {
-    const [likesResult, logsResult] = await Promise.allSettled([
-      optimizedSupabase.batchInsert('likes', likeData, 20),
-      optimizedSupabase.batchInsert('automation_activity_log', activityLogs, 20)
-    ])
+      if (!likeError) {
+        // Insert activity log
+        await optimizedSupabase.supabase
+          .from('automation_activity_log')
+          .insert({
+            automation_user_id: task.user.id,
+            activity_type: 'like',
+            target_post_id: task.post.id
+          })
 
-    const successfulLikes = likesResult.status === 'fulfilled' 
-      ? likesResult.value.filter(r => r.status === 'fulfilled' && !r.value.error).length
-      : 0
+        successfulLikes++
+      } else {
+        console.error(`Error creating like for post ${task.post.id}:`, likeError)
+      }
 
-    console.log(`👍 Created ${successfulLikes} likes`)
-    return successfulLikes
-  } catch (error) {
-    console.error('Error executing likes:', error)
-    return 0
+      // Small delay between inserts to avoid overwhelming the database
+      await new Promise(resolve => setTimeout(resolve, 50))
+    } catch (error) {
+      console.error(`Error executing like for post ${task.post.id}:`, error)
+    }
   }
+
+  console.log(`👍 Created ${successfulLikes} likes`)
+  return successfulLikes
 }
 
 async function executeComments(commentTasks: EngagementTask[]): Promise<number> {
@@ -188,44 +197,51 @@ async function executeComments(commentTasks: EngagementTask[]): Promise<number> 
     }
   )
 
-  const commentData = commentTasks.map(task => {
-    const userTemplates = commentTemplates.filter(
-      t => t.persona_type === task.user.persona_type
-    )
-    
-    const template = userTemplates.length > 0 
-      ? userTemplates[Math.floor(Math.random() * userTemplates.length)]
-      : { template_text: 'Looking delicious! 😋' }
+  let successfulComments = 0
 
-    return {
-      author_id: task.user.user_id,
-      post_id: task.post.id,
-      text: template.template_text
+  for (const task of commentTasks) {
+    try {
+      const userTemplates = commentTemplates.filter(
+        t => t.persona_type === task.user.persona_type
+      )
+      
+      const template = userTemplates.length > 0 
+        ? userTemplates[Math.floor(Math.random() * userTemplates.length)]
+        : { template_text: 'Looking delicious! 😋' }
+
+      // Insert comment
+      const { error: commentError } = await optimizedSupabase.supabase
+        .from('comments')
+        .insert({
+          author_id: task.user.user_id,
+          post_id: task.post.id,
+          text: template.template_text
+        })
+
+      if (!commentError) {
+        // Insert activity log
+        await optimizedSupabase.supabase
+          .from('automation_activity_log')
+          .insert({
+            automation_user_id: task.user.id,
+            activity_type: 'comment',
+            target_post_id: task.post.id
+          })
+
+        successfulComments++
+      } else {
+        console.error(`Error creating comment for post ${task.post.id}:`, commentError)
+      }
+
+      // Small delay between inserts to avoid overwhelming the database
+      await new Promise(resolve => setTimeout(resolve, 50))
+    } catch (error) {
+      console.error(`Error executing comment for post ${task.post.id}:`, error)
     }
-  })
-
-  const activityLogs = commentTasks.map(task => ({
-    automation_user_id: task.user.id,
-    activity_type: 'comment',
-    target_post_id: task.post.id
-  }))
-
-  try {
-    const [commentsResult, logsResult] = await Promise.allSettled([
-      optimizedSupabase.batchInsert('comments', commentData, 15),
-      optimizedSupabase.batchInsert('automation_activity_log', activityLogs, 15)
-    ])
-
-    const successfulComments = commentsResult.status === 'fulfilled' 
-      ? commentsResult.value.filter(r => r.status === 'fulfilled' && !r.value.error).length
-      : 0
-
-    console.log(`💬 Created ${successfulComments} comments`)
-    return successfulComments
-  } catch (error) {
-    console.error('Error executing comments:', error)
-    return 0
   }
+
+  console.log(`💬 Created ${successfulComments} comments`)
+  return successfulComments
 }
 
 Deno.serve(async (req) => {
