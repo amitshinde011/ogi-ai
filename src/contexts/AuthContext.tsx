@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
 
       // Reduce console noise - only log significant events
@@ -72,19 +72,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(session?.user ?? null);
       setSession(session);
 
-      // Fetch profile only on sign in to prevent duplicate calls
+      // Handle profile fetching without blocking loading state
       if (session?.user && event === 'SIGNED_IN') {
-        try {
-          const profile = await fetchUserProfile(session.user.id);
-          if (mounted) {
-            setUserProfile(profile);
-          }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          if (mounted) {
-            setUserProfile(null);
-          }
-        }
+        // Fetch profile in background without blocking auth completion
+        setTimeout(() => {
+          fetchUserProfile(session.user.id).then(profile => {
+            if (mounted) {
+              setUserProfile(profile);
+            }
+          }).catch(error => {
+            console.error('Error fetching user profile:', error);
+            if (mounted) {
+              setUserProfile(null);
+            }
+          });
+        }, 0);
       } else if (!session?.user) {
         setUserProfile(null);
       }
