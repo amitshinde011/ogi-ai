@@ -152,9 +152,7 @@ async function createPostsBatch(tasks: PostCreationTask[]): Promise<{ success: n
         author_id: task.user.user_id,
         image_url: imageResult.imageUrl,
         caption,
-        category: task.mealType,
-        user_name: task.user.name,
-        user_id: task.user.id
+        category: task.mealType
       }
     })
   )
@@ -183,13 +181,24 @@ async function createPostsBatch(tasks: PostCreationTask[]): Promise<{ success: n
     console.log(`✅ Successfully inserted ${insertedPosts?.length || 0} posts`)
     const successfulPosts = insertedPosts?.length || 0
 
-    // Batch insert activity logs
-    const activityLogs = validPosts.map(post => ({
-      automation_user_id: post.user_id,
-      activity_type: 'post'
-    }))
+    // Batch insert activity logs with the correct automation user IDs
+    const activityLogs = validPosts.map((post, index) => {
+      const task = tasks.filter(t => t.shouldPost)[index]
+      return {
+        automation_user_id: task.user.id,
+        activity_type: 'post'
+      }
+    })
 
     await optimizedSupabase.batchInsert('automation_activity_log', activityLogs)
+
+    // Refresh materialized view to ensure posts appear in community feed
+    try {
+      await optimizedSupabase.supabase.rpc('refresh_community_feed_view')
+      console.log('✅ Community feed materialized view refreshed')
+    } catch (refreshError) {
+      console.warn('⚠️ Failed to refresh community feed view:', refreshError)
+    }
 
     return { success: successfulPosts, failed: validPosts.length - successfulPosts }
   } catch (error) {
