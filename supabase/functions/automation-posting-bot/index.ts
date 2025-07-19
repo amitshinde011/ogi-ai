@@ -82,7 +82,6 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
         .select('*')
         .eq('meal_type', mealType)
         .eq('persona_type', persona)
-        .limit(10)
       return data || []
     }
   )
@@ -97,7 +96,6 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
           .from('automation_captions')
           .select('*')
           .eq('meal_type', mealType)
-          .limit(10)
         return data || []
       }
     )
@@ -118,17 +116,17 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
     // Replace common placeholders
     selectedTemplate = selectedTemplate
       .replace(/\{ingredient1\}/g, ingredients[0] || 'fresh ingredients')
-      .replace(/\{ingredient2\}/g, ingredients[1] || 'nutritious ingredients')
+      .replace(/\{ingredient2\}/g, ingredients[1] || 'nutritious vegetables')
       .replace(/\{ingredient3\}/g, ingredients[2] || 'healthy proteins')
       .replace(/\{main_ingredient\}/g, ingredients[0] || 'fresh ingredients')
-      .replace(/\{secondary_ingredient\}/g, ingredients[1] || 'ingredients')
+      .replace(/\{secondary_ingredient\}/g, ingredients[1] || 'vegetables')
   } else {
     // Fallback replacements for common meal types
     const fallbackIngredients = {
-      breakfast: ['health', 'energy', 'nutrition'],
-      lunch: ['health', 'ingredients', 'protein'],
-      dinner: ['lean protein', 'nutrition', 'clean'],
-      snack: ['health', 'energy', 'nutrition']
+      breakfast: ['oats', 'berries', 'nuts'],
+      lunch: ['quinoa', 'vegetables', 'protein'],
+      dinner: ['lean protein', 'greens', 'grains'],
+      snack: ['fruits', 'nuts', 'seeds']
     }
     
     const ingredients = fallbackIngredients[mealType as keyof typeof fallbackIngredients] || ['fresh ingredients', 'nutritious foods', 'healthy options']
@@ -139,11 +137,6 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
       .replace(/\{ingredient3\}/g, ingredients[2])
       .replace(/\{main_ingredient\}/g, ingredients[0])
       .replace(/\{secondary_ingredient\}/g, ingredients[1])
-  }
-
-  // Always include recipe name in the caption if available
-  if (recipe && recipe.name) {
-    selectedTemplate = `${recipe.name} - ${selectedTemplate}`
   }
 
   return selectedTemplate
