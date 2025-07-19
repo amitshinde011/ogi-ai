@@ -123,10 +123,10 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
   } else {
     // Fallback replacements for common meal types
     const fallbackIngredients = {
-      breakfast: ['oats', 'berries', 'nuts'],
-      lunch: ['quinoa', 'vegetables', 'protein'],
-      dinner: ['lean protein', 'greens', 'grains'],
-      snack: ['fruits', 'nuts', 'seeds']
+      breakfast: ['health', 'energy', 'nutrition'],
+      lunch: ['health', 'ingredients', 'protein'],
+      dinner: ['lean protein', 'nutrition', 'clean'],
+      snack: ['health', 'energy', 'nutrition']
     }
     
     const ingredients = fallbackIngredients[mealType as keyof typeof fallbackIngredients] || ['fresh ingredients', 'nutritious foods', 'healthy options']
@@ -137,6 +137,11 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
       .replace(/\{ingredient3\}/g, ingredients[2])
       .replace(/\{main_ingredient\}/g, ingredients[0])
       .replace(/\{secondary_ingredient\}/g, ingredients[1])
+  }
+
+   // Always include recipe name in the caption if available
+  if (recipe && recipe.name) {
+    selectedTemplate = `${recipe.name} - ${selectedTemplate}`
   }
 
   return selectedTemplate
