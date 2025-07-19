@@ -141,6 +141,11 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
       .replace(/\{secondary_ingredient\}/g, ingredients[1])
   }
 
+  // Always include recipe name in the caption if available
+  if (recipe && recipe.name) {
+    selectedTemplate = `${recipe.name} - ${selectedTemplate}`
+  }
+
   return selectedTemplate
 }
 
