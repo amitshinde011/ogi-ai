@@ -105,10 +105,16 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
     if (fallbackOptions.length > 0) {
       selectedTemplate = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)].template_text
     } else {
-      selectedTemplate = `Enjoying this delicious ${mealType}! 🍽️ #IamAYogi #HealthyEating #FoodLove`
+      const recipeName = recipe?.name || `delicious ${mealType}`
+      selectedTemplate = `Enjoying this ${recipeName}! 🍽️ #IamAYogi #HealthyEating #FoodLove`
     }
   } else {
     selectedTemplate = captionOptions[Math.floor(Math.random() * captionOptions.length)].template_text
+  }
+
+  // Replace recipe name placeholder
+  if (recipe?.name) {
+    selectedTemplate = selectedTemplate.replace(/\{recipe_name\}/g, recipe.name)
   }
 
   // Replace placeholders with actual ingredients if recipe data is available
@@ -139,6 +145,11 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
       .replace(/\{ingredient3\}/g, ingredients[2])
       .replace(/\{main_ingredient\}/g, ingredients[0])
       .replace(/\{secondary_ingredient\}/g, ingredients[1])
+  }
+
+  // Ensure recipe name is included if not already present in template
+  if (recipe?.name && !selectedTemplate.includes(recipe.name)) {
+    selectedTemplate = `${recipe.name} - ${selectedTemplate}`
   }
 
   return selectedTemplate
