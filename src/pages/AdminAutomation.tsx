@@ -103,6 +103,48 @@ export default function AdminAutomation() {
     }
   };
 
+  const triggerCleanupBot = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('automation-cleanup');
+      
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Cleanup bot triggered successfully",
+      });
+
+    } catch (error) {
+      console.error('Error triggering cleanup:', error);
+      toast({
+        title: "Error",
+        description: "Failed to trigger cleanup bot",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const triggerEngagementBot = async () => {
+    try {
+      const { error } = await supabase.functions.invoke('automation-engagement-bot');
+      
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Engagement bot triggered successfully",
+      });
+
+    } catch (error) {
+      console.error('Error triggering engagement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to trigger engagement bot",
+        variant: "destructive",
+      });
+    }
+  };
+
   const refreshCommunityFeed = async () => {
     try {
       const { error } = await supabase.functions.invoke('refresh-community-feed');
@@ -171,7 +213,7 @@ export default function AdminAutomation() {
           <h1 className="text-3xl font-bold">Automation Management</h1>
           <p className="text-muted-foreground">Manage automation users and posting system</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button onClick={refreshCommunityFeed} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh Feed
@@ -183,6 +225,14 @@ export default function AdminAutomation() {
               <Activity className="h-4 w-4 mr-2" />
             )}
             Trigger Manual Post
+          </Button>
+          <Button onClick={triggerEngagementBot} variant="outline">
+            <Activity className="h-4 w-4 mr-2" />
+            Engagement Bot
+          </Button>
+          <Button onClick={triggerCleanupBot} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Cleanup Bot
           </Button>
         </div>
       </div>
