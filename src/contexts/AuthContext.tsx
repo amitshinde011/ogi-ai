@@ -55,10 +55,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Optimized useEffect to reduce duplicate calls and console noise
   useEffect(() => {
     let mounted = true;
-    let isInitialLoad = true;
 
     const {
       data: { subscription },
@@ -66,7 +64,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (!mounted) return;
 
       // Reduce console noise - only log significant events
-      if (event !== 'TOKEN_REFRESHED' || isInitialLoad) {
+      if (event !== 'TOKEN_REFRESHED') {
         console.log('Auth state changed:', event);
       }
 
@@ -74,8 +72,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(session?.user ?? null);
       setSession(session);
 
-      // Fetch profile only on sign in or initial load to prevent duplicate calls
-      if (session?.user && (event === 'SIGNED_IN' || isInitialLoad)) {
+      // Fetch profile only on sign in to prevent duplicate calls
+      if (session?.user && event === 'SIGNED_IN') {
         try {
           const profile = await fetchUserProfile(session.user.id);
           if (mounted) {
@@ -91,10 +89,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUserProfile(null);
       }
 
-      // Set loading to false only on initial load
-      if (isInitialLoad) {
+      // Always set loading to false after auth state change
+      setLoading(false);
+    });
+
+    // Check for existing session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setUser(session?.user ?? null);
+        setSession(session);
         setLoading(false);
-        isInitialLoad = false;
       }
     });
 
