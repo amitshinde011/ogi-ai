@@ -39,15 +39,25 @@ class OptimizedSupabaseClient {
     return result;
   }
 
-  // Batch insert with automatic chunking
-  async batchInsert(table: string, records: any[], chunkSize = 100): Promise<any[]> {
+  // Batch insert with automatic chunking and deadlock retry
+  async batchInsert(table: string, records: any[], chunkSize = 50): Promise<any[]> {
     const chunks = [];
     for (let i = 0; i < records.length; i += chunkSize) {
       chunks.push(records.slice(i, i + chunkSize));
     }
 
+    // Add random delay to spread out operations
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
+
     const results = await Promise.allSettled(
-      chunks.map(chunk => this.client.from(table).insert(chunk))
+      chunks.map(async (chunk, index) => {
+        // Add small random delay between chunks to prevent simultaneous access
+        await new Promise(resolve => setTimeout(resolve, index * 100 + Math.random() * 200));
+        
+        return await this.retryOnDeadlock(async () => {
+          return await this.client.from(table).insert(chunk);
+        });
+      })
     );
 
     const successful = results.filter(r => r.status === 'fulfilled' && !r.value.error).length;
@@ -64,6 +74,29 @@ class OptimizedSupabaseClient {
     
     console.log(`📊 Batch insert results: ${successful} chunks succeeded, ${failed} failed`);
     return results;
+  }
+
+  // Retry logic for deadlock handling
+  private async retryOnDeadlock<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        const isDeadlock = error?.code === '40P01' || error?.message?.includes('deadlock');
+        
+        if (isDeadlock && attempt < maxRetries) {
+          // Exponential backoff with jitter
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1) + Math.random() * 1000, 5000);
+          console.log(`🔄 Deadlock detected, retrying in ${delay}ms (attempt ${attempt}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        throw error;
+      }
+    }
+    
+    throw new Error('Max retries exceeded');
   }
 
   // Batch update with automatic chunking
