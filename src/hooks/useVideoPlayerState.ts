@@ -10,7 +10,8 @@ export const useVideoPlayerState = () => {
     updateVideoWatchedStates: setVideoWatchedStates,
     markVideoAsWatched,
     allVideosWatched,
-    nextUnwatchedVideoIndex
+    nextUnwatchedVideoIndex,
+    isLoading
   } = useVideoWatchedPersistence();
 
   const [state, setState] = useState<VideoPlayerState>({
@@ -43,6 +44,7 @@ export const useVideoPlayerState = () => {
     videoWatchedStates,
     setVideoWatchedStates,
     markVideoAsWatched,
-    allVideosWatched
+    allVideosWatched,
+    isLoading
   };
 };

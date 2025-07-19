@@ -1171,6 +1171,33 @@ export type Database = {
           },
         ]
       }
+      user_video_watch_status: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+          video_index: number
+          watched: boolean
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+          video_index: number
+          watched?: boolean
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+          video_index?: number
+          watched?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       community_feed_view: {
