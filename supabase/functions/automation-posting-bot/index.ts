@@ -103,14 +103,14 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
     if (fallbackOptions.length > 0) {
       selectedTemplate = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)].template_text
     } else {
-      selectedTemplate = `Enjoying this delicious ${mealType}! 🍽️ #IamAYogi #HealthyEating #FoodLove`
+      selectedTemplate = `Enjoying this delicious ${mealType}! 🍽️`
     }
   } else {
     selectedTemplate = captionOptions[Math.floor(Math.random() * captionOptions.length)].template_text
   }
 
   // Replace placeholders with actual ingredients if recipe data is available
-  /*if (recipe && recipe.ingredients) {
+  if (recipe && recipe.ingredients) {
     const ingredients = recipe.ingredients.split(',').map((ing: string) => ing.trim())
     
     // Replace common placeholders
@@ -123,11 +123,11 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
   } else {
     // Fallback replacements for common meal types
     const fallbackIngredients = {
-      breakfast: ['oats', 'berries', 'nuts'],
-      lunch: ['quinoa', 'vegetables', 'protein'],
-      dinner: ['lean protein', 'greens', 'grains'],
-      snack: ['fruits', 'nuts', 'seeds']
-    }*/
+      breakfast: ['health', 'energy', 'nutrition'],
+      lunch: ['health', 'ingredients', 'protein'],
+      dinner: ['lean protein', 'nutrition', 'clean'],
+      snack: ['health', 'energy', 'nutrition']
+    }
     
     const ingredients = fallbackIngredients[mealType as keyof typeof fallbackIngredients] || ['fresh ingredients', 'nutritious foods', 'healthy options']
     
@@ -137,6 +137,11 @@ async function generateCaption(mealType: string, persona: string, recipe?: any):
       .replace(/\{ingredient3\}/g, ingredients[2])
       .replace(/\{main_ingredient\}/g, ingredients[0])
       .replace(/\{secondary_ingredient\}/g, ingredients[1])
+  }
+
+   // Always include recipe name in the caption if available
+  if (recipe && recipe.name) {
+    selectedTemplate = `${recipe.name} - ${selectedTemplate} #IamAYogi #HealthyEating #FoodLove`
   }
 
   return selectedTemplate
