@@ -165,7 +165,7 @@ async function executeLikes(likeTasks: EngagementTask[]): Promise<number> {
     ])
 
     const successfulLikes = likesResult.status === 'fulfilled' 
-      ? likesResult.value.filter(r => r.status === 'fulfilled').length
+      ? likesResult.value.filter(r => r.status === 'fulfilled' && !r.value.error).length
       : 0
 
     console.log(`👍 Created ${successfulLikes} likes`)
@@ -217,7 +217,7 @@ async function executeComments(commentTasks: EngagementTask[]): Promise<number> 
     ])
 
     const successfulComments = commentsResult.status === 'fulfilled' 
-      ? commentsResult.value.filter(r => r.status === 'fulfilled').length
+      ? commentsResult.value.filter(r => r.status === 'fulfilled' && !r.value.error).length
       : 0
 
     console.log(`💬 Created ${successfulComments} comments`)

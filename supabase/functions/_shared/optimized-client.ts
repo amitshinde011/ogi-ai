@@ -50,8 +50,17 @@ class OptimizedSupabaseClient {
       chunks.map(chunk => this.client.from(table).insert(chunk))
     );
 
-    const successful = results.filter(r => r.status === 'fulfilled').length;
-    const failed = results.filter(r => r.status === 'rejected').length;
+    const successful = results.filter(r => r.status === 'fulfilled' && !r.value.error).length;
+    const failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.error)).length;
+    
+    // Log any errors for debugging
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        console.error(`❌ Chunk ${index} rejected:`, result.reason);
+      } else if (result.value.error) {
+        console.error(`❌ Chunk ${index} error:`, result.value.error);
+      }
+    });
     
     console.log(`📊 Batch insert results: ${successful} chunks succeeded, ${failed} failed`);
     return results;
