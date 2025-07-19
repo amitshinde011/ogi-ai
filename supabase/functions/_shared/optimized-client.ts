@@ -40,19 +40,19 @@ class OptimizedSupabaseClient {
   }
 
   // Batch insert with automatic chunking and deadlock retry
-  async batchInsert(table: string, records: any[], chunkSize = 50): Promise<any[]> {
+  async batchInsert(table: string, records: any[], chunkSize = 25): Promise<any[]> {
     const chunks = [];
     for (let i = 0; i < records.length; i += chunkSize) {
       chunks.push(records.slice(i, i + chunkSize));
     }
 
-    // Add random delay to spread out operations
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
+    // Add smaller random delay to spread out operations
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 500));
 
     const results = await Promise.allSettled(
       chunks.map(async (chunk, index) => {
-        // Add small random delay between chunks to prevent simultaneous access
-        await new Promise(resolve => setTimeout(resolve, index * 100 + Math.random() * 200));
+        // Add smaller delay between chunks
+        await new Promise(resolve => setTimeout(resolve, index * 50 + Math.random() * 100));
         
         return await this.retryOnDeadlock(async () => {
           return await this.client.from(table).insert(chunk);
