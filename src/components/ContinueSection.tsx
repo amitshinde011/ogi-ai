@@ -8,6 +8,8 @@ interface ContinueSectionProps {
 }
 
 const ContinueSection = ({ videoWatched, onContinue }: ContinueSectionProps) => {
+  console.log('🔘 ContinueSection received videoWatched:', videoWatched);
+  
   return (
     <div className="text-center space-y-3 sm:space-y-4 px-4 sm:px-0">
       <Button 

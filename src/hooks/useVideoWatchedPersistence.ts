@@ -87,6 +87,8 @@ export const useVideoWatchedPersistence = () => {
     setVideoWatchedStates(prevStates => {
       const newStates = [...prevStates];
       newStates[videoIndex] = true;
+      console.log(`📹 Marked video ${videoIndex} as watched. All states:`, newStates);
+      console.log(`🎯 All videos watched check:`, newStates.every(watched => watched));
       return newStates;
     });
 
@@ -114,6 +116,11 @@ export const useVideoWatchedPersistence = () => {
 
   // Check if all videos have been watched
   const allVideosWatched = videoWatchedStates.every(watched => watched);
+  
+  // Debug logging for allVideosWatched changes
+  useEffect(() => {
+    console.log(`🔄 allVideosWatched changed to:`, allVideosWatched, 'Video states:', videoWatchedStates);
+  }, [allVideosWatched, videoWatchedStates]);
 
   // Get the next unwatched video index (for auto-progression)
   const nextUnwatchedVideoIndex = videoWatchedStates.findIndex(watched => !watched);
