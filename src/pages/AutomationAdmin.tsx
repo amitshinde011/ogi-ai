@@ -180,27 +180,36 @@ export default function AutomationAdmin() {
             .getPublicUrl(webpFilename);
 
           // Update post with WebP URL (this will work now with permissive RLS)
+          console.log(`🔄 Attempting to update post ${post.id} with WebP URL: ${publicUrl}`);
           const { error: updateError } = await supabase
             .from('posts')
             .update({ image_url: publicUrl })
             .eq('id', post.id);
 
-          if (updateError) throw updateError;
+          if (updateError) {
+            console.error(`❌ Failed to update post ${post.id}:`, updateError);
+            throw updateError;
+          }
+
+          console.log(`✅ Successfully updated post ${post.id} in database`);
 
           // Delete the old JPEG image from storage
           const oldImagePath = post.image_url.split('/').pop();
           if (oldImagePath) {
+            console.log(`🗑️ Deleting old image: ${oldImagePath}`);
             const { error: deleteError } = await supabase.storage
               .from('bot-posts')
               .remove([oldImagePath]);
             
             if (deleteError) {
               console.warn(`Failed to delete old image ${oldImagePath}:`, deleteError);
+            } else {
+              console.log(`✅ Successfully deleted old image: ${oldImagePath}`);
             }
           }
 
           converted++;
-          console.log(`✅ Converted post ${post.id}`);
+          console.log(`✅ Converted post ${post.id} successfully`);
           
           // Clean up object URL
           URL.revokeObjectURL(img.src);
