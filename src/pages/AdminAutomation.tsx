@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { RefreshCw, Users, Settings, Activity, AlertCircle, Download } from 'lucide-react';
+import { convertImageElementToWebP } from '@/utils/imageConversion';
 
 interface AutomationUser {
   id: string;
@@ -229,24 +230,83 @@ export default function AdminAutomation() {
         return;
       }
 
-      // Extract post IDs for the edge function
-      const postIds = jpegPostsToConvert.map(post => post.id);
+      let converted = 0;
+      let failed = 0;
 
-      // Call the edge function to handle the conversion
-      const { data, error } = await supabase.functions.invoke('convert-image-to-webp', {
-        body: { postIds }
-      });
+      for (const post of jpegPostsToConvert) {
+        try {
+          // Download the original JPEG image
+          const response = await fetch(post.image_url);
+          if (!response.ok) throw new Error('Failed to download image');
+          
+          const imageBlob = await response.blob();
+          
+          // Create image element for conversion
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(imageBlob);
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+          });
+          
+          // Convert to WebP using browser API
+          const webpBlob = await convertImageElementToWebP(img, 0.8);
+          
+          // Generate WebP filename
+          const originalFilename = post.image_url.split('/').pop();
+          const webpFilename = originalFilename?.replace(/\.(jpg|jpeg)$/i, '.webp') || `converted-${Date.now()}.webp`;
+          
+          // Upload WebP to Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('bot-posts')
+            .upload(webpFilename, webpBlob, {
+              contentType: 'image/webp',
+              cacheControl: '3600'
+            });
 
-      if (error) throw error;
+          if (uploadError) throw uploadError;
 
-      const results = data.results || [];
-      const converted = results.filter((r: any) => r.status === 'success').length;
-      const failed = results.filter((r: any) => r.status === 'error').length;
-      const skipped = results.filter((r: any) => r.status === 'skipped').length;
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('bot-posts')
+            .getPublicUrl(webpFilename);
+
+          // Update post with WebP URL
+          const { error: updateError } = await supabase
+            .from('posts')
+            .update({ image_url: publicUrl })
+            .eq('id', post.id);
+
+          if (updateError) throw updateError;
+
+          // Delete the old JPEG image from storage
+          const oldImagePath = post.image_url.split('/').pop();
+          if (oldImagePath) {
+            const { error: deleteError } = await supabase.storage
+              .from('bot-posts')
+              .remove([oldImagePath]);
+            
+            if (deleteError) {
+              console.warn(`Failed to delete old image ${oldImagePath}:`, deleteError);
+            }
+          }
+
+          converted++;
+          console.log(`✅ Converted post ${post.id}`);
+          
+          // Clean up object URL
+          URL.revokeObjectURL(img.src);
+          
+        } catch (error) {
+          failed++;
+          console.error(`❌ Failed to convert post ${post.id}:`, error);
+        }
+      }
 
       toast({
         title: "Conversion Complete",
-        description: `${converted} images converted, ${failed} failed, ${skipped} skipped`,
+        description: `${converted} images converted, ${failed} failed`,
       });
       
       // Refresh data
