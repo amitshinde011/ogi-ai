@@ -47,14 +47,10 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
 
       // Fetch post, comments, and all user data in parallel
       const [postResult, commentsResult, likeResult] = await Promise.all([
-        // Fetch post with author info
+        // Fetch post data
         supabase
           .from('posts')
-          .select(`
-            *,
-            author:user_profiles!posts_author_id_fkey(name, profile_photo_url),
-            automation_author:automation_users!posts_author_id_fkey(name, profile_photo_url)
-          `)
+          .select('*')
           .eq('id', numericPostId)
           .single(),
 
@@ -80,29 +76,32 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
         return;
       }
 
-      // Get unique author IDs from comments
+      // Get unique author IDs (post author + comment authors)
+      const postData = postResult.data;
       const commentAuthorIds = commentsResult.data 
         ? [...new Set(commentsResult.data.map(c => c.author_id))]
         : [];
+      
+      const allAuthorIds = [...new Set([postData.author_id, ...commentAuthorIds])];
 
-      // Fetch all comment authors in one query
-      const { data: commentAuthors } = commentAuthorIds.length > 0 
+      // Fetch all authors in one query
+      const { data: userAuthors } = allAuthorIds.length > 0 
         ? await supabase
             .from('user_profiles')
             .select('user_id, name, profile_photo_url')
-            .in('user_id', commentAuthorIds)
+            .in('user_id', allAuthorIds)
         : { data: [] };
 
       // Create author map for quick lookup
       const authorMap = new Map(
-        (commentAuthors || []).map(author => [
+        (userAuthors || []).map(author => [
           author.user_id,
           { name: author.name, profile_photo_url: author.profile_photo_url }
         ])
       );
 
       // Check for missing authors in automation_users
-      const missingAuthorIds = commentAuthorIds.filter(id => !authorMap.has(id));
+      const missingAuthorIds = allAuthorIds.filter(id => !authorMap.has(id));
       if (missingAuthorIds.length > 0) {
         const { data: automationAuthors } = await supabase
           .from('automation_users')
@@ -118,9 +117,7 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
       }
 
       // Process post data
-      const postData = postResult.data;
-      const authorData = (postData as any).author || (postData as any).automation_author;
-      const author = Array.isArray(authorData) ? authorData[0] : authorData;
+      const postAuthor = authorMap.get(postData.author_id);
       
       const optimizedPost: OptimizedPost = {
         id: postData.id,
@@ -131,8 +128,8 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
         like_count: postData.like_count,
         comment_count: postData.comment_count,
         created_at: postData.created_at,
-        author_name: author?.name || 'Unknown User',
-        author_avatar: author?.profile_photo_url || null,
+        author_name: postAuthor?.name || 'Unknown User',
+        author_avatar: postAuthor?.profile_photo_url || null,
         user_has_liked: !!likeResult.data
       };
 
