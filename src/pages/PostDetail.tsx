@@ -73,6 +73,33 @@ const PostDetail = () => {
           return;
         }
 
+        // Fetch author information from user_profiles
+        let authorName = 'Unknown User';
+        let authorAvatar = undefined;
+        
+        const { data: userProfile } = await supabase
+          .from('user_profiles')
+          .select('name, profile_photo_url')
+          .eq('user_id', postData.author_id)
+          .single();
+
+        if (userProfile) {
+          authorName = userProfile.name || 'Unknown User';
+          authorAvatar = userProfile.profile_photo_url;
+        } else {
+          // Try automation_users if not found in user_profiles
+          const { data: automationUser } = await supabase
+            .from('automation_users')
+            .select('name, profile_photo_url')
+            .eq('user_id', postData.author_id)
+            .single();
+          
+          if (automationUser) {
+            authorName = automationUser.name || 'Unknown User';
+            authorAvatar = automationUser.profile_photo_url;
+          }
+        }
+
         // Check if user has liked this post
         let userHasLiked = false;
         if (user) {
@@ -95,8 +122,8 @@ const PostDetail = () => {
           like_count: postData.like_count,
           comment_count: postData.comment_count,
           created_at: postData.created_at,
-          author_name: 'Unknown User', // We'll need to fetch this separately
-          author_avatar: undefined,
+          author_name: authorName,
+          author_avatar: authorAvatar,
           user_has_liked: userHasLiked
         });
 
@@ -107,7 +134,45 @@ const PostDetail = () => {
           .eq('post_id', postId)
           .order('created_at', { ascending: false });
 
-        setComments(commentsData || []);
+        // Fetch user information for each comment
+        const commentsWithUserInfo = await Promise.all(
+          (commentsData || []).map(async (comment) => {
+            let userName = 'Unknown User';
+            let userAvatar = undefined;
+
+            // Try user_profiles first
+            const { data: userProfile } = await supabase
+              .from('user_profiles')
+              .select('name, profile_photo_url')
+              .eq('user_id', comment.author_id)
+              .single();
+
+            if (userProfile) {
+              userName = userProfile.name || 'Unknown User';
+              userAvatar = userProfile.profile_photo_url;
+            } else {
+              // Try automation_users if not found in user_profiles
+              const { data: automationUser } = await supabase
+                .from('automation_users')
+                .select('name, profile_photo_url')
+                .eq('user_id', comment.author_id)
+                .single();
+              
+              if (automationUser) {
+                userName = automationUser.name || 'Unknown User';
+                userAvatar = automationUser.profile_photo_url;
+              }
+            }
+
+            return {
+              ...comment,
+              user_name: userName,
+              user_avatar: userAvatar
+            };
+          })
+        );
+
+        setComments(commentsWithUserInfo);
       } catch (error) {
         console.error('Error fetching post:', error);
         navigate('/community');
