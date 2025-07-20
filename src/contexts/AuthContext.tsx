@@ -34,26 +34,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const isAuthenticated = !!user;
 
-  const fetchUserProfile = async (userId: string): Promise<UserProfile> => {
-    try {
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('name, profile_photo_url')
-        .eq('user_id', userId)
-        .maybeSingle();
+  const fetchUserProfile = async (userId: string): Promise<UserProfile> => {
+    try {
+      console.log('Fetching profile for user:', userId);
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('name, profile_photo_url')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-      return {
-        name: profile?.name || 'User',
-        profile_photo_url: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
-      };
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      return {
-        name: 'User',
-        profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
-      };
-    }
-  };
+      if (error) {
+        console.error('Supabase error fetching profile:', error);
+      }
+
+      console.log('Profile data received:', profile);
+
+      const result = {
+        name: profile?.name || 'User',
+        profile_photo_url: profile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
+      };
+
+      console.log('Returning profile:', result);
+      return result;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return {
+        name: 'User',
+        profile_photo_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`
+      };
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
