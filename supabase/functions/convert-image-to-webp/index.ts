@@ -108,6 +108,26 @@ serve(async (req) => {
 
         if (updateError) throw updateError
 
+        // Delete the old image from storage if it's in the bot-posts bucket
+        try {
+          if (post.image_url.includes('/bot-posts/')) {
+            const oldFilename = post.image_url.split('/').pop()
+            if (oldFilename) {
+              const { error: deleteError } = await supabaseClient.storage
+                .from('bot-posts')
+                .remove([oldFilename])
+              
+              if (deleteError) {
+                console.warn(`Failed to delete old image ${oldFilename}:`, deleteError)
+              } else {
+                console.log(`Successfully deleted old image: ${oldFilename}`)
+              }
+            }
+          }
+        } catch (deleteError) {
+          console.warn(`Error during old image deletion:`, deleteError)
+        }
+
         results.push({ 
           post_id: postId, 
           status: 'success', 
