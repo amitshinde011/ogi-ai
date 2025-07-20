@@ -28,7 +28,7 @@ export const useVideoPlayerState = () => {
     totalVideos: VIDEO_SOURCES_SEQUENCE.length,
   });
 
-  // Set initial video index to first unwatched video on mount
+  // Set initial video index to first unwatched video on mount only
   useEffect(() => {
     if (nextUnwatchedVideoIndex !== -1) {
       setState(prev => ({
@@ -36,7 +36,7 @@ export const useVideoPlayerState = () => {
         currentVideoIndex: nextUnwatchedVideoIndex
       }));
     }
-  }, [nextUnwatchedVideoIndex]);
+  }, []); // Remove nextUnwatchedVideoIndex dependency to prevent unwanted video skipping
 
   return {
     state,
