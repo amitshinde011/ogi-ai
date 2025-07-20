@@ -16,6 +16,8 @@ import { useNavigate } from 'react-router-dom';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
+import { Bell } from 'lucide-react';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useOptimizedHomeData } from '@/hooks/useOptimizedHomeData';
@@ -34,6 +36,7 @@ const Home = () => {
   const { isCompleted, completedSubscription } = useProgramCompletion();
   const { showBanner } = useSubscriptionBanner();
   const { trackEvent, trackUserEngagement } = useAnalytics();
+  const { unreadCount } = useNotifications();
   
   // Use optimized data fetching
   const { data: homeData, loading: homeLoading } = useOptimizedHomeData();
@@ -137,27 +140,47 @@ const Home = () => {
   console.log('📊 Home: Current wellness data:', wellnessData);
   console.log('🏃 Home: Today\'s progress:', homeData.todayProgress);
 
-  // Profile menu component for the header
-  const profileElement = (
-    <ProfileMenu>
+  // Header elements - notifications and profile
+  const headerElements = (
+    <div className="flex items-center gap-3">
+      {/* Notification Icon */}
       <button 
-        className="hover:bg-slate-100 rounded-xl transition-all duration-200 interactive"
         onClick={() => {
-          console.log('👤 Home: Profile menu clicked');
-          trackEvent('profile_menu_click', 'UI', 'Header Navigation');
+          console.log('🔔 Home: Notifications clicked');
+          trackEvent('notifications_click', 'UI', 'Header Navigation');
+          navigate('/notifications');
         }}
+        className="relative hover:bg-slate-100 p-2 rounded-xl transition-all duration-200 interactive"
       >
-        <Avatar className="h-12 w-12 border-2 border-slate-300">
-          <AvatarImage 
-            src={userProfile.profile_photo_url || undefined} 
-            alt={userProfile.name}
-          />
-          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-            {userProfile.name?.charAt(0) || 'U'}
-          </AvatarFallback>
-        </Avatar>
+        <Bell size={20} className="text-slate-700" />
+        {unreadCount > 0 && (
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </div>
+        )}
       </button>
-    </ProfileMenu>
+
+      {/* Profile Menu */}
+      <ProfileMenu>
+        <button 
+          className="hover:bg-slate-100 rounded-xl transition-all duration-200 interactive"
+          onClick={() => {
+            console.log('👤 Home: Profile menu clicked');
+            trackEvent('profile_menu_click', 'UI', 'Header Navigation');
+          }}
+        >
+          <Avatar className="h-10 w-10 border-2 border-slate-300">
+            <AvatarImage 
+              src={userProfile.profile_photo_url || undefined} 
+              alt={userProfile.name}
+            />
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+              {userProfile.name?.charAt(0) || 'U'}
+            </AvatarFallback>
+          </Avatar>
+        </button>
+      </ProfileMenu>
+    </div>
   );
 
   console.log('🎨 Home: Rendering home page with all components');
@@ -165,7 +188,7 @@ const Home = () => {
   return (
     <Layout noContainer>
       <PageContainer>
-        <Header title="Home" rightElement={profileElement} />
+        <Header title="Home" rightElement={headerElements} />
         {showBanner && (
           <>
             <SubscriptionBanner />
