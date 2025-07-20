@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
@@ -10,7 +11,8 @@ import { Heart, MessageCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Notifications = () => {
-  const { notifications, loading, markAsRead } = useNotifications();
+  const { notifications, loading, markAsRead, markAllPostNotificationsAsRead } = useNotifications();
+  const navigate = useNavigate();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -36,10 +38,13 @@ const Notifications = () => {
   };
 
   const handleNotificationClick = async (notification: any) => {
-    if (!notification.is_read) {
-      await markAsRead(notification.id);
+    if (notification.post_id) {
+      // Mark all notifications for this post as read
+      await markAllPostNotificationsAsRead(notification.post_id);
+      
+      // Navigate to the post detail page
+      navigate(`/post/${notification.post_id}`);
     }
-    // Could navigate to post here in the future
   };
 
   return (

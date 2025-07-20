@@ -145,6 +145,38 @@ export const useNotifications = () => {
     }
   };
 
+  const markAllPostNotificationsAsRead = async (postId: number) => {
+    if (!currentUser) return;
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('recipient_id', currentUser.id)
+        .eq('post_id', postId)
+        .eq('is_read', false);
+
+      if (error) throw error;
+
+      // Update local state
+      setNotifications(prev =>
+        prev.map(n =>
+          n.post_id === postId ? { ...n, is_read: true } : n
+        )
+      );
+
+      // Recalculate unread count
+      setNotifications(prev => {
+        const unread = prev.filter(n => !n.is_read).length;
+        setUnreadCount(unread);
+        return prev;
+      });
+
+    } catch (error) {
+      console.error('Error marking post notifications as read:', error);
+    }
+  };
+
   const createNotification = async (
     recipientId: string,
     type: string,
@@ -182,6 +214,7 @@ export const useNotifications = () => {
     unreadCount,
     fetchNotifications,
     markAsRead,
+    markAllPostNotificationsAsRead,
     createNotification
   };
 };
