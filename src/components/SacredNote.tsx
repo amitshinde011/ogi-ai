@@ -4,7 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 
 const SacredNote = () => {
   return (
-    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8 shadow-lg w-full max-w-2xl mx-auto">
+    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 md:mb-8 shadow-lg w-full max-w-4xl mx-auto">
       <div className="flex items-start space-x-2 sm:space-x-3 md:space-x-4">
         <div className="flex-shrink-0">
           <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-amber-600 mt-0.5 sm:mt-1" />
