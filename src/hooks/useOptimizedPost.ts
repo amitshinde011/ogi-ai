@@ -47,9 +47,9 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
 
       // Fetch post, comments, and all user data in parallel
       const [postResult, commentsResult, likeResult] = await Promise.all([
-        // Fetch post data
+        // Fetch post data with author info from materialized view
         supabase
-          .from('posts')
+          .from('posts_with_author')
           .select('*')
           .eq('id', numericPostId)
           .single(),
@@ -76,20 +76,18 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
         return;
       }
 
-      // Get unique author IDs (post author + comment authors)
+      // Get comment author IDs for fetching comment authors
       const postData = postResult.data;
       const commentAuthorIds = commentsResult.data 
         ? [...new Set(commentsResult.data.map(c => c.author_id))]
         : [];
-      
-      const allAuthorIds = [...new Set([postData.author_id, ...commentAuthorIds])];
 
-      // Fetch all authors in one query
-      const { data: userAuthors } = allAuthorIds.length > 0 
+      // Fetch comment authors in one query
+      const { data: userAuthors } = commentAuthorIds.length > 0 
         ? await supabase
             .from('user_profiles')
             .select('user_id, name, profile_photo_url')
-            .in('user_id', allAuthorIds)
+            .in('user_id', commentAuthorIds)
         : { data: [] };
 
       // Create author map for quick lookup
@@ -101,7 +99,7 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
       );
 
       // Check for missing authors in automation_users
-      const missingAuthorIds = allAuthorIds.filter(id => !authorMap.has(id));
+      const missingAuthorIds = commentAuthorIds.filter(id => !authorMap.has(id));
       if (missingAuthorIds.length > 0) {
         const { data: automationAuthors } = await supabase
           .from('automation_users')
@@ -116,9 +114,7 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
         });
       }
 
-      // Process post data
-      const postAuthor = authorMap.get(postData.author_id);
-      
+      // Process post data (author info already included from materialized view)
       const optimizedPost: OptimizedPost = {
         id: postData.id,
         author_id: postData.author_id,
@@ -128,8 +124,8 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
         like_count: postData.like_count,
         comment_count: postData.comment_count,
         created_at: postData.created_at,
-        author_name: postAuthor?.name || 'Unknown User',
-        author_avatar: postAuthor?.profile_photo_url || null,
+        author_name: postData.author_name,
+        author_avatar: postData.author_avatar,
         user_has_liked: !!likeResult.data
       };
 

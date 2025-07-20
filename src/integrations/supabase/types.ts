@@ -133,6 +133,13 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "automation_activity_log_target_post_id_fkey"
+            columns: ["target_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_with_author"
+            referencedColumns: ["id"]
+          },
         ]
       }
       automation_captions: {
@@ -306,6 +313,13 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -611,6 +625,13 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_with_author"
+            referencedColumns: ["id"]
+          },
         ]
       }
       meal_tracking: {
@@ -821,6 +842,13 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -1237,6 +1265,53 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications_with_sender: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          is_read: boolean | null
+          post_id: number | null
+          recipient_id: string | null
+          sender_id: string | null
+          sender_name: string | null
+          sender_profile_photo_url: string | null
+          type: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts_with_author: {
+        Row: {
+          author_avatar: string | null
+          author_id: string | null
+          author_name: string | null
+          caption: string | null
+          category: string | null
+          comment_count: number | null
+          created_at: string | null
+          id: number | null
+          image_url: string | null
+          is_reported: boolean | null
+          like_count: number | null
+          report_count: number | null
+          report_threshold_reached: boolean | null
+        }
+        Relationships: []
+      }
       user_program_summary: {
         Row: {
           days_completed: number | null
@@ -1376,6 +1451,14 @@ export type Database = {
         Returns: undefined
       }
       refresh_materialized_views: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_notifications_view: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_posts_view: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
