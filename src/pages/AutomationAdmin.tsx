@@ -187,6 +187,18 @@ export default function AutomationAdmin() {
 
           if (updateError) throw updateError;
 
+          // Delete the old JPEG image from storage
+          const oldImagePath = post.image_url.split('/').pop();
+          if (oldImagePath) {
+            const { error: deleteError } = await supabase.storage
+              .from('bot-posts')
+              .remove([oldImagePath]);
+            
+            if (deleteError) {
+              console.warn(`Failed to delete old image ${oldImagePath}:`, deleteError);
+            }
+          }
+
           converted++;
           console.log(`✅ Converted post ${post.id}`);
           
