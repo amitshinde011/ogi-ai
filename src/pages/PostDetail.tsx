@@ -45,12 +45,26 @@ const PostDetail = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{name: string, profile_photo_url?: string} | null>(null);
 
   useEffect(() => {
     const fetchPost = async () => {
       if (!id) {
         navigate('/community');
         return;
+      }
+
+      // Fetch current user's profile
+      if (user) {
+        const { data: userProfile } = await supabase
+          .from('user_profiles')
+          .select('name, profile_photo_url')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (userProfile) {
+          setCurrentUserProfile(userProfile);
+        }
       }
 
       const postId = parseInt(id, 10);
@@ -238,7 +252,14 @@ const PostDetail = () => {
       if (error) throw error;
 
       if (newCommentData) {
-        setComments(prev => [newCommentData, ...prev]);
+        // Add the new comment with user info
+        const newCommentWithUserInfo = {
+          ...newCommentData,
+          user_name: currentUserProfile?.name || user.email || 'Unknown User',
+          user_avatar: currentUserProfile?.profile_photo_url
+        };
+        
+        setComments(prev => [newCommentWithUserInfo, ...prev]);
         setPost(prev => prev ? {
           ...prev,
           comment_count: prev.comment_count + 1
@@ -390,8 +411,8 @@ const PostDetail = () => {
           {user && (
             <div className="flex items-center space-x-3 mb-4 p-4 bg-white rounded-xl border border-sage/20">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user.user_metadata?.avatar_url} />
-                <AvatarFallback>{user.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                <AvatarImage src={currentUserProfile?.profile_photo_url} />
+                <AvatarFallback>{currentUserProfile?.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
               </Avatar>
             <div className="flex-1 flex items-center space-x-2">
               <Input
