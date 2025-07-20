@@ -72,9 +72,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(session?.user ?? null);
       setSession(session);
 
-      // Handle profile fetching without blocking loading state
-      if (session?.user && event === 'SIGNED_IN') {
-        // Fetch profile in background without blocking auth completion
+      // Handle profile fetching for any authenticated session
+      if (session?.user) {
+        // Fetch profile for any authenticated user
         setTimeout(() => {
           fetchUserProfile(session.user.id).then(profile => {
             if (mounted) {
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             }
           });
         }, 0);
-      } else if (!session?.user) {
+      } else {
         setUserProfile(null);
       }
 
@@ -100,6 +100,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (mounted) {
         setUser(session?.user ?? null);
         setSession(session);
+        
+        // Also fetch profile on initial session check
+        if (session?.user) {
+          fetchUserProfile(session.user.id).then(profile => {
+            if (mounted) {
+              setUserProfile(profile);
+            }
+          }).catch(error => {
+            console.error('Error fetching user profile:', error);
+            if (mounted) {
+              setUserProfile(null);
+            }
+          });
+        }
+        
         setLoading(false);
       }
     });

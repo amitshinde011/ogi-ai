@@ -171,11 +171,11 @@ const Home = () => {
         >
           <Avatar className="h-10 w-10 border-2 border-slate-300">
             <AvatarImage 
-              src={userProfile.profile_photo_url || undefined} 
-              alt={userProfile.name}
+              src={userProfile?.profile_photo_url || user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`} 
+              alt={userProfile?.name || user?.email}
             />
             <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-              {userProfile.name?.charAt(0) || 'U'}
+              {userProfile?.name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
         </button>
