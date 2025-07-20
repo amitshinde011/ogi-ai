@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { PageContainer } from '@/components/Layout/PageContainer';
 import Header from '@/components/Header';
+import Loader from '@/components/ui/loader';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
-import { Heart, MessageCircle, Loader2 } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Notifications = () => {
@@ -55,7 +56,7 @@ const Notifications = () => {
         <div className="py-4">
           {loading ? (
             <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <Loader size="lg" />
             </div>
           ) : notifications.length === 0 ? (
             <div className="text-center py-12">
