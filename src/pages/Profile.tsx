@@ -5,10 +5,10 @@ import Layout from '@/components/Layout';
 import { PageContainer } from '@/components/Layout/PageContainer';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 import { useFollowers } from '@/hooks/useFollowers';
+import { UserAvatar } from '@/components/ui/user-avatar';
 
 const Profile = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -54,6 +54,8 @@ const Profile = () => {
 
   const isOwnProfile = currentUser?.id === profileUser.id;
 
+  console.log('👤 Profile: Rendering profile for user:', profileUser);
+
   return (
     <Layout noContainer>
       <PageContainer>
@@ -62,15 +64,16 @@ const Profile = () => {
       <div className="py-4">
         {/* Profile Header */}
         <div className="text-center mb-6">
-          <Avatar className="w-24 h-24 mx-auto mb-4">
-            <AvatarImage 
-              src={profileUser.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileUser.id}`} 
-              alt={profileUser.name || 'User'} 
+          <div className="mb-4">
+            <UserAvatar
+              src={profileUser.profile_photo_url}
+              alt={profileUser.name || 'User'}
+              fallbackText={profileUser.name?.charAt(0)}
+              userId={profileUser.id}
+              size="xl"
+              className="mx-auto"
             />
-            <AvatarFallback>
-              {(profileUser.name || 'U').charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          </div>
           
           <h1 className="text-xl font-bold mb-2">{profileUser.name || 'Anonymous User'}</h1>
           

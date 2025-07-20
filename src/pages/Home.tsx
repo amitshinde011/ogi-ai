@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { PageContainer } from '@/components/Layout/PageContainer';
@@ -23,6 +22,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useOptimizedHomeData } from '@/hooks/useOptimizedHomeData';
 import { useOptimizedWellness } from '@/hooks/useOptimizedWellness';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { UserAvatar } from '@/components/ui/user-avatar';
 
 import Loader from '@/components/ui/loader';
 
@@ -139,6 +139,7 @@ const Home = () => {
   console.log('🍽️ Home: Meals logged today:', mealsLogged);
   console.log('📊 Home: Current wellness data:', wellnessData);
   console.log('🏃 Home: Today\'s progress:', homeData.todayProgress);
+  console.log('👤 Home: User profile for avatar:', userProfile);
 
   // Header elements - notifications and profile
   const headerElements = (
@@ -169,15 +170,13 @@ const Home = () => {
             trackEvent('profile_menu_click', 'UI', 'Header Navigation');
           }}
         >
-          <Avatar className="h-10 w-10 border-2 border-slate-300">
-            <AvatarImage 
-              src={userProfile?.profile_photo_url || user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.id}`} 
-              alt={userProfile?.name || user?.email}
-            />
-            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-              {userProfile?.name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            src={userProfile?.profile_photo_url}
+            alt={userProfile?.name || user?.email || 'User'}
+            fallbackText={userProfile?.name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
+            userId={user?.id}
+            className="border-2 border-slate-300"
+          />
         </button>
       </ProfileMenu>
     </div>
