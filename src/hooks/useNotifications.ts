@@ -9,7 +9,7 @@ interface Notification {
   recipient_id: string;
   sender_id: string;
   type: string;
-  post_id: string | null;
+  post_id: number | null;
   is_read: boolean;
   created_at: string;
   sender?: {
@@ -148,7 +148,7 @@ export const useNotifications = () => {
   const createNotification = async (
     recipientId: string,
     type: string,
-    postId?: string
+    postId?: number
   ) => {
     if (!currentUser || currentUser.id === recipientId) return;
 
@@ -169,6 +169,12 @@ export const useNotifications = () => {
   useEffect(() => {
     fetchCurrentUser();
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchNotifications();
+    }
+  }, [currentUser]);
 
   return {
     notifications,

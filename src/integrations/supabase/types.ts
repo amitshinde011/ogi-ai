@@ -690,7 +690,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_read: boolean | null
-          post_id: string | null
+          post_id: number | null
           recipient_id: string
           sender_id: string | null
           type: string
@@ -699,7 +699,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_read?: boolean | null
-          post_id?: string | null
+          post_id?: number | null
           recipient_id: string
           sender_id?: string | null
           type: string
@@ -708,7 +708,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_read?: boolean | null
-          post_id?: string | null
+          post_id?: number | null
           recipient_id?: string
           sender_id?: string | null
           type?: string
