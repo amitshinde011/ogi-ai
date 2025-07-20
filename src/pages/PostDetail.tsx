@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Heart, MessageCircle, Share, ArrowLeft, Send, Clock } from 'lucide-react';
+import { Heart, MessageCircle, Share, Send, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,266 +9,42 @@ import { Input } from '@/components/ui/input';
 import Header from '@/components/Header';
 import Layout from '@/components/Layout';
 import { PageContainer } from '@/components/Layout/PageContainer';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import Loader from '@/components/ui/loader';
-
-interface Comment {
-  id: number;
-  author_id: string;
-  post_id: number;
-  text: string;
-  created_at: string;
-  user_name?: string;
-  user_avatar?: string;
-}
-
-interface Post {
-  id: number;
-  author_id: string;
-  image_url: string;
-  caption: string;
-  category: string;
-  like_count: number;
-  comment_count: number;
-  created_at: string;
-  author_name?: string;
-  author_avatar?: string;
-  user_has_liked?: boolean;
-}
+import { useOptimizedPost } from '@/hooks/useOptimizedPost';
 
 const PostDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const { user, userProfile } = useAuth();
   const [newComment, setNewComment] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [currentUserProfile, setCurrentUserProfile] = useState<{name: string, profile_photo_url?: string} | null>(null);
+  
+  const {
+    post,
+    comments,
+    loading,
+    error,
+    addComment,
+    toggleLike
+  } = useOptimizedPost(id, user?.id);
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      if (!id) {
-        navigate('/community');
-        return;
-      }
-
-      // Fetch current user's profile
-      if (user) {
-        const { data: userProfile } = await supabase
-          .from('user_profiles')
-          .select('name, profile_photo_url')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (userProfile) {
-          setCurrentUserProfile(userProfile);
-        }
-      }
-
-      const postId = parseInt(id, 10);
-      if (isNaN(postId)) {
-        navigate('/community');
-        return;
-      }
-
-      try {
-        // Fetch post details
-        const { data: postData, error: postError } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('id', postId)
-          .single();
-
-        if (postError || !postData) {
-          console.error('Post not found:', postError);
-          navigate('/community');
-          return;
-        }
-
-        // Fetch author information from user_profiles
-        let authorName = 'Unknown User';
-        let authorAvatar = undefined;
-        
-        const { data: userProfile } = await supabase
-          .from('user_profiles')
-          .select('name, profile_photo_url')
-          .eq('user_id', postData.author_id)
-          .single();
-
-        if (userProfile) {
-          authorName = userProfile.name || 'Unknown User';
-          authorAvatar = userProfile.profile_photo_url;
-        } else {
-          // Try automation_users if not found in user_profiles
-          const { data: automationUser } = await supabase
-            .from('automation_users')
-            .select('name, profile_photo_url')
-            .eq('user_id', postData.author_id)
-            .single();
-          
-          if (automationUser) {
-            authorName = automationUser.name || 'Unknown User';
-            authorAvatar = automationUser.profile_photo_url;
-          }
-        }
-
-        // Check if user has liked this post
-        let userHasLiked = false;
-        if (user) {
-          const { data: likeData } = await supabase
-            .from('likes')
-            .select('*')
-            .eq('post_id', postId)
-            .eq('user_id', user.id)
-            .single();
-          
-          userHasLiked = !!likeData;
-        }
-
-        setPost({
-          id: postData.id,
-          author_id: postData.author_id,
-          image_url: postData.image_url,
-          caption: postData.caption,
-          category: postData.category,
-          like_count: postData.like_count,
-          comment_count: postData.comment_count,
-          created_at: postData.created_at,
-          author_name: authorName,
-          author_avatar: authorAvatar,
-          user_has_liked: userHasLiked
-        });
-
-        // Fetch comments
-        const { data: commentsData } = await supabase
-          .from('comments')
-          .select('*')
-          .eq('post_id', postId)
-          .order('created_at', { ascending: false });
-
-        // Fetch user information for each comment
-        const commentsWithUserInfo = await Promise.all(
-          (commentsData || []).map(async (comment) => {
-            let userName = 'Unknown User';
-            let userAvatar = undefined;
-
-            // Try user_profiles first
-            const { data: userProfile } = await supabase
-              .from('user_profiles')
-              .select('name, profile_photo_url')
-              .eq('user_id', comment.author_id)
-              .single();
-
-            if (userProfile) {
-              userName = userProfile.name || 'Unknown User';
-              userAvatar = userProfile.profile_photo_url;
-            } else {
-              // Try automation_users if not found in user_profiles
-              const { data: automationUser } = await supabase
-                .from('automation_users')
-                .select('name, profile_photo_url')
-                .eq('user_id', comment.author_id)
-                .single();
-              
-              if (automationUser) {
-                userName = automationUser.name || 'Unknown User';
-                userAvatar = automationUser.profile_photo_url;
-              }
-            }
-
-            return {
-              ...comment,
-              user_name: userName,
-              user_avatar: userAvatar
-            };
-          })
-        );
-
-        setComments(commentsWithUserInfo);
-      } catch (error) {
-        console.error('Error fetching post:', error);
-        navigate('/community');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPost();
-  }, [id, navigate, user]);
+  // Handle navigation when post is not found or invalid ID
+  React.useEffect(() => {
+    if (!loading && (error || !id)) {
+      navigate('/community');
+    }
+  }, [loading, error, id, navigate]);
 
   const handleLike = async () => {
-    if (!post || !user) return;
-    
-    try {
-      if (post.user_has_liked) {
-        // Unlike the post
-        await supabase
-          .from('likes')
-          .delete()
-          .eq('post_id', post.id)
-          .eq('user_id', user.id);
-        
-        setPost(prev => prev ? {
-          ...prev,
-          user_has_liked: false,
-          like_count: prev.like_count - 1
-        } : null);
-      } else {
-        // Like the post
-        await supabase
-          .from('likes')
-          .insert({
-            post_id: post.id,
-            user_id: user.id
-          });
-        
-        setPost(prev => prev ? {
-          ...prev,
-          user_has_liked: true,
-          like_count: prev.like_count + 1
-        } : null);
-      }
-    } catch (error) {
-      console.error('Error toggling like:', error);
-    }
+    await toggleLike();
   };
 
   const handleAddComment = async () => {
-    if (!post || !newComment.trim() || !user) return;
+    if (!newComment.trim()) return;
     
-    try {
-      const { data: newCommentData, error } = await supabase
-        .from('comments')
-        .insert({
-          post_id: post.id,
-          author_id: user.id,
-          text: newComment.trim()
-        })
-        .select('*')
-        .single();
-
-      if (error) throw error;
-
-      if (newCommentData) {
-        // Add the new comment with user info
-        const newCommentWithUserInfo = {
-          ...newCommentData,
-          user_name: currentUserProfile?.name || user.email || 'Unknown User',
-          user_avatar: currentUserProfile?.profile_photo_url
-        };
-        
-        setComments(prev => [newCommentWithUserInfo, ...prev]);
-        setPost(prev => prev ? {
-          ...prev,
-          comment_count: prev.comment_count + 1
-        } : null);
-      }
-      
+    const success = await addComment(newComment.trim());
+    if (success) {
       setNewComment('');
-    } catch (error) {
-      console.error('Error adding comment:', error);
     }
   };
 
@@ -330,11 +106,11 @@ const PostDetail = () => {
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center">
                 <Avatar>
-                  <AvatarImage src={post.author_avatar || undefined} />
-                  <AvatarFallback>{post.author_name?.[0] || 'U'}</AvatarFallback>
+                  <AvatarImage src={post.author_avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author_id}`} />
+                  <AvatarFallback>{post.author_name[0] || 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="ml-3">
-                  <h4 className="font-semibold text-stone">{post.author_name || 'Unknown User'}</h4>
+                  <h4 className="font-semibold text-stone">{post.author_name}</h4>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <span className="mr-1">{getMealEmoji(post.category)}</span>
                     <span className="capitalize mr-2">{post.category}</span>
@@ -411,8 +187,8 @@ const PostDetail = () => {
           {user && (
             <div className="flex items-center space-x-3 mb-4 p-4 bg-white rounded-xl border border-sage/20">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={currentUserProfile?.profile_photo_url} />
-                <AvatarFallback>{currentUserProfile?.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                <AvatarImage src={userProfile?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} />
+                <AvatarFallback>{userProfile?.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
               </Avatar>
             <div className="flex-1 flex items-center space-x-2">
               <Input
@@ -440,12 +216,12 @@ const PostDetail = () => {
               <div key={comment.id} className="p-4 bg-white rounded-xl border border-sage/20">
                 <div className="flex items-start space-x-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={comment.user_avatar || undefined} />
-                    <AvatarFallback>{comment.user_name?.[0] || 'U'}</AvatarFallback>
+                    <AvatarImage src={comment.author_avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.author_id}`} />
+                    <AvatarFallback>{comment.author_name[0] || 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-semibold text-sm text-stone">{comment.user_name || 'Unknown User'}</span>
+                      <span className="font-semibold text-sm text-stone">{comment.author_name}</span>
                       <span className="text-xs text-muted-foreground">{formatTime(comment.created_at)}</span>
                     </div>
                     <p className="text-sm text-stone mb-2">{comment.text}</p>
