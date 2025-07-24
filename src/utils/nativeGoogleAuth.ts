@@ -1,10 +1,13 @@
 import { Capacitor } from '@capacitor/core';
-import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { supabase } from '@/integrations/supabase/client';
 
-// Import Firebase for web platform fallback
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+// Define the interface for our custom plugin
+interface MyGoogleAuthPlugin {
+  signIn(): Promise<{ idToken: string; email: string; name: string }>;
+}
+
+// Register the custom plugin with Capacitor
+const MyGoogleAuth = Capacitor.registerPlugin<MyGoogleAuthPlugin>('MyGoogleAuth');
 
 export interface GoogleAuthUser {
   id: string;
@@ -18,72 +21,41 @@ export const isNativePlatform = () => {
   return Capacitor.isNativePlatform();
 };
 
+/**
+ * FIX: Added back an empty initialize function to resolve build errors
+ * from other files that may still be importing it. This function
+ * is not needed for the custom plugin to work.
+ */
 export const initializeGoogleAuth = async () => {
-  if (isNativePlatform()) {
-    try {
-      console.log('Firebase Authentication ready for native platform');
-      return true;
-    } catch (error) {
-      console.error('Failed to initialize Firebase Authentication:', error);
-      return false;
-    }
-  } else {
-    try {
-      if (getApps().length === 0) {
-        console.log('Web platform - using Supabase OAuth instead of Firebase');
-      }
-      return true;
-    } catch (error) {
-      console.error('Firebase web initialization error:', error);
-      return true;
-    }
-  }
+  return true;
 };
 
+/**
+ * Handles the native Google Sign-In flow for iOS using your custom plugin.
+ * @returns A promise that resolves with the user object on success or an error string on failure.
+ */
 export const signInWithGoogleNative = async (): Promise<{ user: GoogleAuthUser | null; error: string | null }> => {
   try {
-    console.log('Starting native Google sign in with Firebase...');
+    console.log('Starting native Google sign in with custom plugin...');
 
     if (!isNativePlatform()) {
-      return { user: null, error: 'Native Firebase Auth is only available on mobile devices' };
+      return { user: null, error: 'This function is only for native mobile devices.' };
     }
 
-    // The plugin should automatically use the Web Client ID from your google-services.json.
-    // By not passing `serverClientId`, we rely on this automatic configuration.
-    // If you get a "bad id token" error, it points to an issue in your native project's
-    // configuration, and you may need to hardcode the `serverClientId` again as a workaround.
-    const result = await FirebaseAuthentication.signInWithGoogle();
-    console.log('Native Firebase Google sign in result:', result);
+    // Call your custom plugin's signIn method
+    const result = await MyGoogleAuth.signIn();
+    
+    console.log('Custom native plugin result:', result);
 
-    if (!result || !result.user) {
-      return { user: null, error: 'Google sign in was cancelled or failed' };
+    if (!result || !result.idToken) {
+      return { user: null, error: 'Google sign in was cancelled or failed.' };
     }
 
-    // --- IMPROVEMENT: Get the ID token directly from the sign-in result ---
-    // This is more efficient than calling getIdToken() separately.
-    const idToken = result.credential?.idToken;
-    console.log('Firebase ID token retrieved from sign-in result.');
+    const idToken = result.idToken;
 
-    if (!idToken) {
-      console.error('No ID token returned from Firebase sign-in result');
-      return { user: null, error: 'Failed to get authentication token from Firebase' };
-    }
+    console.log('ID token received. Signing in to Supabase...');
 
-    if (!result.user.email || !result.user.uid) {
-      console.error('Missing required user information from Firebase Auth');
-      return { user: null, error: 'Incomplete user information received from Firebase' };
-    }
-
-    const googleUser: GoogleAuthUser = {
-      id: result.user.uid,
-      email: result.user.email,
-      name: result.user.displayName || result.user.email.split('@')[0],
-      imageUrl: result.user.photoUrl || '',
-      idToken: idToken, // Use the token from the sign-in result
-    };
-
-    // Sign in to Supabase using the Firebase ID token
-    console.log('Signing in to Supabase with Firebase ID token...');
+    // Sign in to Supabase using the ID token from your custom plugin
     const { data, error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: idToken,
@@ -91,73 +63,48 @@ export const signInWithGoogleNative = async (): Promise<{ user: GoogleAuthUser |
 
     if (error) {
       console.error('Supabase auth error:', error);
-      
-      if (error.message.includes('Invalid login credentials') || error.message.includes('bad id token')) {
-        return { user: null, error: 'Authentication failed. Please check your Supabase Google Auth configuration.' };
-      }
-      
       return { user: null, error: `Authentication failed: ${error.message}` };
     }
 
-    if (!data.user) {
-      return { user: null, error: 'Authentication succeeded but no user data received' };
+    if (!data.user || !data.user.email || !data.user.id) {
+      return { user: null, error: 'Authentication succeeded but no user data was received.' };
     }
+    
+    const googleUser: GoogleAuthUser = {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.user_metadata.full_name || data.user.email.split('@')[0],
+        imageUrl: data.user.user_metadata.avatar_url || '',
+        idToken: idToken,
+    };
 
-    console.log('Successfully signed in with Supabase:', data);
+    console.log('Successfully signed in with Supabase:', data.user);
     return { user: googleUser, error: null };
 
   } catch (error: any) {
-    console.error('Native Firebase Google sign in error:', error);
-    
-    if (error.code === 'auth/user-cancelled') {
-      return { user: null, error: 'Google sign in was cancelled by user' };
-    } else if (error.code === 'auth/network-error') {
-      return { user: null, error: 'Network error. Please check your connection and try again.' };
+    console.error('Custom native Google sign in error:', error);
+    if (error.message?.includes('cancelled')) {
+      return { user: null, error: 'Google sign in was cancelled.' };
     }
-    
-    return { user: null, error: error.message || 'Failed to sign in with Google' };
+    return { user: null, error: error.message || 'Failed to sign in with Google.' };
   }
 };
 
-export const signOutGoogleNative = async (): Promise<{ error: string | null }> => {
+/**
+ * Handles sign out for both native and web platforms.
+ */
+export const signOutGoogle = async (): Promise<{ error: string | null }> => {
   try {
-    if (isNativePlatform()) {
-      await FirebaseAuthentication.signOut();
-      console.log('Successfully signed out from Firebase (native)');
-    }
-    
+    // There's no native sign-out to call for the custom plugin, 
+    // as GIDSignIn manages its own state. Signing out of Supabase is sufficient.
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out from Supabase:', error);
       return { error: error.message };
     }
-    
     return { error: null };
   } catch (error: any) {
-    console.error('Native Firebase sign out error:', error);
+    console.error('Sign out error:', error);
     return { error: error.message || 'Failed to sign out' };
-  }
-};
-
-// Utility function to check if Firebase Auth is properly configured
-export const validateGoogleAuthConfiguration = async (): Promise<{ isValid: boolean; message: string }> => {
-  if (isNativePlatform()) {
-    try {
-      await FirebaseAuthentication.getCurrentUser();
-      return {
-        isValid: true,
-        message: 'Native Firebase Auth is properly configured'
-      };
-    } catch (error) {
-      return {
-        isValid: false,
-        message: `Firebase Auth configuration error: ${error}`
-      };
-    }
-  } else {
-    return {
-      isValid: true,
-      message: 'Web Google OAuth will be validated during sign-in attempt'
-    };
   }
 };
