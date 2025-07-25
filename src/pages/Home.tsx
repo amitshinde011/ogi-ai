@@ -15,8 +15,6 @@ import { useNavigate } from 'react-router-dom';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import ProfileMenu from '@/components/ProfileMenu';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNotifications } from '@/hooks/useNotifications';
-import { Bell } from 'lucide-react';
 import { useSubscriptionBanner } from '@/hooks/useSubscriptionBanner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useOptimizedHomeData } from '@/hooks/useOptimizedHomeData';
@@ -36,7 +34,7 @@ const Home = () => {
   const { isCompleted, completedSubscription } = useProgramCompletion();
   const { showBanner } = useSubscriptionBanner();
   const { trackEvent, trackUserEngagement } = useAnalytics();
-  const { unreadCount } = useNotifications();
+  
   
   // Use optimized data fetching
   const { data: homeData, loading: homeLoading } = useOptimizedHomeData();
@@ -141,34 +139,13 @@ const Home = () => {
   console.log('🏃 Home: Today\'s progress:', homeData.todayProgress);
   console.log('👤 Home: User profile for avatar:', userProfile);
 
-  // Header elements - notifications only
-  const headerElements = (
-    <div className="flex items-center gap-3">
-      {/* Notification Icon */}
-      <button 
-        onClick={() => {
-          console.log('🔔 Home: Notifications clicked');
-          trackEvent('notifications_click', 'UI', 'Header Navigation');
-          navigate('/notifications');
-        }}
-        className="relative hover:bg-slate-100 p-2 rounded-xl transition-all duration-200 interactive"
-      >
-        <Bell size={20} className="text-slate-700" />
-        {unreadCount > 0 && (
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </div>
-        )}
-      </button>
-    </div>
-  );
 
   console.log('🎨 Home: Rendering home page with all components');
 
   return (
     <Layout noContainer>
       <PageContainer>
-        <Header title="Home" rightElement={headerElements} />
+        <Header title="Home" />
         {showBanner && (
           <>
             <SubscriptionBanner />
