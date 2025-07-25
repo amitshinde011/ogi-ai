@@ -118,6 +118,11 @@
     line-height: 1.6; /* Consistent line height for readability */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Safe area support for mobile devices */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
   
   /* Typography Scale 
@@ -143,5 +148,18 @@
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
+  }
+  
+  /* Safe area utilities for mobile devices */
+  .safe-area-container {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
