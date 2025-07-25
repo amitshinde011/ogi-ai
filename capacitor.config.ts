@@ -12,7 +12,11 @@ const config: CapacitorConfig = {
     },
     Motion: {
       interval: 100
-    }
+    },
+    StatusBar: {
+      overlay: false,
+      style: 'light', // You can also use 'light' or 'default'
+    },
   },
   // --- ADD THIS SERVER CONFIGURATION ---
   server: {

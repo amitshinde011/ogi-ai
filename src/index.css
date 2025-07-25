@@ -118,6 +118,8 @@
     line-height: 1.6; /* Consistent line height for readability */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Add this line for the iOS safe area */
+    padding-top: env(safe-area-inset-top);
   }
   
   /* Typography Scale 
