@@ -55,7 +55,7 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col safe-area-container">
       {/* Post-completion banner */}
       {isCompleted && completedSubscription && (
         <PostCompletionBanner completedProgramName={completedSubscription.programs?.name} />
@@ -113,7 +113,7 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
 
       {/* Desktop Sidebar Navigation - Only show on specified pages */}
       {shouldShowNavigation && (
-        <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-40 flex-col">
+        <nav className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-slate-200/80 backdrop-blur-xl bg-white/95 z-40 flex-col safe-area-top">
           <div className="p-6 flex justify-center">
             <img 
               src={IMAGES.LOGO_MAIN} 
