@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, User } from 'lucide-react';
+import { Search, User, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -19,6 +19,7 @@ const ProfileMenu = ({ children }: ProfileMenuProps) => {
   const menuItems = [
     { icon: User, label: 'My Posts', path: '/my-posts' },
     { icon: Search, label: 'Discover', path: '/discover' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
   return (

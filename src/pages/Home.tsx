@@ -141,7 +141,7 @@ const Home = () => {
   console.log('🏃 Home: Today\'s progress:', homeData.todayProgress);
   console.log('👤 Home: User profile for avatar:', userProfile);
 
-  // Header elements - notifications and profile
+  // Header elements - notifications only
   const headerElements = (
     <div className="flex items-center gap-3">
       {/* Notification Icon */}
@@ -160,25 +160,6 @@ const Home = () => {
           </div>
         )}
       </button>
-
-      {/* Profile Menu */}
-      <ProfileMenu>
-        <button 
-          className="hover:bg-slate-100 rounded-xl transition-all duration-200 interactive"
-          onClick={() => {
-            console.log('👤 Home: Profile menu clicked');
-            trackEvent('profile_menu_click', 'UI', 'Header Navigation');
-          }}
-        >
-          <UserAvatar
-            src={userProfile?.profile_photo_url}
-            alt={userProfile?.name || user?.email || 'User'}
-            fallbackText={userProfile?.name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
-            userId={user?.id}
-            className="border-2 border-slate-300"
-          />
-        </button>
-      </ProfileMenu>
     </div>
   );
 

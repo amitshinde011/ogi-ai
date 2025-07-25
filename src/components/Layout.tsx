@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, CookingPot, Users, TrendingUp, Settings } from 'lucide-react';
+import { Home, CookingPot, Users, TrendingUp } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useProgramCompletion } from '@/hooks/useProgramCompletion';
@@ -8,6 +8,9 @@ import PostCompletionBanner from './PostCompletionBanner';
 import Footer from './Footer';
 import AdminNavigation from './admin/AdminNavigation';
 import { IMAGES } from '@/constants/images';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserAvatar } from '@/components/ui/user-avatar';
+import ProfileMenu from './ProfileMenu';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -20,6 +23,7 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
   const navigate = useNavigate();
   const { unreadCount } = useNotifications();
   const { isCompleted, completedSubscription } = useProgramCompletion();
+  const { user, userProfile } = useAuth();
 
   // Define pages that should show navigation
   const pagesWithNavigation = ['/home', '/', '/recipes', '/community', '/progress', '/settings'];
@@ -35,7 +39,6 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
     { icon: CookingPot, path: '/recipes', label: 'Recipes' },
     { icon: Users, path: '/community', label: 'Community' },
     { icon: TrendingUp, path: '/progress', label: 'Progress' },
-    { icon: Settings, path: '/settings', label: 'Settings' },
   ];
 
   const isActive = (path: string) => {
@@ -106,6 +109,21 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
                   </button>
                 );
               })}
+              
+              {/* Profile Avatar in Navigation */}
+              <ProfileMenu>
+                <button className="flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] text-slate-500 hover:text-slate-700 hover:bg-slate-100">
+                  <UserAvatar
+                    src={userProfile?.profile_photo_url}
+                    alt={userProfile?.name || user?.email || 'User'}
+                    fallbackText={userProfile?.name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
+                    userId={user?.id}
+                    size="sm"
+                    className="border border-slate-300"
+                  />
+                  <span className="text-xs mt-1 font-medium">Profile</span>
+                </button>
+              </ProfileMenu>
             </div>
           </div>
         </nav>
@@ -147,6 +165,21 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
                   </button>
                 );
               })}
+              
+              {/* Profile Avatar in Desktop Sidebar */}
+              <ProfileMenu>
+                <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left text-slate-600 hover:text-slate-800 hover:bg-slate-100">
+                  <UserAvatar
+                    src={userProfile?.profile_photo_url}
+                    alt={userProfile?.name || user?.email || 'User'}
+                    fallbackText={userProfile?.name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
+                    userId={user?.id}
+                    size="sm"
+                    className="border border-slate-300"
+                  />
+                  <span>Profile</span>
+                </button>
+              </ProfileMenu>
             </div>
           </div>
 
