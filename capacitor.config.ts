@@ -6,6 +6,10 @@ const config: CapacitorConfig = {
   appName: 'yogi',
   webDir: 'dist',
   plugins: {
+    StatusBar: {
+      overlay: false, // Ensure overlay is false if you want content to be pushed below
+      style: 'DARK',  // or 'LIGHT'
+    },
     FirebaseAuthentication: {
       skipNativeAuth: false,
       providers: ['google.com']
