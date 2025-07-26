@@ -13,7 +13,7 @@ const Header = ({ title, showBack = false, rightElement }: HeaderProps) => {
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 border-b border-slate-200/80 backdrop-blur-xl bg-white/95 pt-[env(safe-area-inset-top)]">
+    <header className="fixed top-0 left-0 right-0 z-40 border-b border-slate-200/80 backdrop-blur-xl bg-white/95 pt-[env(safe-area-inset-top)] min-h-[60px]">
       <div className="flex items-center justify-between max-w-md mx-auto px-4 py-3">
         <div className="flex items-center">
           {showBack && (
