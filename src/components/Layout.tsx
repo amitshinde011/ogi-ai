@@ -62,7 +62,7 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
 
       <main
         className={`flex-1 
-    pt-[calc(env(safe-area-inset-top))] 
+    pt-[calc(env(safe-area-inset-top)_+_45px)] 
     md:pt-[60px] 
     ${shouldShowNavigation ? 'pb-16 sm:pb-20 md:pb-0 md:pl-64' : ''}`
         }
