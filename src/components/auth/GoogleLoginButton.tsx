@@ -1,13 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-// Import the native Google auth functions
+// Import the updated native Google auth functions
 import { isNativePlatform, signInWithGoogleNative } from '@/utils/nativeGoogleAuth';
 import { supabase } from '@/integrations/supabase/client';
 
 interface GoogleLoginButtonProps {
   isLoading: boolean;
-  // This function allows the button to control the loading state in the parent component
   setIsLoading: (loading: boolean) => void;
 }
 
@@ -19,15 +18,15 @@ const GoogleLoginButton = ({ isLoading, setIsLoading }: GoogleLoginButtonProps) 
     try {
       console.log(`Is native platform? ==> ${isNativePlatform()}`);
       if (isNativePlatform()) {
-        // Call the native function
-        const { user, error } = await signInWithGoogleNative();
+        // Call the native function which now uses your custom plugin
+        const { error } = await signInWithGoogleNative();
         if (error) {
           throw new Error(error);
         }
-        // The onAuthStateChange listener in Login.tsx will handle navigation
+        // The onAuthStateChange listener in your app will handle navigation
         setIsLoading(false);
       } else {
-        // For web, use Supabase OAuth
+        // For web, use Supabase OAuth (no change here)
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
@@ -37,7 +36,6 @@ const GoogleLoginButton = ({ isLoading, setIsLoading }: GoogleLoginButtonProps) 
         if (error) {
           throw new Error(error.message);
         }
-        // The browser will redirect; no need to set loading state here.
       }
     } catch (error: any) {
       console.error('Google login failed:', error);
@@ -46,7 +44,7 @@ const GoogleLoginButton = ({ isLoading, setIsLoading }: GoogleLoginButtonProps) 
         description: error.message || "An unknown error occurred.",
         variant: "destructive",
       });
-      setIsLoading(false); // Stop loading only if there's an error
+      setIsLoading(false);
     }
   };
 

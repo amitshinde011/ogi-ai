@@ -2,7 +2,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.d058b66d4dd6438ca799b62e81c5c371',
+  appId: 'care.yogi.app',
   appName: 'yogi',
   webDir: 'dist',
   plugins: {
@@ -16,11 +16,7 @@ const config: CapacitorConfig = {
     },
     Motion: {
       interval: 100
-    },
-    StatusBar: {
-      overlay: false,
-      style: 'light', // You can also use 'light' or 'default'
-    },
+    }
   },
   // --- ADD THIS SERVER CONFIGURATION ---
   server: {
