@@ -22,10 +22,9 @@ const IntroVideo = () => {
   const { trackVideoComplete, trackButtonClick } = useAnalytics();
   const { user } = useAuth();
   const {
-    videoWatchedStates
+    videoWatchedStates,
+    allVideosWatched
   } = useVideoWatchedPersistence();
-
-  const allVideosWatched = useMemo(() => videoWatchedStates.every(Boolean), [videoWatchedStates]);
 
   useEffect(() => {
     if (!user) {
