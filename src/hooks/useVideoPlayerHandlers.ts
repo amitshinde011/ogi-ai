@@ -105,17 +105,17 @@ export const useVideoPlayerHandlers = ({
     trackButtonClick('Show Video Player', 'Intro Video Page');
   };
 
-  const handleVideoEnd = () => {
+  const handleVideoEnd = async () => {
     console.log('Video ended, index:', state.currentVideoIndex);
     
     // Mark current video as watched using persistent storage
-    markVideoAsWatched(state.currentVideoIndex);
+    await markVideoAsWatched(state.currentVideoIndex);
 
     setState(prev => ({ ...prev, isPlaying: false }));
 
     // Check if this is the last video
     if (state.currentVideoIndex === VIDEO_SOURCES_SEQUENCE.length - 1) {
-      // All videos completed
+      // All videos completed - call onVideoComplete after database update
       onVideoComplete();
     } else {
       // Auto-advance to next video after a short delay
