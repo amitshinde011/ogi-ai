@@ -8,8 +8,8 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 const configureStatusBar = async () => {
   if (Capacitor.isNativePlatform()) {
     try {
-      // Prevent web content from rendering under the status bar
-      await StatusBar.setOverlaysWebView({ overlay: false });
+      // Allow web content to render under the status bar for manual control
+      await StatusBar.setOverlaysWebView({ overlay: true });
 
       // Optional: You can also customize the style
       await StatusBar.setStyle({ style: Style.Dark });
