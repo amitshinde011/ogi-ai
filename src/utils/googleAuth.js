@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // --- IMPORTANT: Add your Web Client ID here ---
 // You can find this in your google-services.json file where "client_type": 3
-const GOOGLE_WEB_CLIENT_ID = '894086114400-nft2svg5i99uedgnc00tnupljq82f7gt.apps.googleusercontent.com';
+const GOOGLE_WEB_CLIENT_ID = '894086114400-913a15dv4hu0vsjntpt6u00ci7leno5t.apps.googleusercontent.com';
 
 
 /**
