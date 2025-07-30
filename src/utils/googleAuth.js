@@ -48,6 +48,8 @@ export const signInWithNativeGoogle = async () => {
  * @returns {Promise<object>} The Supabase OAuth data.
  */
 export const signInWithWebGoogle = async () => {
+  const redirectTo = `${window.location.origin}/api/auth/callback`;
+  console.log('[Google OAuth] Redirect URI:', redirectTo);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
