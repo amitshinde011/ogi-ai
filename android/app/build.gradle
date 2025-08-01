@@ -1,4 +1,7 @@
+// Apply the Google Services plugin at the very top of the file
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
+
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
@@ -17,7 +20,7 @@ android {
         applicationId "care.yogi.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 42
+        versionCode 48
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -67,16 +70,11 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.16.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.android.gms:play-services-auth'
+    // --- FIX: Add a specific, stable version for play-services-auth ---
+    implementation 'com.google.android.gms:play-services-auth:20.7.0'
 }
 
 apply from: 'capacitor.build.gradle'
 
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-}
+// The try/catch block for google-services.json is no longer needed
+// as we have moved the plugin application to the top of the file.

@@ -2,10 +2,14 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.d058b66d4dd6438ca799b62e81c5c371',
+  appId: 'care.yogi.app',
   appName: 'yogi',
   webDir: 'dist',
   plugins: {
+    StatusBar: {
+      overlay: false, // Ensure overlay is false if you want content to be pushed below
+      style: 'DARK',  // or 'LIGHT'
+    },
     FirebaseAuthentication: {
       skipNativeAuth: false,
       providers: ['google.com']

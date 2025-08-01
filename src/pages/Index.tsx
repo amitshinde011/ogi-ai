@@ -98,20 +98,23 @@ const Index = () => {
 
   // Show loading screen while checking
   return (
-    <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-32 h-32 mx-auto flex items-center justify-center mb-6 animate-scale-in">
-          <img 
-            src={IMAGES.LOGO_VARIANT} 
-            alt="Yogi Logo" 
-            className="w-full h-full object-contain"
-          />
-        </div>
-        <div className="mt-6 flex justify-center items-center">
-          <Loader size="lg" className="mx-auto" />
+    <>
+      <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-32 h-32 mx-auto flex items-center justify-center mb-6 animate-scale-in">
+            <img 
+              src={IMAGES.LOGO_VARIANT} 
+              alt="Yogi Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="mt-6 flex justify-center items-center">
+            <Loader size="lg" className="mx-auto" />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

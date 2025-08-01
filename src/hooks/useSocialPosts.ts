@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface SocialPost {
@@ -25,7 +24,6 @@ export const useSocialPosts = () => {
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const { createNotification } = useNotifications();
   const { user } = useAuth();
 
   // Fetch current user
@@ -312,11 +310,6 @@ export const useSocialPosts = () => {
           });
 
         if (error) throw error;
-
-        // Create notification for post owner if we have their profile_id
-        if (currentUser.profile_id) {
-          await createNotification(post.author_id, 'like', postId.toString());
-        }
       }
 
       // Update local state immediately

@@ -4,6 +4,7 @@ import { Pencil } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { UserAvatar } from '@/components/ui/user-avatar';
 
 interface UserProfile {
   id: string;
@@ -14,6 +15,7 @@ interface UserProfile {
   gender?: string;
   weight?: number;
   height?: number;
+  userId?: string;
 }
 
 interface ProfileCardProps {
@@ -23,15 +25,20 @@ interface ProfileCardProps {
 const ProfileCard = ({ userProfile }: ProfileCardProps) => {
   const navigate = useNavigate();
 
+  console.log('📋 ProfileCard: Rendering with profile:', userProfile);
+
   return (
     <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-all duration-200">
       <CardContent className="p-6">
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <img
+            <UserAvatar
               src={userProfile.avatar}
-              alt="Profile"
-              className="w-20 h-20 rounded-2xl shadow-md object-cover"
+              alt={userProfile.name}
+              fallbackText={userProfile.name?.charAt(0)}
+              userId={userProfile.userId || userProfile.id}
+              size="xl"
+              className="shadow-md"
             />
             <Button
               variant="ghost"

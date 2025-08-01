@@ -52,14 +52,14 @@ export const useCommunityFeed = () => {
   };
 
   useEffect(() => {
-    const channel = supabase
+    const postsChannel = supabase
       .channel('public:posts')
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
         table: 'posts' 
       }, (payload) => {
-        console.log('Real-time update:', payload);
+        console.log('Posts real-time update:', payload);
         
         if (payload.eventType === 'INSERT') {
           fetchPosts();
@@ -79,8 +79,25 @@ export const useCommunityFeed = () => {
       })
       .subscribe();
 
+    // Listen to comments changes to update comment counts in real-time
+    const commentsChannel = supabase
+      .channel('public:comments')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'comments' 
+      }, (payload) => {
+        console.log('Comments real-time update:', payload);
+        
+        // Trigger a refresh of the posts to get updated comment counts
+        // The database trigger will have already updated the comment_count
+        fetchPosts();
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(postsChannel);
+      supabase.removeChannel(commentsChannel);
     };
   }, []);
 

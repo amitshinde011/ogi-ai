@@ -21,17 +21,36 @@ export const useCommunityPosts = (currentUser: any) => {
 
       const authorIds = [...new Set(postsData?.map(post => post.author_id) || [])];
       
+      // Get user profiles
       const { data: profiles } = await supabase
         .from('user_profiles')
         .select('user_id, name, profile_photo_url')
         .in('user_id', authorIds);
 
-      const profileMap = new Map(
-        profiles?.map(profile => [
-          profile.user_id,
-          { name: profile.name, profile_photo_url: profile.profile_photo_url }
-        ]) || []
-      );
+      // Get automation users (for bot posts)
+      const { data: automationProfiles } = await supabase
+        .from('automation_users')
+        .select('user_id, name, profile_photo_url')
+        .in('user_id', authorIds);
+
+      // Create profile map from both sources
+      const profileMap = new Map();
+      
+      // Add regular user profiles
+      profiles?.forEach(profile => {
+        profileMap.set(profile.user_id, {
+          name: profile.name,
+          profile_photo_url: profile.profile_photo_url
+        });
+      });
+
+      // Add automation user profiles (will override if there's a conflict)
+      automationProfiles?.forEach(profile => {
+        profileMap.set(profile.user_id, {
+          name: profile.name,
+          profile_photo_url: profile.profile_photo_url
+        });
+      });
 
       let userLikes: any[] = [];
       if (currentUser) {

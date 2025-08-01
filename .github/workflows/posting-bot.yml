@@ -1,0 +1,20 @@
+name: Programmatic Users Posting Bot
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # Every 2 hours
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  trigger-posting-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger automation posting bot
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            https://mxigbftmmkqnhmocyeeo.supabase.co/functions/v1/automation-posting-bot
+        continue-on-error: true
+      
+      - name: Log posting bot execution
+        run: echo "Posting bot triggered at $(date)"

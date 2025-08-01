@@ -9,7 +9,7 @@ interface Notification {
   recipient_id: string;
   sender_id: string;
   type: string;
-  post_id: string | null;
+  post_id: number | null;
   is_read: boolean;
   created_at: string;
   sender?: {
@@ -55,22 +55,25 @@ export const useNotifications = () => {
       setLoading(true);
 
       const { data, error } = await supabase
-        .from('notifications')
-        .select(`
-          *,
-          sender:user_profiles!notifications_sender_id_fkey (
-            id,
-            name,
-            profile_photo_url
-          )
-        `)
+        .from('notifications_with_sender')
+        .select('*')
         .eq('recipient_id', currentUser.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
 
-      setNotifications(data || []);
+      // Transform data to match interface
+      const transformedData = (data || []).map(notification => ({
+        ...notification,
+        sender: {
+          id: notification.sender_id,
+          name: notification.sender_name,
+          profile_photo_url: notification.sender_profile_photo_url
+        }
+      }));
+      
+      setNotifications(transformedData);
       
       // Count unread notifications
       const unread = (data || []).filter(n => !n.is_read).length;
@@ -88,22 +91,23 @@ export const useNotifications = () => {
             filter: `recipient_id=eq.${currentUser.id}`
           },
           async (payload) => {
-            // Fetch the complete notification with sender info
+            // Fetch the complete notification with sender info from materialized view
             const { data: newNotification } = await supabase
-              .from('notifications')
-              .select(`
-                *,
-                sender:user_profiles!notifications_sender_id_fkey (
-                  id,
-                  name,
-                  profile_photo_url
-                )
-              `)
+              .from('notifications_with_sender')
+              .select('*')
               .eq('id', payload.new.id)
               .single();
 
             if (newNotification) {
-              setNotifications(prev => [newNotification, ...prev]);
+              const transformedNotification = {
+                ...newNotification,
+                sender: {
+                  id: newNotification.sender_id,
+                  name: newNotification.sender_name,
+                  profile_photo_url: newNotification.sender_profile_photo_url
+                }
+              };
+              setNotifications(prev => [transformedNotification, ...prev]);
               setUnreadCount(prev => prev + 1);
             }
           }
@@ -145,10 +149,42 @@ export const useNotifications = () => {
     }
   };
 
+  const markAllPostNotificationsAsRead = async (postId: number) => {
+    if (!currentUser) return;
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('recipient_id', currentUser.id)
+        .eq('post_id', postId)
+        .eq('is_read', false);
+
+      if (error) throw error;
+
+      // Update local state
+      setNotifications(prev =>
+        prev.map(n =>
+          n.post_id === postId ? { ...n, is_read: true } : n
+        )
+      );
+
+      // Recalculate unread count
+      setNotifications(prev => {
+        const unread = prev.filter(n => !n.is_read).length;
+        setUnreadCount(unread);
+        return prev;
+      });
+
+    } catch (error) {
+      console.error('Error marking post notifications as read:', error);
+    }
+  };
+
   const createNotification = async (
     recipientId: string,
     type: string,
-    postId?: string
+    postId?: number
   ) => {
     if (!currentUser || currentUser.id === recipientId) return;
 
@@ -170,12 +206,19 @@ export const useNotifications = () => {
     fetchCurrentUser();
   }, []);
 
+  useEffect(() => {
+    if (currentUser) {
+      fetchNotifications();
+    }
+  }, [currentUser]);
+
   return {
     notifications,
     loading,
     unreadCount,
     fetchNotifications,
     markAsRead,
+    markAllPostNotificationsAsRead,
     createNotification
   };
 };

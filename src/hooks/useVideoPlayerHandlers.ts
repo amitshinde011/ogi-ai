@@ -11,6 +11,7 @@ interface UseVideoPlayerHandlersProps {
   setState: React.Dispatch<React.SetStateAction<VideoPlayerState>>;
   videoWatchedStates: boolean[];
   setVideoWatchedStates: React.Dispatch<React.SetStateAction<boolean[]>>;
+  markVideoAsWatched: (videoIndex: number) => void;
   onVideoComplete: () => void;
   videoRef: React.RefObject<HTMLVideoElement>;
   containerRef: React.RefObject<HTMLDivElement>;
@@ -21,6 +22,7 @@ export const useVideoPlayerHandlers = ({
   setState,
   videoWatchedStates,
   setVideoWatchedStates,
+  markVideoAsWatched,
   onVideoComplete,
   videoRef,
   containerRef
@@ -103,19 +105,17 @@ export const useVideoPlayerHandlers = ({
     trackButtonClick('Show Video Player', 'Intro Video Page');
   };
 
-  const handleVideoEnd = () => {
+  const handleVideoEnd = async () => {
     console.log('Video ended, index:', state.currentVideoIndex);
     
-    // Mark current video as watched
-    const newVideoWatchedStates = [...videoWatchedStates];
-    newVideoWatchedStates[state.currentVideoIndex] = true;
-    setVideoWatchedStates(newVideoWatchedStates);
+    // Mark current video as watched using persistent storage
+    await markVideoAsWatched(state.currentVideoIndex);
 
     setState(prev => ({ ...prev, isPlaying: false }));
 
     // Check if this is the last video
     if (state.currentVideoIndex === VIDEO_SOURCES_SEQUENCE.length - 1) {
-      // All videos completed
+      // All videos completed - call onVideoComplete after database update
       onVideoComplete();
     } else {
       // Auto-advance to next video after a short delay

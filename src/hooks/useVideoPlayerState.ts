@@ -1,9 +1,19 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { VideoPlayerState } from '@/types/videoPlayer';
 import { VIDEO_SOURCES_SEQUENCE } from '@/constants/videoSources';
+import { useVideoWatchedPersistence } from '@/hooks/useVideoWatchedPersistence';
 
 export const useVideoPlayerState = () => {
+  const {
+    videoWatchedStates,
+    updateVideoWatchedStates: setVideoWatchedStates,
+    markVideoAsWatched,
+    allVideosWatched,
+    nextUnwatchedVideoIndex,
+    isLoading
+  } = useVideoWatchedPersistence();
+
   const [state, setState] = useState<VideoPlayerState>({
     isPlaying: false,
     showVideo: false,
@@ -18,14 +28,23 @@ export const useVideoPlayerState = () => {
     totalVideos: VIDEO_SOURCES_SEQUENCE.length,
   });
 
-  const [videoWatchedStates, setVideoWatchedStates] = useState<boolean[]>(
-    new Array(VIDEO_SOURCES_SEQUENCE.length).fill(false)
-  );
+  // Set initial video index to first unwatched video on mount only
+  useEffect(() => {
+    if (nextUnwatchedVideoIndex !== -1) {
+      setState(prev => ({
+        ...prev,
+        currentVideoIndex: nextUnwatchedVideoIndex
+      }));
+    }
+  }, []); // Remove nextUnwatchedVideoIndex dependency to prevent unwanted video skipping
 
   return {
     state,
     setState,
     videoWatchedStates,
-    setVideoWatchedStates
+    setVideoWatchedStates,
+    markVideoAsWatched,
+    allVideosWatched,
+    isLoading
   };
 };

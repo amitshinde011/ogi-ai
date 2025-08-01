@@ -79,6 +79,195 @@ export type Database = {
           },
         ]
       }
+      automation_activity_log: {
+        Row: {
+          activity_type: string
+          automation_user_id: string | null
+          created_at: string | null
+          id: string
+          target_comment_id: number | null
+          target_post_id: number | null
+        }
+        Insert: {
+          activity_type: string
+          automation_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          target_comment_id?: number | null
+          target_post_id?: number | null
+        }
+        Update: {
+          activity_type?: string
+          automation_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          target_comment_id?: number | null
+          target_post_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_activity_log_automation_user_id_fkey"
+            columns: ["automation_user_id"]
+            isOneToOne: false
+            referencedRelation: "automation_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_activity_log_target_comment_id_fkey"
+            columns: ["target_comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_activity_log_target_post_id_fkey"
+            columns: ["target_post_id"]
+            isOneToOne: false
+            referencedRelation: "community_feed_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_activity_log_target_post_id_fkey"
+            columns: ["target_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_activity_log_target_post_id_fkey"
+            columns: ["target_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_with_author"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_captions: {
+        Row: {
+          created_at: string | null
+          id: string
+          meal_type: string
+          persona_type: string
+          template_text: string
+          variables: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          meal_type: string
+          persona_type: string
+          template_text: string
+          variables?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          meal_type?: string
+          persona_type?: string
+          template_text?: string
+          variables?: string[] | null
+        }
+        Relationships: []
+      }
+      automation_comments: {
+        Row: {
+          bot_identifier: string
+          comment_type: string
+          context_tags: string[] | null
+          created_at: string | null
+          id: string
+          persona_type: string
+          template_text: string
+        }
+        Insert: {
+          bot_identifier?: string
+          comment_type: string
+          context_tags?: string[] | null
+          created_at?: string | null
+          id?: string
+          persona_type: string
+          template_text: string
+        }
+        Update: {
+          bot_identifier?: string
+          comment_type?: string
+          context_tags?: string[] | null
+          created_at?: string | null
+          id?: string
+          persona_type?: string
+          template_text?: string
+        }
+        Relationships: []
+      }
+      automation_meal_content: {
+        Row: {
+          created_at: string | null
+          cuisine_type: string
+          dietary_tags: string[] | null
+          id: string
+          image_url: string | null
+          ingredients: string[] | null
+          meal_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          cuisine_type: string
+          dietary_tags?: string[] | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          meal_type: string
+        }
+        Update: {
+          created_at?: string | null
+          cuisine_type?: string
+          dietary_tags?: string[] | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[] | null
+          meal_type?: string
+        }
+        Relationships: []
+      }
+      automation_users: {
+        Row: {
+          created_at: string | null
+          cuisine_specialty: string[] | null
+          id: string
+          is_active: boolean | null
+          name: string
+          persona_type: string
+          profile_photo_url: string | null
+          timezone: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cuisine_specialty?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          persona_type: string
+          profile_photo_url?: string | null
+          timezone?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cuisine_specialty?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          persona_type?: string
+          profile_photo_url?: string | null
+          timezone?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           author_id: string | null
@@ -124,6 +313,13 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -429,6 +625,13 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_with_author"
+            referencedColumns: ["id"]
+          },
         ]
       }
       meal_tracking: {
@@ -508,7 +711,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_read: boolean | null
-          post_id: string | null
+          post_id: number | null
           recipient_id: string
           sender_id: string | null
           type: string
@@ -517,7 +720,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_read?: boolean | null
-          post_id?: string | null
+          post_id?: number | null
           recipient_id: string
           sender_id?: string | null
           type: string
@@ -526,7 +729,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_read?: boolean | null
-          post_id?: string | null
+          post_id?: number | null
           recipient_id?: string
           sender_id?: string | null
           type?: string
@@ -639,6 +842,13 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -903,6 +1113,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_saved_recipes: {
         Row: {
           created_at: string
@@ -968,6 +1199,33 @@ export type Database = {
           },
         ]
       }
+      user_video_watch_status: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+          video_index: number
+          watched: boolean
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+          video_index: number
+          watched?: boolean
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+          video_index?: number
+          watched?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       community_feed_view: {
@@ -1004,6 +1262,53 @@ export type Database = {
           user_id: string | null
           walk_score: number | null
           water_litres: number | null
+        }
+        Relationships: []
+      }
+      notifications_with_sender: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          is_read: boolean | null
+          post_id: number | null
+          recipient_id: string | null
+          sender_id: string | null
+          sender_name: string | null
+          sender_profile_photo_url: string | null
+          type: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts_with_author: {
+        Row: {
+          author_avatar: string | null
+          author_id: string | null
+          author_name: string | null
+          caption: string | null
+          category: string | null
+          comment_count: number | null
+          created_at: string | null
+          id: number | null
+          image_url: string | null
+          is_reported: boolean | null
+          like_count: number | null
+          report_count: number | null
+          report_threshold_reached: boolean | null
         }
         Relationships: []
       }
@@ -1071,6 +1376,10 @@ export type Database = {
           user_has_reported: boolean
         }[]
       }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       get_home_data: {
         Args: { p_user_id: string; p_date: string }
         Returns: {
@@ -1122,6 +1431,13 @@ export type Database = {
           total_water: number
         }[]
       }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
       refresh_activity_views: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1138,11 +1454,23 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      refresh_notifications_view: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      refresh_posts_view: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       scheduled_community_feed_refresh: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
       scheduled_view_refresh: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_profile_photos_from_automation: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -1164,7 +1492,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1291,6 +1619,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

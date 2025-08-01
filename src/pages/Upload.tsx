@@ -89,7 +89,7 @@ const Upload = () => {
 
       console.log('✅ Image uploaded successfully:', uploadResult.imageUrl);
 
-      const postCaption = description || `Just had my ${selectedMeal}! 🍽️`;
+      const postCaption = description || `Just had my ${selectedMeal}! 🍽️ #IamAYogi #HealthyEating #FoodLove`;
 
       console.log('📝 Creating post with auth user_id:', user.id);
 
@@ -116,7 +116,7 @@ const Upload = () => {
         .insert({
           user_id: user.id, // Use cached user.id
           meal_type: selectedMeal,
-          food_item: description || 'Meal logged',
+          food_item: description || 'Meal logged #IamAYogi #HealthyEating #FoodLove',
           date: getLocalDateString()
         });
 

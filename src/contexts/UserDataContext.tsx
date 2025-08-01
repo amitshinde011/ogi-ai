@@ -68,18 +68,22 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
   const fetchUserProfile = useCallback(async () => {
     if (!user) return;
     
+    setLoading(true);
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      if (error) throw error;
       setUserProfile(profile);
     } catch (error) {
       console.error('Error fetching user profile:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [user]);
+  }, [user]); // Corrected: Removed 'loading' from dependencies
 
   const fetchUserSubscriptions = useCallback(async () => {
     if (!user) return;

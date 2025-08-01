@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { PageContainer } from '@/components/Layout/PageContainer';
@@ -21,6 +20,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useOptimizedHomeData } from '@/hooks/useOptimizedHomeData';
 import { useOptimizedWellness } from '@/hooks/useOptimizedWellness';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { UserAvatar } from '@/components/ui/user-avatar';
 
 import Loader from '@/components/ui/loader';
 
@@ -34,6 +34,7 @@ const Home = () => {
   const { isCompleted, completedSubscription } = useProgramCompletion();
   const { showBanner } = useSubscriptionBanner();
   const { trackEvent, trackUserEngagement } = useAnalytics();
+  
   
   // Use optimized data fetching
   const { data: homeData, loading: homeLoading } = useOptimizedHomeData();
@@ -136,36 +137,15 @@ const Home = () => {
   console.log('🍽️ Home: Meals logged today:', mealsLogged);
   console.log('📊 Home: Current wellness data:', wellnessData);
   console.log('🏃 Home: Today\'s progress:', homeData.todayProgress);
+  console.log('👤 Home: User profile for avatar:', userProfile);
 
-  // Profile menu component for the header
-  const profileElement = (
-    <ProfileMenu>
-      <button 
-        className="hover:bg-slate-100 rounded-xl transition-all duration-200 interactive"
-        onClick={() => {
-          console.log('👤 Home: Profile menu clicked');
-          trackEvent('profile_menu_click', 'UI', 'Header Navigation');
-        }}
-      >
-        <Avatar className="h-12 w-12 border-2 border-slate-300">
-          <AvatarImage 
-            src={userProfile.profile_photo_url || undefined} 
-            alt={userProfile.name}
-          />
-          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-            {userProfile.name?.charAt(0) || 'U'}
-          </AvatarFallback>
-        </Avatar>
-      </button>
-    </ProfileMenu>
-  );
 
   console.log('🎨 Home: Rendering home page with all components');
 
   return (
     <Layout noContainer>
       <PageContainer>
-        <Header title="Home" rightElement={profileElement} />
+        <Header title="Home" />
         {showBanner && (
           <>
             <SubscriptionBanner />

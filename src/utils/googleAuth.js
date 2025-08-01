@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // --- IMPORTANT: Add your Web Client ID here ---
 // You can find this in your google-services.json file where "client_type": 3
-const GOOGLE_WEB_CLIENT_ID = '894086114400-nft2svg5i99uedgnc00tnupljq82f7gt.apps.googleusercontent.com';
+const GOOGLE_WEB_CLIENT_ID = '894086114400-913a15dv4hu0vsjntpt6u00ci7leno5t.apps.googleusercontent.com';
 
 
 /**
@@ -48,6 +48,8 @@ export const signInWithNativeGoogle = async () => {
  * @returns {Promise<object>} The Supabase OAuth data.
  */
 export const signInWithWebGoogle = async () => {
+  const redirectTo = `${window.location.origin}/api/auth/callback`;
+  console.log('[Google OAuth] Redirect URI:', redirectTo);
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {

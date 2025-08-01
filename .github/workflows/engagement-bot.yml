@@ -1,0 +1,20 @@
+name: Programmatic Users Engagement Bot
+on:
+  schedule:
+    - cron: '15 */3 * * *'  # Every 3 hours at 15 minutes past the hour
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  trigger-engagement-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger automation engagement bot
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            https://mxigbftmmkqnhmocyeeo.supabase.co/functions/v1/automation-engagement-bot
+        continue-on-error: true
+      
+      - name: Log engagement bot execution
+        run: echo "Engagement bot triggered at $(date)"

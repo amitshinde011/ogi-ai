@@ -1,9 +1,9 @@
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
 import { initializeCapacitorPlugins } from "@/utils/capacitorConfig";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserDataProvider } from "@/contexts/UserDataContext";
@@ -26,6 +26,7 @@ import Progress from "./pages/Progress";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
 import SavedRecipes from "./pages/SavedRecipes";
+import AdminAutomation from "./pages/AdminAutomation";
 import Community from "./pages/Community";
 import PostDetail from "./pages/PostDetail";
 import MyPosts from "./pages/MyPosts";
@@ -48,6 +49,7 @@ import NotFound from "./pages/NotFound";
 
 // Components
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -105,6 +107,7 @@ const App = () => {
               <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
               <Route path="/post/:id" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
               <Route path="/my-posts" element={<ProtectedRoute><MyPosts /></ProtectedRoute>} />
+              <Route path="/admin/automation" element={<ProtectedRoute><AdminRoute><AdminAutomation /></AdminRoute></ProtectedRoute>} />
               <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
               <Route path="/chat/:id" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />

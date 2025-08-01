@@ -26,7 +26,7 @@ const ProfileEdit = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [profileImage, setProfileImage] = useState<string>('');
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
-  const { user } = useAuth();
+  const { user, refreshUserProfile } = useAuth();
   
   const form = useForm<ProfileFormData>({
     defaultValues: {
@@ -120,6 +120,10 @@ const ProfileEdit = () => {
       }
 
       if (error) throw error;
+
+      // Refresh the user profile in AuthContext
+      console.log('🔄 ProfileEdit: Refreshing user profile in context');
+      await refreshUserProfile();
 
       toast({
         title: "Profile updated",

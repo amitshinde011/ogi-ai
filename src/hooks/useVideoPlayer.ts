@@ -10,7 +10,7 @@ import { useVideoPlayerHandlers } from '@/hooks/useVideoPlayerHandlers';
 import { useVideoPlayerEvents } from '@/hooks/useVideoPlayerEvents';
 
 export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHookProps) => {
-  const { state, setState, videoWatchedStates, setVideoWatchedStates } = useVideoPlayerState();
+  const { state, setState, videoWatchedStates, setVideoWatchedStates, markVideoAsWatched, allVideosWatched, isLoading } = useVideoPlayerState();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -22,6 +22,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     setState,
     videoWatchedStates,
     setVideoWatchedStates,
+    markVideoAsWatched,
     onVideoComplete,
     videoRef,
     containerRef
@@ -69,7 +70,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     }
   }, [state.videoLoaded, state.loadingStartTime, state.currentQuality, setState]);
 
-  const allVideosWatched = useMemo(() => videoWatchedStates.every(watched => watched), [videoWatchedStates]);
+  
 
   return {
     // State
@@ -88,6 +89,7 @@ export const useVideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerHoo
     videoRef,
     containerRef,
     videoSources: currentVideoSources,
+    isLoading,
     
     // Handlers from useVideoPlayerHandlers
     ...handlers,

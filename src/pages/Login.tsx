@@ -53,7 +53,7 @@ const Login = () => {
   return (
     <Layout noContainer>
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center p-4">
-        <ContentContainer variant="narrow">
+        <ContentContainer variant="legal">
         {/* Mobile Carousel - shown at top on mobile screens */}
         <div className="lg:hidden mb-6 flex justify-center">
           <WellnessCarousel />
@@ -66,7 +66,7 @@ const Login = () => {
           </div>
 
           {/* Right side - Login Form */}
-          <div className="w-full flex justify-center">
+          <div className="w-full max-w-md flex justify-center">
               <Card className="animate-fade-in shadow-lg border-gray-300 bg-white">
                 <CardHeader className="text-center">
                   <LoginHeader showVerificationMessage={showVerificationMessage} />

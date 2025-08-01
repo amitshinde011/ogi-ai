@@ -6,6 +6,7 @@ import VideoPlayerCore from '@/components/VideoPlayerCore';
 import VideoPlayerControls from '@/components/VideoPlayerControls';
 import VideoPlayerStates from '@/components/VideoPlayerStates';
 import VideoSequenceManager from '@/components/VideoSequenceManager';
+import Loader from '@/components/ui/loader';
 
 interface VideoPlayerProps {
   onVideoComplete: () => void;
@@ -28,6 +29,7 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
     videoRef,
     containerRef,
     videoSources,
+    isLoading,
     handlePlayPause,
     handleShowVideo,
     handleVideoEnd,
@@ -46,6 +48,17 @@ const VideoPlayer = ({ onVideoComplete, videoWatched }: VideoPlayerProps) => {
   } = useVideoPlayer({ onVideoComplete, videoWatched });
 
   
+  // Show loading while watch states are being loaded from database
+  if (isLoading) {
+    return (
+      <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl sm:rounded-3xl aspect-video flex items-center justify-center shadow-inner">
+        <div className="text-center space-y-4">
+          <Loader size="lg" />
+          <p className="text-slate-600 font-medium">Loading video progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
