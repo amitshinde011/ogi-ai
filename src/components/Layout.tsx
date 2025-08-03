@@ -32,6 +32,8 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
     return location.pathname.startsWith(path);
   });
 
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+
   const navigationItems = [
     { icon: Home, path: '/home', label: 'Home' },
     { icon: CookingPot, path: '/recipes', label: 'Recipes' },
@@ -61,23 +63,14 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
       )}
 
       <main
-        className={`flex-1 
-    pt-[calc(env(safe-area-inset-top)_+_45px)] 
-    md:pt-[60px] 
-    ${shouldShowNavigation ? 'pb-16 sm:pb-20 md:pb-0 md:pl-64' : ''}`
-        }
+        className={`flex-1 ${!isAuthPage ? 'pt-[calc(env(safe-area-inset-top)_+_45px)] md:pt-[60px]' : ''} ${shouldShowNavigation ? 'pb-16 sm:pb-20 md:pb-0 md:pl-64' : ''}`}
       >
         <div className="w-full h-full overflow-y-auto">
           {noContainer ? (
             children
           ) : (
-            <div className={`w-full mx-auto px-4 sm:px-6 ${containerVariant === 'narrow'
-              ? 'max-w-md'
-              : containerVariant === 'wide'
-                ? 'max-w-2xl'
-                : 'max-w-6xl'
-              }`}>
-              <AdminNavigation />
+            <div className={`w-full mx-auto px-4 sm:px-6 ${containerVariant === 'narrow' ? 'max-w-md' : containerVariant === 'wide' ? 'max-w-2xl' : 'max-w-6xl'}`}>
+              {!isAuthPage && <AdminNavigation />}
               {children}
             </div>
           )}
@@ -97,12 +90,7 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
                   <button
                     key={item.path}
                     onClick={() => handleNavigation(item.path)}
-                    className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] ${active
-                      ? 'text-primary bg-primary/10'
-                      : isRestricted
-                        ? 'text-slate-300 cursor-not-allowed'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                      }`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 min-w-[60px] ${active ? 'text-primary bg-primary/10' : isRestricted ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                     disabled={isRestricted}
                   >
                     <Icon size={20} strokeWidth={1.5} />
@@ -150,12 +138,7 @@ const Layout = ({ children, containerVariant = 'narrow', noContainer = false }: 
                   <button
                     key={item.path}
                     onClick={() => handleNavigation(item.path)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${active
-                      ? 'text-primary bg-primary/10 font-medium'
-                      : isRestricted
-                        ? 'text-slate-300 cursor-not-allowed'
-                        : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
-                      }`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-left ${active ? 'text-primary bg-primary/10 font-medium' : isRestricted ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'}`}
                     disabled={isRestricted}
                   >
                     <Icon size={20} strokeWidth={1.5} />

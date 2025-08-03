@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play } from 'lucide-react';
@@ -22,15 +21,17 @@ const IntroVideo = () => {
   const { toast } = useToast();
   const { trackVideoComplete, trackButtonClick } = useAnalytics();
   const { user } = useAuth();
-  const { allVideosWatched } = useVideoWatchedPersistence();
-  
+  const {
+    videoWatchedStates,
+    allVideosWatched
+  } = useVideoWatchedPersistence();
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
 
-    // Only redirect if intro video is already completed
     if (onboardingState?.intro_video_watched) {
       navigate('/before-assessment');
       return;
@@ -45,9 +46,15 @@ const IntroVideo = () => {
     });
   }, [trackVideoComplete, toast]);
 
+  useEffect(() => {
+    if (allVideosWatched) {
+      handleVideoComplete();
+    }
+  }, [allVideosWatched, handleVideoComplete]);
+
   const handleContinue = useCallback(async () => {
     trackButtonClick('Continue to Assessment', 'Intro Video Page');
-    
+
     try {
       await updateOnboardingState({ intro_video_watched: true });
       navigate('/before-assessment');
@@ -61,7 +68,6 @@ const IntroVideo = () => {
     }
   }, [trackButtonClick, updateOnboardingState, navigate, toast]);
 
-  // Show loading while checking onboarding state
   if (onboardingState === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center">
@@ -73,7 +79,6 @@ const IntroVideo = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-3 sm:p-4 md:p-6 flex items-center justify-center">
       <ContentContainer variant="legal" className="space-y-4 sm:space-y-6 md:space-y-8">
-        {/* Main Card */}
         <Card className="bg-white border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
           <CardHeader className="text-center pb-4 sm:pb-6 md:pb-8 px-3 sm:px-6 md:px-8">
             <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl sm:rounded-2xl md:rounded-3xl mx-auto flex items-center justify-center mb-3 sm:mb-4 md:mb-6 shadow-xl">
@@ -87,19 +92,12 @@ const IntroVideo = () => {
             </p>
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-6 md:space-y-8 p-3 sm:p-6 md:p-8">
-            {/* Sacred Note */}
             <SacredNote />
-
-            {/* Video Section */}
             <VideoPlayer 
               onVideoComplete={handleVideoComplete}
               videoWatched={allVideosWatched}
             />
-
-            {/* Instructions Card */}
             <VideoInstructions />
-
-            {/* Continue Button */}
             <ContinueSection 
               videoWatched={allVideosWatched}
               onContinue={handleContinue}
