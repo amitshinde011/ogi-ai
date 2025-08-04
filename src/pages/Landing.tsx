@@ -72,8 +72,8 @@ const Landing = () => {
       answer: "While results vary, most members report reduced stress, improved energy, better sleep, and enhanced mental clarity within the first 21 days. The longer programs yield deeper, more lasting transformations."
     },
     {
-      question: "What is your refund policy?",
-      answer: "We offer a 14-day, no-questions-asked money-back guarantee. If you're not satisfied with the program for any reason, contact us within 14 days of purchase for a full refund."
+      question: "What support do I get as a member?",
+      answer: "You get lifetime access to our exclusive community, weekly live Q&A sessions with certified instructors, personalized progress tracking, and 24/7 access to our comprehensive resource library with bonus content."
     }
   ];
 
@@ -168,7 +168,7 @@ const Landing = () => {
               <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center">
                   <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
-                  Instant Access • 14-Day Money-Back Guarantee
+                  Instant Access • Lifetime Community Support
                 </div>
                 <div className="flex items-center">
                   <MessageCircle className="w-4 h-4 mr-2 text-blue-600" />
@@ -535,7 +535,7 @@ const Landing = () => {
               </Button>
               <div className="flex items-center text-sm text-muted-foreground">
                 <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
-                Risk-Free with our 14-Day Money-Back Guarantee
+                Join 10,000+ Members + Get Expert Support
               </div>
           </div>
         </div>
