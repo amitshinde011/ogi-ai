@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Star, Users, Globe, Shield, Check, Heart, Brain, Leaf, Zap } from 'lucide-react';
+import { ArrowRight, Star, Users, Globe, Shield, Check, Heart, Brain, Leaf, Zap, Clock, Target, Award } from 'lucide-react';
 import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
+import WellnessCarousel from '@/components/auth/WellnessCarousel';
 import { PricingDisplay } from '@/components/PricingDisplay';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
 import Footer from '@/components/Footer';
@@ -152,7 +153,25 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Program Overview Section */}
+      {/* Wellness Carousel Section */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-card/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              Experience <span className="text-primary">Transformation</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Immerse yourself in the journey of wellness and discover what awaits you
+            </p>
+          </div>
+          
+          <div className="max-w-2xl mx-auto">
+            <WellnessCarousel />
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Program Overview Section */}
       <section className="py-16 sm:py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -166,60 +185,165 @@ const Landing = () => {
             </p>
           </div>
 
-          {/* Static Program Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-lg bg-background text-center p-8 hover:shadow-xl transition-all duration-300">
-              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                <Heart className="w-8 h-8 text-primary" />
+          {/* Enhanced Program Cards with Details */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* 21-Day Catalyst Program */}
+            <Card className="border-0 shadow-lg bg-background hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6">
+                <div className="w-16 h-16 mx-auto mb-4 bg-white/80 rounded-full flex items-center justify-center">
+                  <Heart className="w-8 h-8 text-green-600" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-foreground mb-2">21-Day Catalyst</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Perfect for beginners seeking energy reset</p>
+                  <div className="text-2xl font-bold text-primary mb-2">
+                    {isIndiaUser ? '₹999' : '$24.99'}
+                  </div>
+                  <Badge variant="secondary" className="text-xs">Beginner Friendly</Badge>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">21-Day Catalyst</h3>
-              <p className="text-muted-foreground mb-4">Perfect for beginners seeking energy reset</p>
-              <div className="text-2xl font-bold text-primary mb-4">
-                {isIndiaUser ? '₹999' : '$24.99'}
-              </div>
-              <Button 
-                onClick={handleSignup}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                Get Started
-              </Button>
+              
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">20 minutes daily</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Target className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">Foundation building</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Heart className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">Energy & vitality boost</span>
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <h4 className="font-semibold text-foreground mb-2">What you'll get:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Daily morning routines</li>
+                    <li>• Basic meditation practices</li>
+                    <li>• Simple yogic breathing</li>
+                    <li>• Community support</li>
+                  </ul>
+                </div>
+                
+                <Button 
+                  onClick={handleSignup}
+                  className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Get Started
+                </Button>
+              </CardContent>
             </Card>
 
-            <Card className="border-2 border-primary shadow-lg bg-background text-center p-8 hover:shadow-xl transition-all duration-300 relative">
-              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground">
+            {/* 49-Day Metamorphosis Program */}
+            <Card className="border-2 border-primary shadow-lg bg-background hover:shadow-xl transition-all duration-300 overflow-hidden relative">
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground z-10">
                 Most Popular
               </Badge>
-              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                <Brain className="w-8 h-8 text-primary" />
+              
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6">
+                <div className="w-16 h-16 mx-auto mb-4 bg-white/80 rounded-full flex items-center justify-center">
+                  <Brain className="w-8 h-8 text-blue-600" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-foreground mb-2">49-Day Metamorphosis</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Complete body and mind transformation</p>
+                  <div className="text-2xl font-bold text-primary mb-2">
+                    {isIndiaUser ? '₹1,999' : '$34.99'}
+                  </div>
+                  <Badge variant="secondary" className="text-xs">Best Value</Badge>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">49-Day Metamorphosis</h3>
-              <p className="text-muted-foreground mb-4">Complete body and mind transformation</p>
-              <div className="text-2xl font-bold text-primary mb-4">
-                {isIndiaUser ? '₹1,999' : '$34.99'}
-              </div>
-              <Button 
-                onClick={handleSignup}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                Transform Now
-              </Button>
+              
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">25 minutes daily</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Target className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">Weight management</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Brain className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">Mental clarity boost</span>
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <h4 className="font-semibold text-foreground mb-2">What you'll get:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Advanced yoga sequences</li>
+                    <li>• Guided meditations</li>
+                    <li>• Ayurvedic nutrition plan</li>
+                    <li>• Progress tracking tools</li>
+                    <li>• Personal routine tracker</li>
+                  </ul>
+                </div>
+                
+                <Button 
+                  onClick={handleSignup}
+                  className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  Transform Now
+                </Button>
+              </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-background text-center p-8 hover:shadow-xl transition-all duration-300">
-              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                <Star className="w-8 h-8 text-primary" />
+            {/* 108-Day Evolution Program */}
+            <Card className="border-0 shadow-lg bg-background hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6">
+                <div className="w-16 h-16 mx-auto mb-4 bg-white/80 rounded-full flex items-center justify-center">
+                  <Award className="w-8 h-8 text-purple-600" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-foreground mb-2">108-Day Evolution</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Complete life transformation journey</p>
+                  <div className="text-2xl font-bold text-primary mb-2">
+                    {isIndiaUser ? '₹2,999' : '$49.99'}
+                  </div>
+                  <Badge variant="secondary" className="text-xs">Master Level</Badge>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">108-Day Evolution</h3>
-              <p className="text-muted-foreground mb-4">Complete life transformation journey</p>
-              <div className="text-2xl font-bold text-primary mb-4">
-                {isIndiaUser ? '₹2,999' : '$49.99'}
-              </div>
-              <Button 
-                onClick={handleSignup}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-              >
-                Evolve Yourself
-              </Button>
+              
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">30 minutes daily</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Target className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">Peak performance</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Star className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">Spiritual awakening</span>
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <h4 className="font-semibold text-foreground mb-2">What you'll get:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Master-level practices</li>
+                    <li>• Advanced spiritual techniques</li>
+                    <li>• Complete lifestyle transformation</li>
+                    <li>• Expert mentorship access</li>
+                    <li>• Lifetime community access</li>
+                  </ul>
+                </div>
+                
+                <Button 
+                  onClick={handleSignup}
+                  className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  Evolve Yourself
+                </Button>
+              </CardContent>
             </Card>
           </div>
         </div>
