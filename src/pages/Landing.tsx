@@ -73,7 +73,7 @@ const Landing = () => {
     },
     {
       question: "What support do I get as a member?",
-      answer: "You get lifetime access to our exclusive community, weekly live Q&A sessions with certified instructors, personalized progress tracking, and 24/7 access to our comprehensive resource library with bonus content."
+      answer: "You get lifetime access to our exclusive community, extensive healthy recipe library, guided meditation sessions, comprehensive yoga practices, and ongoing support from fellow members on their wellness journey."
     }
   ];
 
