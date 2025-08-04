@@ -23,12 +23,15 @@ export const OptimizedCommunityContent = () => {
   const createPostMutation = useCreatePost();
   const toggleLikeMutation = useToggleLike();
 
-  const handleCreatePost = async (postData: any) => {
+  const handleCreatePost = async (imageUrl: string, caption: string, category?: string): Promise<boolean> => {
     try {
+      const postData = { imageUrl, caption, category };
       await createPostMutation.mutateAsync(postData);
       setIsCreateModalOpen(false);
+      return true;
     } catch (error) {
       console.error('Error creating post:', error);
+      return false;
     }
   };
 
@@ -150,6 +153,8 @@ export const OptimizedCommunityContent = () => {
               key={post.id}
               post={post}
               onLike={() => handleToggleLike(post.id)}
+              onDeletePost={(postId) => console.log('Delete post:', postId)}
+              onUpdatePost={(updatedPost) => console.log('Update post:', updatedPost)}
             />
           ))}
           
@@ -172,6 +177,7 @@ export const OptimizedCommunityContent = () => {
       <CreatePostModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        onCreatePost={handleCreatePost}
       />
     </div>
   );

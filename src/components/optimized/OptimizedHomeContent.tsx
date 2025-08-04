@@ -70,6 +70,8 @@ export const OptimizedHomeContent = ({
     );
   }
 
+  const wellnessData = homeData as any || {};
+
   return (
     <div className="space-y-6">
       {/* Wellness Tracking Section */}
@@ -77,9 +79,21 @@ export const OptimizedHomeContent = ({
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-6 text-primary">Today's Wellness</h2>
           <div className="grid grid-cols-2 gap-4">
-            <WaterTracker />
-            <SuryaNamaskarTracker />
-            <MeditationTracker />
+            <WaterTracker 
+              waterLitres={wellnessData.water_litres || 0}
+              onWaterChange={(delta) => console.log('Water change:', delta)}
+              loading={isLoading}
+            />
+            <SuryaNamaskarTracker 
+              suryaNamaskarCount={wellnessData.surya_namaskar_count || 0}
+              onSuryaNamaskarChange={(delta) => console.log('Surya Namaskar change:', delta)}
+              loading={isLoading}
+            />
+            <MeditationTracker 
+              meditationCompleted={wellnessData.meditation_completed || false}
+              onMeditationToggle={() => console.log('Meditation toggle')}
+              loading={isLoading}
+            />
             <StepTracker />
           </div>
         </CardContent>
