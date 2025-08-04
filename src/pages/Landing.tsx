@@ -87,7 +87,7 @@ const Landing = () => {
           <div className="flex items-center justify-center space-x-2 text-sm sm:text-base">
             <Timer className="w-4 h-4 animate-pulse" />
             <span className="font-semibold">LIMITED TIME:</span>
-            <span>Get 30% OFF + Free Community Access - Ends Soon!</span>
+            <span>Get 20% OFF + Free Community Access - Ends Soon!</span>
             <Timer className="w-4 h-4 animate-pulse" />
           </div>
         </div>
@@ -148,7 +148,7 @@ const Landing = () => {
               <div className="text-center mt-4">
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                   <Check className="w-3 h-3 mr-1" />
-                  30% OFF Limited Time
+                  20% OFF Limited Time
                 </Badge>
               </div>
             </div>
@@ -471,23 +471,23 @@ const Landing = () => {
             Join Our <span className="text-primary">Exclusive Community</span> Today!
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Get instant access to our supportive community, nourishing recipes, guided meditation sessions, and comprehensive yoga practices to transform your wellness journey.
+            Get instant access to our supportive community, nourishing and tasty recipes, guided meditation sessions, and simple and comprehensive yoga practices to transform your wellness journey.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-background p-6 rounded-xl shadow-lg">
               <ChefHat className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Healthy Recipes</h3>
-              <p className="text-sm text-muted-foreground">Access to nutritious, easy-to-follow recipes for every meal</p>
+              <p className="text-sm text-muted-foreground">Access to nutritious, easy-to-follow and tasty recipes for every meal</p>
             </div>
             <div className="bg-background p-6 rounded-xl shadow-lg">
               <Heart className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Guided Meditation</h3>
-              <p className="text-sm text-muted-foreground">Daily meditation sessions to calm your mind and reduce stress</p>
+              <p className="text-sm text-muted-foreground">Fuel your day with empowering, energy-boosting meditation.</p>
             </div>
             <div className="bg-background p-6 rounded-xl shadow-lg">
               <Zap className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Guided Yoga</h3>
-              <p className="text-sm text-muted-foreground">Step-by-step yoga practices for all levels and abilities</p>
+              <p className="text-sm text-muted-foreground">Simple and step-by-step yoga practices for all levels and abilities</p>
             </div>
           </div>
           <Button
@@ -552,7 +552,7 @@ const Landing = () => {
               </Button>
               <div className="flex items-center text-sm text-muted-foreground">
                 <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
-                Join 10,000+ Members + Get Expert Support
+                Becomethe the best version of yourself
               </div>
           </div>
         </div>
@@ -571,7 +571,11 @@ const Landing = () => {
                 alt="Yogi Logo" 
                 className="h-8 w-auto"
               />
-              <span className="text-slate-400 text-sm">© 2025 Yogi</span>
+              <span className="text-slate-400 text-sm">Copyright © 2025 Yogi Care
+
+All rights reserved. No part of this application may be reproduced, distributed, or transmitted in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of Yogi Care, except in the case of brief quotations embodied in critical reviews and certain other noncommercial uses permitted by copyright law.
+
+Yogi™ is a trademark of Yogi Care.</span>
             </div>
 
             {/* Legal Links - Horizontal Layout */}
