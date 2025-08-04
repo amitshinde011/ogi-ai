@@ -230,8 +230,10 @@ const Landing = () => {
                     }`}
                   >
                     {isPopular && (
-                      <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground z-10">
+                      <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground z-10 px-4 py-1 rounded-full font-semibold flex items-center justify-center gap-2 text-sm whitespace-nowrap">
+                        <Star className="w-4 h-4 fill-current" />
                         Most Popular
+                        <Star className="w-4 h-4 fill-current" />
                       </Badge>
                     )}
                     
@@ -245,7 +247,7 @@ const Landing = () => {
                           <img 
                             src={transformationImage} 
                             alt={`${program.name} transformation`} 
-                            className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                            className="w-full aspect-square object-cover rounded-lg border border-gray-200"
                           />
                         </div>
                       )}
@@ -264,36 +266,61 @@ const Landing = () => {
                     <CardContent className="p-6">
                       <div className="space-y-6">
                         <div>
-                          <h4 className="font-semibold text-foreground mb-3">What's Included:</h4>
+                          <h4 className="font-semibold text-foreground mb-3 flex items-center">
+                            <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            What's Included
+                          </h4>
                           <ul className="text-sm text-muted-foreground space-y-2">
-                            {program.features.slice(0, 4).map((feature, idx) => (
-                              <li key={idx} className="flex items-start">
-                                <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                                <span>{feature}</span>
-                              </li>
-                            ))}
-                            {program.features.length > 4 && (
-                              <li className="text-xs text-muted-foreground/70 ml-6">
-                                +{program.features.length - 4} more features
-                              </li>
-                            )}
+                            {program.features.map((feature, idx) => {
+                              // Highlight important words in features - same as SubscriptionCard
+                              const highlightedFeature = feature
+                                .replace(/(\d+[\s-]*(?:Day|Days|Minute|Minutes|Hour|Hours))/gi, '<strong>$1</strong>')
+                                .replace(/(Daily|Morning|Evening|Weekly|Monthly|Guided|Personal|Complete|Ultimate|Premium|Advanced|Basic|Fundamental)/gi, '<strong>$1</strong>')
+                                .replace(/(Yoga|Meditation|Diet|Recipes|Routine|Plan|Tracker|Community)/gi, '<strong>$1</strong>')
+                                .replace(/(Foundational|Yogic|Wisdom|Level|Intermediate|Yogic|Science|2|1|3|Mastery)/gi, '<strong>$1</strong>')
+                                .replace(/(Vibrant|Motivating|Holistic|Satvic|Protocol|Prescriptive|Lifestyle)/gi, '<strong>$1</strong>');
+                              return (
+                                <li key={idx} className="flex items-start">
+                                  <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                                  <span dangerouslySetInnerHTML={{ __html: highlightedFeature }} />
+                                </li>
+                              );
+                            })}
                           </ul>
                         </div>
                         
                         <div>
-                          <h4 className="font-semibold text-foreground mb-3">Benefits You'll Get:</h4>
+                          <h4 className="font-semibold text-foreground mb-3 flex items-center">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                            Benefits You'll Get
+                          </h4>
                           <ul className="text-sm text-muted-foreground space-y-2">
-                            {program.benefits.slice(0, 3).map((benefit, idx) => (
-                              <li key={idx} className="flex items-start">
-                                <Star className="w-4 h-4 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
-                                <span>{benefit}</span>
-                              </li>
-                            ))}
-                            {program.benefits.length > 3 && (
-                              <li className="text-xs text-muted-foreground/70 ml-6">
-                                +{program.benefits.length - 3} more benefits
-                              </li>
-                            )}
+                            {program.benefits.map((benefit, idx) => {
+                              // Highlight important words in benefits - same as SubscriptionCard
+                              const keywords = [
+                                'Mental', 'Physical', 'Emotional', 'Spiritual', 'Health', 'Wellness', 'Energy', 'Strength',
+                                'Flexibility', 'Balance', 'Focus', 'Clarity', 'Peace', 'Calm', 'Confidence', 'Vitality',
+                                'Recovery', 'Improved', 'Enhanced', 'Increased', 'Reduced', 'Better', 'Optimal', 'Maximum',
+                                'Complete', 'Total', 'Deep', 'Profound', 'Significant', 'dramatically', 'significantly',
+                                'substantially', 'Calmness', 'Restorative', 'Sleep', 'Sharpened', 'Awakened', 'Vibrant',
+                                'Active', 'Body', 'Initial', 'Hormonal', 'Harmony', 'Bloating', 'Digestion', 'Measurable',
+                                'Leap', 'Rooted', 'Optimized', 'Cycles', 'Cognitive', 'Function', 'Weight', 'Correction',
+                                'regular', 'cycles', 'PMS', 'calmer', 'nervous', 'system', 'lowering', 'cortisol', 'Alleviation',
+                                'Chronic', 'Aches', 'Exuberant', 'Joyful', 'Being', 'Embodying', 'True', 'Confident', 'Metabolic',
+                                'Healing', 'Mastery', 'Over', 'Form', 'Recomposition', 'Superconscious', 'Intuition', 'Peak',
+                                'Performance', 'Unshakeable', 'Inner', 'Bliss', 'Energetic', 'Realignment'
+                              ];
+                              const highlightRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
+                              const highlightedBenefit = benefit.replace(highlightRegex, (match) => {
+                                return `<strong>${match}</strong>`;
+                              });
+                              return (
+                                <li key={idx} className="flex items-start">
+                                  <Check className="w-4 h-4 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                                  <span dangerouslySetInnerHTML={{ __html: highlightedBenefit }} />
+                                </li>
+                              );
+                            })}
                           </ul>
                         </div>
                         
