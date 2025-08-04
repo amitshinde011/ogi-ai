@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowRight, Star, Users, Globe, ShieldCheck, Check, Heart, Brain, Leaf, Zap, Clock, Target, Award, Gift, HelpCircle, Sparkles, Play, TrendingUp, MessageCircle, Timer } from 'lucide-react';
+import { ArrowRight, Star, Users, Globe, ShieldCheck, Check, Heart, Brain, Leaf, Zap, Clock, Target, Award, Gift, HelpCircle, Sparkles, Play, TrendingUp, MessageCircle, Timer, ChefHat } from 'lucide-react';
 import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
 import { PricingDisplay } from '@/components/PricingDisplay';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
@@ -471,23 +471,23 @@ const Landing = () => {
             Join Our <span className="text-primary">Exclusive Community</span> Today!
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Get instant access to our supportive community of 10,000+ wellness warriors, weekly live sessions with certified instructors, and personalized progress tracking to accelerate your transformation.
+            Get instant access to our supportive community, nourishing recipes, guided meditation sessions, and comprehensive yoga practices to transform your wellness journey.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-background p-6 rounded-xl shadow-lg">
-              <MessageCircle className="w-8 h-8 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Community Support</h3>
-              <p className="text-sm text-muted-foreground">Connect with like-minded members on the same journey</p>
+              <ChefHat className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Healthy Recipes</h3>
+              <p className="text-sm text-muted-foreground">Access to nutritious, easy-to-follow recipes for every meal</p>
             </div>
             <div className="bg-background p-6 rounded-xl shadow-lg">
-              <Users className="w-8 h-8 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Expert Guidance</h3>
-              <p className="text-sm text-muted-foreground">Weekly live Q&A sessions with certified instructors</p>
+              <Heart className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Guided Meditation</h3>
+              <p className="text-sm text-muted-foreground">Daily meditation sessions to calm your mind and reduce stress</p>
             </div>
             <div className="bg-background p-6 rounded-xl shadow-lg">
-              <Target className="w-8 h-8 text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Progress Tracking</h3>
-              <p className="text-sm text-muted-foreground">Personalized dashboard to monitor your transformation</p>
+              <Zap className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Guided Yoga</h3>
+              <p className="text-sm text-muted-foreground">Step-by-step yoga practices for all levels and abilities</p>
             </div>
           </div>
           <Button
