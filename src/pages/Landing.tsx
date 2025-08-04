@@ -5,33 +5,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Star, Users, Globe, Shield, Check, Heart, Brain, Leaf, Zap } from 'lucide-react';
 import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
-import { SubscriptionGrid } from '@/components/subscription/SubscriptionGrid';
 import { PricingDisplay } from '@/components/PricingDisplay';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
-import { useSubscriptionData } from '@/hooks/useSubscriptionData';
+import Footer from '@/components/Footer';
 
 const Landing = () => {
   const navigate = useNavigate();
   const { isIndiaUser, userLocation } = useLocationDetection();
-  const { programs, loading } = useSubscriptionData();
 
-  const handleStartJourney = () => {
-    navigate('/subscriptions');
+  const handleLogin = () => {
+    navigate('/login');
   };
 
-  const handleWatchDemo = () => {
-    navigate('/intro-video');
-  };
-
-  const handleSubscribe = async (programId: string, couponDiscountPercentage?: number, finalPrice?: number) => {
-    // Navigate to payment page with program details
-    navigate('/payment', { 
-      state: { 
-        programId, 
-        couponDiscountPercentage, 
-        finalPrice 
-      } 
-    });
+  const handleSignup = () => {
+    navigate('/signup');
   };
 
   const features = [
@@ -121,19 +108,19 @@ const Landing = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button 
                 size="lg" 
-                onClick={handleStartJourney}
+                onClick={handleSignup}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
-                Start Your 21-Day Transformation
+                Get Started
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
                 variant="outline" 
                 size="lg"
-                onClick={handleWatchDemo}
+                onClick={handleLogin}
                 className="border-primary text-primary hover:bg-primary/10 px-8 py-4 text-lg font-semibold"
               >
-                Watch Demo Video
+                Sign In
               </Button>
             </div>
 
@@ -169,23 +156,72 @@ const Landing = () => {
       <section className="py-16 sm:py-20 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">Choose Your Journey</Badge>
+            <Badge variant="outline" className="mb-4">Discover Your Path</Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Personalized <span className="text-primary">Transformation Programs</span>
+              Personalized <span className="text-primary">Wellness Programs</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Whether you're a beginner seeking energy reset or ready for complete life transformation, 
-              we have the perfect program for your wellness goals.
+              Transform your life through ancient wisdom with modern web-based tools. 
+              Start with our foundational programs designed for today's busy lifestyle.
             </p>
           </div>
 
-          {!loading && programs.length > 0 && (
-            <SubscriptionGrid
-              programs={programs}
-              isIndiaUser={isIndiaUser}
-              onSubscribe={handleSubscribe}
-            />
-          )}
+          {/* Static Program Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="border-0 shadow-lg bg-background text-center p-8 hover:shadow-xl transition-all duration-300">
+              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+                <Heart className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-2">21-Day Catalyst</h3>
+              <p className="text-muted-foreground mb-4">Perfect for beginners seeking energy reset</p>
+              <div className="text-2xl font-bold text-primary mb-4">
+                {isIndiaUser ? '₹999' : '$24.99'}
+              </div>
+              <Button 
+                onClick={handleSignup}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Get Started
+              </Button>
+            </Card>
+
+            <Card className="border-2 border-primary shadow-lg bg-background text-center p-8 hover:shadow-xl transition-all duration-300 relative">
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground">
+                Most Popular
+              </Badge>
+              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+                <Brain className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-2">49-Day Metamorphosis</h3>
+              <p className="text-muted-foreground mb-4">Complete body and mind transformation</p>
+              <div className="text-2xl font-bold text-primary mb-4">
+                {isIndiaUser ? '₹1,999' : '$34.99'}
+              </div>
+              <Button 
+                onClick={handleSignup}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Transform Now
+              </Button>
+            </Card>
+
+            <Card className="border-0 shadow-lg bg-background text-center p-8 hover:shadow-xl transition-all duration-300">
+              <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+                <Star className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-2">108-Day Evolution</h3>
+              <p className="text-muted-foreground mb-4">Complete life transformation journey</p>
+              <div className="text-2xl font-bold text-primary mb-4">
+                {isIndiaUser ? '₹2,999' : '$49.99'}
+              </div>
+              <Button 
+                onClick={handleSignup}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Evolve Yourself
+              </Button>
+            </Card>
+          </div>
         </div>
       </section>
 
@@ -243,9 +279,9 @@ const Landing = () => {
 
               <Button 
                 className="mt-8 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3"
-                onClick={() => navigate('/intro-video')}
+                onClick={handleSignup}
               >
-                Learn the Science
+                Get Started Today
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -369,19 +405,19 @@ const Landing = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               size="lg" 
-              onClick={handleStartJourney}
+              onClick={handleSignup}
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              Start Your 21-Day Journey
+              Start Your Journey
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
             <Button 
               variant="outline" 
               size="lg"
-              onClick={() => navigate('/community')}
+              onClick={handleLogin}
               className="border-primary text-primary hover:bg-primary/10 px-8 py-4 text-lg font-semibold"
             >
-              Join Community
+              Sign In
             </Button>
           </div>
 
@@ -390,6 +426,9 @@ const Landing = () => {
           </p>
         </div>
       </section>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
