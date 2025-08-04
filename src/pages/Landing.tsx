@@ -552,7 +552,7 @@ const Landing = () => {
               </Button>
               <div className="flex items-center text-sm text-muted-foreground">
                 <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
-                Becomethe the best version of yourself
+                Become the best version of yourself
               </div>
           </div>
         </div>
