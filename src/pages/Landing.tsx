@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowRight, Star, Users, Globe, ShieldCheck, Check, Heart, Brain, Leaf, Zap, Clock, Target, Award, Gift, HelpCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, Star, Users, Globe, ShieldCheck, Check, Heart, Brain, Leaf, Zap, Clock, Target, Award, Gift, HelpCircle, Sparkles, Play, TrendingUp, MessageCircle, Timer } from 'lucide-react';
 import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
 import { PricingDisplay } from '@/components/PricingDisplay';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
@@ -80,60 +80,109 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* =======================================================================
+          URGENT ANNOUNCEMENT BANNER
+      ======================================================================= */}
+      <div className="bg-primary text-primary-foreground text-center py-3 border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center space-x-2 text-sm sm:text-base">
+            <Timer className="w-4 h-4 animate-pulse" />
+            <span className="font-semibold">LIMITED TIME:</span>
+            <span>Get 30% OFF + Free Bonus eBook - Ends Soon!</span>
+            <Timer className="w-4 h-4 animate-pulse" />
+          </div>
+        </div>
+      </div>
+
+      {/* =======================================================================
           HERO SECTION (Conversion-Optimized)
       ======================================================================= */}
       <section className="relative py-12 sm:py-16 lg:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-peaceful opacity-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/5"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-8">
-            <Badge variant="secondary" className="mx-auto bg-primary/10 text-primary border-primary/20">
-              <Star className="w-4 h-4 mr-2" />
-              Trusted by 10,000+ happy members in 50+ countries
+            <Badge variant="secondary" className="mx-auto bg-primary/10 text-primary border-primary/20 animate-pulse">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Join 10,000+ Members Transforming Their Lives Daily
             </Badge>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
-                Escape The <span className="text-primary">Burnout</span>.
+                Transform Your Life in Just
                 <br />
-                Reclaim Your <span className="text-primary">Energy</span>.
+                <span className="text-primary bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">20 Minutes a Day</span>
               </h1>
               <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
-                Unlock lasting wellness with our science-backed yogic system. Just 20 minutes a day to reduce stress, boost vitality, and find your inner peace.
+                Break free from stress, boost your energy, and discover lasting peace with our proven yogic wellness system. 
+                <span className="font-semibold text-foreground"> No gym required. No complicated routines.</span>
               </p>
             </div>
 
-            <div className="max-w-md mx-auto">
-              <PricingDisplay isIndiaUser={isIndiaUser} userLocation={userLocation} />
+            {/* Social Proof Numbers - Enhanced */}
+            <div className="flex flex-wrap justify-center items-center gap-8 py-8 bg-card/30 rounded-2xl mx-auto max-w-2xl">
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 mr-2" />
+                  10,000+
+                </div>
+                <div className="text-sm text-muted-foreground">Lives Transformed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center">
+                  <Globe className="w-6 h-6 mr-2" />
+                  50+
+                </div>
+                <div className="text-sm text-muted-foreground">Countries Reached</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center">
+                  <Star className="w-6 h-6 mr-2 fill-current" />
+                  4.8/5
+                </div>
+                <div className="text-sm text-muted-foreground">Average Rating</div>
+              </div>
             </div>
 
+            {/* Enhanced Pricing Display */}
+            <div className="max-w-md mx-auto bg-card/50 rounded-2xl p-6 border border-primary/20">
+              <PricingDisplay isIndiaUser={isIndiaUser} userLocation={userLocation} />
+              <div className="text-center mt-4">
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  <Check className="w-3 h-3 mr-1" />
+                  30% OFF Limited Time
+                </Badge>
+              </div>
+            </div>
+
+            {/* Primary CTA */}
             <div className="flex flex-col gap-4 justify-center items-center">
               <Button
                 size="lg"
                 onClick={handleSignup}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-6 text-xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 animate-pulse"
               >
-                Start My Transformation
+                <Play className="w-6 h-6 mr-2" />
+                Start My Transformation NOW
                 <ArrowRight className="w-6 h-6 ml-2" />
               </Button>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
-                100% Secure Checkout & 14-Day Money-Back Guarantee
+              
+              <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
+                  Instant Access • 14-Day Money-Back Guarantee
+                </div>
+                <div className="flex items-center">
+                  <MessageCircle className="w-4 h-4 mr-2 text-blue-600" />
+                  Join our supportive community of wellness warriors
+                </div>
               </div>
-            </div>
-            
-             <div className="flex flex-wrap justify-center items-center gap-8 pt-8">
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-primary">10,000+</div>
-                <div className="text-sm text-muted-foreground">Lives Transformed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-primary">50+</div>
-                <div className="text-sm text-muted-foreground">Countries Reached</div>
-              </div>
-               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-primary">4.8/5</div>
-                <div className="text-sm text-muted-foreground">Average Rating</div>
-              </div>
+              
+              <Button
+                variant="ghost"
+                onClick={handleLogin}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Already a member? <span className="underline ml-1">Sign in here</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -177,7 +226,54 @@ const Landing = () => {
       </section>
 
       {/* =======================================================================
-          HOW IT WORKS SECTION (NEW)
+          WELLNESS IMAGES SECTION 
+      ======================================================================= */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-card/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4">Experience the Journey</Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              Real Transformations, <span className="text-primary">Real Results</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              See how our community members have transformed their bodies, minds, and lives through our proven wellness system.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {IMAGES.WELLNESS_CAROUSEL.map((image, index) => (
+              <div key={index} className="relative group overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                <img 
+                  src={image} 
+                  alt={`Wellness transformation ${index + 1}`}
+                  className="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <div className="text-sm font-semibold">Day {((index * 7) + 1)}</div>
+                    <div className="text-xs opacity-90">Progress Update</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <Button
+              size="lg"
+              onClick={handleSignup}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold"
+            >
+              Start Your Transformation
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* =======================================================================
+          HOW IT WORKS SECTION (Enhanced)
       ======================================================================= */}
       <section className="py-16 sm:py-20 lg:py-24">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -186,17 +282,28 @@ const Landing = () => {
               Your Journey to Wellness in <span className="text-primary">3 Simple Steps</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We make transformation accessible and achievable for everyone.
+              We make transformation accessible and achievable for everyone, regardless of experience level.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            {howItWorksSteps.map((step) => (
-              <div key={step.step} className="flex flex-col items-center">
-                <div className="flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-6">
-                  <step.icon className="w-10 h-10 text-primary" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {howItWorksSteps.map((step, index) => (
+              <div key={step.step} className="relative">
+                {/* Connection Line */}
+                {index < howItWorksSteps.length - 1 && (
+                  <div className="hidden md:block absolute top-10 left-full w-full h-0.5 bg-primary/20 z-0" 
+                       style={{ width: 'calc(100% - 80px)', left: '60px' }}></div>
+                )}
+                
+                <div className="relative z-10 flex flex-col items-center text-center bg-background p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-6 border-4 border-primary/20">
+                    <step.icon className="w-10 h-10 text-primary" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                    {step.step}
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-3">{step.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{step.description}</p>
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">{step.title}</h3>
-                <p className="text-muted-foreground">{step.description}</p>
               </div>
             ))}
           </div>
