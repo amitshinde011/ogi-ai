@@ -10,6 +10,8 @@ import { UserDataProvider } from "@/contexts/UserDataContext";
 
 // Import all pages
 import Index from "./pages/Index";
+import Landing from "./pages/Landing";
+import PlatformRouter from "./components/PlatformRouter";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
@@ -80,7 +82,9 @@ const App = () => {
               <Sonner />
               <Routes>
               {/* Public routes */}
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<PlatformRouter />} />
+              <Route path="/index" element={<Index />} />
+              <Route path="/landing" element={<Landing />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/reset-password" element={<ResetPassword />} />

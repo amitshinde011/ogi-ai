@@ -1,64 +1,97 @@
+// src/utils/googleAuth.js
 import { Capacitor } from '@capacitor/core';
-import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { supabase } from '@/integrations/supabase/client';
 
-// --- IMPORTANT: Add your Web Client ID here ---
-// You can find this in your google-services.json file where "client_type": 3
-const GOOGLE_WEB_CLIENT_ID = '894086114400-913a15dv4hu0vsjntpt6u00ci7leno5t.apps.googleusercontent.com';
+/** Used by your button to detect native vs web */
+export const isNativePlatform = () => Capacitor.isNativePlatform();
 
+/** Helper: parse fragment (#) or query (?) params from a URL string */
+function getCallbackParams(urlString) {
+  // Some providers return params in the fragment, some in the query
+  const hashIdx = urlString.indexOf('#');
+  const qIdx = urlString.indexOf('?');
+  const raw =
+    hashIdx >= 0 ? urlString.slice(hashIdx + 1) :
+    qIdx >= 0 ? urlString.slice(qIdx + 1) : '';
+  return new URLSearchParams(raw);
+}
 
-/**
- * Checks if the app is running on a native mobile platform.
- * @returns {boolean}
- */
-export const isNativePlatform = () => {
-  return Capacitor.isNativePlatform();
-};
-
-/**
- * Handles the native Google Sign-In flow using the Firebase plugin.
- * It gets the ID token from the native SDK and passes it to Supabase.
- * @returns {Promise<object>} The Supabase session data.
- */
-export const signInWithNativeGoogle = async () => {
-  // --- UPDATED: Pass the serverClientId to the plugin ---
-  const result = await FirebaseAuthentication.signInWithGoogle({
-    serverClientId: GOOGLE_WEB_CLIENT_ID,
-  });
-  
-  const idToken = result.credential?.idToken;
-
-  if (!idToken) {
-    throw new Error('Native Google sign-in failed: No ID token returned.');
+/** Native Google Sign-In (Android) */
+export async function signInWithNativeGoogle() {
+  if (!isNativePlatform()) {
+    throw new Error('signInWithNativeGoogle called on non-native platform');
   }
 
-  const { data, error } = await supabase.auth.signInWithIdToken({
-    provider: 'google',
-    token: idToken,
-  });
-
-  if (error) {
-    throw error;
-  }
-  return data;
-};
-
-/**
- * Handles the web-based Google Sign-In flow using Supabase's standard OAuth method.
- * @returns {Promise<object>} The Supabase OAuth data.
- */
-export const signInWithWebGoogle = async () => {
-  const redirectTo = `${window.location.origin}/api/auth/callback`;
-  console.log('[Google OAuth] Redirect URI:', redirectTo);
+  // Ask Supabase for the OAuth URL without auto-redirecting
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin, // Redirects back to the web app's home page
+      redirectTo: 'care.yogi.app://auth/callback',
+      skipBrowserRedirect: true, // critical for in-app flow
     },
   });
+  if (error) throw error;
+  if (!data?.url) throw new Error('No URL returned from Supabase OAuth');
 
-  if (error) {
-    throw error;
-  }
+  await Browser.open({ url: data.url });
+
+  return new Promise((resolve, reject) => {
+    const sub = App.addListener('appUrlOpen', async ({ url }) => {
+      try {
+        // Ensure this is our OAuth callback
+        if (!url || !url.startsWith('care.yogi.app://auth/callback')) return;
+
+        // Close the Custom Tab first
+        await Browser.close();
+        sub.remove();
+
+        const params = getCallbackParams(url);
+
+        // Provider / OAuth error surfaced in callback
+        if (params.get('error') || params.get('error_description')) {
+          const message = params.get('error_description') || params.get('error') || 'OAuth error';
+          return reject(new Error(message));
+        }
+
+        // Case 1: implicit flow (tokens directly in callback)
+        if (params.has('access_token')) {
+          const access_token = params.get('access_token');
+          const refresh_token = params.get('refresh_token');
+          const { data: sess, error: sErr } = await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          });
+          if (sErr) return reject(sErr);
+          return resolve(sess);
+        }
+
+        // Case 2: PKCE code flow (exchange code for session)
+        if (params.has('code')) {
+          const code = params.get('code');
+          const { data: sess, error: xErr } =
+            await supabase.auth.exchangeCodeForSession({ authCode: code });
+          if (xErr) return reject(xErr);
+          return resolve(sess);
+        }
+
+        return reject(new Error('No access_token or code found in callback URL'));
+      } catch (e) {
+        try { sub.remove(); } catch {}
+        reject(e);
+      }
+    });
+  });
+}
+
+/** Web / PWA Google Sign-In (unchanged) */
+export async function signInWithWebGoogle() {
+  const redirectTo = window.location.origin; // must exist in Supabase Redirect URLs
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo },
+  });
+  if (error) throw error;
   return data;
-};
+}
