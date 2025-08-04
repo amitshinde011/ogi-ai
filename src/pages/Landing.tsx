@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,11 +8,14 @@ import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
 import WellnessCarousel from '@/components/auth/WellnessCarousel';
 import { PricingDisplay } from '@/components/PricingDisplay';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
+import { useSubscriptionData } from '@/hooks/useSubscriptionData';
+import { IMAGES } from '@/constants/images';
 import Footer from '@/components/Footer';
 
 const Landing = () => {
   const navigate = useNavigate();
   const { isIndiaUser, userLocation } = useLocationDetection();
+  const { programs, loading } = useSubscriptionData();
 
   const handleLogin = () => {
     navigate('/login');
@@ -20,6 +23,19 @@ const Landing = () => {
 
   const handleSignup = () => {
     navigate('/signup');
+  };
+
+  const getTransformationImage = (durationDays: number) => {
+    switch (durationDays) {
+      case 21:
+        return '/lovable-uploads/21days.webp';
+      case 49:
+        return '/lovable-uploads/49days.webp';
+      case 108:
+        return '/lovable-uploads/108days.webp';
+      default:
+        return null;
+    }
   };
 
   const features = [
@@ -153,7 +169,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Wellness Carousel Section */}
+      {/* Wellness Images Grid Section */}
       <section className="py-16 sm:py-20 lg:py-24 bg-card/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -165,8 +181,17 @@ const Landing = () => {
             </p>
           </div>
           
-          <div className="max-w-2xl mx-auto">
-            <WellnessCarousel />
+          {/* Individual Wellness Images */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            {IMAGES.WELLNESS_CAROUSEL.map((image, index) => (
+              <div key={index} className="aspect-square overflow-hidden rounded-lg shadow-md">
+                <img
+                  src={image}
+                  alt={`Wellness practice ${index + 1}`}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -185,167 +210,112 @@ const Landing = () => {
             </p>
           </div>
 
-          {/* Enhanced Program Cards with Details */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* 21-Day Catalyst Program */}
-            <Card className="border-0 shadow-lg bg-background hover:shadow-xl transition-all duration-300 overflow-hidden">
-              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-white/80 rounded-full flex items-center justify-center">
-                  <Heart className="w-8 h-8 text-green-600" />
-                </div>
-                <div className="text-center">
-                  <h3 className="text-xl font-bold text-foreground mb-2">21-Day Catalyst</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Perfect for beginners seeking energy reset</p>
-                  <div className="text-2xl font-bold text-primary mb-2">
-                    {isIndiaUser ? '₹999' : '$24.99'}
-                  </div>
-                  <Badge variant="secondary" className="text-xs">Beginner Friendly</Badge>
-                </div>
-              </div>
-              
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">20 minutes daily</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Target className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Foundation building</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Heart className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Energy & vitality boost</span>
-                  </div>
-                </div>
+          {/* Real Program Cards with Subscription Details */}
+          {loading ? (
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading programs...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {programs.map((program, index) => {
+                const isPopular = program.duration_days === 49;
+                const transformationImage = getTransformationImage(program.duration_days);
                 
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <h4 className="font-semibold text-foreground mb-2">What you'll get:</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Daily morning routines</li>
-                    <li>• Basic meditation practices</li>
-                    <li>• Simple yogic breathing</li>
-                    <li>• Community support</li>
-                  </ul>
-                </div>
-                
-                <Button 
-                  onClick={handleSignup}
-                  className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white"
-                >
-                  Get Started
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* 49-Day Metamorphosis Program */}
-            <Card className="border-2 border-primary shadow-lg bg-background hover:shadow-xl transition-all duration-300 overflow-hidden relative">
-              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground z-10">
-                Most Popular
-              </Badge>
-              
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-white/80 rounded-full flex items-center justify-center">
-                  <Brain className="w-8 h-8 text-blue-600" />
-                </div>
-                <div className="text-center">
-                  <h3 className="text-xl font-bold text-foreground mb-2">49-Day Metamorphosis</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Complete body and mind transformation</p>
-                  <div className="text-2xl font-bold text-primary mb-2">
-                    {isIndiaUser ? '₹1,999' : '$34.99'}
-                  </div>
-                  <Badge variant="secondary" className="text-xs">Best Value</Badge>
-                </div>
-              </div>
-              
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">25 minutes daily</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Target className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Weight management</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Brain className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Mental clarity boost</span>
-                  </div>
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <h4 className="font-semibold text-foreground mb-2">What you'll get:</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Advanced yoga sequences</li>
-                    <li>• Guided meditations</li>
-                    <li>• Ayurvedic nutrition plan</li>
-                    <li>• Progress tracking tools</li>
-                    <li>• Personal routine tracker</li>
-                  </ul>
-                </div>
-                
-                <Button 
-                  onClick={handleSignup}
-                  className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  Transform Now
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* 108-Day Evolution Program */}
-            <Card className="border-0 shadow-lg bg-background hover:shadow-xl transition-all duration-300 overflow-hidden">
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6">
-                <div className="w-16 h-16 mx-auto mb-4 bg-white/80 rounded-full flex items-center justify-center">
-                  <Award className="w-8 h-8 text-purple-600" />
-                </div>
-                <div className="text-center">
-                  <h3 className="text-xl font-bold text-foreground mb-2">108-Day Evolution</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Complete life transformation journey</p>
-                  <div className="text-2xl font-bold text-primary mb-2">
-                    {isIndiaUser ? '₹2,999' : '$49.99'}
-                  </div>
-                  <Badge variant="secondary" className="text-xs">Master Level</Badge>
-                </div>
-              </div>
-              
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">30 minutes daily</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Target className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Peak performance</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Star className="w-5 h-5 text-primary" />
-                    <span className="text-sm text-muted-foreground">Spiritual awakening</span>
-                  </div>
-                </div>
-                
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <h4 className="font-semibold text-foreground mb-2">What you'll get:</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Master-level practices</li>
-                    <li>• Advanced spiritual techniques</li>
-                    <li>• Complete lifestyle transformation</li>
-                    <li>• Expert mentorship access</li>
-                    <li>• Lifetime community access</li>
-                  </ul>
-                </div>
-                
-                <Button 
-                  onClick={handleSignup}
-                  className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  Evolve Yourself
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+                return (
+                  <Card 
+                    key={program.id} 
+                    className={`border-0 shadow-lg bg-background hover:shadow-xl transition-all duration-300 overflow-hidden relative ${
+                      isPopular ? 'border-2 border-primary' : ''
+                    }`}
+                  >
+                    {isPopular && (
+                      <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground z-10">
+                        Most Popular
+                      </Badge>
+                    )}
+                    
+                    <div className={`bg-gradient-to-br p-6 ${
+                      program.duration_days === 21 ? 'from-green-50 to-green-100' :
+                      program.duration_days === 49 ? 'from-blue-50 to-blue-100' :
+                      'from-purple-50 to-purple-100'
+                    }`}>
+                      {transformationImage && (
+                        <div className="mb-4">
+                          <img 
+                            src={transformationImage} 
+                            alt={`${program.name} transformation`} 
+                            className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="text-center">
+                        <h3 className="text-xl font-bold text-foreground mb-2">{program.name}</h3>
+                        <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
+                        
+                        <div className="text-2xl font-bold text-primary mb-2">
+                          {isIndiaUser ? `₹${program.price_inr}` : `$${program.price}`}
+                        </div>
+                        <div className="text-sm text-muted-foreground">{program.duration_days} days program</div>
+                      </div>
+                    </div>
+                    
+                    <CardContent className="p-6">
+                      <div className="space-y-6">
+                        <div>
+                          <h4 className="font-semibold text-foreground mb-3">What's Included:</h4>
+                          <ul className="text-sm text-muted-foreground space-y-2">
+                            {program.features.slice(0, 4).map((feature, idx) => (
+                              <li key={idx} className="flex items-start">
+                                <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                            {program.features.length > 4 && (
+                              <li className="text-xs text-muted-foreground/70 ml-6">
+                                +{program.features.length - 4} more features
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-semibold text-foreground mb-3">Benefits You'll Get:</h4>
+                          <ul className="text-sm text-muted-foreground space-y-2">
+                            {program.benefits.slice(0, 3).map((benefit, idx) => (
+                              <li key={idx} className="flex items-start">
+                                <Star className="w-4 h-4 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                                <span>{benefit}</span>
+                              </li>
+                            ))}
+                            {program.benefits.length > 3 && (
+                              <li className="text-xs text-muted-foreground/70 ml-6">
+                                +{program.benefits.length - 3} more benefits
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                        
+                        <Button 
+                          onClick={handleSignup}
+                          className={`w-full font-semibold py-2 px-4 rounded-lg ${
+                            isPopular 
+                              ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
+                              : program.duration_days === 21
+                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              : 'bg-purple-600 hover:bg-purple-700 text-white'
+                          }`}
+                        >
+                          Get Started
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -551,8 +521,38 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <Footer />
+      {/* Custom Horizontal Footer for Landing Page */}
+      <footer className="bg-white border-t border-slate-200">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            {/* Logo/Brand */}
+            <div className="flex items-center space-x-2">
+              <img 
+                src={IMAGES.LOGO_MAIN} 
+                alt="Yogi Logo" 
+                className="h-8 w-auto"
+              />
+              <span className="text-slate-400 text-sm">© 2025 Yogi</span>
+            </div>
+
+            {/* Legal Links - Horizontal Layout */}
+            <div className="flex flex-wrap justify-center md:justify-end items-center space-x-6 text-sm text-slate-400">
+              <Link to="/privacy-policy" className="hover:text-slate-600 transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/terms-and-conditions" className="hover:text-slate-600 transition-colors">
+                Terms & Conditions
+              </Link>
+              <Link to="/cancellations-refunds" className="hover:text-slate-600 transition-colors">
+                Cancellations & Refunds
+              </Link>
+              <Link to="/contact" className="hover:text-slate-600 transition-colors">
+                Contact Us
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
