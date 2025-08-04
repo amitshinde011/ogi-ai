@@ -229,13 +229,16 @@ const Landing = () => {
                       isPopular ? 'border-2 border-primary' : ''
                     }`}
                   >
-                    {isPopular && (
-                      <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground z-10 px-4 py-1 rounded-full font-semibold flex items-center justify-center gap-2 text-sm whitespace-nowrap">
+                  {isPopular && (
+                    <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-20">
+                      <Badge className="bg-primary text-primary-foreground px-4 py-1 rounded-full font-semibold flex items-center justify-center gap-2 text-sm whitespace-nowrap shadow-md">
                         <Star className="w-4 h-4 fill-current" />
                         Most Popular
                         <Star className="w-4 h-4 fill-current" />
                       </Badge>
-                    )}
+                    </div>
+                  )}
+
                     
                     <div className={`bg-gradient-to-br p-6 ${
                       program.duration_days === 21 ? 'from-green-50 to-green-100' :
