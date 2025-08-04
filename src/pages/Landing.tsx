@@ -87,7 +87,7 @@ const Landing = () => {
           <div className="flex items-center justify-center space-x-2 text-sm sm:text-base">
             <Timer className="w-4 h-4 animate-pulse" />
             <span className="font-semibold">LIMITED TIME:</span>
-            <span>Get 30% OFF + Free Bonus eBook - Ends Soon!</span>
+            <span>Get 30% OFF + Free Community Access - Ends Soon!</span>
             <Timer className="w-4 h-4 animate-pulse" />
           </div>
         </div>
@@ -462,23 +462,40 @@ const Landing = () => {
       </section>
 
       {/* =======================================================================
-          LIMITED TIME OFFER / URGENCY (NEW)
+          EXCLUSIVE MEMBER BENEFITS SECTION
       ======================================================================= */}
       <section className="py-16 sm:py-20 lg:py-24 bg-primary/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Gift className="w-16 h-16 text-primary mx-auto mb-4" />
+          <Users className="w-16 h-16 text-primary mx-auto mb-4" />
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Get a <span className="text-primary">Free Bonus</span> When You Join Today!
+            Join Our <span className="text-primary">Exclusive Community</span> Today!
           </h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Sign up now and receive our exclusive eBook, "The Yogi's Guide to Mindful Eating" (a $29 value), absolutely free. Kickstart your nutrition journey alongside your practice.
+            Get instant access to our supportive community of 10,000+ wellness warriors, weekly live sessions with certified instructors, and personalized progress tracking to accelerate your transformation.
           </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-background p-6 rounded-xl shadow-lg">
+              <MessageCircle className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Community Support</h3>
+              <p className="text-sm text-muted-foreground">Connect with like-minded members on the same journey</p>
+            </div>
+            <div className="bg-background p-6 rounded-xl shadow-lg">
+              <Users className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Expert Guidance</h3>
+              <p className="text-sm text-muted-foreground">Weekly live Q&A sessions with certified instructors</p>
+            </div>
+            <div className="bg-background p-6 rounded-xl shadow-lg">
+              <Target className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Progress Tracking</h3>
+              <p className="text-sm text-muted-foreground">Personalized dashboard to monitor your transformation</p>
+            </div>
+          </div>
           <Button
             size="lg"
             onClick={handleSignup}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
           >
-            Claim My Free Bonus Now
+            Join Our Community
             <ArrowRight className="w-6 h-6 ml-2" />
           </Button>
         </div>
