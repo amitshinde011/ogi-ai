@@ -9,12 +9,15 @@ import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
 import { PricingDisplay } from '@/components/PricingDisplay';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
+import { usePricingConfig } from '@/hooks/usePricingConfig';
+import { calculatePricing, formatCurrency } from '@/utils/pricingUtils';
 import { IMAGES } from '@/constants/images';
 
 const Landing = () => {
   const navigate = useNavigate();
   const { isIndiaUser, userLocation } = useLocationDetection();
   const { programs, loading } = useSubscriptionData();
+  const pricingConfig = usePricingConfig();
 
   const handleSignup = () => {
     navigate('/signup');
@@ -373,10 +376,51 @@ const Landing = () => {
                         <h3 className="text-xl font-bold text-foreground mb-2">{program.name}</h3>
                         <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
                         
-                        <div className="text-2xl font-bold text-primary mb-2">
-                          {isIndiaUser ? `₹${program.price_inr}` : `$${program.price}`}
+                        {/* Pricing with Discount Display */}
+                        <div className="space-y-2">
+                          {pricingConfig.discountPercentage > 0 && pricingConfig.isSpecialOccasion && (
+                            <Badge className="bg-red-100 text-red-800 hover:bg-red-200 mb-2">
+                              🎉 {pricingConfig.occasionName} - {pricingConfig.discountPercentage}% OFF!
+                            </Badge>
+                          )}
+                          
+                          {(() => {
+                            const originalPrice = isIndiaUser ? program.price_inr : program.price;
+                            const currency = isIndiaUser ? 'INR' : 'USD';
+                            const pricing = calculatePricing(
+                              originalPrice,
+                              pricingConfig.discountPercentage,
+                              0, // No tax on landing page for simplicity
+                              0  // No coupon on landing page
+                            );
+                            
+                            return (
+                              <div>
+                                {pricingConfig.discountPercentage > 0 ? (
+                                  <div className="flex items-center justify-center gap-2 mb-1">
+                                    <span className="text-lg line-through text-muted-foreground">
+                                      {formatCurrency(originalPrice, currency)}
+                                    </span>
+                                    <span className="text-2xl font-bold text-primary">
+                                      {formatCurrency(pricing.discountedPrice, currency)}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="text-2xl font-bold text-primary">
+                                    {formatCurrency(originalPrice, currency)}
+                                  </div>
+                                )}
+                                {pricingConfig.discountPercentage > 0 && (
+                                  <div className="text-xs text-green-600 font-medium">
+                                    Save {formatCurrency(pricing.discountAmount, currency)} ({pricingConfig.discountPercentage}% OFF)
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                          
+                          <div className="text-sm text-muted-foreground">{program.duration_days} days program</div>
                         </div>
-                        <div className="text-sm text-muted-foreground">{program.duration_days} days program</div>
                       </div>
                     </div>
                     
