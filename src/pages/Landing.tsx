@@ -90,7 +90,7 @@ const Landing = () => {
           <div className="flex items-center justify-center space-x-2 text-sm sm:text-base">
             <Timer className="w-4 h-4 animate-pulse" />
             <span className="font-semibold">LIMITED TIME:</span>
-            <span>Get 20% OFF + Free Community Access - Ends Soon!</span>
+            <span>Get {pricingConfig.discountPercentage}% OFF + Free Community Access - Ends Soon!</span>
             <Timer className="w-4 h-4 animate-pulse" />
           </div>
         </div>
@@ -151,7 +151,7 @@ const Landing = () => {
               <div className="text-center mt-4">
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                   <Check className="w-3 h-3 mr-1" />
-                  20% OFF Limited Time
+                  {pricingConfig.discountPercentage}% OFF Limited Time
                 </Badge>
               </div>
             </div>
