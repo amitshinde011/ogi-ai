@@ -9,12 +9,15 @@ import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
 import { PricingDisplay } from '@/components/PricingDisplay';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
+import { usePricingConfig } from '@/hooks/usePricingConfig';
+import { calculatePricing, formatCurrency } from '@/utils/pricingUtils';
 import { IMAGES } from '@/constants/images';
 
 const Landing = () => {
   const navigate = useNavigate();
   const { isIndiaUser, userLocation } = useLocationDetection();
   const { programs, loading } = useSubscriptionData();
+  const pricingConfig = usePricingConfig();
 
   const handleSignup = () => {
     navigate('/signup');
@@ -87,7 +90,7 @@ const Landing = () => {
           <div className="flex items-center justify-center space-x-2 text-sm sm:text-base">
             <Timer className="w-4 h-4 animate-pulse" />
             <span className="font-semibold">LIMITED TIME:</span>
-            <span>Get 20% OFF + Free Community Access - Ends Soon!</span>
+            <span>Get {pricingConfig.discountPercentage}% OFF + Free Community Access - Ends Soon!</span>
             <Timer className="w-4 h-4 animate-pulse" />
           </div>
         </div>
@@ -148,7 +151,7 @@ const Landing = () => {
               <div className="text-center mt-4">
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                   <Check className="w-3 h-3 mr-1" />
-                  20% OFF Limited Time
+                  {pricingConfig.discountPercentage}% OFF Limited Time
                 </Badge>
               </div>
             </div>
@@ -373,10 +376,61 @@ const Landing = () => {
                         <h3 className="text-xl font-bold text-foreground mb-2">{program.name}</h3>
                         <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
                         
-                        <div className="text-2xl font-bold text-primary mb-2">
-                          {isIndiaUser ? `₹${program.price_inr}` : `$${program.price}`}
+                        {/* Enhanced Pricing with Discount Display for Maximum Conversion */}
+                        <div className="space-y-3 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20">
+                          {pricingConfig.discountPercentage > 0 && pricingConfig.isSpecialOccasion && (
+                            <Badge className="bg-red-500 text-white hover:bg-red-600 text-xs font-bold mx-auto">
+                              🔥 {pricingConfig.occasionName} - {pricingConfig.discountPercentage}% OFF!
+                            </Badge>
+                          )}
+                          
+                          {(() => {
+                            const originalPrice = isIndiaUser ? program.price_inr : program.price;
+                            const currency = isIndiaUser ? 'INR' : 'USD';
+                            const pricing = calculatePricing(
+                              originalPrice,
+                              pricingConfig.discountPercentage,
+                              0, // No tax on landing page for simplicity
+                              0  // No coupon on landing page
+                            );
+                            
+                            return (
+                              <div className="text-center">
+                                {pricingConfig.discountPercentage > 0 ? (
+                                  <div className="space-y-2">
+                                    {/* Original Price - Struck Through */}
+                                    <div className="text-xl line-through text-muted-foreground/70 font-medium">
+                                      {formatCurrency(originalPrice, currency)}
+                                    </div>
+                                    
+                                    {/* Discounted Price - Very Prominent */}
+                                    <div className="text-4xl font-bold text-primary bg-white/80 rounded-lg py-2 px-4 shadow-sm">
+                                      {formatCurrency(pricing.discountedPrice, currency)}
+                                    </div>
+                                    
+                                    {/* Savings Badge */}
+                                    <div className="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">
+                                      💰 Save {formatCurrency(pricing.discountAmount, currency)} Today!
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-4xl font-bold text-primary bg-white/80 rounded-lg py-2 px-4 shadow-sm">
+                                    {formatCurrency(originalPrice, currency)}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                          
+                          <div className="text-center">
+                            <div className="text-sm text-muted-foreground font-medium">{program.duration_days} days program</div>
+                            {pricingConfig.discountPercentage > 0 && (
+                              <div className="text-xs text-orange-600 font-bold mt-1 animate-pulse">
+                                ⏰ Limited Time Offer!
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-sm text-muted-foreground">{program.duration_days} days program</div>
                       </div>
                     </div>
                     
