@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowRight, Star, Users, Globe, ShieldCheck, Check, Heart, Brain, Leaf, Zap, Clock, Target, Award, Gift, HelpCircle, Sparkles, Play, TrendingUp, MessageCircle, Timer, ChefHat } from 'lucide-react';
+import { ArrowRight, Star, Users, Globe, ShieldCheck, Check, Heart, Brain, Leaf, Zap, Clock, Target, Award, Gift, HelpCircle, Sparkles, Play, TrendingUp, MessageCircle, Timer, ChefHat, UserCheck, Verified } from 'lucide-react';
 import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
 import { PricingDisplay } from '@/components/PricingDisplay';
+import { CountdownTimer } from '@/components/conversion/CountdownTimer';
+import { LiveActivityFeed } from '@/components/conversion/LiveActivityFeed';
+import { TrustBadges } from '@/components/conversion/TrustBadges';
+import { GroupDiscountCalculator } from '@/components/conversion/GroupDiscountCalculator';
+import { ExitIntentPopup } from '@/components/conversion/ExitIntentPopup';
 import { useLocationDetection } from '@/hooks/useLocationDetection';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
@@ -83,15 +88,19 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       {/* =======================================================================
-          URGENT ANNOUNCEMENT BANNER
+          URGENT ANNOUNCEMENT BANNER WITH COUNTDOWN
       ======================================================================= */}
-      <div className="bg-primary text-primary-foreground text-center py-3 border-b">
+      <div className="bg-red-600 text-white text-center py-3 border-b animate-pulse">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center space-x-2 text-sm sm:text-base">
-            <Timer className="w-4 h-4 animate-pulse" />
-            <span className="font-semibold">LIMITED TIME:</span>
-            <span>Get {pricingConfig.discountPercentage}% OFF + Free Community Access - Ends Soon!</span>
-            <Timer className="w-4 h-4 animate-pulse" />
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm sm:text-base">
+            <div className="flex items-center space-x-2">
+              <span className="font-bold">🔥 FLASH SALE:</span>
+              <span>Get {pricingConfig.discountPercentage}% OFF + Free Community Access</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold">Ends in:</span>
+              <CountdownTimer className="bg-white/20 rounded px-2 py-1" />
+            </div>
           </div>
         </div>
       </div>
@@ -145,14 +154,20 @@ const Landing = () => {
               </div>
             </div>
 
-            {/* Enhanced Pricing Display */}
+            {/* Enhanced Pricing Display with Value Proposition */}
             <div className="max-w-md mx-auto bg-card/50 rounded-2xl p-6 border border-primary/20">
               <PricingDisplay isIndiaUser={isIndiaUser} userLocation={userLocation} />
-              <div className="text-center mt-4">
+              <div className="text-center mt-4 space-y-2">
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                   <Check className="w-3 h-3 mr-1" />
                   {pricingConfig.discountPercentage}% OFF Limited Time
                 </Badge>
+                <div className="text-xs text-muted-foreground">
+                  ✨ Less than the cost of 2 coffee shop visits per week
+                </div>
+                <div className="text-xs text-primary font-medium">
+                  💡 Compare: Personal trainer = {isIndiaUser ? '₹2000+/session' : '$50+/session'}
+                </div>
               </div>
             </div>
 
@@ -168,14 +183,21 @@ const Landing = () => {
                 <ArrowRight className="w-6 h-6 ml-2" />
               </Button>
               
+              {/* Trust Badges */}
+              <TrustBadges />
+              
               <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center">
                   <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
-                  Instant Access • Lifetime Community Support
+                  30-Day Money-Back Guarantee • No Questions Asked
                 </div>
                 <div className="flex items-center">
                   <MessageCircle className="w-4 h-4 mr-2 text-blue-600" />
-                  Join our supportive community of wellness warriors
+                  Join 10,000+ members in our supportive community
+                </div>
+                <div className="flex items-center">
+                  <Verified className="w-4 h-4 mr-2 text-purple-600" />
+                  Instant access • Start transforming today
                 </div>
               </div>
               
@@ -512,6 +534,27 @@ const Landing = () => {
               })}
             </div>
           )}
+          
+          {/* Group Discount Calculator */}
+          {!loading && programs.length > 0 && (
+            <div className="mt-16">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+                  🎯 Bring Friends & Save Even More!
+                </h3>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Get progressive discounts when you start a group purchase. The more friends, the bigger your savings!
+                </p>
+              </div>
+              <div className="max-w-lg mx-auto">
+                <GroupDiscountCalculator
+                  basePrice={isIndiaUser ? programs[0]?.price_inr || 0 : programs[0]?.price || 0}
+                  currency={isIndiaUser ? 'INR' : 'USD'}
+                  onStartGroup={() => navigate('/signup')}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -650,6 +693,10 @@ Yogi™ is a trademark of Yogi Care.</span>
           </div>
         </div>
       </footer>
+      
+      {/* Conversion Optimization Components */}
+      <LiveActivityFeed />
+      <ExitIntentPopup onSignup={handleSignup} />
     </div>
   );
 };
