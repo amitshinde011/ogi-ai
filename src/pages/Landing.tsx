@@ -376,11 +376,11 @@ const Landing = () => {
                         <h3 className="text-xl font-bold text-foreground mb-2">{program.name}</h3>
                         <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
                         
-                        {/* Pricing with Discount Display */}
-                        <div className="space-y-2">
+                        {/* Enhanced Pricing with Discount Display for Maximum Conversion */}
+                        <div className="space-y-3 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20">
                           {pricingConfig.discountPercentage > 0 && pricingConfig.isSpecialOccasion && (
-                            <Badge className="bg-red-100 text-red-800 hover:bg-red-200 mb-2">
-                              🎉 {pricingConfig.occasionName} - {pricingConfig.discountPercentage}% OFF!
+                            <Badge className="bg-red-500 text-white hover:bg-red-600 text-xs font-bold mx-auto">
+                              🔥 {pricingConfig.occasionName} - {pricingConfig.discountPercentage}% OFF!
                             </Badge>
                           )}
                           
@@ -395,31 +395,41 @@ const Landing = () => {
                             );
                             
                             return (
-                              <div>
+                              <div className="text-center">
                                 {pricingConfig.discountPercentage > 0 ? (
-                                  <div className="flex items-center justify-center gap-2 mb-1">
-                                    <span className="text-lg line-through text-muted-foreground">
+                                  <div className="space-y-2">
+                                    {/* Original Price - Struck Through */}
+                                    <div className="text-xl line-through text-muted-foreground/70 font-medium">
                                       {formatCurrency(originalPrice, currency)}
-                                    </span>
-                                    <span className="text-2xl font-bold text-primary">
+                                    </div>
+                                    
+                                    {/* Discounted Price - Very Prominent */}
+                                    <div className="text-4xl font-bold text-primary bg-white/80 rounded-lg py-2 px-4 shadow-sm">
                                       {formatCurrency(pricing.discountedPrice, currency)}
-                                    </span>
+                                    </div>
+                                    
+                                    {/* Savings Badge */}
+                                    <div className="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">
+                                      💰 Save {formatCurrency(pricing.discountAmount, currency)} Today!
+                                    </div>
                                   </div>
                                 ) : (
-                                  <div className="text-2xl font-bold text-primary">
+                                  <div className="text-4xl font-bold text-primary bg-white/80 rounded-lg py-2 px-4 shadow-sm">
                                     {formatCurrency(originalPrice, currency)}
-                                  </div>
-                                )}
-                                {pricingConfig.discountPercentage > 0 && (
-                                  <div className="text-xs text-green-600 font-medium">
-                                    Save {formatCurrency(pricing.discountAmount, currency)} ({pricingConfig.discountPercentage}% OFF)
                                   </div>
                                 )}
                               </div>
                             );
                           })()}
                           
-                          <div className="text-sm text-muted-foreground">{program.duration_days} days program</div>
+                          <div className="text-center">
+                            <div className="text-sm text-muted-foreground font-medium">{program.duration_days} days program</div>
+                            {pricingConfig.discountPercentage > 0 && (
+                              <div className="text-xs text-orange-600 font-bold mt-1 animate-pulse">
+                                ⏰ Limited Time Offer!
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
