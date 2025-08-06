@@ -46,6 +46,7 @@ import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import CancellationsRefunds from "./pages/CancellationsRefunds";
+import JoinGroup from "./pages/JoinGroup";
 import NotFound from "./pages/NotFound";
 
 // Components
@@ -91,6 +92,7 @@ const App = () => {
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               <Route path="/cancellations-refunds" element={<CancellationsRefunds />} />
+              <Route path="/join-group/:inviteCode" element={<JoinGroup />} />
 
               {/* Protected routes */}
               <Route path="/home" element={<ProtectedRoute requiresActiveSubscription={true} showBlurOverlay={true}><Home /></ProtectedRoute>} />

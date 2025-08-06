@@ -3,10 +3,19 @@ import { Users, Calculator, ArrowRight, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { GroupPurchaseModal } from '@/components/group/GroupPurchaseModal';
 
 interface GroupDiscountCalculatorProps {
   basePrice: number;
   currency: string;
+  program?: {
+    id: string;
+    name: string;
+    price: number;
+    price_inr: number;
+    duration_days: number;
+  };
+  isIndiaUser?: boolean;
   onStartGroup?: () => void;
 }
 
@@ -22,9 +31,12 @@ const getGroupDiscount = (size: number): number => {
 export const GroupDiscountCalculator: React.FC<GroupDiscountCalculatorProps> = ({
   basePrice,
   currency,
+  program,
+  isIndiaUser = false,
   onStartGroup
 }) => {
   const [selectedSize, setSelectedSize] = useState(2);
+  const [showModal, setShowModal] = useState(false);
 
   const discount = getGroupDiscount(selectedSize);
   const discountedPrice = basePrice * (1 - discount / 100);
@@ -98,7 +110,7 @@ export const GroupDiscountCalculator: React.FC<GroupDiscountCalculatorProps> = (
           </div>
 
           <Button 
-            onClick={onStartGroup}
+            onClick={() => program ? setShowModal(true) : onStartGroup?.()}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             size="lg"
           >
@@ -111,6 +123,15 @@ export const GroupDiscountCalculator: React.FC<GroupDiscountCalculatorProps> = (
             Share a unique link with friends and everyone pays the discounted price once your group is complete!
           </p>
         </div>
+
+        {program && (
+          <GroupPurchaseModal
+            open={showModal}
+            onClose={() => setShowModal(false)}
+            program={program}
+            isIndiaUser={isIndiaUser}
+          />
+        )}
       </CardContent>
     </Card>
   );
