@@ -5,6 +5,7 @@ import { useProgramCompletion } from '@/hooks/useProgramCompletion';
 import { AchievementBanner } from '@/components/AchievementBanner';
 import { SubscriptionHeader } from '@/components/subscription/SubscriptionHeader';
 import { SubscriptionGrid } from '@/components/subscription/SubscriptionGrid';
+import { GroupDiscountCalculator } from '@/components/conversion/GroupDiscountCalculator';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
 import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
 import Loader from '@/components/ui/loader';
@@ -62,6 +63,25 @@ const Subscriptions = () => {
           isIndiaUser={isIndiaUser}
           onSubscribe={handleSubscribe}
         />
+
+        {/* Group Discount Section */}
+        {programs.length > 0 && (
+          <div className="mt-12 max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-foreground mb-4">
+                🎯 Get Friends & Save More!
+              </h3>
+              <p className="text-muted-foreground">
+                Start a group purchase and unlock progressive discounts based on group size.
+              </p>
+            </div>
+            <GroupDiscountCalculator
+              basePrice={isIndiaUser ? programs[0]?.price_inr || 0 : programs[0]?.price || 0}
+              currency={isIndiaUser ? 'INR' : 'USD'}
+              onStartGroup={() => alert('Group purchase feature coming soon! Contact support to arrange group discounts.')}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
