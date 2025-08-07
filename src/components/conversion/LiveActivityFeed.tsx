@@ -10,77 +10,103 @@ interface ActivityItem {
   timeAgo: string;
 }
 
-const getLocaleActivities = (isIndiaUser: boolean, userLocation: string): ActivityItem[] => {
-  if (isIndiaUser) {
-    return [
-      { id: '1', name: 'Priya', location: 'Mumbai', action: 'started her 21-day transformation', timeAgo: '2 minutes ago' },
-      { id: '2', name: 'Rahul', location: 'Delhi', action: 'completed day 15 of wellness journey', timeAgo: '5 minutes ago' },
-      { id: '3', name: 'Anjali', location: 'Bangalore', action: 'joined the community', timeAgo: '8 minutes ago' },
-      { id: '4', name: 'Vikram', location: 'Chennai', action: 'unlocked premium recipes', timeAgo: '12 minutes ago' },
-      { id: '5', name: 'Sneha', location: 'Pune', action: 'shared her transformation photo', timeAgo: '15 minutes ago' },
-      { id: '6', name: 'Arjun', location: 'Hyderabad', action: 'started meditation practice', timeAgo: '18 minutes ago' },
-      { id: '7', name: 'Kavya', location: 'Kolkata', action: 'completed her first week', timeAgo: '22 minutes ago' },
-      { id: '8', name: 'Aditya', location: 'Ahmedabad', action: 'reached daily step goal', timeAgo: '25 minutes ago' },
-      { id: '9', name: 'Meera', location: 'Jaipur', action: 'logged healthy breakfast', timeAgo: '28 minutes ago' },
-      { id: '10', name: 'Rohan', location: 'Lucknow', action: 'finished morning yoga session', timeAgo: '32 minutes ago' },
-      { id: '11', name: 'Pooja', location: 'Indore', action: 'achieved hydration target', timeAgo: '35 minutes ago' },
-      { id: '12', name: 'Karan', location: 'Bhopal', action: 'completed surya namaskar challenge', timeAgo: '38 minutes ago' },
-      { id: '13', name: 'Divya', location: 'Coimbatore', action: 'started intermittent fasting', timeAgo: '42 minutes ago' },
-      { id: '14', name: 'Amit', location: 'Nagpur', action: 'unlocked achievement badge', timeAgo: '45 minutes ago' },
-      { id: '15', name: 'Shreya', location: 'Surat', action: 'joined meditation group', timeAgo: '48 minutes ago' },
-      { id: '16', name: 'Nikhil', location: 'Thiruvananthapuram', action: 'completed day 10 milestone', timeAgo: '52 minutes ago' },
-      { id: '17', name: 'Riya', location: 'Gurgaon', action: 'shared progress update', timeAgo: '55 minutes ago' },
-      { id: '18', name: 'Sanjay', location: 'Noida', action: 'started evening walk routine', timeAgo: '58 minutes ago' },
-      { id: '19', name: 'Nisha', location: 'Mysore', action: 'tried new healthy recipe', timeAgo: '1 hour ago' },
-      { id: '20', name: 'Deepak', location: 'Chandigarh', action: 'completed wellness assessment', timeAgo: '1 hour ago' },
-    ];
-  }
+const indianNames = [
+  'Priya', 'Rahul', 'Anjali', 'Vikram', 'Sneha', 'Arjun', 'Kavya', 'Aditya', 
+  'Meera', 'Rohan', 'Pooja', 'Karan', 'Divya', 'Amit', 'Shreya', 'Nikhil', 
+  'Riya', 'Sanjay', 'Nisha', 'Deepak', 'Ishita', 'Varun', 'Swati', 'Manish'
+];
+
+const indianLocations = [
+  'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Pune', 'Hyderabad', 'Kolkata', 
+  'Ahmedabad', 'Jaipur', 'Lucknow', 'Indore', 'Bhopal', 'Coimbatore', 'Nagpur', 
+  'Surat', 'Thiruvananthapuram', 'Gurgaon', 'Noida', 'Mysore', 'Chandigarh'
+];
+
+const internationalNames = [
+  'Sarah', 'Mike', 'Emma', 'David', 'Lisa', 'Alex', 'Maria', 'James', 'Sophie', 
+  'Lucas', 'Anna', 'Ryan', 'Elena', 'Oliver', 'Zoe', 'Noah', 'Chloe', 'Ethan', 
+  'Isabella', 'Mason', 'Grace', 'Liam', 'Sophia', 'William'
+];
+
+const internationalLocations = [
+  'New York', 'London', 'Sydney', 'Toronto', 'Berlin', 'Singapore', 'Madrid', 
+  'Los Angeles', 'Paris', 'São Paulo', 'Stockholm', 'Chicago', 'Rome', 'Amsterdam', 
+  'Melbourne', 'Vancouver', 'Dublin', 'Miami', 'Barcelona', 'Seattle'
+];
+
+const activities = [
+  'started her 21-day transformation',
+  'completed day 15 of wellness journey',
+  'joined the community',
+  'unlocked premium recipes',
+  'shared her transformation photo',
+  'started meditation practice',
+  'completed her first week',
+  'reached daily step goal',
+  'logged healthy breakfast',
+  'finished morning yoga session',
+  'achieved hydration target',
+  'completed surya namaskar challenge',
+  'started intermittent fasting',
+  'unlocked achievement badge',
+  'joined meditation group',
+  'completed day 10 milestone',
+  'shared progress update',
+  'started evening walk routine',
+  'tried new healthy recipe',
+  'completed wellness assessment'
+];
+
+const timeAgoOptions = [
+  '1 minute ago', '2 minutes ago', '3 minutes ago', '5 minutes ago', '8 minutes ago',
+  '12 minutes ago', '15 minutes ago', '18 minutes ago', '22 minutes ago', '25 minutes ago',
+  '28 minutes ago', '32 minutes ago', '35 minutes ago', '38 minutes ago', '42 minutes ago',
+  '45 minutes ago', '48 minutes ago', '52 minutes ago', '55 minutes ago', '58 minutes ago',
+  '1 hour ago', '1 hour 15 minutes ago', '1 hour 30 minutes ago', '2 hours ago'
+];
+
+const getRandomElement = <T,>(array: T[]): T => {
+  return array[Math.floor(Math.random() * array.length)];
+};
+
+const generateRandomActivity = (isIndiaUser: boolean): ActivityItem => {
+  const names = isIndiaUser ? indianNames : internationalNames;
+  const locations = isIndiaUser ? indianLocations : internationalLocations;
   
-  // Default international names and locations
-  return [
-    { id: '1', name: 'Sarah', location: 'New York', action: 'started her 21-day transformation', timeAgo: '2 minutes ago' },
-    { id: '2', name: 'Mike', location: 'London', action: 'completed day 15 of wellness journey', timeAgo: '5 minutes ago' },
-    { id: '3', name: 'Emma', location: 'Sydney', action: 'joined the community', timeAgo: '8 minutes ago' },
-    { id: '4', name: 'David', location: 'Toronto', action: 'unlocked premium recipes', timeAgo: '12 minutes ago' },
-    { id: '5', name: 'Lisa', location: 'Berlin', action: 'shared her transformation photo', timeAgo: '15 minutes ago' },
-    { id: '6', name: 'Alex', location: 'Singapore', action: 'started meditation practice', timeAgo: '18 minutes ago' },
-    { id: '7', name: 'Maria', location: 'Madrid', action: 'completed her first week', timeAgo: '22 minutes ago' },
-    { id: '8', name: 'James', location: 'Los Angeles', action: 'reached daily step goal', timeAgo: '25 minutes ago' },
-    { id: '9', name: 'Sophie', location: 'Paris', action: 'logged healthy breakfast', timeAgo: '28 minutes ago' },
-    { id: '10', name: 'Lucas', location: 'São Paulo', action: 'finished morning yoga session', timeAgo: '32 minutes ago' },
-    { id: '11', name: 'Anna', location: 'Stockholm', action: 'achieved hydration target', timeAgo: '35 minutes ago' },
-    { id: '12', name: 'Ryan', location: 'Chicago', action: 'completed fitness challenge', timeAgo: '38 minutes ago' },
-    { id: '13', name: 'Elena', location: 'Rome', action: 'started intermittent fasting', timeAgo: '42 minutes ago' },
-    { id: '14', name: 'Oliver', location: 'Amsterdam', action: 'unlocked achievement badge', timeAgo: '45 minutes ago' },
-    { id: '15', name: 'Zoe', location: 'Melbourne', action: 'joined meditation group', timeAgo: '48 minutes ago' },
-    { id: '16', name: 'Noah', location: 'Vancouver', action: 'completed day 10 milestone', timeAgo: '52 minutes ago' },
-    { id: '17', name: 'Chloe', location: 'Dublin', action: 'shared progress update', timeAgo: '55 minutes ago' },
-    { id: '18', name: 'Ethan', location: 'Miami', action: 'started evening walk routine', timeAgo: '58 minutes ago' },
-    { id: '19', name: 'Isabella', location: 'Barcelona', action: 'tried new healthy recipe', timeAgo: '1 hour ago' },
-    { id: '20', name: 'Mason', location: 'Seattle', action: 'completed wellness assessment', timeAgo: '1 hour ago' },
-  ];
+  return {
+    id: Math.random().toString(36).substr(2, 9),
+    name: getRandomElement(names),
+    location: getRandomElement(locations),
+    action: getRandomElement(activities),
+    timeAgo: getRandomElement(timeAgoOptions)
+  };
 };
 
 export const LiveActivityFeed: React.FC = () => {
-  const [currentActivity, setCurrentActivity] = useState(0);
+  const [currentActivity, setCurrentActivity] = useState<ActivityItem | null>(null);
   const [isVisible, setIsVisible] = useState(true);
   const locationData = useLocationDetection();
   
-  const activities = getLocaleActivities(locationData?.isIndiaUser || false, locationData?.userLocation || '');
+  // Generate initial activity
+  useEffect(() => {
+    setCurrentActivity(generateRandomActivity(locationData?.isIndiaUser || false));
+  }, [locationData?.isIndiaUser]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setIsVisible(false);
       setTimeout(() => {
-        setCurrentActivity((prev) => (prev + 1) % activities.length);
+        setCurrentActivity(generateRandomActivity(locationData?.isIndiaUser || false));
         setIsVisible(true);
       }, 300);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [activities.length]);
+  }, [locationData?.isIndiaUser]);
 
-  const activity = activities[currentActivity];
+  if (!currentActivity) {
+    return null;
+  }
 
   return (
     <div className={`fixed bottom-6 left-6 z-50 transition-all duration-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
@@ -91,14 +117,14 @@ export const LiveActivityFeed: React.FC = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900">
-              <span className="font-semibold">{activity.name}</span> from{' '}
+              <span className="font-semibold">{currentActivity.name}</span> from{' '}
               <span className="inline-flex items-center">
                 <MapPin className="w-3 h-3 mr-1" />
-                {activity.location}
+                {currentActivity.location}
               </span>
             </p>
-            <p className="text-sm text-gray-600">{activity.action}</p>
-            <p className="text-xs text-gray-400 mt-1">{activity.timeAgo}</p>
+            <p className="text-sm text-gray-600">{currentActivity.action}</p>
+            <p className="text-xs text-gray-400 mt-1">{currentActivity.timeAgo}</p>
           </div>
         </div>
       </div>
