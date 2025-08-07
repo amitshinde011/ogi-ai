@@ -190,7 +190,7 @@ const Landing = () => {
               <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center">
                   <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
-                  30-Day Money-Back Guarantee • No Questions Asked
+                  7-Day Money-Back Guarantee • No Questions Asked
                 </div>
                 <div className="flex items-center">
                   <MessageCircle className="w-4 h-4 mr-2 text-blue-600" />

@@ -6,7 +6,7 @@ export const TrustBadges: React.FC = () => {
     <div className="flex flex-wrap justify-center items-center gap-4 py-6">
       <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-4 py-2">
         <Shield className="w-5 h-5 text-green-600" />
-        <span className="text-sm font-medium text-green-800">30-Day Money Back</span>
+        <span className="text-sm font-medium text-green-800">7-Day Money Back</span>
       </div>
       
       <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
