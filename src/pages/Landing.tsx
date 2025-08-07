@@ -251,48 +251,77 @@ const Landing = () => {
       </section>
 
       {/* =======================================================================
-          WELLNESS IMAGES SECTION 
+          REAL TRANSFORMATION STORIES SECTION 
       ======================================================================= */}
       <section className="py-16 sm:py-20 lg:py-24 bg-card/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">Experience the Journey</Badge>
+            <Badge variant="outline" className="mb-4">108 Days of Commitment</Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Real Transformations, <span className="text-primary">Real Results</span>
+              Real People, <span className="text-primary">Real Results</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              See how our community members have transformed their bodies, minds, and lives through our proven wellness system.
+              See the incredible transformations from our 108-day wellness program. These are real members who committed to their journey and achieved amazing results.
             </p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {IMAGES.WELLNESS_CAROUSEL.map((image, index) => (
-              <div key={index} className="relative group overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
-                <img 
-                  src={image} 
-                  alt={`Wellness transformation ${index + 1}`}
-                  className="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-300"
+          {/* Featured transformations grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {IMAGES.TRANSFORMATIONS.slice(0, 6).map((image, index) => (
+              <div key={index} className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
+                <img
+                  src={image}
+                  alt={`Real transformation story ${index + 1} - 108 days of routine before and after results`}
+                  className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <div className="text-sm font-semibold">Day {((index * 7) + 1)}</div>
-                    <div className="text-xs opacity-90">Progress Update</div>
-                  </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
+                  <p className="font-semibold text-sm">108 Days of Dedication</p>
+                  <p className="text-xs text-white/90">From commitment to transformation</p>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Scrolling transformation carousel */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 p-6">
+            <div className="flex gap-4 animate-scroll">
+              {[...IMAGES.TRANSFORMATIONS, ...IMAGES.TRANSFORMATIONS].map((image, index) => (
+                <div key={index} className="flex-shrink-0 w-72 h-48 rounded-xl overflow-hidden shadow-md">
+                  <img
+                    src={image}
+                    alt={`Transformation ${index + 1} - 108 days routine before after`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
           
           <div className="text-center mt-12">
-            <Button
-              size="lg"
-              onClick={handleSignup}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold"
-            >
-              Start Your Transformation
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+            <p className="text-lg text-muted-foreground mb-6">
+              Join thousands who have already transformed their lives in just 108 days
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={handleSignup}
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Start Your 108-Day Journey
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleLogin}
+                size="lg"
+                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 text-lg font-semibold transition-all duration-300"
+              >
+                See More Success Stories
+              </Button>
+            </div>
           </div>
         </div>
       </section>
