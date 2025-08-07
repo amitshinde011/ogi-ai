@@ -266,7 +266,7 @@ const Landing = () => {
           </div>
           
           {/* Featured transformations grid */}
-          <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-2 gap-2 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mb-12">
             {IMAGES.TRANSFORMATIONS.slice(0, 10).map((image, index) => (
               <div key={index} className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
                 <img
@@ -277,7 +277,7 @@ const Landing = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                  <p className="font-semibold text-sm">108 Days of Dedication</p>
+                  <p className="font-semibold text-sm text-white/90">108 Days of Dedication</p>
                   <p className="text-xs text-white/90">From commitment to transformation</p>
                 </div>
               </div>
