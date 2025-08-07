@@ -19,6 +19,20 @@ const getLocaleActivities = (isIndiaUser: boolean, userLocation: string): Activi
       { id: '4', name: 'Vikram', location: 'Chennai', action: 'unlocked premium recipes', timeAgo: '12 minutes ago' },
       { id: '5', name: 'Sneha', location: 'Pune', action: 'shared her transformation photo', timeAgo: '15 minutes ago' },
       { id: '6', name: 'Arjun', location: 'Hyderabad', action: 'started meditation practice', timeAgo: '18 minutes ago' },
+      { id: '7', name: 'Kavya', location: 'Kolkata', action: 'completed her first week', timeAgo: '22 minutes ago' },
+      { id: '8', name: 'Aditya', location: 'Ahmedabad', action: 'reached daily step goal', timeAgo: '25 minutes ago' },
+      { id: '9', name: 'Meera', location: 'Jaipur', action: 'logged healthy breakfast', timeAgo: '28 minutes ago' },
+      { id: '10', name: 'Rohan', location: 'Lucknow', action: 'finished morning yoga session', timeAgo: '32 minutes ago' },
+      { id: '11', name: 'Pooja', location: 'Indore', action: 'achieved hydration target', timeAgo: '35 minutes ago' },
+      { id: '12', name: 'Karan', location: 'Bhopal', action: 'completed surya namaskar challenge', timeAgo: '38 minutes ago' },
+      { id: '13', name: 'Divya', location: 'Coimbatore', action: 'started intermittent fasting', timeAgo: '42 minutes ago' },
+      { id: '14', name: 'Amit', location: 'Nagpur', action: 'unlocked achievement badge', timeAgo: '45 minutes ago' },
+      { id: '15', name: 'Shreya', location: 'Surat', action: 'joined meditation group', timeAgo: '48 minutes ago' },
+      { id: '16', name: 'Nikhil', location: 'Thiruvananthapuram', action: 'completed day 10 milestone', timeAgo: '52 minutes ago' },
+      { id: '17', name: 'Riya', location: 'Gurgaon', action: 'shared progress update', timeAgo: '55 minutes ago' },
+      { id: '18', name: 'Sanjay', location: 'Noida', action: 'started evening walk routine', timeAgo: '58 minutes ago' },
+      { id: '19', name: 'Nisha', location: 'Mysore', action: 'tried new healthy recipe', timeAgo: '1 hour ago' },
+      { id: '20', name: 'Deepak', location: 'Chandigarh', action: 'completed wellness assessment', timeAgo: '1 hour ago' },
     ];
   }
   
@@ -30,6 +44,20 @@ const getLocaleActivities = (isIndiaUser: boolean, userLocation: string): Activi
     { id: '4', name: 'David', location: 'Toronto', action: 'unlocked premium recipes', timeAgo: '12 minutes ago' },
     { id: '5', name: 'Lisa', location: 'Berlin', action: 'shared her transformation photo', timeAgo: '15 minutes ago' },
     { id: '6', name: 'Alex', location: 'Singapore', action: 'started meditation practice', timeAgo: '18 minutes ago' },
+    { id: '7', name: 'Maria', location: 'Madrid', action: 'completed her first week', timeAgo: '22 minutes ago' },
+    { id: '8', name: 'James', location: 'Los Angeles', action: 'reached daily step goal', timeAgo: '25 minutes ago' },
+    { id: '9', name: 'Sophie', location: 'Paris', action: 'logged healthy breakfast', timeAgo: '28 minutes ago' },
+    { id: '10', name: 'Lucas', location: 'São Paulo', action: 'finished morning yoga session', timeAgo: '32 minutes ago' },
+    { id: '11', name: 'Anna', location: 'Stockholm', action: 'achieved hydration target', timeAgo: '35 minutes ago' },
+    { id: '12', name: 'Ryan', location: 'Chicago', action: 'completed fitness challenge', timeAgo: '38 minutes ago' },
+    { id: '13', name: 'Elena', location: 'Rome', action: 'started intermittent fasting', timeAgo: '42 minutes ago' },
+    { id: '14', name: 'Oliver', location: 'Amsterdam', action: 'unlocked achievement badge', timeAgo: '45 minutes ago' },
+    { id: '15', name: 'Zoe', location: 'Melbourne', action: 'joined meditation group', timeAgo: '48 minutes ago' },
+    { id: '16', name: 'Noah', location: 'Vancouver', action: 'completed day 10 milestone', timeAgo: '52 minutes ago' },
+    { id: '17', name: 'Chloe', location: 'Dublin', action: 'shared progress update', timeAgo: '55 minutes ago' },
+    { id: '18', name: 'Ethan', location: 'Miami', action: 'started evening walk routine', timeAgo: '58 minutes ago' },
+    { id: '19', name: 'Isabella', location: 'Barcelona', action: 'tried new healthy recipe', timeAgo: '1 hour ago' },
+    { id: '20', name: 'Mason', location: 'Seattle', action: 'completed wellness assessment', timeAgo: '1 hour ago' },
   ];
 };
 
