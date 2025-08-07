@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ArrowRight, Star, Users, Globe, ShieldCheck, Check, Heart, Brain, Leaf, Zap, Clock, Target, Award, Gift, HelpCircle, Sparkles, Play, TrendingUp, MessageCircle, Timer, ChefHat, UserCheck, Verified } from 'lucide-react';
 import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
@@ -269,12 +270,14 @@ const Landing = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mb-12">
             {IMAGES.TRANSFORMATIONS.slice(0, 10).map((image, index) => (
               <div key={index} className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
-                <img
-                  src={image}
-                  alt={`Real transformation story ${index + 1} - 108 days of routine before and after results`}
-                  className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
+                <AspectRatio ratio={1} className="overflow-hidden">
+                  <img
+                    src={image}
+                    alt={`Real transformation story ${index + 1} - 108 days of routine before and after results`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                </AspectRatio>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
                   <p className="font-semibold text-sm text-white/90">108 Days of Dedication</p>
