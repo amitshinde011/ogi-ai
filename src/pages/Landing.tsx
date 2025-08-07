@@ -291,13 +291,15 @@ const Landing = () => {
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 p-6">
             <div className="flex gap-4 animate-scroll">
               {[...IMAGES.TRANSFORMATIONS_GRID, ...IMAGES.TRANSFORMATIONS_GRID].map((image, index) => (
-                <div key={index} className="flex-shrink-0 w-72 h-48 rounded-xl overflow-hidden shadow-md">
-                  <img
-                    src={image}
-                    alt={`Transformation ${index + 1} - 108 days routine before after`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
+                <div key={index} className="flex-shrink-0 w-48 rounded-xl overflow-hidden shadow-md">
+                  <AspectRatio ratio={1}>
+                    <img
+                      src={image}
+                      alt={`Transformation ${index + 1} - 108 days routine before after`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </AspectRatio>
                 </div>
               ))}
             </div>
