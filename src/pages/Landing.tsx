@@ -266,8 +266,8 @@ const Landing = () => {
           </div>
           
           {/* Featured transformations grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {IMAGES.TRANSFORMATIONS.slice(0, 6).map((image, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-2 gap-2 mb-12">
+            {IMAGES.TRANSFORMATIONS.slice(0, 10).map((image, index) => (
               <div key={index} className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
                 <img
                   src={image}
@@ -287,7 +287,7 @@ const Landing = () => {
           {/* Scrolling transformation carousel */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 p-6">
             <div className="flex gap-4 animate-scroll">
-              {[...IMAGES.TRANSFORMATIONS, ...IMAGES.TRANSFORMATIONS].map((image, index) => (
+              {[...IMAGES.TRANSFORMATIONS_GRID, ...IMAGES.TRANSFORMATIONS_GRID].map((image, index) => (
                 <div key={index} className="flex-shrink-0 w-72 h-48 rounded-xl overflow-hidden shadow-md">
                   <img
                     src={image}
