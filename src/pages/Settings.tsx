@@ -105,12 +105,6 @@ const Settings = () => {
           label: 'Change Password',
           action: () => navigate('/password-change'),
           hasArrow: true
-        },
-        {
-          icon: Shield,
-          label: 'Privacy & Security',
-          action: () => navigate('/privacy'),
-          hasArrow: true
         }
       ]
     },

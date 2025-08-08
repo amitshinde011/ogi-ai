@@ -1,4 +1,5 @@
 import React from 'react';
+import Layout from '@/components/Layout';
 import LegalHeader from '@/components/legal/LegalHeader';
 import LegalLayout from '@/components/legal/LegalLayout';
 import LegalSection from '@/components/legal/LegalSection';
@@ -6,7 +7,8 @@ import ContactInfo from '@/components/legal/ContactInfo';
 
 const CancellationsRefunds = () => {
   return (
-    <div className="min-h-screen bg-gradient-peaceful p-4">
+    <Layout noContainer>
+      <div className="min-h-screen bg-gradient-peaceful py-4">
       <LegalHeader title="Cancellations and Refunds" />
 
       <LegalLayout lastUpdated="August 2025">
@@ -130,7 +132,8 @@ const CancellationsRefunds = () => {
           </p>
         </LegalSection>
       </LegalLayout>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
