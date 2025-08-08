@@ -7,6 +7,10 @@ PODS:
     - AppAuth/Core
   - Capacitor (7.4.2):
     - CapacitorCordova
+  - CapacitorApp (7.0.2):
+    - Capacitor
+  - CapacitorBrowser (7.0.2):
+    - Capacitor
   - CapacitorCordova (7.4.2)
   - CapacitorStatusBar (7.0.1):
     - Capacitor
@@ -41,6 +45,8 @@ PODS:
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../node_modules/@capacitor/app`)"
+  - "CapacitorBrowser (from `../../node_modules/@capacitor/browser`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
   - MyGoogleAuth (from `../../my-google-auth`)
@@ -59,6 +65,10 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Capacitor:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../node_modules/@capacitor/app"
+  CapacitorBrowser:
+    :path: "../../node_modules/@capacitor/browser"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
   CapacitorStatusBar:
@@ -69,6 +79,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   Capacitor: 9d9e481b79ffaeacaf7a85d6a11adec32bd33b59
+  CapacitorApp: 1f6922c9c5c8b1c538d7fbe92ebe44a81b34bed3
+  CapacitorBrowser: 22541e48442de44dc629c214388290d6eecc6ae9
   CapacitorCordova: 5e58d04631bc5094894ac106e2bf1da18a9e6151
   CapacitorStatusBar: 6e7af040d8fc4dd655999819625cae9c2d74c36f
   FirebaseCore: 30e9c1cbe3d38f5f5e75f48bfcea87d7c358ec16
@@ -80,6 +92,6 @@ SPEC CHECKSUMS:
   MyGoogleAuth: 4401678cb5779c68ad2c44ac2fb44fb0874c27c5
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
 
-PODFILE CHECKSUM: 862cf4f0e221112c29f97c6c6fe6ae435e51d9fa
+PODFILE CHECKSUM: 992b739d75388750db6f56a6e0b5216fed529529
 
 COCOAPODS: 1.16.2

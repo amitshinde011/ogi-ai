@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Capacitor } from '@capacitor/core';
 
 interface AppleLoginButtonProps {
   isLoading: boolean;
@@ -14,23 +15,14 @@ const AppleLoginButton = ({ isLoading, setIsLoading }: AppleLoginButtonProps) =>
   const handleAppleLogin = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: `${window.location.origin}/`
-        }
-      });
-
-      if (error) {
-        console.error('Apple login error:', error);
-        toast({
-          title: "Login failed",
-          description: error.message,
-          variant: "destructive",
-        });
-        setIsLoading(false);
+      if (Capacitor.isNativePlatform()) {
+        // Dynamically import and run the native-only function
+        const { signInWithNativeApple } = await import('./appleNativeAuth');
+        await signInWithNativeApple();
+      } else {
+        // Run the web-only function
+        await signInWithWebApple();
       }
-      // Note: Don't set loading to false on success as browser will redirect
     } catch (error) {
       console.error('Apple login failed:', error);
       toast({
@@ -39,6 +31,23 @@ const AppleLoginButton = ({ isLoading, setIsLoading }: AppleLoginButtonProps) =>
         variant: "destructive",
       });
       setIsLoading(false);
+    }
+    // Don't set isLoading to false on web success due to redirect
+    if (Capacitor.isNativePlatform()) {
+      setIsLoading(false);
+    }
+  };
+
+  const signInWithWebApple = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      },
+    });
+
+    if (error) {
+      throw error;
     }
   };
 
