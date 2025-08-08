@@ -136,17 +136,6 @@ const Settings = () => {
           hasArrow: true
         }
       ]
-    },
-    {
-      title: 'Support',
-      items: [
-        {
-          icon: HelpCircle,
-          label: 'Help & FAQ',
-          action: () => navigate('/help'),
-          hasArrow: true
-        }
-      ]
     }
   ];
 
