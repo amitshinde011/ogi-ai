@@ -1,4 +1,3 @@
-
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
@@ -7,21 +6,22 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   plugins: {
     StatusBar: {
-      overlay: false, // Ensure overlay is false if you want content to be pushed below
-      style: 'DARK',  // or 'LIGHT'
+      overlay: false,
+      style: 'DARK',
     },
+    // --- UPDATE THIS SECTION ---
     FirebaseAuthentication: {
       skipNativeAuth: false,
-      providers: ['google.com']
+      // Add 'apple.com' to this list
+      providers: ['google.com', 'apple.com'] 
     },
     Motion: {
       interval: 100
     }
   },
-  // --- ADD THIS SERVER CONFIGURATION ---
   server: {
-    hostname: 'yogi.capacitor.app', // A unique hostname for both Android and iOS
-    androidScheme: 'https', // Use a standard scheme like https
+    hostname: 'yogi.capacitor.app',
+    androidScheme: 'https',
     iosScheme: 'https'
   }
 };

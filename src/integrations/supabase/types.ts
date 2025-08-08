@@ -537,6 +537,107 @@ export type Database = {
           },
         ]
       }
+      group_purchase_participants: {
+        Row: {
+          group_purchase_id: string
+          id: string
+          joined_at: string
+          order_id: string | null
+          payment_status: string
+          user_id: string
+        }
+        Insert: {
+          group_purchase_id: string
+          id?: string
+          joined_at?: string
+          order_id?: string | null
+          payment_status?: string
+          user_id: string
+        }
+        Update: {
+          group_purchase_id?: string
+          id?: string
+          joined_at?: string
+          order_id?: string | null
+          payment_status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_purchase_participants_group_purchase_id_fkey"
+            columns: ["group_purchase_id"]
+            isOneToOne: false
+            referencedRelation: "group_purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_purchase_participants_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_purchases: {
+        Row: {
+          base_price: number
+          created_at: string
+          currency: string
+          current_size: number
+          discount_percentage: number
+          discounted_price: number
+          expires_at: string
+          id: string
+          invite_code: string
+          organizer_id: string
+          program_id: string
+          status: string
+          target_size: number
+          updated_at: string
+        }
+        Insert: {
+          base_price: number
+          created_at?: string
+          currency?: string
+          current_size?: number
+          discount_percentage?: number
+          discounted_price: number
+          expires_at?: string
+          id?: string
+          invite_code: string
+          organizer_id: string
+          program_id: string
+          status?: string
+          target_size: number
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          currency?: string
+          current_size?: number
+          discount_percentage?: number
+          discounted_price?: number
+          expires_at?: string
+          id?: string
+          invite_code?: string
+          organizer_id?: string
+          program_id?: string
+          status?: string
+          target_size?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_purchases_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journey_assessments: {
         Row: {
           assessment_type: string | null
@@ -1355,6 +1456,14 @@ export type Database = {
           best_streak: number
           active_days: number
         }[]
+      }
+      expire_old_group_purchases: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      generate_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_community_feed: {
         Args: { p_user_id: string; p_limit?: number; p_offset?: number }

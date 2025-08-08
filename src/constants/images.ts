@@ -17,5 +17,29 @@ export const IMAGES = {
     '/lovable-uploads/10.webp',
     '/lovable-uploads/11.webp',
     '/lovable-uploads/12.webp'
+  ],
+  
+  // Real transformation images (108 Days of routine)
+  TRANSFORMATIONS: [
+    '/lovable-uploads/Transformation (1).webp',
+    '/lovable-uploads/Transformation (2).webp',
+    '/lovable-uploads/Transformation (3).webp',
+    '/lovable-uploads/Transformation (4).webp',
+    '/lovable-uploads/Transformation (5).webp',
+    '/lovable-uploads/Transformation (6).webp',
+    '/lovable-uploads/Transformation (7).webp',
+    '/lovable-uploads/Transformation (8).webp',
+    '/lovable-uploads/Transformation (9).webp',
+    '/lovable-uploads/Transformation (10).webp'
+  ],
+
+    // Real transformation images (108 Days of routine)
+  TRANSFORMATIONS_GRID: [
+    '/lovable-uploads/Transformation (11).webp',
+    '/lovable-uploads/Transformation (12).webp',
+    '/lovable-uploads/Transformation (13).webp',
+    '/lovable-uploads/Transformation (14).webp',
+    '/lovable-uploads/Transformation (15).webp',
+    '/lovable-uploads/Transformation (16).webp'
   ]
 } as const;

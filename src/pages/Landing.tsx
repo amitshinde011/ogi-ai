@@ -1,0 +1,738 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ArrowRight, Star, Users, Globe, ShieldCheck, Check, Heart, Brain, Leaf, Zap, Clock, Target, Award, Gift, HelpCircle, Sparkles, Play, TrendingUp, MessageCircle, Timer, ChefHat, UserCheck, Verified } from 'lucide-react';
+import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
+import { PricingDisplay } from '@/components/PricingDisplay';
+import { CountdownTimer } from '@/components/conversion/CountdownTimer';
+import { LiveActivityFeed } from '@/components/conversion/LiveActivityFeed';
+import { TrustBadges } from '@/components/conversion/TrustBadges';
+import { GroupDiscountCalculator } from '@/components/conversion/GroupDiscountCalculator';
+import { ExitIntentPopup } from '@/components/conversion/ExitIntentPopup';
+import { useLocationDetection } from '@/hooks/useLocationDetection';
+import { useSubscriptionData } from '@/hooks/useSubscriptionData';
+import { usePricingConfig } from '@/hooks/usePricingConfig';
+import { calculatePricing, formatCurrency } from '@/utils/pricingUtils';
+import { IMAGES } from '@/constants/images';
+
+const Landing = () => {
+  const navigate = useNavigate();
+  const { isIndiaUser, userLocation } = useLocationDetection();
+  const { programs, loading } = useSubscriptionData();
+  const pricingConfig = usePricingConfig();
+
+  const handleSignup = () => {
+    navigate('/signup');
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const getTransformationImage = (durationDays: number) => {
+    switch (durationDays) {
+      case 21:
+        return '/lovable-uploads/21days.webp';
+      case 49:
+        return '/lovable-uploads/49days.webp';
+      case 108:
+        return '/lovable-uploads/108days.webp';
+      default:
+        return null;
+    }
+  };
+  
+  const howItWorksSteps = [
+    {
+      step: 1,
+      title: "Choose Your Path",
+      description: "Select the transformation program that aligns with your wellness goals.",
+      icon: Target
+    },
+    {
+      step: 2,
+      title: "Follow Daily Guidance",
+      description: "Commit to simple, 20-minute daily routines of yoga, meditation, and nutrition.",
+      icon: Clock
+    },
+    {
+      step: 3,
+      title: "Witness Your Transformation",
+      description: "Track your progress and feel the profound changes in your energy, clarity, and peace.",
+      icon: Award
+    }
+  ];
+
+  const faqData = [
+    {
+      question: "Is this program suitable for beginners?",
+      answer: "Absolutely! Our programs are designed to be accessible for all levels, from complete beginners to experienced practitioners. We provide clear, step-by-step guidance."
+    },
+    {
+      question: "What if I'm too busy? How much time does it take?",
+      answer: "We designed this for busy lifestyles. The core daily practice takes just 20 minutes. That's less than 2% of your day to invest in your long-term health and happiness."
+    },
+    {
+      question: "What kind of results can I expect?",
+      answer: "While results vary, most members report reduced stress, improved energy, better sleep, and enhanced mental clarity within the first 21 days. The longer programs yield deeper, more lasting transformations."
+    },
+    {
+      question: "What support do I get as a member?",
+      answer: "You get lifetime access to our exclusive community, extensive healthy recipe library, guided meditation sessions, comprehensive yoga practices, and ongoing support from fellow members on their wellness journey."
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
+      {/* =======================================================================
+          URGENT ANNOUNCEMENT BANNER WITH COUNTDOWN
+      ======================================================================= */}
+      <div className="bg-red-600 text-white text-center py-3 border-b animate-pulse">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm sm:text-base">
+            <div className="flex items-center space-x-2">
+              <span className="font-bold">🔥 FLASH SALE:</span>
+              <span>Get {pricingConfig.discountPercentage}% OFF + Free Community Access</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-semibold">Ends in:</span>
+              <CountdownTimer className="bg-white/20 rounded px-2 py-1" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* =======================================================================
+          HERO SECTION (Conversion-Optimized)
+      ======================================================================= */}
+      <section className="relative py-12 sm:py-16 lg:py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/5"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-8">
+            <Badge variant="secondary" className="mx-auto bg-primary/10 text-primary border-primary/20 animate-pulse">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Join 10,000+ Members Transforming Their Lives Daily
+            </Badge>
+
+            <div className="space-y-6">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
+                Transform Your Life in Just
+                <br />
+                <span className="text-primary bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">20 Minutes a Day</span>
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed">
+                Break free from stress, boost your energy, and discover lasting peace with our proven yogic wellness system. 
+                <span className="font-semibold text-foreground"> No gym required. No complicated routines.</span>
+              </p>
+            </div>
+
+            {/* Social Proof Numbers - Enhanced */}
+            <div className="flex flex-wrap justify-center items-center gap-8 py-8 bg-card/30 rounded-2xl mx-auto max-w-2xl">
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 mr-2" />
+                  10,000+
+                </div>
+                <div className="text-sm text-muted-foreground">Lives Transformed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center">
+                  <Globe className="w-6 h-6 mr-2" />
+                  50+
+                </div>
+                <div className="text-sm text-muted-foreground">Countries Reached</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold text-primary flex items-center justify-center">
+                  <Star className="w-6 h-6 mr-2 fill-current" />
+                  4.8/5
+                </div>
+                <div className="text-sm text-muted-foreground">Average Rating</div>
+              </div>
+            </div>
+
+            {/* Enhanced Pricing Display with Value Proposition */}
+            <div className="max-w-md mx-auto bg-card/50 rounded-2xl p-6 border border-primary/20">
+              <PricingDisplay isIndiaUser={isIndiaUser} userLocation={userLocation} />
+              <div className="text-center mt-4 space-y-2">
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  <Check className="w-3 h-3 mr-1" />
+                  {pricingConfig.discountPercentage}% OFF Limited Time
+                </Badge>
+                <div className="text-xs text-muted-foreground">
+                  ✨ Less than the cost of 2 coffee shop visits per week
+                </div>
+                <div className="text-xs text-primary font-medium">
+                  💡 Compare: Personal trainer = {isIndiaUser ? '₹2000+/session' : '$50+/session'}
+                </div>
+              </div>
+            </div>
+
+            {/* Primary CTA */}
+            <div className="flex flex-col gap-4 justify-center items-center">
+              <Button
+                size="lg"
+                onClick={handleSignup}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-6 text-xl font-bold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 animate-pulse"
+              >
+                <Play className="w-6 h-6 mr-2" />
+                Start My Transformation NOW
+                <ArrowRight className="w-6 h-6 ml-2" />
+              </Button>
+              
+              {/* Trust Badges */}
+              <TrustBadges />
+              
+              <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
+                  7-Day Money-Back Guarantee • No Questions Asked
+                </div>
+                <div className="flex items-center">
+                  <MessageCircle className="w-4 h-4 mr-2 text-blue-600" />
+                  Join 10,000+ members in our supportive community
+                </div>
+                <div className="flex items-center">
+                  <Verified className="w-4 h-4 mr-2 text-purple-600" />
+                  Instant access • Start transforming today
+                </div>
+              </div>
+              
+              <Button
+                variant="ghost"
+                onClick={handleLogin}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Already a member? <span className="underline ml-1">Sign in here</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* =======================================================================
+          PROBLEM / AGITATION SECTION (NEW)
+      ======================================================================= */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-card/20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+             Tired of Feeling Stressed, Drained, and Disconnected?
+           </h2>
+           <p className="text-lg text-muted-foreground mb-12">
+             In today's fast-paced world, it's easy to lose balance. If any of this sounds familiar, you're in the right place.
+           </p>
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
+             <div className="bg-background p-4 rounded-lg shadow-sm"><Check className="text-primary inline-block mr-2"/>Constant fatigue</div>
+             <div className="bg-background p-4 rounded-lg shadow-sm"><Check className="text-primary inline-block mr-2"/>Anxiety & stress</div>
+             <div className="bg-background p-4 rounded-lg shadow-sm"><Check className="text-primary inline-block mr-2"/>Poor sleep</div>
+             <div className="bg-background p-4 rounded-lg shadow-sm"><Check className="text-primary inline-block mr-2"/>Lack of focus</div>
+           </div>
+        </div>
+      </section>
+
+      {/* =======================================================================
+          SOCIAL PROOF SECTION
+      ======================================================================= */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-card/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              Don't Just Take Our Word For It
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Join thousands who have already transformed their lives through our proven system.
+            </p>
+          </div>
+          <TestimonialsCarousel />
+        </div>
+      </section>
+
+      {/* =======================================================================
+          REAL TRANSFORMATION STORIES SECTION 
+      ======================================================================= */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-card/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4">108 Days of Commitment</Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              Real People, <span className="text-primary">Real Results</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              See the incredible transformations from our 108-day wellness program. These are real members who committed to their journey and achieved amazing results.
+            </p>
+          </div>
+          
+          {/* Featured transformations grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mb-12">
+            {IMAGES.TRANSFORMATIONS.slice(0, 10).map((image, index) => (
+              <div key={index} className="group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
+                <AspectRatio ratio={1} className="overflow-hidden">
+                  <img
+                    src={image}
+                    alt={`Real transformation story ${index + 1} - 108 days of routine before and after results`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                </AspectRatio>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
+                  <p className="font-semibold text-sm text-white/90">108 Days of Dedication</p>
+                  <p className="text-xs text-white/90">From commitment to transformation</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Scrolling transformation carousel */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 p-6">
+            <div className="flex gap-4 animate-scroll">
+              {[...IMAGES.TRANSFORMATIONS_GRID, ...IMAGES.TRANSFORMATIONS_GRID].map((image, index) => (
+                <div key={index} className="flex-shrink-0 w-48 rounded-xl overflow-hidden shadow-md">
+                  <AspectRatio ratio={1}>
+                    <img
+                      src={image}
+                      alt={`Transformation ${index + 1} - 108 days routine before after`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </AspectRatio>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <p className="text-lg text-muted-foreground mb-6">
+              Join thousands who have already transformed their lives in just 108 days
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                onClick={handleSignup}
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Start Your 108-Day Journey
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleLogin}
+                size="lg"
+                className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-4 text-lg font-semibold transition-all duration-300"
+              >
+                See More Success Stories
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =======================================================================
+          HOW IT WORKS SECTION (Enhanced)
+      ======================================================================= */}
+      <section className="py-16 sm:py-20 lg:py-24">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              Your Journey to Wellness in <span className="text-primary">3 Simple Steps</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              We make transformation accessible and achievable for everyone, regardless of experience level.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {howItWorksSteps.map((step, index) => (
+              <div key={step.step} className="relative">
+                {/* Connection Line */}
+                {index < howItWorksSteps.length - 1 && (
+                  <div className="hidden md:block absolute top-10 left-full w-full h-0.5 bg-primary/20 z-0" 
+                       style={{ width: 'calc(100% - 80px)', left: '60px' }}></div>
+                )}
+                
+                <div className="relative z-10 flex flex-col items-center text-center bg-background p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-6 border-4 border-primary/20">
+                    <step.icon className="w-10 h-10 text-primary" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                    {step.step}
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-3">{step.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =======================================================================
+          PROGRAM OVERVIEW SECTION (REVERTED TO ORIGINAL, FUNCTIONAL CODE)
+      ======================================================================= */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-card/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4">Discover Your Path</Badge>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              Personalized <span className="text-primary">Wellness Programs</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+              Transform your life through ancient wisdom with modern web-based tools. 
+              Start with our foundational programs designed for today's busy lifestyle.
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading programs...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {programs.map((program, index) => {
+                const isPopular = program.duration_days === 49;
+                const transformationImage = getTransformationImage(program.duration_days);
+                
+                return (
+                  <Card 
+                    key={program.id} 
+                    className={`border-0 shadow-lg bg-background hover:shadow-xl transition-all duration-300 overflow-hidden relative ${
+                      isPopular ? 'border-2 border-primary' : ''
+                    }`}
+                  >
+                  {isPopular && (
+                    <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-20">
+                      <Badge className="bg-primary text-primary-foreground px-4 py-1 rounded-full font-semibold flex items-center justify-center gap-2 text-sm whitespace-nowrap shadow-md">
+                        <Star className="w-4 h-4 fill-current" />
+                        Most Popular
+                        <Star className="w-4 h-4 fill-current" />
+                      </Badge>
+                    </div>
+                  )}
+                    
+                    <div className={`bg-gradient-to-br p-6 ${
+                      program.duration_days === 21 ? 'from-green-50 to-green-100' :
+                      program.duration_days === 49 ? 'from-blue-50 to-blue-100' :
+                      'from-purple-50 to-purple-100'
+                    }`}>
+                      {transformationImage && (
+                        <div className="mb-4">
+                          <img 
+                            src={transformationImage} 
+                            alt={`${program.name} transformation`} 
+                            className="w-full aspect-square object-cover rounded-lg border border-gray-200"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="text-center">
+                        <h3 className="text-xl font-bold text-foreground mb-2">{program.name}</h3>
+                        <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
+                        
+                        {/* Enhanced Pricing with Discount Display for Maximum Conversion */}
+                        <div className="space-y-3 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 border border-primary/20">
+                          {pricingConfig.discountPercentage > 0 && pricingConfig.isSpecialOccasion && (
+                            <Badge className="bg-red-500 text-white hover:bg-red-600 text-xs font-bold mx-auto">
+                              🔥 {pricingConfig.occasionName} - {pricingConfig.discountPercentage}% OFF!
+                            </Badge>
+                          )}
+                          
+                          {(() => {
+                            const originalPrice = isIndiaUser ? program.price_inr : program.price;
+                            const currency = isIndiaUser ? 'INR' : 'USD';
+                            const pricing = calculatePricing(
+                              originalPrice,
+                              pricingConfig.discountPercentage,
+                              0, // No tax on landing page for simplicity
+                              0  // No coupon on landing page
+                            );
+                            
+                            return (
+                              <div className="text-center">
+                                {pricingConfig.discountPercentage > 0 ? (
+                                  <div className="space-y-2">
+                                    {/* Original Price - Struck Through */}
+                                    <div className="text-xl line-through text-muted-foreground/70 font-medium">
+                                      {formatCurrency(originalPrice, currency)}
+                                    </div>
+                                    
+                                    {/* Discounted Price - Very Prominent */}
+                                    <div className="text-4xl font-bold text-primary bg-white/80 rounded-lg py-2 px-4 shadow-sm">
+                                      {formatCurrency(pricing.discountedPrice, currency)}
+                                    </div>
+                                    
+                                    {/* Savings Badge */}
+                                    <div className="inline-flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-bold">
+                                      💰 Save {formatCurrency(pricing.discountAmount, currency)} Today!
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-4xl font-bold text-primary bg-white/80 rounded-lg py-2 px-4 shadow-sm">
+                                    {formatCurrency(originalPrice, currency)}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                          
+                          <div className="text-center">
+                            <div className="text-sm text-muted-foreground font-medium">{program.duration_days} days program</div>
+                            {pricingConfig.discountPercentage > 0 && (
+                              <div className="text-xs text-orange-600 font-bold mt-1 animate-pulse">
+                                ⏰ Limited Time Offer!
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <CardContent className="p-6">
+                      <div className="space-y-6">
+                        <div>
+                          <h4 className="font-semibold text-foreground mb-3 flex items-center">
+                            <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            What's Included
+                          </h4>
+                          <ul className="text-sm text-muted-foreground space-y-2">
+                            {program.features.map((feature, idx) => {
+                              const highlightedFeature = feature
+                                .replace(/(\d+[\s-]*(?:Day|Days|Minute|Minutes|Hour|Hours))/gi, '<strong>$1</strong>')
+                                .replace(/(Daily|Morning|Evening|Weekly|Monthly|Guided|Personal|Complete|Ultimate|Premium|Advanced|Basic|Fundamental)/gi, '<strong>$1</strong>')
+                                .replace(/(Yoga|Meditation|Diet|Recipes|Routine|Plan|Tracker|Community)/gi, '<strong>$1</strong>')
+                                .replace(/(Foundational|Yogic|Wisdom|Level|Intermediate|Yogic|Science|2|1|3|Mastery)/gi, '<strong>$1</strong>')
+                                .replace(/(Vibrant|Motivating|Holistic|Satvic|Protocol|Prescriptive|Lifestyle)/gi, '<strong>$1</strong>');
+                              return (
+                                <li key={idx} className="flex items-start">
+                                  <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                                  <span dangerouslySetInnerHTML={{ __html: highlightedFeature }} />
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                        
+                        <div>
+                          <h4 className="font-semibold text-foreground mb-3 flex items-center">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                            Benefits You'll Get
+                          </h4>
+                          <ul className="text-sm text-muted-foreground space-y-2">
+                            {program.benefits.map((benefit, idx) => {
+                              const keywords = [
+                                'Mental', 'Physical', 'Emotional', 'Spiritual', 'Health', 'Wellness', 'Energy', 'Strength',
+                                'Flexibility', 'Balance', 'Focus', 'Clarity', 'Peace', 'Calm', 'Confidence', 'Vitality',
+                                'Recovery', 'Improved', 'Enhanced', 'Increased', 'Reduced', 'Better', 'Optimal', 'Maximum',
+                                'Complete', 'Total', 'Deep', 'Profound', 'Significant', 'dramatically', 'significantly',
+                                'substantially', 'Calmness', 'Restorative', 'Sleep', 'Sharpened', 'Awakened', 'Vibrant',
+                                'Active', 'Body', 'Initial', 'Hormonal', 'Harmony', 'Bloating', 'Digestion', 'Measurable',
+                                'Leap', 'Rooted', 'Optimized', 'Cycles', 'Cognitive', 'Function', 'Weight', 'Correction',
+                                'regular', 'cycles', 'PMS', 'calmer', 'nervous', 'system', 'lowering', 'cortisol', 'Alleviation',
+                                'Chronic', 'Aches', 'Exuberant', 'Joyful', 'Being', 'Embodying', 'True', 'Confident', 'Metabolic',
+                                'Healing', 'Mastery', 'Over', 'Form', 'Recomposition', 'Superconscious', 'Intuition', 'Peak',
+                                'Performance', 'Unshakeable', 'Inner', 'Bliss', 'Energetic', 'Realignment'
+                              ];
+                              const highlightRegex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
+                              const highlightedBenefit = benefit.replace(highlightRegex, (match) => {
+                                return `<strong>${match}</strong>`;
+                              });
+                              return (
+                                <li key={idx} className="flex items-start">
+                                  <Check className="w-4 h-4 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                                  <span dangerouslySetInnerHTML={{ __html: highlightedBenefit }} />
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                        
+                        <Button 
+                          onClick={handleSignup}
+                          className={`w-full font-semibold py-2 px-4 rounded-lg ${
+                            isPopular 
+                              ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
+                              : program.duration_days === 21
+                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              : 'bg-purple-600 hover:bg-purple-700 text-white'
+                          }`}
+                        >
+                          Get Started
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+          
+          {/* Group Discount Calculator */}
+          {!loading && programs.length > 0 && (
+            <div className="mt-16">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
+                  🎯 Bring Friends & Save Even More!
+                </h3>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Get progressive discounts when you start a group purchase. The more friends, the bigger your savings!
+                </p>
+              </div>
+              <div className="max-w-lg mx-auto">
+                <GroupDiscountCalculator
+                  basePrice={isIndiaUser ? programs[0]?.price_inr || 0 : programs[0]?.price || 0}
+                  currency={isIndiaUser ? 'INR' : 'USD'}
+                  onStartGroup={() => navigate('/signup')}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* =======================================================================
+          EXCLUSIVE MEMBER BENEFITS SECTION
+      ======================================================================= */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-primary/10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Users className="w-16 h-16 text-primary mx-auto mb-4" />
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+            Join Our <span className="text-primary">Exclusive Community</span> Today!
+          </h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Get instant access to our supportive community, nourishing and tasty recipes, guided meditation sessions, and simple and comprehensive yoga practices to transform your wellness journey.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-background p-6 rounded-xl shadow-lg">
+              <ChefHat className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Healthy Recipes</h3>
+              <p className="text-sm text-muted-foreground">Access to nutritious, easy-to-follow and tasty recipes for every meal</p>
+            </div>
+            <div className="bg-background p-6 rounded-xl shadow-lg">
+              <Heart className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Guided Meditation</h3>
+              <p className="text-sm text-muted-foreground">Fuel your day with empowering, energy-boosting meditation.</p>
+            </div>
+            <div className="bg-background p-6 rounded-xl shadow-lg">
+              <Zap className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h3 className="font-semibold mb-2">Guided Yoga</h3>
+              <p className="text-sm text-muted-foreground">Simple and step-by-step yoga practices for all levels and abilities</p>
+            </div>
+          </div>
+          <Button
+            size="lg"
+            onClick={handleSignup}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+          >
+            Join Our Community
+            <ArrowRight className="w-6 h-6 ml-2" />
+          </Button>
+        </div>
+      </section>
+
+      {/* =======================================================================
+          FAQ SECTION (NEW)
+      ======================================================================= */}
+      <section className="py-16 sm:py-20 lg:py-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+             <HelpCircle className="w-12 h-12 text-primary mx-auto mb-4" />
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              We have answers. If you have other questions, feel free to contact us.
+            </p>
+          </div>
+          <Accordion type="single" collapsible className="w-full">
+            {faqData.map((faq, index) => (
+              <AccordionItem key={index} value={`item-${index}`}>
+                <AccordionTrigger className="text-lg font-semibold text-left">{faq.question}</AccordionTrigger>
+                <AccordionContent className="text-base text-muted-foreground">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
+      {/* =======================================================================
+          FINAL CTA SECTION (Enhanced)
+      ======================================================================= */}
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Sparkles className="w-16 h-16 text-primary mx-auto mb-6" />
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            Your Transformation Awaits.
+          </h2>
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            You are one decision away from a more vibrant, peaceful, and energized life. Why wait another day to feel your best?
+          </p>
+          
+          <div className="flex flex-col gap-4 justify-center items-center">
+              <Button
+                size="lg"
+                onClick={handleSignup}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-6 text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              >
+                Start My Journey Today
+                <ArrowRight className="w-6 h-6 ml-2" />
+              </Button>
+              <div className="flex items-center text-sm text-muted-foreground">
+                <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
+                Become the best version of yourself
+              </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =======================================================================
+          FOOTER SECTION (REVERTED TO ORIGINAL)
+      ======================================================================= */}
+      <footer className="bg-white border-t border-slate-200">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            {/* Logo/Brand */}
+            <div className="flex items-center space-x-2">
+              <img 
+                src={IMAGES.LOGO_MAIN} 
+                alt="Yogi Logo" 
+                className="h-8 w-auto"
+              />
+              <span className="text-slate-400 text-sm">Copyright © 2025 Yogi Care
+
+All rights reserved. No part of this application may be reproduced, distributed, or transmitted in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of Yogi Care, except in the case of brief quotations embodied in critical reviews and certain other noncommercial uses permitted by copyright law.
+
+Yogi™ is a trademark of Yogi Care.</span>
+            </div>
+
+            {/* Legal Links - Horizontal Layout */}
+            <div className="flex flex-wrap justify-center md:justify-end items-center space-x-6 text-sm text-slate-400">
+              <Link to="/privacy-policy" className="hover:text-slate-600 transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/terms-and-conditions" className="hover:text-slate-600 transition-colors">
+                Terms & Conditions
+              </Link>
+              <Link to="/cancellations-refunds" className="hover:text-slate-600 transition-colors">
+                Cancellations & Refunds
+              </Link>
+              <Link to="/contact" className="hover:text-slate-600 transition-colors">
+                Contact Us
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+      
+      {/* Conversion Optimization Components */}
+      <LiveActivityFeed />
+      <ExitIntentPopup onSignup={handleSignup} />
+    </div>
+  );
+};
+
+export default Landing;
