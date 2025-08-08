@@ -1,4 +1,5 @@
 import React from 'react';
+import Layout from '@/components/Layout';
 import LegalHeader from '@/components/legal/LegalHeader';
 import LegalLayout from '@/components/legal/LegalLayout';
 import LegalSection from '@/components/legal/LegalSection';
