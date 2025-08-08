@@ -7,6 +7,7 @@ import ContentContainer from '@/components/ContentContainer';
 import LoginHeader from '@/components/auth/LoginHeader';
 import LoginForm from '@/components/auth/LoginForm';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
+import AppleLoginButton from '@/components/auth/AppleLoginButton';
 import WellnessCarousel from '@/components/auth/WellnessCarousel';
 import TestimonialsCarousel from '@/components/auth/TestimonialsCarousel';
 import { TrustBadges } from '@/components/conversion/TrustBadges';
@@ -155,7 +156,10 @@ const Login = () => {
                         </div>
                       </div>
 
-                      <GoogleLoginButton isLoading={isLoading} setIsLoading={setIsLoading} />
+                      <div className="space-y-3">
+                        <GoogleLoginButton isLoading={isLoading} setIsLoading={setIsLoading} />
+                        <AppleLoginButton isLoading={isLoading} setIsLoading={setIsLoading} />
+                      </div>
 
                       {/* Security Assurance */}
                       <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
