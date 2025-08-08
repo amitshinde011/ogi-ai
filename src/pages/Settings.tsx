@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, Shield, HelpCircle, LogOut, FileText, Scale, KeyRound } from 'lucide-react';
+import { User, Shield, HelpCircle, LogOut, FileText, Scale, KeyRound, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Layout from '@/components/Layout';
 import { PageContainer } from '@/components/Layout/PageContainer';
@@ -9,6 +9,7 @@ import Header from '@/components/Header';
 import ProfileCard from '@/components/settings/ProfileCard';
 import SubscriptionHistoryCard from '@/components/settings/SubscriptionHistoryCard';
 import SettingsSection from '@/components/settings/SettingsSection';
+import DeleteAccountModal from '@/components/settings/DeleteAccountModal';
 
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +32,7 @@ const Settings = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const { userProfile, userSubscriptions, loading } = useUserData();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   // Transform user data for the profile card
   const transformedProfile = userProfile && user ? {
@@ -180,6 +182,27 @@ const Settings = () => {
           />
         ))}
 
+        {/* Danger Zone */}
+        <div className="space-y-3">
+          <h4 className="font-bold text-lg text-slate-900 px-1">Danger Zone</h4>
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6 space-y-4">
+            <div className="space-y-2">
+              <h5 className="font-semibold text-red-900">Delete Account</h5>
+              <p className="text-sm text-red-700">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+            </div>
+            <Button
+              onClick={() => setIsDeleteModalOpen(true)}
+              variant="destructive"
+              className="w-full h-12 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <Trash2 size={18} className="mr-3" />
+              Delete Account
+            </Button>
+          </div>
+        </div>
+
         {/* Logout Button */}
         <Button
           onClick={handleLogout}
@@ -199,6 +222,12 @@ const Settings = () => {
           </div>
         </PageContainer>
       </div>
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      />
     </Layout>
   );
 };

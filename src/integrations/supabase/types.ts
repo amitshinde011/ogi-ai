@@ -1457,6 +1457,10 @@ export type Database = {
           active_days: number
         }[]
       }
+      delete_user_account: {
+        Args: { target_user_id: string }
+        Returns: Json
+      }
       expire_old_group_purchases: {
         Args: Record<PropertyKey, never>
         Returns: undefined
