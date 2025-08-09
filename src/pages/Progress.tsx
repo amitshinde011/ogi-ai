@@ -104,21 +104,23 @@ const ProgressPage = () => {
 
       if (!subscriptions) return;
 
-      const programsData: ProgramData[] = subscriptions.map(sub => {
-        const { totalDays, daysCompleted, progressPercentage, isCompleted } = 
-          calculateProgramProgress(sub.start_date, sub.end_date);
+const programsData: ProgramData[] = subscriptions.map((sub: any) => {
+  const { totalDays, daysCompleted, progressPercentage } = 
+    calculateProgramProgress(sub.start_date, sub.end_date);
 
-        return {
-          id: sub.id,
-          name: sub.programs?.name || 'Unknown Program',
-          duration_days: sub.programs?.duration_days || totalDays,
-          start_date: sub.start_date,
-          end_date: sub.end_date,
-          status: sub.status,
-          progress_percentage: progressPercentage,
-          days_completed: daysCompleted
-        };
-      });
+  const programInfo = Array.isArray(sub.programs) ? sub.programs[0] : sub.programs;
+
+  return {
+    id: sub.id,
+    name: programInfo?.name ?? 'Unknown Program',
+    duration_days: programInfo?.duration_days ?? totalDays,
+    start_date: sub.start_date,
+    end_date: sub.end_date,
+    status: sub.status,
+    progress_percentage: progressPercentage,
+    days_completed: daysCompleted
+  } as ProgramData;
+});
 
       // Separate current and historical programs
       const current = programsData.find(p => {
