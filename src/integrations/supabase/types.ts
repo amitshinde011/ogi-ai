@@ -67,13 +67,6 @@ export type Database = {
             foreignKeyName: "assessment_comparisons_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
-            referencedRelation: "user_program_summary"
-            referencedColumns: ["subscription_id"]
-          },
-          {
-            foreignKeyName: "assessment_comparisons_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
             referencedRelation: "user_subscriptions"
             referencedColumns: ["id"]
           },
@@ -123,21 +116,7 @@ export type Database = {
             foreignKeyName: "automation_activity_log_target_post_id_fkey"
             columns: ["target_post_id"]
             isOneToOne: false
-            referencedRelation: "community_feed_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_activity_log_target_post_id_fkey"
-            columns: ["target_post_id"]
-            isOneToOne: false
             referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_activity_log_target_post_id_fkey"
-            columns: ["target_post_id"]
-            isOneToOne: false
-            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -305,21 +284,7 @@ export type Database = {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "community_feed_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
             referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -481,13 +446,6 @@ export type Database = {
           walk_10km_comfort?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "final_assessments_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
-            referencedRelation: "user_program_summary"
-            referencedColumns: ["subscription_id"]
-          },
           {
             foreignKeyName: "final_assessments_subscription_id_fkey"
             columns: ["subscription_id"]
@@ -661,13 +619,6 @@ export type Database = {
             foreignKeyName: "journey_assessments_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
-            referencedRelation: "user_program_summary"
-            referencedColumns: ["subscription_id"]
-          },
-          {
-            foreignKeyName: "journey_assessments_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
             referencedRelation: "user_subscriptions"
             referencedColumns: ["id"]
           },
@@ -694,21 +645,7 @@ export type Database = {
             foreignKeyName: "likes_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "community_feed_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
             referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -891,21 +828,7 @@ export type Database = {
             foreignKeyName: "post_reports_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "community_feed_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "post_reports_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
             referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "post_reports_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -1285,95 +1208,7 @@ export type Database = {
       }
     }
     Views: {
-      community_feed_view: {
-        Row: {
-          author_avatar: string | null
-          author_id: string | null
-          author_name: string | null
-          caption: string | null
-          category: string | null
-          comment_count: number | null
-          created_at: string | null
-          id: number | null
-          image_url: string | null
-          is_reported: boolean | null
-          like_count: number | null
-          report_count: number | null
-          report_threshold_reached: boolean | null
-        }
-        Relationships: []
-      }
-      daily_activity_summary: {
-        Row: {
-          date: string | null
-          has_breakfast: boolean | null
-          has_dinner: boolean | null
-          has_kanji: boolean | null
-          has_lunch: boolean | null
-          has_salad_bowl: boolean | null
-          last_updated: string | null
-          meals_logged: number | null
-          meditation_completed: boolean | null
-          steps_count: number | null
-          surya_namaskar_count: number | null
-          user_id: string | null
-          walk_score: number | null
-          water_litres: number | null
-        }
-        Relationships: []
-      }
-      posts_with_author: {
-        Row: {
-          author_avatar: string | null
-          author_id: string | null
-          author_name: string | null
-          caption: string | null
-          category: string | null
-          comment_count: number | null
-          created_at: string | null
-          id: number | null
-          image_url: string | null
-          is_reported: boolean | null
-          like_count: number | null
-          report_count: number | null
-          report_threshold_reached: boolean | null
-        }
-        Relationships: []
-      }
-      user_program_summary: {
-        Row: {
-          days_completed: number | null
-          duration_days: number | null
-          end_date: string | null
-          is_completed: boolean | null
-          is_current: boolean | null
-          last_updated: string | null
-          program_name: string | null
-          progress_percentage: number | null
-          start_date: string | null
-          status: string | null
-          subscription_id: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      weekly_progress_summary: {
-        Row: {
-          avg_steps: number | null
-          avg_water: number | null
-          days_tracked: number | null
-          days_with_meals: number | null
-          last_updated: string | null
-          meditation_days: number | null
-          step_goal_days: number | null
-          total_steps: number | null
-          total_water: number | null
-          user_id: string | null
-          week_start: string | null
-          yoga_days: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_user_streaks: {
