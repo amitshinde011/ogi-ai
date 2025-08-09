@@ -122,13 +122,7 @@ export const useOptimizedProgressData = () => {
 
   const fetchOptimizedWeeklyData = async (userId: string): Promise<WeeklyProgressData> => {
     try {
-      // First refresh materialized views to get latest data including today
-      try {
-        await supabase.rpc('refresh_materialized_views');
-        console.log('✅ Progress Weekly: Materialized views refreshed');
-      } catch (refreshError) {
-        console.warn('⚠️ Progress Weekly: Failed to refresh materialized views:', refreshError);
-      }
+      // Skipping refresh_materialized_views RPC to avoid 404s and reduce latency
 
       // Get daily activity data for the current week (last 7 days)
       const today = new Date();

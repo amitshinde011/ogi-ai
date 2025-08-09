@@ -101,12 +101,7 @@ export const useOptimizedHomeData = () => {
         return getLocalDateString(date);
       });
 
-      try {
-        await supabase.rpc('refresh_materialized_views');
-        console.log('✅ useOptimizedHomeData: Materialized views refreshed');
-      } catch (refreshError) {
-        console.warn('⚠️ useOptimizedHomeData: Failed to refresh materialized views:', refreshError);
-      }
+      // Skipping refresh_materialized_views RPC to avoid 404s and reduce latency
 
       const { data: optimizedData, error: rpcError } = await supabase.rpc('get_home_data', {
         p_user_id: user.id,
