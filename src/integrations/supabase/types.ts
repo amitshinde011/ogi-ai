@@ -357,7 +357,48 @@ export type Database = {
           },
         ]
       }
+      conversation_participants_v2: {
+        Row: {
+          conversation_id: string
+          joined_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          joined_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          joined_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_v2_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations_v2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      conversations_v2: {
         Row: {
           created_at: string | null
           id: string
@@ -536,6 +577,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      followers_v2: {
+        Row: {
+          created_at: string | null
+          follower_user_id: string
+          following_user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follower_user_id: string
+          following_user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          follower_user_id?: string
+          following_user_id?: string
+        }
+        Relationships: []
       }
       group_purchase_participants: {
         Row: {
@@ -807,6 +866,38 @@ export type Database = {
           },
         ]
       }
+      messages_v2: {
+        Row: {
+          conversation_id: string
+          created_at: string | null
+          id: string
+          message_text: string
+          sender_user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          message_text: string
+          sender_user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          message_text?: string
+          sender_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_v2_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations_v2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -851,6 +942,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications_v2: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          post_id: number | null
+          recipient_user_id: string
+          sender_user_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          post_id?: number | null
+          recipient_user_id: string
+          sender_user_id: string
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          post_id?: number | null
+          recipient_user_id?: string
+          sender_user_id?: string
+          type?: string
+        }
+        Relationships: []
       }
       orders: {
         Row: {
