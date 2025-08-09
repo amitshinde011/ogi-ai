@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileUser {
   id: string;
+  user_id: string;
   name: string | null;
   profile_photo_url: string | null;
 }
@@ -57,70 +58,69 @@ export const useFollowers = () => {
     }
   };
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (profileId: string) => {
     try {
       setLoading(true);
 
-      // Fetch user profile
+      // Fetch user profile (need auth user_id for v2 tables)
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
-        .select('id, name, profile_photo_url')
-        .eq('id', userId)
+        .select('id, user_id, name, profile_photo_url')
+        .eq('id', profileId)
         .single();
 
       if (profileError) throw profileError;
-      setProfileUser(profile);
+      setProfileUser(profile as ProfileUser);
 
-      // Fetch user posts using the new posts table
+      const targetAuthUserId = profile.user_id;
+
+      // Fetch user posts authored by this auth user
       const { data: posts, error: postsError } = await supabase
         .from('posts')
         .select('*')
-        .eq('author_id', userId)
+        .eq('author_id', targetAuthUserId)
         .order('created_at', { ascending: false });
 
       if (postsError) throw postsError;
 
-      // Get author profiles for posts
-      const { data: profiles } = await supabase
+      // Fetch author profile once for enrichment
+      const { data: authorProfile } = await supabase
         .from('user_profiles')
         .select('user_id, name, profile_photo_url')
-        .eq('user_id', userId);
+        .eq('user_id', targetAuthUserId)
+        .maybeSingle();
 
-      const postsWithAuthors = posts?.map(post => ({
+      const postsWithAuthors = (posts || []).map(post => ({
         ...post,
-        author: profiles?.find(profile => profile.user_id === post.author_id) || {
+        author: authorProfile || {
           name: 'Anonymous User',
           profile_photo_url: null
         }
-      })) || [];
+      }));
 
       setUserPosts(postsWithAuthors);
 
-      // Fetch follower count
+      // Followers (v2) counts using auth user IDs
       const { count: followers } = await supabase
-        .from('followers')
+        .from('followers_v2')
         .select('*', { count: 'exact', head: true })
-        .eq('following_id', userId);
-
+        .eq('following_user_id', targetAuthUserId);
       setFollowerCount(followers || 0);
 
-      // Fetch following count
       const { count: following } = await supabase
-        .from('followers')
+        .from('followers_v2')
         .select('*', { count: 'exact', head: true })
-        .eq('follower_id', userId);
-
+        .eq('follower_user_id', targetAuthUserId);
       setFollowingCount(following || 0);
 
-      // Check if current user follows this user
-      if (currentUser) {
+      // Is current user following this profile? (auth IDs)
+      if (currentUser?.user_id) {
         const { data: followData } = await supabase
-          .from('followers')
+          .from('followers_v2')
           .select('*')
-          .eq('follower_id', currentUser.id)
-          .eq('following_id', userId)
-          .single();
-
+          .eq('follower_user_id', currentUser.user_id)
+          .eq('following_user_id', targetAuthUserId)
+          .maybeSingle();
         setIsFollowing(!!followData);
       }
 
@@ -132,7 +132,7 @@ export const useFollowers = () => {
     }
   };
 
-  const toggleFollow = async (userId: string) => {
+  const toggleFollow = async (authUserId: string) => {
     if (!currentUser) {
       toast({ title: "Please log in to follow users", variant: "destructive" });
       return;
@@ -142,21 +142,21 @@ export const useFollowers = () => {
       if (isFollowing) {
         // Unfollow
         await supabase
-          .from('followers')
+          .from('followers_v2')
           .delete()
-          .eq('follower_id', currentUser.id)
-          .eq('following_id', userId);
+          .eq('follower_user_id', currentUser.user_id)
+          .eq('following_user_id', authUserId);
 
         setIsFollowing(false);
-        setFollowerCount(prev => prev - 1);
+        setFollowerCount(prev => Math.max(0, prev - 1));
         toast({ title: "Unfollowed user" });
       } else {
         // Follow
         await supabase
-          .from('followers')
+          .from('followers_v2')
           .insert({
-            follower_id: currentUser.id,
-            following_id: userId
+            follower_user_id: currentUser.user_id,
+            following_user_id: authUserId
           });
 
         setIsFollowing(true);
