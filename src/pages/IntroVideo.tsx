@@ -26,6 +26,8 @@ const IntroVideo = () => {
     allVideosWatched
   } = useVideoWatchedPersistence();
 
+  const [canContinue, setCanContinue] = useState(false);
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
@@ -40,6 +42,7 @@ const IntroVideo = () => {
 
   const handleVideoComplete = useCallback(() => {
     trackVideoComplete('Intro Video Sequence');
+    setCanContinue(true);
     toast({
       title: "All Videos Completed!",
       description: "You have completed the sacred video sequence. You can now proceed to the next step.",
@@ -99,7 +102,7 @@ const IntroVideo = () => {
             />
             <VideoInstructions />
             <ContinueSection 
-              videoWatched={allVideosWatched}
+              videoWatched={canContinue}
               onContinue={handleContinue}
             />
           </CardContent>
