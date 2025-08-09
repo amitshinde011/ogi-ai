@@ -120,19 +120,36 @@ export class DataService {
     return data;
   }
 
-  // Home data operations - consolidated
+  // Home data operations - consolidated (RPC removed)
   static async getHomeData(userId: string, date: string) {
     try {
-      const { data, error } = await supabase
-        .rpc('get_home_data', {
-          p_user_id: userId,
-          p_date: date
-        });
-      
-      if (error) throw error;
-      return data?.[0] || null;
+      const [mealsRes, wellnessRes, stepsRes] = await Promise.all([
+        supabase.from('meal_tracking').select('meal_type').eq('user_id', userId).eq('date', date),
+        supabase.from('daily_wellness').select('water_litres, surya_namaskar_count, meditation_completed').eq('user_id', userId).eq('date', date).maybeSingle(),
+        supabase.from('steps_tracking').select('steps_count').eq('user_id', userId).eq('date', date).maybeSingle(),
+      ]);
+
+      const mealTypes = new Set((mealsRes.data || []).map(m => (m.meal_type || '').toLowerCase()));
+      const stepsCount = stepsRes?.data?.steps_count || 0;
+      const water = wellnessRes.data?.water_litres || 0;
+      const snCount = wellnessRes.data?.surya_namaskar_count || 0;
+      const meditation = wellnessRes.data?.meditation_completed || false;
+
+      return {
+        meals_logged: mealsRes.data?.length || 0,
+        water_litres: water,
+        surya_namaskar_count: snCount,
+        meditation_completed: meditation,
+        steps_count: stepsCount,
+        walk_score: Math.min(Math.floor((stepsCount / 5000) * 5), 5),
+        has_breakfast: mealTypes.has('breakfast'),
+        has_lunch: mealTypes.has('lunch'),
+        has_dinner: mealTypes.has('dinner'),
+        has_salad_bowl: false,
+        has_kanji: false,
+      } as any;
     } catch (error) {
-      console.error('Error fetching home data:', error);
+      console.error('Error fetching home data (direct queries):', error);
       return null;
     }
   }
