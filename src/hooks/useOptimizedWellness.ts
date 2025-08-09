@@ -139,6 +139,16 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
             surya_namaskar_count: result.surya_namaskar_count,
             meditation_completed: result.meditation_completed
           }));
+
+          // Notify the app so other pages refresh immediately
+          window.dispatchEvent(new CustomEvent('wellnessUpdated', {
+            detail: {
+              water_litres: result.water_litres,
+              surya_namaskar_count: result.surya_namaskar_count,
+              meditation_completed: result.meditation_completed,
+            }
+          }));
+
           trackEvent('wellness_upsert_success', 'Wellness', 'Optimized Upsert');
         }
 
