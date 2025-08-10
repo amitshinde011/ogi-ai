@@ -137,8 +137,8 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
         console.log('Program completed but final assessment not done, redirecting to program complete');
         return '/program-complete';
       } else {
-        console.log('Program completed and final assessment done, redirecting to subscriptions');
-        return '/subscriptions?completed=true';
+        console.log('Program completed and final assessment done, redirecting to progress');
+        return '/progress';
       }
     }
 

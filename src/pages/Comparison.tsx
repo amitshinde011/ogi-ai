@@ -55,13 +55,13 @@ const Comparison = () => {
           .from('user_subscriptions')
           .select('id')
           .eq('user_id', user.id)
-          .eq('status', 'active')
+          .in('status', ['active', 'completed'])
           .lte('end_date', today)
           .maybeSingle();
 
         if (!subscription) {
-          console.log('No completed program found, redirecting to home');
-          navigate('/home');
+          console.log('No completed program found, redirecting to progress');
+          navigate('/progress');
           return;
         }
 
@@ -83,7 +83,7 @@ const Comparison = () => {
         await fetchAssessments();
       } catch (error) {
         console.error('Error checking access:', error);
-        navigate('/home');
+        navigate('/progress');
       }
     };
 
@@ -288,7 +288,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
         }
         
         setTimeout(() => {
-          navigate('/subscriptions?completed=true');
+          navigate('/progress');
         }, 2000);
       }
     } catch (error) {
@@ -308,7 +308,7 @@ Before vs After Progress - Your dedication and consistency can create amazing re
       await markSubscriptionCompleted(completedSubscription.id);
     }
     
-    navigate('/subscriptions?completed=true');
+    navigate('/progress');
   };
 
   const comfortLevelMap: { [key: string]: { label: string; color: string } } = {
