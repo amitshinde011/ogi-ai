@@ -129,6 +129,11 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
       }
     }
 
+    if (!currentSubscription) {
+      console.log('No active subscription found, redirecting to progress');
+      return '/progress';
+    }
+
     console.log('Program completion:', { isCompleted, hasFinalAssessment });
 
     // Handle program completion
