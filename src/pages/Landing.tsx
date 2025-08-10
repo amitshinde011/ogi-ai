@@ -188,7 +188,7 @@ const Landing = () => {
               <TrustBadges />
               
               {/* Mobile store links */}
-              <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-4" aria-label="Download our mobile apps">
+              <div className="flex flex-wrap justify-center gap-6 md:gap-8 mt-4" aria-label="Download our mobile apps">
                 <a
                   href="#"
                   aria-label="Download on the App Store"
@@ -198,7 +198,7 @@ const Landing = () => {
                     src="/lovable-uploads/aeffdb58-6ce1-4491-b3ea-423d3a734927.png"
                     alt="Available on the App Store - Yogi Wellness app"
                     loading="lazy"
-                    className="h-20 md:h-24 lg:h-28 w-auto"
+                    className="h-24 sm:h-28 md:h-32 lg:h-36 w-auto object-contain"
                   />
                 </a>
                 <a
@@ -210,7 +210,7 @@ const Landing = () => {
                     src="/lovable-uploads/6a4ed244-7fae-421b-a24c-e6c3b51aa43c.png"
                     alt="Get it on Google Play - Yogi Wellness app"
                     loading="lazy"
-                    className="h-20 md:h-24 lg:h-28 w-auto"
+                    className="h-24 sm:h-28 md:h-32 lg:h-36 w-auto object-contain"
                   />
                 </a>
               </div>
