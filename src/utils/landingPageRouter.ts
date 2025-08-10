@@ -94,9 +94,8 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
       .select('*, programs(*)')
       .eq('user_id', user_id)
       .eq('status', 'active')
-      .or(`start_date.is.null,start_date.lte.${today}`)
-      .or(`end_date.is.null,end_date.gte.${today}`)
-      .limit(1)
+      .or('start_date.is.null,start_date.gte.' + today)
+      .or('end_date.is.null,end_date.lte.' + today)
       .maybeSingle();
 
     let isStarted = false;
