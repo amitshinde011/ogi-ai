@@ -35,13 +35,13 @@ const internationalLocations = [
 ];
 
 const activities = [
-  'started her 21-day transformation',
+  'started 21-day transformation',
   'completed day 15 of wellness journey',
   'joined the community',
   'unlocked premium recipes',
-  'shared her transformation photo',
+  'shared transformation photo',
   'started meditation practice',
-  'completed her first week',
+  'completed first week',
   'reached daily step goal',
   'logged healthy breakfast',
   'finished morning yoga session',
