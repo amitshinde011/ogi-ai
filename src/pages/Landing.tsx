@@ -198,7 +198,7 @@ const Landing = () => {
                     src="/lovable-uploads/aeffdb58-6ce1-4491-b3ea-423d3a734927.png"
                     alt="Available on the App Store - Yogi Wellness app"
                     loading="lazy"
-                    className="h-14 sm:h-18 md:h-20 lg:h-22 w-auto object-contain"
+                    className="h-12 sm:h-16 md:h-18 lg:h-20 w-auto object-contain"
                   />
                 </a>
                 <a
@@ -210,7 +210,7 @@ const Landing = () => {
                     src="/lovable-uploads/6a4ed244-7fae-421b-a24c-e6c3b51aa43c.png"
                     alt="Get it on Google Play - Yogi Wellness app"
                     loading="lazy"
-                    className="h-14 sm:h-18 md:h-20 lg:h-22 w-auto object-contain"
+                    className="h-12 sm:h-16 md:h-18 lg:h-20 w-auto object-contain"
                   />
                 </a>
               </div>
