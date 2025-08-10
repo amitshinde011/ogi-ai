@@ -17,7 +17,7 @@ const PostCompletionBanner = ({ completedProgramName }: PostCompletionBannerProp
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 md:left-64">
+    <div className="sticky top-0 z-40">
       <Card className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white shadow-lg border-0 mx-2 sm:mx-4 mt-2 sm:mt-4">
         <CardContent className="p-3 sm:p-4">
           {/* Mobile Layout - Stacked */}

@@ -104,7 +104,8 @@ const ProgramComplete = () => {
               </p>
               
               <Button 
-                className="w-full bg-gradient-sage text-white hover:opacity-90 transition-opacity"
+                className="w-full"
+                variant="default"
                 onClick={() => navigate('/final-assessment')}
               >
                 Start Final Assessment
