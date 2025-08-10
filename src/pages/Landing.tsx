@@ -87,7 +87,7 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
+    <div className="min-h-screen bg-gradient-to-b from-primary/10 via-background to-accent/10">
       {/* =======================================================================
           URGENT ANNOUNCEMENT BANNER WITH COUNTDOWN
       ======================================================================= */}
@@ -110,7 +110,7 @@ const Landing = () => {
           HERO SECTION (Conversion-Optimized)
       ======================================================================= */}
       <section className="relative py-12 sm:py-16 lg:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/5"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-accent/15 to-primary/25"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-8">
             <Badge variant="secondary" className="mx-auto bg-primary/10 text-primary border-primary/20 animate-pulse">
@@ -217,7 +217,7 @@ const Landing = () => {
       {/* =======================================================================
           PROBLEM / AGITATION SECTION (NEW)
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-card/20">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-accent/10 to-primary/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
              Tired of Feeling Stressed, Drained, and Disconnected?
@@ -237,7 +237,7 @@ const Landing = () => {
       {/* =======================================================================
           SOCIAL PROOF SECTION
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-card/50">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-primary/10 via-background to-accent/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
@@ -254,7 +254,7 @@ const Landing = () => {
       {/* =======================================================================
           REAL TRANSFORMATION STORIES SECTION 
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-card/30">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4">108 Days of Commitment</Badge>
@@ -334,7 +334,7 @@ const Landing = () => {
       {/* =======================================================================
           HOW IT WORKS SECTION (Enhanced)
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-accent/5 to-primary/5">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
@@ -595,7 +595,7 @@ const Landing = () => {
       {/* =======================================================================
           EXCLUSIVE MEMBER BENEFITS SECTION
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-primary/10">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Users className="w-16 h-16 text-primary mx-auto mb-4" />
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
@@ -635,7 +635,7 @@ const Landing = () => {
       {/* =======================================================================
           FAQ SECTION (NEW)
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-accent/5 to-primary/5">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
              <HelpCircle className="w-12 h-12 text-primary mx-auto mb-4" />
@@ -692,7 +692,7 @@ const Landing = () => {
       {/* =======================================================================
           FOOTER SECTION (REVERTED TO ORIGINAL)
       ======================================================================= */}
-      <footer className="bg-white border-t border-slate-200">
+      <footer className="bg-background border-t border-slate-200">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             {/* Logo/Brand */}
