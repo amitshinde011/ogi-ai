@@ -42,8 +42,20 @@ const Index = () => {
       };
     }
 
+    // Email auth callback: if Supabase redirected here after signup/magic link, send to /progress
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    const isEmailAuthCallback = hash.includes('type=signup') || hash.includes('type=magiclink') || hash.includes('access_token');
+    if (isEmailAuthCallback && !hasRedirected) {
+      console.log('Index: Email auth callback detected, redirecting to /progress');
+      hasRedirected = true;
+      timeoutId = setTimeout(() => {
+        navigate('/progress', { replace: true });
+      }, 100);
+      return;
+    }
+
     const handleRedirect = async () => {
-      // Prevent multiple redirects
       if (hasRedirected) {
         console.log('Redirect already handled, skipping');
         return;

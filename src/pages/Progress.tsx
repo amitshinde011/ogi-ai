@@ -43,11 +43,21 @@ const ProgressPage = () => {
   const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    const isEmailAuthCallback =
+      typeof window !== 'undefined' &&
+      ((window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('type=signup') || window.location.hash.includes('type=magiclink'))));
+
     if (authLoading) return;
+
     if (!user) {
+      if (isEmailAuthCallback) {
+        console.log('👤 Progress: Email auth callback detected, waiting for session before redirect');
+        return;
+      }
       navigate('/login');
       return;
     }
+
     fetchProgressData();
   }, [user, authLoading]);
 
