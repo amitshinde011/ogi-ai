@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import ContentContainer from '@/components/ContentContainer';
 import { IMAGES } from '@/constants/images';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
+import AppleLoginButton from '@/components/auth/AppleLoginButton';
 import { TrustBadges } from '@/components/conversion/TrustBadges';
 import { LiveActivityFeed } from '@/components/conversion/LiveActivityFeed';
 import Layout from '@/components/Layout';
@@ -18,8 +19,9 @@ import { Shield, Users, Star, Gift, CheckCircle, Zap, Heart, Target } from 'luci
 const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+const [isLoading, setIsLoading] = useState(false);
+const [googleLoading, setGoogleLoading] = useState(false);
+const [appleLoading, setAppleLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -230,22 +232,26 @@ const Signup = () => {
                         </div>
                       </div>
 
-                      {/* Google Signup (Primary CTA) */}
-                      <div className="space-y-3">
-                        <GoogleLoginButton 
-                          isLoading={googleLoading} 
-                          setIsLoading={setGoogleLoading} 
-                        />
-                        
-                        <div className="relative">
-                          <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-border"></div>
-                          </div>
-                          <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-card px-3 text-muted-foreground font-medium">Or create with email</span>
-                          </div>
-                        </div>
-                      </div>
+{/* Social Signup */}
+<div className="space-y-3">
+  <GoogleLoginButton 
+    isLoading={googleLoading} 
+    setIsLoading={setGoogleLoading} 
+  />
+  <AppleLoginButton 
+    isLoading={appleLoading} 
+    setIsLoading={setAppleLoading} 
+  />
+  
+  <div className="relative">
+    <div className="absolute inset-0 flex items-center">
+      <div className="w-full border-t border-border"></div>
+    </div>
+    <div className="relative flex justify-center text-xs uppercase">
+      <span className="bg-card px-3 text-muted-foreground font-medium">Or create with email</span>
+    </div>
+  </div>
+</div>
 
                       <form onSubmit={handleSignup} className="space-y-4">
                         <div>
