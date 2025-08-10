@@ -88,7 +88,7 @@ const Payment = () => {
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="text-center">
           <Loader size="lg" />
-          <p className="mt-4 text-lg font-medium">Redirecting to your intro video...</p>
+          <p className="mt-4 text-lg font-medium">Redirecting to your profile setup...</p>
         </div>
       </div>
     );
@@ -122,6 +122,7 @@ const Payment = () => {
       // Reset onboarding state for new subscription - all sequences restart
       await updateOnboardingState({ 
         subscription_selected: true,
+        profile_completed: false,
         intro_video_watched: false,
         before_assessment_completed: false,
         journey_started: false
@@ -135,7 +136,7 @@ const Payment = () => {
         description: `You've successfully subscribed to ${program.name}`,
       });
 
-      navigate('/intro-video');
+      navigate('/profile-setup');
     } catch (error) {
       console.error('Payment verification error:', error);
       setPaymentSuccess(false);
@@ -190,6 +191,7 @@ const Payment = () => {
 
         await updateOnboardingState({ 
           subscription_selected: true,
+          profile_completed: false,
           intro_video_watched: false,
           before_assessment_completed: false,
           journey_started: false
@@ -204,7 +206,7 @@ const Payment = () => {
         });
 
         setPaymentSuccess(true);
-        setTimeout(() => navigate('/intro-video'), 500);
+        setTimeout(() => navigate('/profile-setup'), 500);
         return;
       }
 

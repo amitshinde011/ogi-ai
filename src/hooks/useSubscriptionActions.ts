@@ -86,6 +86,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
 
       await updateOnboardingState({ 
         subscription_selected: true,
+        profile_completed: false,
         intro_video_watched: false,
         before_assessment_completed: false,
         journey_started: false
@@ -99,7 +100,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
         description: `You've successfully got free access to ${program.name}`,
       });
 
-      navigate('/');
+      navigate('/profile-setup');
     } catch (error) {
       console.error('Error creating free subscription:', error);
       toast({
