@@ -35,19 +35,19 @@ const Settings = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   // Transform user data for the profile card
-  const transformedProfile = userProfile && user ? {
+  const transformedProfile = user ? {
     id: user.id,
-    name: userProfile.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-    email: user.email,
-    avatar: userProfile.profile_photo_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`,
-    age: userProfile.age,
-    gender: userProfile.gender,
-    weight: userProfile.weight,
-    height: userProfile.height,
-    health_issues: userProfile.health_issues,
-    physical_activity_basic: userProfile.physical_activity_basic,
-    physical_activity_medium: userProfile.physical_activity_medium,
-    physical_activity_intense: userProfile.physical_activity_intense
+    name: userProfile?.name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+    email: user.email || '',
+    avatar: userProfile?.profile_photo_url || user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`,
+    age: userProfile?.age,
+    gender: userProfile?.gender,
+    weight: userProfile?.weight,
+    height: userProfile?.height,
+    health_issues: userProfile?.health_issues,
+    physical_activity_basic: userProfile?.physical_activity_basic,
+    physical_activity_medium: userProfile?.physical_activity_medium,
+    physical_activity_intense: userProfile?.physical_activity_intense
   } : null;
 
   // Transform subscription data for the history card
@@ -141,7 +141,7 @@ const Settings = () => {
           <Header title="Settings" />
           
           <div className="space-y-8 py-6">
-        {!userProfile ? (
+        {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader size="lg" />
           </div>
