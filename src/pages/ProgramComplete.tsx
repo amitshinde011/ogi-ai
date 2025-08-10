@@ -70,7 +70,7 @@ const ProgramComplete = () => {
       
       <div className="min-h-screen bg-gradient-peaceful py-4">
         <ContentContainer variant="legal">
-          <Card className="text-center bg-gradient-sage text-white animate-scale-in">
+          <Card className="text-center bg-white animate-scale-in">
             <CardContent className="p-8">
               <div className="flex justify-center mb-6">
                 <div className="relative">
@@ -80,7 +80,7 @@ const ProgramComplete = () => {
               </div>
               
               <h1 className="text-3xl font-bold mb-4">You Did It!</h1>
-              <p className="text-lg mb-6 text-white/90">
+              <p className="text-lg mb-6 text-secondary">
                 Congratulations on completing your wellness journey! 
                 You've made incredible progress and should be proud of your dedication.
               </p>
