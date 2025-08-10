@@ -192,7 +192,7 @@ const [appleLoading, setAppleLoading] = useState(false);
                       <div className="text-xs text-muted-foreground">Success Rate</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-primary">4.9★</div>
+                      <div className="text-2xl font-bold text-primary">4.8★</div>
                       <div className="text-xs text-muted-foreground">User Rating</div>
                     </div>
                   </div>
@@ -212,7 +212,7 @@ const [appleLoading, setAppleLoading] = useState(false);
                   <Card className="animate-fade-in shadow-2xl border-border/50 bg-card/95 backdrop-blur-sm">
                     <CardHeader className="text-center pb-4">
                       <div className="mb-4">
-                        <div className="w-20 h-20 mx-auto flex items-center justify-center mb-4">
+                        <div className="w-20 h-18 mx-auto flex items-center justify-center mb-4">
                           <img 
                             src={IMAGES.LOGO_VARIANT} 
                             alt="Yogi Logo" 
