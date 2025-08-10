@@ -122,7 +122,7 @@ export const useProfileSetup = () => {
         description: "Your profile has been successfully created.",
       });
 
-      navigate('/progress');
+      navigate('/intro-video');
     } catch (error) {
       console.error('Error creating profile:', error);
       toast({
