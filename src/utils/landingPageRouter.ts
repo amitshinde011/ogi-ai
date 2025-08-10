@@ -101,7 +101,7 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
     let isStarted = false;
     let isCompleted = false;
     let hasFinalAssessment = false;
-
+    console.log('currentSubscription :', currentSubscription);
     if (currentSubscription) {
       if (currentSubscription.start_date && currentSubscription.end_date) {
         const startDate = new Date(currentSubscription.start_date);
