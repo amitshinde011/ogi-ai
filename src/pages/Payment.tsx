@@ -22,7 +22,7 @@ const Payment = () => {
   const location = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { updateOnboardingState } = useOnboarding();
+  const { updateOnboardingState, onboardingState } = useOnboarding();
   const { trackPayment, trackEvent } = useAnalytics();
   
   const [loading, setLoading] = useState(false);
@@ -88,7 +88,7 @@ const Payment = () => {
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="text-center">
           <Loader size="lg" />
-          <p className="mt-4 text-lg font-medium">Redirecting to your profile setup...</p>
+          <p className="mt-4 text-lg font-medium">Redirecting...</p>
         </div>
       </div>
     );
@@ -122,7 +122,6 @@ const Payment = () => {
       // Reset onboarding state for new subscription - all sequences restart
       await updateOnboardingState({ 
         subscription_selected: true,
-        profile_completed: false,
         intro_video_watched: false,
         before_assessment_completed: false,
         journey_started: false
@@ -136,7 +135,8 @@ const Payment = () => {
         description: `You've successfully subscribed to ${program.name}`,
       });
 
-      navigate('/profile-setup');
+      const targetPath = onboardingState?.profile_completed ? '/' : '/profile-setup';
+      navigate(targetPath);
     } catch (error) {
       console.error('Payment verification error:', error);
       setPaymentSuccess(false);
@@ -191,7 +191,6 @@ const Payment = () => {
 
         await updateOnboardingState({ 
           subscription_selected: true,
-          profile_completed: false,
           intro_video_watched: false,
           before_assessment_completed: false,
           journey_started: false
@@ -205,8 +204,8 @@ const Payment = () => {
           description: `You've successfully got free access to ${program.name}`,
         });
 
-        setPaymentSuccess(true);
-        setTimeout(() => navigate('/profile-setup'), 500);
+        const targetPath = onboardingState?.profile_completed ? '/' : '/profile-setup';
+        setTimeout(() => navigate(targetPath), 500);
         return;
       }
 
