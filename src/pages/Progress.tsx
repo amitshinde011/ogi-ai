@@ -40,11 +40,16 @@ const ProgressPage = () => {
   const { showBanner } = useSubscriptionBanner();
   const { activityData, loading: activityLoading, refetch: refetchActivityData } = useTodayActivity();
   const { data: progressData, loading: progressLoading, refetch: refetchProgressData } = useOptimizedProgressData();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     fetchProgressData();
-  }, [user]);
+  }, [user, authLoading]);
 
   // Listen for activity updates to refresh progress data
   useEffect(() => {
@@ -79,10 +84,7 @@ const ProgressPage = () => {
 
   const fetchProgressData = async () => {
     try {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+      if (!user) return;
 
       const today = getLocalDateString();
 
