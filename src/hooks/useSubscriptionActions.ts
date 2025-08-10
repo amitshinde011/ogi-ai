@@ -99,7 +99,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
         description: `You've successfully got free access to ${program.name}`,
       });
 
-      navigate('/intro-video');
+      navigate('/');
     } catch (error) {
       console.error('Error creating free subscription:', error);
       toast({

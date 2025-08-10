@@ -62,16 +62,16 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
     const onboardingState: OnboardingState = onboardingData || {};
     console.log('Onboarding state:', onboardingState);
 
-    // Check profile completion FIRST - highest priority
-    if (!onboardingState.profile_completed) {
-      console.log('Profile not completed, redirecting to profile setup');
-      return '/profile-setup';
-    }
-
     // Check subscription selection
     if (!onboardingState.subscription_selected) {
       console.log('Subscription not selected, redirecting to progress');
       return '/progress';
+    }
+
+    // Check profile completion FIRST - highest priority
+    if (onboardingState.subscription_selected && !onboardingState.profile_completed) {
+      console.log('Profile not completed, redirecting to profile setup');
+      return '/profile-setup';
     }
 
     // Check intro video completion
