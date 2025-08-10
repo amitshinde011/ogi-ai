@@ -150,7 +150,7 @@ const ResetPassword = () => {
         <Card className="w-full animate-fade-in shadow-lg border-gray-200 bg-white">
         <CardHeader className="text-center">
           <div className="mb-4">
-            <div className="w-28 h-28 mx-auto flex items-center justify-center mb-4">
+            <div className="w-24 h-24 mx-auto flex items-center justify-center mb-4">
               <img 
                 src={IMAGES.LOGO_VARIANT} 
                 alt="Yogi Logo" 

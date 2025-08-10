@@ -11,7 +11,7 @@ const LoginHeader = ({ showVerificationMessage }: LoginHeaderProps) => {
   return (
     <>
       <div className="mb-4">
-        <div className="w-28 h-28 mx-auto flex items-center justify-center mb-4">
+        <div className="w-24 h-24 mx-auto flex items-center justify-center mb-4">
           <img 
             src={IMAGES.LOGO_VARIANT} 
             alt="Yogi Logo" 

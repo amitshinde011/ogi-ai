@@ -35,7 +35,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return (
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="text-center">
-          <div className="w-32 h-32 mx-auto flex items-center justify-center mb-6 animate-scale-in">
+          <div className="w-28 h-28 mx-auto flex items-center justify-center mb-6 animate-scale-in">
             <img 
               src={IMAGES.LOGO_VARIANT} 
               alt="Yogi Logo" 
