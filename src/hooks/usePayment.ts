@@ -75,7 +75,7 @@ export const usePayment = () => {
         description: `You've successfully subscribed to ${program?.name}`,
       });
 
-      navigate('/intro-video');
+      navigate('/');
     } catch (error) {
       console.error('Payment verification error:', error);
       trackEvent('payment_error', 'Payment', 'Verification Failed');
