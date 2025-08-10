@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { offlineQueue } from '@/utils/offlineQueue';
 
 interface StepData {
   steps: number;
@@ -94,32 +95,40 @@ export const useStepTracking = () => {
     }
   }, [user, loadPersistedData]);
 
-  // Sync steps to database
-  const syncToDatabase = useCallback(async (steps: number) => {
-    if (!user) return;
+  // Sync steps to database
+  const syncToDatabase = useCallback(async (steps: number) => {
+    if (!user) return;
 
-    try {
-      const today = getLocalDateString();
-      
-      const { error } = await supabase
-        .from('steps_tracking')
-        .upsert({
-          user_id: user.id,
-          date: today,
-          steps_count: steps
-        }, {
-          onConflict: 'user_id,date'
-        });
+    try {
+      const today = getLocalDateString();
 
-      if (error) throw error;
-      
-      console.log('🔄 Steps saved to database:', steps);
-      persistData(steps);
-    } catch (error) {
-      console.error('Error syncing to database:', error);
-      persistData(steps);
-    }
-  }, [user, persistData]);
+      if (!navigator.onLine) {
+        await offlineQueue.enqueue('steps_upsert', { user_id: user.id, date: today, steps });
+        persistData(steps);
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('steps_tracking')
+        .upsert({
+          user_id: user.id,
+          date: today,
+          steps_count: steps
+        }, {
+          onConflict: 'user_id,date'
+        });
+
+      if (error) throw error;
+      
+      console.log('🔄 Steps saved to database:', steps);
+      persistData(steps);
+    } catch (error) {
+      console.error('Error syncing to database:', error);
+      const today = getLocalDateString();
+      await offlineQueue.enqueue('steps_upsert', { user_id: user!.id, date: today, steps });
+      persistData(steps);
+    }
+  }, [user, persistData]);
 
   // Initialize step tracking
   useEffect(() => {
