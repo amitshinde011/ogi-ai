@@ -92,10 +92,11 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
     const { data: currentSubscription } = await supabase
       .from('user_subscriptions')
       .select('*, programs(*)')
-      .eq('user_id', user_id)
-      .eq('status', 'active')
-      .or('start_date.is.null,start_date.lte.' + today)
-      .or('end_date.is.null,end_date.gte.' + today)
+      .or(
+        `and(user_id.eq.${user_id},status.eq.active),
+        and(start_date.is.null,start_date.lte.${today}),
+        and(end_date.is.null,end_date.gte.${today})`
+      )
       .maybeSingle();
 
     let isStarted = false;
