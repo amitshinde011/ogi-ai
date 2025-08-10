@@ -202,7 +202,7 @@ const Landing = () => {
                   />
                 </a>
                 <a
-                  href="#"
+                  href="https://play.google.com/store/apps/details?id=care.yogi.app"
                   aria-label="Get it on Google Play"
                   className="focus:outline-none focus:ring-2 focus:ring-ring rounded-md"
                 >
