@@ -19,20 +19,30 @@ const Footer = () => {
           </div>
 
           {/* Legal Links */}
-          <div className="flex flex-col space-y-2 text-xs text-slate-400">
-            <Link to="/privacy-policy" className="hover:text-slate-600 transition-colors">
-              Privacy Policy
-            </Link>
-            <Link to="/terms-and-conditions" className="hover:text-slate-600 transition-colors">
-              Terms & Conditions
-            </Link>
-            <Link to="/cancellations-refunds" className="hover:text-slate-600 transition-colors">
-              Cancellations & Refunds
-            </Link>
-            <Link to="/contact" className="hover:text-slate-600 transition-colors">
-              Contact Us
-            </Link>
-          </div>
+          <nav aria-label="Legal" className="text-xs text-slate-400">
+            <ul className="grid grid-cols-2 gap-x-6 gap-y-2 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
+              <li>
+                <Link to="/privacy-policy" className="hover:text-slate-600 transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms-and-conditions" className="hover:text-slate-600 transition-colors">
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link to="/cancellations-refunds" className="hover:text-slate-600 transition-colors">
+                  Cancellations & Refunds
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-slate-600 transition-colors">
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
     </footer>
