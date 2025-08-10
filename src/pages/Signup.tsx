@@ -133,7 +133,7 @@ const Signup = () => {
               </Badge>
               <Badge variant="secondary" className="gap-1">
                 <Star className="w-3 h-3" />
-                4.9/5 Rating
+                4.8/5 Rating
               </Badge>
             </div>
           </div>
