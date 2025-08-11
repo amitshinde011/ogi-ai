@@ -159,24 +159,11 @@ export default function AdminAutomation() {
   };
 
   const refreshCommunityFeed = async () => {
-    try {
-      const { error } = await supabase.functions.invoke('refresh-community-feed');
-      
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Community feed refreshed successfully",
-      });
-
-    } catch (error) {
-      console.error('Error refreshing feed:', error);
-      toast({
-        title: "Error",
-        description: "Failed to refresh community feed",
-        variant: "destructive",
-      });
-    }
+    // Materialized view has been removed; feed is sourced directly from tables now
+    toast({
+      title: "No refresh needed",
+      description: "Community feed updates in real-time from tables.",
+    });
   };
 
   const toggleUserStatus = async (userId: string, currentStatus: boolean) => {

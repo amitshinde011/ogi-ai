@@ -17,26 +17,8 @@ class CommunityFeedRefreshService {
   public startListening() {
     if (this.isListening) return;
 
-    console.log('🎧 Starting community feed refresh listener...');
-    
-    this.channel = supabase
-      .channel('refresh_community_feed')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'posts'
-      }, () => {
-        this.refreshMaterializedView();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'user_profiles'
-      }, () => {
-        this.refreshMaterializedView();
-      })
-      .subscribe();
-
+    // Materialized view was removed — realtime refresh listener is no longer needed
+    console.log('🎧 Community feed now uses direct tables; refresh listener disabled.');
     this.isListening = true;
   }
 
@@ -50,26 +32,9 @@ class CommunityFeedRefreshService {
   }
 
   private async refreshMaterializedView() {
-    try {
-      console.log('🔄 Triggering materialized view refresh...');
-      
-      // Call the edge function to refresh the materialized view
-      const { data, error } = await supabase.functions.invoke('refresh-community-feed', {
-        body: { 
-          timestamp: new Date().toISOString(),
-          trigger: 'background_service'
-        }
-      });
-
-      if (error) {
-        console.error('❌ Error calling refresh edge function:', error);
-        return;
-      }
-
-      console.log('✅ Materialized view refresh triggered successfully:', data);
-    } catch (error) {
-      console.error('❌ Error in refresh service:', error);
-    }
+    // No-op: materialized view has been removed; the app reads directly from tables
+    console.log('ℹ️ Skipping MV refresh — using direct table queries now.');
+    return;
   }
 
   public async manualRefresh() {
