@@ -134,6 +134,11 @@ export const useOptimizedHomeData = () => {
       });
 
       // Network fetch (will only update if newer)
+      // If offline, skip network calls entirely
+      if (!navigator.onLine) {
+        console.log('📴 useOptimizedHomeData: Offline - using IndexedDB only');
+        return;
+      }
       console.warn('ℹ️ useOptimizedHomeData: Using direct queries (RPC removed)');
       const [mealsResult, wellnessResult, stepsResult, weeklyWellnessRes] = await Promise.all([
         supabase

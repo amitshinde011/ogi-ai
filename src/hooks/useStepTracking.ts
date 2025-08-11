@@ -73,6 +73,13 @@ export const useStepTracking = () => {
 
     try {
       const today = getLocalDateString();
+
+      // Offline? Return IndexedDB value immediately to avoid failed network calls
+      if (!navigator.onLine) {
+        const localSteps = await localCache.getLocalSteps(user.id, today);
+        return { steps: localSteps };
+      }
+
       const { data, error } = await supabase
         .from('steps_tracking')
         .select('steps_count, updated_at')
