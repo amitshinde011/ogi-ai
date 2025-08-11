@@ -44,18 +44,20 @@ export const useWellnessTracking = () => {
 
       const today = getLocalDateString();
 
-      // Offline-first: use cached wellness if offline
+      // Always show cached data first (offline-first UI)
+      const cached = localCache.getTodayWellness(user.id, today);
+      if (cached) {
+        setWellnessData({
+          date: today,
+          water_litres: cached.water_litres || 0,
+          surya_namaskar_count: cached.surya_namaskar_count || 0,
+          meditation_minutes: cached.meditation_minutes || 0,
+          meditation_completed: !!cached.meditation_completed,
+        });
+      }
+
+      // If offline, stop here
       if (!navigator.onLine) {
-        const cached = localCache.getTodayWellness(user.id, today);
-        if (cached) {
-          setWellnessData({
-            date: today,
-            water_litres: cached.water_litres || 0,
-            surya_namaskar_count: cached.surya_namaskar_count || 0,
-            meditation_minutes: cached.meditation_minutes || 0,
-            meditation_completed: !!cached.meditation_completed,
-          });
-        }
         return;
       }
 
@@ -69,22 +71,38 @@ export const useWellnessTracking = () => {
       if (error) throw error;
 
       if (data) {
-        setWellnessData({
-          id: data.id,
-          date: data.date,
-          water_litres: data.water_litres || 0,
-          surya_namaskar_count: data.surya_namaskar_count || 0,
-          meditation_minutes: data.meditation_minutes || 0,
-          meditation_completed: data.meditation_completed || false
-        });
+        const dbTs = data.updated_at ? new Date(data.updated_at as any).getTime() : 0;
+        const cacheTs = cached?.timestamp || 0;
 
-        // Cache latest wellness locally for offline use
-        localCache.setTodayWellness(user.id, today, {
-          water_litres: data.water_litres || 0,
-          surya_namaskar_count: data.surya_namaskar_count || 0,
-          meditation_completed: data.meditation_completed || false,
-          meditation_minutes: data.meditation_minutes || 0,
-        });
+        if (cacheTs > dbTs) {
+          // Local cache is newer → ensure DB is updated (fire-and-forget)
+          const payload: any = {
+            user_id: user.id,
+            date: today,
+            water_litres: cached?.water_litres ?? 0,
+            surya_namaskar_count: cached?.surya_namaskar_count ?? 0,
+            meditation_completed: cached?.meditation_completed ?? false,
+            meditation_minutes: cached?.meditation_minutes ?? 0,
+          };
+          // Use background queue even if online to keep logic consistent
+          await offlineQueue.enqueue('wellness_upsert', payload);
+        } else {
+          // DB is newer or equal → update local cache and UI
+          setWellnessData({
+            id: data.id,
+            date: data.date,
+            water_litres: data.water_litres || 0,
+            surya_namaskar_count: data.surya_namaskar_count || 0,
+            meditation_minutes: data.meditation_minutes || 0,
+            meditation_completed: data.meditation_completed || false
+          });
+          localCache.setTodayWellness(user.id, today, {
+            water_litres: data.water_litres || 0,
+            surya_namaskar_count: data.surya_namaskar_count || 0,
+            meditation_completed: data.meditation_completed || false,
+            meditation_minutes: data.meditation_minutes || 0,
+          }, dbTs || Date.now());
+        }
       }
     } catch (error) {
       console.error('Error fetching wellness data:', error);

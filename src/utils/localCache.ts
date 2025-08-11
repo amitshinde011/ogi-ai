@@ -15,13 +15,13 @@ const keyMeals = (userId: string, date: string) => `offline_meals_${userId}_${da
 const keySteps = (userId: string, date: string) => `steps_${userId}_${date}`;
 
 export const localCache = {
-  setTodayWellness(userId: string, date: string, data: CachedWellness) {
+  setTodayWellness(userId: string, date: string, data: CachedWellness, timestampOverride?: number) {
     const payload = {
       water_litres: data.water_litres ?? 0,
       surya_namaskar_count: data.surya_namaskar_count ?? 0,
       meditation_completed: !!data.meditation_completed,
       meditation_minutes: data.meditation_minutes ?? 0,
-      timestamp: Date.now(),
+      timestamp: timestampOverride ?? Date.now(),
     };
     localStorage.setItem(keyWellness(userId, date), JSON.stringify(payload));
   },

@@ -74,26 +74,26 @@ export const useStepTracking = () => {
     });
   }, [user]);
 
-  // Fetch today's steps from database
-  const fetchTodaySteps = useCallback(async () => {
-    if (!user) return 0;
+  // Fetch today's steps from database (with updated_at)
+  const fetchTodaySteps = useCallback(async (): Promise<{ steps: number; updatedAt?: number }> => {
+    if (!user) return { steps: 0 };
 
-    try {
-      const today = getLocalDateString();
-      const { data, error } = await supabase
-        .from('steps_tracking')
-        .select('steps_count')
-        .eq('user_id', user.id)
-        .eq('date', today)
-        .maybeSingle();
+    try {
+      const today = getLocalDateString();
+      const { data, error } = await supabase
+        .from('steps_tracking')
+        .select('steps_count, updated_at')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .maybeSingle();
 
-      if (error) throw error;
-      return data?.steps_count || 0;
-    } catch (error) {
-      console.error('Error fetching today steps:', error);
-      return loadPersistedData();
-    }
-  }, [user, loadPersistedData]);
+      if (error) throw error;
+      return { steps: data?.steps_count || 0, updatedAt: data?.updated_at ? new Date(data.updated_at as any).getTime() : undefined };
+    } catch (error) {
+      console.error('Error fetching today steps:', error);
+      return { steps: loadPersistedData() };
+    }
+  }, [user, loadPersistedData]);
 
   // Sync steps to database
   const syncToDatabase = useCallback(async (steps: number) => {
@@ -141,23 +141,48 @@ export const useStepTracking = () => {
       // This was deleting the 'step_goal_achieved' flag.
       // clearUserCache();
 
-      setIsLoading(true);
-      try {
-        const dbSteps = await fetchTodaySteps();
-        
-        console.log('📊 Database steps:', dbSteps);
-        
-        setStepData({ steps: dbSteps, lastUpdated: new Date() });
-        persistData(dbSteps);
-        
-        console.log('🎯 Step tracking initialized with', dbSteps, 'steps from database');
-      } catch (error) {
-        console.error('Error initializing step tracking:', error);
-        setStepData({ steps: 0, lastUpdated: new Date() });
-        persistData(0);
-      } finally {
-        setIsLoading(false);
-      }
+      setIsLoading(true);
+      try {
+        // Show local cache immediately (offline-first UI)
+        const today = getLocalDateString();
+        const savedData = localStorage.getItem(`steps_${user.id}_${today}`);
+        let localSteps = 0;
+        let localTs = 0;
+        if (savedData) {
+          try {
+            const parsed = JSON.parse(savedData);
+            localSteps = parsed.steps || 0;
+            localTs = parsed.timestamp || 0;
+          } catch {}
+        }
+        setStepData({ steps: localSteps, lastUpdated: new Date() });
+
+        // Fetch DB and resolve conflicts by timestamp
+        const { steps: dbSteps, updatedAt: dbTs } = await fetchTodaySteps();
+        const dbTimestamp = dbTs || 0;
+
+        if ((localTs || 0) > dbTimestamp) {
+          // Local is newer → keep local and sync to DB (if possible)
+          if (navigator.onLine) {
+            await syncToDatabase(localSteps);
+          } else {
+            await offlineQueue.enqueue('steps_upsert', { user_id: user.id, date: today, steps: localSteps });
+          }
+          persistData(localSteps);
+          console.log('📌 Using newer local steps:', localSteps);
+        } else {
+          // DB is newer or equal
+          setStepData({ steps: dbSteps, lastUpdated: new Date() });
+          persistData(dbSteps);
+          console.log('📌 Using DB steps:', dbSteps);
+        }
+      } catch (error) {
+        console.error('Error initializing step tracking:', error);
+        setStepData({ steps: 0, lastUpdated: new Date() });
+        persistData(0);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     initializeTracking();

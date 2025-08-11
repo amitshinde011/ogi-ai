@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { localCache } from '@/utils/localCache';
 
 interface HomeData {
   todayProgress: {
@@ -101,7 +102,31 @@ export const useOptimizedHomeData = () => {
         return getLocalDateString(date);
       });
 
-      // RPC get_home_data removed: using direct table queries for clean network
+      // Offline-first: show cached data immediately
+      const cachedWellness = localCache.getTodayWellness(user.id, today);
+      const localSteps = localCache.getLocalSteps(user.id, today);
+      const offlineMeals = localCache.getOfflineMeals(user.id, today).map(m => m.toLowerCase());
+
+      setData(d => ({
+        ...d,
+        todayProgress: {
+          ...d.todayProgress,
+          breakfast: offlineMeals.includes('breakfast') || d.todayProgress.breakfast,
+          lunch: offlineMeals.includes('lunch') || d.todayProgress.lunch,
+          dinner: offlineMeals.includes('dinner') || d.todayProgress.dinner,
+          steps: localSteps,
+          walkScore: Math.min(Math.floor((localSteps / 5000) * 5), 5),
+          saladBowl: d.todayProgress.saladBowl,
+          kanji: d.todayProgress.kanji,
+        },
+        wellnessData: cachedWellness ? {
+          water_litres: cachedWellness.water_litres || 0,
+          surya_namaskar_count: cachedWellness.surya_namaskar_count || 0,
+          meditation_completed: !!cachedWellness.meditation_completed,
+        } : d.wellnessData,
+      }));
+
+      // Network fetch (will only update if newer)
       console.warn('ℹ️ useOptimizedHomeData: Using direct queries (RPC removed)');
       const [mealsResult, wellnessResult, stepsResult, weeklyWellnessRes] = await Promise.all([
         supabase
@@ -111,13 +136,13 @@ export const useOptimizedHomeData = () => {
           .eq('date', today),
         supabase
           .from('daily_wellness')
-          .select('water_litres, surya_namaskar_count, meditation_completed')
+          .select('water_litres, surya_namaskar_count, meditation_completed, updated_at')
           .eq('user_id', user.id)
           .eq('date', today)
           .maybeSingle(),
         supabase
           .from('steps_tracking')
-          .select('steps_count')
+          .select('steps_count, updated_at')
           .eq('user_id', user.id)
           .eq('date', today)
           .maybeSingle(),
@@ -128,8 +153,11 @@ export const useOptimizedHomeData = () => {
           .in('date', weekDates)
       ]);
 
-      const mealTypes = new Set((mealsResult.data || []).map(m => (m.meal_type || '').toLowerCase()));
-      const stepsCount = stepsResult?.data?.steps_count || 0;
+      const dbMealTypes = new Set((mealsResult.data || []).map(m => (m.meal_type || '').toLowerCase()));
+      const mergedMeals = new Set<string>([...dbMealTypes, ...offlineMeals]);
+      const dbSteps = stepsResult?.data?.steps_count || 0;
+      const finalSteps = Math.max(localSteps, dbSteps);
+
       const weeklyWellness = weeklyWellnessRes.data || [];
       const streak = weekDates.map(date => {
         const dayData = weeklyWellness.find((w: any) => w.date === date);
@@ -138,18 +166,36 @@ export const useOptimizedHomeData = () => {
                  (dayData?.surya_namaskar_count && dayData.surya_namaskar_count > 0));
       });
 
+      // If DB wellness is newer and cache missing/stale, refresh cache
+      if (wellnessResult.data) {
+        const dbTs = wellnessResult.data.updated_at ? new Date(wellnessResult.data.updated_at as any).getTime() : 0;
+        const cacheTs = cachedWellness?.timestamp || 0;
+        if (dbTs > cacheTs) {
+          localCache.setTodayWellness(user.id, today, {
+            water_litres: wellnessResult.data.water_litres || 0,
+            surya_namaskar_count: wellnessResult.data.surya_namaskar_count || 0,
+            meditation_completed: wellnessResult.data.meditation_completed || false,
+            meditation_minutes: 0,
+          }, dbTs);
+        }
+      }
+
       setData({
         todayProgress: {
-          breakfast: mealTypes.has('breakfast'),
-          lunch: mealTypes.has('lunch'),
-          dinner: mealTypes.has('dinner'),
-          steps: stepsCount,
-          walkScore: Math.min(Math.floor((stepsCount / 5000) * 5), 5),
+          breakfast: mergedMeals.has('breakfast'),
+          lunch: mergedMeals.has('lunch'),
+          dinner: mergedMeals.has('dinner'),
+          steps: finalSteps,
+          walkScore: Math.min(Math.floor((finalSteps / 5000) * 5), 5),
           saladBowl: false,
           kanji: false
         },
         weeklyStreak: streak,
-        wellnessData: {
+        wellnessData: cachedWellness ? {
+          water_litres: cachedWellness.water_litres || 0,
+          surya_namaskar_count: cachedWellness.surya_namaskar_count || 0,
+          meditation_completed: !!cachedWellness.meditation_completed,
+        } : {
           water_litres: wellnessResult.data?.water_litres || 0,
           surya_namaskar_count: wellnessResult.data?.surya_namaskar_count || 0,
           meditation_completed: wellnessResult.data?.meditation_completed || false
