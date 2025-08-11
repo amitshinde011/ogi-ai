@@ -66,7 +66,7 @@ export const ExitIntentPopup: React.FC<ExitIntentPopupProps> = ({ onSignup }) =>
 
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-sm text-red-800 font-medium">
-                🎁 Limited Time: Use code <span className="font-bold bg-red-200 px-2 py-1 rounded">SAVE10</span>
+                🎁 Limited Time: Use code <span className="font-bold bg-red-200 px-2 py-1 rounded">WELCOME10</span>
               </p>
               <p className="text-xs text-red-600 mt-1">
                 Valid for the next 15 minutes only!
