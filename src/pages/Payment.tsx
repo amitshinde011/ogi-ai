@@ -22,7 +22,7 @@ const Payment = () => {
   const location = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { updateOnboardingState } = useOnboarding();
+  const { updateOnboardingState, onboardingState } = useOnboarding();
   const { trackPayment, trackEvent } = useAnalytics();
   
   const [loading, setLoading] = useState(false);
@@ -88,7 +88,7 @@ const Payment = () => {
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="text-center">
           <Loader size="lg" />
-          <p className="mt-4 text-lg font-medium">Redirecting to your intro video...</p>
+          <p className="mt-4 text-lg font-medium">Redirecting...</p>
         </div>
       </div>
     );
@@ -135,7 +135,8 @@ const Payment = () => {
         description: `You've successfully subscribed to ${program.name}`,
       });
 
-      navigate('/intro-video');
+      const targetPath = onboardingState?.profile_completed ? '/' : '/profile-setup';
+      navigate(targetPath);
     } catch (error) {
       console.error('Payment verification error:', error);
       setPaymentSuccess(false);
@@ -203,8 +204,8 @@ const Payment = () => {
           description: `You've successfully got free access to ${program.name}`,
         });
 
-        setPaymentSuccess(true);
-        setTimeout(() => navigate('/intro-video'), 500);
+        const targetPath = onboardingState?.profile_completed ? '/' : '/profile-setup';
+        setTimeout(() => navigate(targetPath), 500);
         return;
       }
 

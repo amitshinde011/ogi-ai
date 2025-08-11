@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { offlineQueue } from '@/utils/offlineQueue';
+import { localCache } from '@/utils/localCache';
 
 interface WellnessData {
   id?: string;
@@ -41,6 +43,22 @@ export const useWellnessTracking = () => {
       if (!user) return;
 
       const today = getLocalDateString();
+
+      // Offline-first: use cached wellness if offline
+      if (!navigator.onLine) {
+        const cached = localCache.getTodayWellness(user.id, today);
+        if (cached) {
+          setWellnessData({
+            date: today,
+            water_litres: cached.water_litres || 0,
+            surya_namaskar_count: cached.surya_namaskar_count || 0,
+            meditation_minutes: cached.meditation_minutes || 0,
+            meditation_completed: !!cached.meditation_completed,
+          });
+        }
+        return;
+      }
+
       const { data, error } = await supabase
         .from('daily_wellness')
         .select('*')
@@ -59,6 +77,14 @@ export const useWellnessTracking = () => {
           meditation_minutes: data.meditation_minutes || 0,
           meditation_completed: data.meditation_completed || false
         });
+
+        // Cache latest wellness locally for offline use
+        localCache.setTodayWellness(user.id, today, {
+          water_litres: data.water_litres || 0,
+          surya_namaskar_count: data.surya_namaskar_count || 0,
+          meditation_completed: data.meditation_completed || false,
+          meditation_minutes: data.meditation_minutes || 0,
+        });
       }
     } catch (error) {
       console.error('Error fetching wellness data:', error);
@@ -74,8 +100,28 @@ export const useWellnessTracking = () => {
       const updatedData = { ...wellnessData, ...updates };
       const today = getLocalDateString();
 
-      // Optimistic update
+      // Optimistic update + cache locally
       setWellnessData(updatedData);
+      localCache.setTodayWellness(user.id, today, {
+        water_litres: updatedData.water_litres,
+        surya_namaskar_count: updatedData.surya_namaskar_count,
+        meditation_completed: updatedData.meditation_completed,
+        meditation_minutes: updatedData.meditation_minutes,
+      });
+
+      // If offline, enqueue for background sync
+      if (!navigator.onLine) {
+        await offlineQueue.enqueue('wellness_upsert', {
+          user_id: user.id,
+          date: today,
+          water_litres: updatedData.water_litres,
+          surya_namaskar_count: updatedData.surya_namaskar_count,
+          meditation_completed: updatedData.meditation_completed,
+          meditation_minutes: updatedData.meditation_minutes || 0,
+        });
+        toast({ title: 'Saved offline', description: "We'll sync when you're back online." });
+        return;
+      }
 
       if (wellnessData.id) {
         // Update existing record
@@ -91,7 +137,7 @@ export const useWellnessTracking = () => {
 
         if (error) throw error;
       } else {
-        // Create new record
+        // Create/upsert record
         const { data, error } = await supabase
           .from('daily_wellness')
           .upsert(
@@ -103,10 +149,7 @@ export const useWellnessTracking = () => {
               meditation_minutes: updatedData.meditation_minutes,
               meditation_completed: updatedData.meditation_completed
             },
-            { 
-              onConflict: 'user_id,date',
-              ignoreDuplicates: false 
-            }
+            { onConflict: 'user_id,date', ignoreDuplicates: false }
           )
           .select()
           .single();
@@ -118,13 +161,17 @@ export const useWellnessTracking = () => {
       }
     } catch (error) {
       console.error('Error updating wellness data:', error);
-      // Revert optimistic update on error
-      setWellnessData(wellnessData);
-      toast({
-        title: "Error",
-        description: "Failed to update wellness data.",
-        variant: "destructive",
+      // Queue for background sync instead of reverting
+      const today = getLocalDateString();
+      await offlineQueue.enqueue('wellness_upsert', {
+        user_id: user?.id,
+        date: today,
+        water_litres: updates.water_litres ?? wellnessData.water_litres,
+        surya_namaskar_count: updates.surya_namaskar_count ?? wellnessData.surya_namaskar_count,
+        meditation_completed: updates.meditation_completed ?? wellnessData.meditation_completed,
+        meditation_minutes: updates.meditation_minutes ?? wellnessData.meditation_minutes,
       });
+      toast({ title: 'Saved offline', description: "We'll sync when your connection returns." });
     }
   };
 

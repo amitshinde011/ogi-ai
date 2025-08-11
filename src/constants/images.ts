@@ -21,25 +21,25 @@ export const IMAGES = {
   
   // Real transformation images (108 Days of routine)
   TRANSFORMATIONS: [
-    '/lovable-uploads/Transformation (1).webp',
-    '/lovable-uploads/Transformation (2).webp',
-    '/lovable-uploads/Transformation (3).webp',
-    '/lovable-uploads/Transformation (4).webp',
-    '/lovable-uploads/Transformation (5).webp',
-    '/lovable-uploads/Transformation (6).webp',
-    '/lovable-uploads/Transformation (7).webp',
-    '/lovable-uploads/Transformation (8).webp',
-    '/lovable-uploads/Transformation (9).webp',
-    '/lovable-uploads/Transformation (10).webp'
+    '/lovable-uploads/transformation-1.webp',
+    '/lovable-uploads/transformation-2.webp',
+    '/lovable-uploads/transformation-3.webp',
+    '/lovable-uploads/transformation-4.webp',
+    '/lovable-uploads/transformation-5.webp',
+    '/lovable-uploads/transformation-6.webp',
+    '/lovable-uploads/transformation-7.webp',
+    '/lovable-uploads/transformation-8.webp',
+    '/lovable-uploads/transformation-9.webp',
+    '/lovable-uploads/transformation-10.webp'
   ],
 
     // Real transformation images (108 Days of routine)
   TRANSFORMATIONS_GRID: [
-    '/lovable-uploads/Transformation (11).webp',
-    '/lovable-uploads/Transformation (12).webp',
-    '/lovable-uploads/Transformation (13).webp',
-    '/lovable-uploads/Transformation (14).webp',
-    '/lovable-uploads/Transformation (15).webp',
-    '/lovable-uploads/Transformation (16).webp'
+    '/lovable-uploads/transformation-11.webp',
+    '/lovable-uploads/transformation-12.webp',
+    '/lovable-uploads/transformation-13.webp',
+    '/lovable-uploads/transformation-14.webp',
+    '/lovable-uploads/transformation-15.webp',
+    '/lovable-uploads/transformation-16.webp'
   ]
 } as const;

@@ -62,16 +62,16 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
     const onboardingState: OnboardingState = onboardingData || {};
     console.log('Onboarding state:', onboardingState);
 
-    // Check profile completion FIRST - highest priority
-    if (!onboardingState.profile_completed) {
-      console.log('Profile not completed, redirecting to profile setup');
-      return '/profile-setup';
-    }
-
     // Check subscription selection
     if (!onboardingState.subscription_selected) {
       console.log('Subscription not selected, redirecting to progress');
       return '/progress';
+    }
+
+    // Check profile completion FIRST - highest priority
+    if (onboardingState.subscription_selected && !onboardingState.profile_completed) {
+      console.log('Profile not completed, redirecting to profile setup');
+      return '/profile-setup';
     }
 
     // Check intro video completion
@@ -94,14 +94,14 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
       .select('*, programs(*)')
       .eq('user_id', user_id)
       .eq('status', 'active')
-      .or('start_date.is.null,start_date.lte.' + today)
-      .or('end_date.is.null,end_date.gte.' + today)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     let isStarted = false;
     let isCompleted = false;
     let hasFinalAssessment = false;
-
+    console.log('currentSubscription :', currentSubscription);
     if (currentSubscription) {
       if (currentSubscription.start_date && currentSubscription.end_date) {
         const startDate = new Date(currentSubscription.start_date);
@@ -129,6 +129,11 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
       }
     }
 
+    if (!currentSubscription) {
+      console.log('No active subscription found, redirecting to progress');
+      return '/progress';
+    }
+
     console.log('Program completion:', { isCompleted, hasFinalAssessment });
 
     // Handle program completion
@@ -137,8 +142,8 @@ export const determineLandingPage = async (userId?: string, isAuthenticated?: bo
         console.log('Program completed but final assessment not done, redirecting to program complete');
         return '/program-complete';
       } else {
-        console.log('Program completed and final assessment done, redirecting to subscriptions');
-        return '/subscriptions?completed=true';
+        console.log('Program completed and final assessment done, redirecting to progress');
+        return '/progress';
       }
     }
 

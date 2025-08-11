@@ -3,10 +3,12 @@ import { Capacitor } from '@capacitor/core';
 import Landing from '@/pages/Landing';
 import Index from '@/pages/Index';
 import Loader from '@/components/ui/loader';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PlatformRouter = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isNativePlatform, setIsNativePlatform] = useState(false);
+  const { session, user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const detectPlatform = () => {
@@ -22,21 +24,26 @@ const PlatformRouter = () => {
     detectPlatform();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader />
-      </div>
-    );
-  }
+if (isLoading || authLoading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader />
+    </div>
+  );
+}
 
-  // Native platforms (iOS/Android) -> Index (app entry point)
-  if (isNativePlatform) {
-    return <Index />;
-  }
+// Native platforms (iOS/Android) -> Index (app entry point)
+if (isNativePlatform) {
+  return <Index />;
+}
 
-  // Web platform -> Landing (marketing page)
-  return <Landing />;
+// Web platform: if authenticated, go to app; else show marketing
+const isAuthenticated = !!(session?.user || user);
+if (isAuthenticated) {
+  return <Index />;
+}
+
+return <Landing />;
 };
 
 export default PlatformRouter;

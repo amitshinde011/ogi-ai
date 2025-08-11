@@ -40,11 +40,26 @@ const ProgressPage = () => {
   const { showBanner } = useSubscriptionBanner();
   const { activityData, loading: activityLoading, refetch: refetchActivityData } = useTodayActivity();
   const { data: progressData, loading: progressLoading, refetch: refetchProgressData } = useOptimizedProgressData();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    const isEmailAuthCallback =
+      typeof window !== 'undefined' &&
+      ((window.location.hash && (window.location.hash.includes('access_token') || window.location.hash.includes('type=signup') || window.location.hash.includes('type=magiclink'))));
+
+    if (authLoading) return;
+
+    if (!user) {
+      if (isEmailAuthCallback) {
+        console.log('👤 Progress: Email auth callback detected, waiting for session before redirect');
+        return;
+      }
+      navigate('/login');
+      return;
+    }
+
     fetchProgressData();
-  }, [user]);
+  }, [user, authLoading]);
 
   // Listen for activity updates to refresh progress data
   useEffect(() => {
@@ -79,10 +94,7 @@ const ProgressPage = () => {
 
   const fetchProgressData = async () => {
     try {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
+      if (!user) return;
 
       const today = getLocalDateString();
 
@@ -104,21 +116,23 @@ const ProgressPage = () => {
 
       if (!subscriptions) return;
 
-      const programsData: ProgramData[] = subscriptions.map(sub => {
-        const { totalDays, daysCompleted, progressPercentage, isCompleted } = 
-          calculateProgramProgress(sub.start_date, sub.end_date);
+const programsData: ProgramData[] = subscriptions.map((sub: any) => {
+  const { totalDays, daysCompleted, progressPercentage } = 
+    calculateProgramProgress(sub.start_date, sub.end_date);
 
-        return {
-          id: sub.id,
-          name: sub.programs?.name || 'Unknown Program',
-          duration_days: sub.programs?.duration_days || totalDays,
-          start_date: sub.start_date,
-          end_date: sub.end_date,
-          status: sub.status,
-          progress_percentage: progressPercentage,
-          days_completed: daysCompleted
-        };
-      });
+  const programInfo = Array.isArray(sub.programs) ? sub.programs[0] : sub.programs;
+
+  return {
+    id: sub.id,
+    name: programInfo?.name ?? 'Unknown Program',
+    duration_days: programInfo?.duration_days ?? totalDays,
+    start_date: sub.start_date,
+    end_date: sub.end_date,
+    status: sub.status,
+    progress_percentage: progressPercentage,
+    days_completed: daysCompleted
+  } as ProgramData;
+});
 
       // Separate current and historical programs
       const current = programsData.find(p => {

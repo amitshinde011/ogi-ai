@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import ContentContainer from '@/components/ContentContainer';
 import { IMAGES } from '@/constants/images';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
+import AppleLoginButton from '@/components/auth/AppleLoginButton';
 import { TrustBadges } from '@/components/conversion/TrustBadges';
 import { LiveActivityFeed } from '@/components/conversion/LiveActivityFeed';
 import Layout from '@/components/Layout';
@@ -18,8 +19,9 @@ import { Shield, Users, Star, Gift, CheckCircle, Zap, Heart, Target } from 'luci
 const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
+const [isLoading, setIsLoading] = useState(false);
+const [googleLoading, setGoogleLoading] = useState(false);
+const [appleLoading, setAppleLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -66,7 +68,7 @@ const Signup = () => {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/profile-setup`
+          emailRedirectTo: `${window.location.origin}/progress`
         }
       });
 
@@ -133,7 +135,7 @@ const Signup = () => {
               </Badge>
               <Badge variant="secondary" className="gap-1">
                 <Star className="w-3 h-3" />
-                4.9/5 Rating
+                4.8/5 Rating
               </Badge>
             </div>
           </div>
@@ -190,7 +192,7 @@ const Signup = () => {
                       <div className="text-xs text-muted-foreground">Success Rate</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-primary">4.9★</div>
+                      <div className="text-2xl font-bold text-primary">4.8★</div>
                       <div className="text-xs text-muted-foreground">User Rating</div>
                     </div>
                   </div>
@@ -210,7 +212,7 @@ const Signup = () => {
                   <Card className="animate-fade-in shadow-2xl border-border/50 bg-card/95 backdrop-blur-sm">
                     <CardHeader className="text-center pb-4">
                       <div className="mb-4">
-                        <div className="w-20 h-20 mx-auto flex items-center justify-center mb-4">
+                        <div className="w-20 h-18 mx-auto flex items-center justify-center mb-4">
                           <img 
                             src={IMAGES.LOGO_VARIANT} 
                             alt="Yogi Logo" 
@@ -230,22 +232,26 @@ const Signup = () => {
                         </div>
                       </div>
 
-                      {/* Google Signup (Primary CTA) */}
-                      <div className="space-y-3">
-                        <GoogleLoginButton 
-                          isLoading={googleLoading} 
-                          setIsLoading={setGoogleLoading} 
-                        />
-                        
-                        <div className="relative">
-                          <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-border"></div>
-                          </div>
-                          <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-card px-3 text-muted-foreground font-medium">Or create with email</span>
-                          </div>
-                        </div>
-                      </div>
+{/* Social Signup */}
+<div className="space-y-3">
+  <GoogleLoginButton 
+    isLoading={googleLoading} 
+    setIsLoading={setGoogleLoading} 
+  />
+  <AppleLoginButton 
+    isLoading={appleLoading} 
+    setIsLoading={setAppleLoading} 
+  />
+  
+  <div className="relative">
+    <div className="absolute inset-0 flex items-center">
+      <div className="w-full border-t border-border"></div>
+    </div>
+    <div className="relative flex justify-center text-xs uppercase">
+      <span className="bg-card px-3 text-muted-foreground font-medium">Or create with email</span>
+    </div>
+  </div>
+</div>
 
                       <form onSubmit={handleSignup} className="space-y-4">
                         <div>

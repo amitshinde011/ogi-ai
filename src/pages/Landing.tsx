@@ -87,7 +87,7 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
+    <div className="min-h-screen bg-gradient-to-b from-primary/10 via-background to-accent/10">
       {/* =======================================================================
           URGENT ANNOUNCEMENT BANNER WITH COUNTDOWN
       ======================================================================= */}
@@ -110,7 +110,7 @@ const Landing = () => {
           HERO SECTION (Conversion-Optimized)
       ======================================================================= */}
       <section className="relative py-12 sm:py-16 lg:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-primary/5"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/25 via-accent/15 to-primary/25"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-8">
             <Badge variant="secondary" className="mx-auto bg-primary/10 text-primary border-primary/20 animate-pulse">
@@ -187,6 +187,34 @@ const Landing = () => {
               {/* Trust Badges */}
               <TrustBadges />
               
+              {/* Mobile store links */}
+              <div className="flex flex-wrap justify-center gap-6 md:gap-8 mt-4" aria-label="Download our mobile apps">
+                <a
+                  href="#"
+                  aria-label="Download on the App Store"
+                  className="focus:outline-none focus:ring-2 focus:ring-ring rounded-md"
+                >
+                  <img
+                    src="/lovable-uploads/aeffdb58-6ce1-4491-b3ea-423d3a734927.png"
+                    alt="Available on the App Store - Yogi Wellness app"
+                    loading="lazy"
+                    className="h-12 w-auto object-contain"
+                  />
+                </a>
+                <a
+                  href="https://play.google.com/store/apps/details?id=care.yogi.app"
+                  aria-label="Get it on Google Play"
+                  className="focus:outline-none focus:ring-2 focus:ring-ring rounded-md"
+                >
+                  <img
+                    src="/lovable-uploads/6a4ed244-7fae-421b-a24c-e6c3b51aa43c.png"
+                    alt="Get it on Google Play - Yogi Wellness app"
+                    loading="lazy"
+                    className="h-12 w-auto object-contain"
+                  />
+                </a>
+              </div>
+              
               <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center">
                   <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
@@ -217,7 +245,7 @@ const Landing = () => {
       {/* =======================================================================
           PROBLEM / AGITATION SECTION (NEW)
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-card/20">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-accent/10 to-primary/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
              Tired of Feeling Stressed, Drained, and Disconnected?
@@ -237,7 +265,7 @@ const Landing = () => {
       {/* =======================================================================
           SOCIAL PROOF SECTION
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-card/50">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-primary/10 via-background to-accent/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
@@ -254,7 +282,7 @@ const Landing = () => {
       {/* =======================================================================
           REAL TRANSFORMATION STORIES SECTION 
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-card/30">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4">108 Days of Commitment</Badge>
@@ -334,7 +362,7 @@ const Landing = () => {
       {/* =======================================================================
           HOW IT WORKS SECTION (Enhanced)
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-accent/5 to-primary/5">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
@@ -595,7 +623,7 @@ const Landing = () => {
       {/* =======================================================================
           EXCLUSIVE MEMBER BENEFITS SECTION
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-primary/10">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Users className="w-16 h-16 text-primary mx-auto mb-4" />
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
@@ -635,7 +663,7 @@ const Landing = () => {
       {/* =======================================================================
           FAQ SECTION (NEW)
       ======================================================================= */}
-      <section className="py-16 sm:py-20 lg:py-24">
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-br from-accent/5 to-primary/5">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
              <HelpCircle className="w-12 h-12 text-primary mx-auto mb-4" />
@@ -692,7 +720,7 @@ const Landing = () => {
       {/* =======================================================================
           FOOTER SECTION (REVERTED TO ORIGINAL)
       ======================================================================= */}
-      <footer className="bg-white border-t border-slate-200">
+      <footer className="bg-background border-t border-slate-200">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             {/* Logo/Brand */}

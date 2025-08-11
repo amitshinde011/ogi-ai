@@ -151,7 +151,12 @@ export const UserDataProvider = ({ children }: UserDataProviderProps) => {
   // Calculate current subscription and active status
   const currentSubscription = userSubscriptions.find(sub => {
     const today = getLocalDateString();
-    return sub.status === 'active' && sub.end_date >= today;
+    // Consider active if status is active, payment is paid, and no end_date or end_date is in the future
+    return (
+      sub.status === 'active' &&
+      sub.payment_status === 'paid' &&
+      (!sub.end_date || sub.end_date >= today)
+    );
   }) || null;
 
   const hasActiveSubscription = !!currentSubscription;

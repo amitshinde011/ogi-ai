@@ -55,63 +55,70 @@ export const useMessages = () => {
   };
 
   const fetchConversations = async () => {
-    if (!currentUser) return;
+    if (!currentUser?.user_id) return;
 
     try {
       setLoading(true);
 
-      // Get all conversations for current user
+      // Get all conversations for current user (v2)
       const { data: participantData, error: participantError } = await supabase
-        .from('conversation_participants')
+        .from('conversation_participants_v2')
         .select(`
           conversation_id,
-          conversations (
+          conversations_v2 (
             id,
             created_at
           )
         `)
-        .eq('user_id', currentUser.id);
+        .eq('user_id', currentUser.user_id);
 
       if (participantError) throw participantError;
 
       const conversationsWithDetails = await Promise.all(
-        (participantData || []).map(async (participant) => {
-          // Get other participant
-          const { data: otherParticipant } = await supabase
-            .from('conversation_participants')
-            .select(`
-              user_id,
-              user_profiles (
-                id,
-                name,
-                profile_photo_url
-              )
-            `)
-            .eq('conversation_id', participant.conversation_id)
-            .neq('user_id', currentUser.id)
-            .single();
+        (participantData || []).map(async (participant: any) => {
+          const convId = participant.conversation_id;
 
-          // Get last message
+          // Get other participant's auth user id
+          const { data: otherParticipant } = await supabase
+            .from('conversation_participants_v2')
+            .select('user_id')
+            .eq('conversation_id', convId)
+            .neq('user_id', currentUser.user_id)
+            .maybeSingle();
+
+          // Fetch other user's profile by auth user id
+          const { data: otherProfile } = await supabase
+            .from('user_profiles')
+            .select('id, name, profile_photo_url')
+            .eq('user_id', otherParticipant?.user_id || '')
+            .maybeSingle();
+
+          // Get last message from v2
           const { data: lastMessageData } = await supabase
-            .from('messages')
+            .from('messages_v2')
             .select('*')
-            .eq('conversation_id', participant.conversation_id)
+            .eq('conversation_id', convId)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
-          // Create proper lastMessage object with isFromCurrentUser property
-          const lastMessage = lastMessageData ? {
-            ...lastMessageData,
-            isFromCurrentUser: lastMessageData.sender_id === currentUser.id
-          } : undefined;
+          const lastMessage = lastMessageData
+            ? {
+                id: lastMessageData.id,
+                conversation_id: lastMessageData.conversation_id,
+                sender_id: lastMessageData.sender_user_id,
+                message_text: lastMessageData.message_text,
+                created_at: lastMessageData.created_at,
+                isFromCurrentUser: lastMessageData.sender_user_id === currentUser.user_id,
+              }
+            : undefined;
 
           return {
-            id: participant.conversations.id,
-            created_at: participant.conversations.created_at,
-            otherUser: otherParticipant?.user_profiles || { id: '', name: null, profile_photo_url: null },
-            lastMessage
-          };
+            id: participant.conversations_v2.id,
+            created_at: participant.conversations_v2.created_at,
+            otherUser: otherProfile || { id: '', name: null, profile_photo_url: null },
+            lastMessage,
+          } as Conversation;
         })
       );
 
@@ -125,43 +132,49 @@ export const useMessages = () => {
   };
 
   const fetchMessages = async (conversationId: string) => {
-    if (!currentUser) return;
+    if (!currentUser?.user_id) return;
 
     try {
       setLoading(true);
 
-      // Fetch messages
+      // Fetch messages (v2)
       const { data: messagesData, error: messagesError } = await supabase
-        .from('messages')
+        .from('messages_v2')
         .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
       if (messagesError) throw messagesError;
 
-      const messagesWithUser = (messagesData || []).map(message => ({
-        ...message,
-        isFromCurrentUser: message.sender_id === currentUser.id
+      const messagesWithUser: Message[] = (messagesData || []).map((m: any) => ({
+        id: m.id,
+        conversation_id: m.conversation_id,
+        sender_id: m.sender_user_id,
+        message_text: m.message_text,
+        created_at: m.created_at,
+        isFromCurrentUser: m.sender_user_id === currentUser.user_id,
       }));
 
       setMessages(messagesWithUser);
 
-      // Get other user in conversation
-      const { data: otherParticipant } = await supabase
-        .from('conversation_participants')
-        .select(`
-          user_id,
-          user_profiles (
-            id,
-            name,
-            profile_photo_url
-          )
-        `)
+      // Get other user in conversation (profile from auth user id)
+      const { data: otherPart } = await supabase
+        .from('conversation_participants_v2')
+        .select('user_id')
         .eq('conversation_id', conversationId)
-        .neq('user_id', currentUser.id)
-        .single();
+        .neq('user_id', currentUser.user_id)
+        .maybeSingle();
 
-      setOtherUser(otherParticipant?.user_profiles);
+      if (otherPart?.user_id) {
+        const { data: otherProf } = await supabase
+          .from('user_profiles')
+          .select('id, name, profile_photo_url')
+          .eq('user_id', otherPart.user_id)
+          .maybeSingle();
+        setOtherUser(otherProf);
+      } else {
+        setOtherUser(null);
+      }
 
       // Set up real-time subscription for new messages
       const channel = supabase
@@ -171,14 +184,19 @@ export const useMessages = () => {
           {
             event: 'INSERT',
             schema: 'public',
-            table: 'messages',
+            table: 'messages_v2',
             filter: `conversation_id=eq.${conversationId}`
           },
           (payload) => {
-            const newMessage = {
-              ...payload.new,
-              isFromCurrentUser: payload.new.sender_id === currentUser.id
-            } as Message;
+            const m: any = payload.new;
+            const newMessage: Message = {
+              id: m.id,
+              conversation_id: m.conversation_id,
+              sender_id: m.sender_user_id,
+              message_text: m.message_text,
+              created_at: m.created_at,
+              isFromCurrentUser: m.sender_user_id === currentUser.user_id,
+            };
             setMessages(prev => [...prev, newMessage]);
           }
         )
@@ -197,14 +215,14 @@ export const useMessages = () => {
   };
 
   const sendMessage = async (conversationId: string, messageText: string) => {
-    if (!currentUser) return false;
+    if (!currentUser?.user_id) return false;
 
     try {
       const { error } = await supabase
-        .from('messages')
+        .from('messages_v2')
         .insert({
           conversation_id: conversationId,
-          sender_id: currentUser.id,
+          sender_user_id: currentUser.user_id,
           message_text: messageText.trim()
         });
 
@@ -217,25 +235,25 @@ export const useMessages = () => {
     }
   };
 
-  const createConversation = async (otherUserId: string) => {
-    if (!currentUser) return null;
+  const createConversation = async (otherAuthUserId: string) => {
+    if (!currentUser?.user_id) return null;
 
     try {
-      // Create conversation
+      // Create conversation (v2)
       const { data: conversation, error: convError } = await supabase
-        .from('conversations')
+        .from('conversations_v2')
         .insert({})
         .select()
         .single();
 
       if (convError) throw convError;
 
-      // Add participants
+      // Add participants (auth user ids)
       const { error: participantError } = await supabase
-        .from('conversation_participants')
+        .from('conversation_participants_v2')
         .insert([
-          { conversation_id: conversation.id, user_id: currentUser.id },
-          { conversation_id: conversation.id, user_id: otherUserId }
+          { conversation_id: conversation.id, user_id: currentUser.user_id },
+          { conversation_id: conversation.id, user_id: otherAuthUserId }
         ]);
 
       if (participantError) throw participantError;

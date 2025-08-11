@@ -94,7 +94,7 @@ const Profile = () => {
 
           {!isOwnProfile && (
             <Button
-              onClick={() => toggleFollow(profileUser.id)}
+              onClick={() => toggleFollow(profileUser.user_id)}
               className={`${
                 isFollowing 
                   ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 

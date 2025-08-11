@@ -4,6 +4,7 @@ import './index.css'
 
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { syncManager } from './utils/syncManager';
 
 const configureStatusBar = async () => {
   if (Capacitor.isNativePlatform()) {
@@ -23,5 +24,6 @@ const configureStatusBar = async () => {
 };
 
 configureStatusBar();
+syncManager.start();
 
 createRoot(document.getElementById("root")!).render(<App />);

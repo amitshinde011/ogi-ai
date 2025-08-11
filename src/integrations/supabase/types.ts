@@ -67,13 +67,6 @@ export type Database = {
             foreignKeyName: "assessment_comparisons_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
-            referencedRelation: "user_program_summary"
-            referencedColumns: ["subscription_id"]
-          },
-          {
-            foreignKeyName: "assessment_comparisons_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
             referencedRelation: "user_subscriptions"
             referencedColumns: ["id"]
           },
@@ -123,21 +116,7 @@ export type Database = {
             foreignKeyName: "automation_activity_log_target_post_id_fkey"
             columns: ["target_post_id"]
             isOneToOne: false
-            referencedRelation: "community_feed_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_activity_log_target_post_id_fkey"
-            columns: ["target_post_id"]
-            isOneToOne: false
             referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_activity_log_target_post_id_fkey"
-            columns: ["target_post_id"]
-            isOneToOne: false
-            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -305,21 +284,7 @@ export type Database = {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "community_feed_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
             referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -342,17 +307,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            foreignKeyName: "conversation_participants_v2_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversation_participants_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -492,13 +450,6 @@ export type Database = {
             foreignKeyName: "final_assessments_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
-            referencedRelation: "user_program_summary"
-            referencedColumns: ["subscription_id"]
-          },
-          {
-            foreignKeyName: "final_assessments_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
             referencedRelation: "user_subscriptions"
             referencedColumns: ["id"]
           },
@@ -507,35 +458,20 @@ export type Database = {
       followers: {
         Row: {
           created_at: string | null
-          follower_id: string
-          following_id: string
+          follower_user_id: string
+          following_user_id: string
         }
         Insert: {
           created_at?: string | null
-          follower_id: string
-          following_id: string
+          follower_user_id: string
+          following_user_id: string
         }
         Update: {
           created_at?: string | null
-          follower_id?: string
-          following_id?: string
+          follower_user_id?: string
+          following_user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "followers_follower_id_fkey"
-            columns: ["follower_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "followers_following_id_fkey"
-            columns: ["following_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       group_purchase_participants: {
         Row: {
@@ -683,13 +619,6 @@ export type Database = {
             foreignKeyName: "journey_assessments_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
-            referencedRelation: "user_program_summary"
-            referencedColumns: ["subscription_id"]
-          },
-          {
-            foreignKeyName: "journey_assessments_subscription_id_fkey"
-            columns: ["subscription_id"]
-            isOneToOne: false
             referencedRelation: "user_subscriptions"
             referencedColumns: ["id"]
           },
@@ -716,21 +645,7 @@ export type Database = {
             foreignKeyName: "likes_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "community_feed_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
             referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -774,35 +689,28 @@ export type Database = {
           created_at: string | null
           id: string
           message_text: string
-          sender_id: string
+          sender_user_id: string
         }
         Insert: {
           conversation_id: string
           created_at?: string | null
           id?: string
           message_text: string
-          sender_id: string
+          sender_user_id: string
         }
         Update: {
           conversation_id?: string
           created_at?: string | null
           id?: string
           message_text?: string
-          sender_id?: string
+          sender_user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "messages_conversation_id_fkey"
+            foreignKeyName: "messages_v2_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -813,8 +721,8 @@ export type Database = {
           id: string
           is_read: boolean | null
           post_id: number | null
-          recipient_id: string
-          sender_id: string | null
+          recipient_user_id: string
+          sender_user_id: string
           type: string
         }
         Insert: {
@@ -822,8 +730,8 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           post_id?: number | null
-          recipient_id: string
-          sender_id?: string | null
+          recipient_user_id: string
+          sender_user_id: string
           type: string
         }
         Update: {
@@ -831,26 +739,11 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           post_id?: number | null
-          recipient_id?: string
-          sender_id?: string | null
+          recipient_user_id?: string
+          sender_user_id?: string
           type?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       orders: {
         Row: {
@@ -935,21 +828,7 @@ export type Database = {
             foreignKeyName: "post_reports_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "community_feed_view"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "post_reports_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
             referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "post_reports_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts_with_author"
             referencedColumns: ["id"]
           },
         ]
@@ -1329,124 +1208,7 @@ export type Database = {
       }
     }
     Views: {
-      community_feed_view: {
-        Row: {
-          author_avatar: string | null
-          author_id: string | null
-          author_name: string | null
-          caption: string | null
-          category: string | null
-          comment_count: number | null
-          created_at: string | null
-          id: number | null
-          image_url: string | null
-          is_reported: boolean | null
-          like_count: number | null
-          report_count: number | null
-          report_threshold_reached: boolean | null
-        }
-        Relationships: []
-      }
-      daily_activity_summary: {
-        Row: {
-          date: string | null
-          has_breakfast: boolean | null
-          has_dinner: boolean | null
-          has_kanji: boolean | null
-          has_lunch: boolean | null
-          has_salad_bowl: boolean | null
-          last_updated: string | null
-          meals_logged: number | null
-          meditation_completed: boolean | null
-          steps_count: number | null
-          surya_namaskar_count: number | null
-          user_id: string | null
-          walk_score: number | null
-          water_litres: number | null
-        }
-        Relationships: []
-      }
-      notifications_with_sender: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          is_read: boolean | null
-          post_id: number | null
-          recipient_id: string | null
-          sender_id: string | null
-          sender_name: string | null
-          sender_profile_photo_url: string | null
-          type: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      posts_with_author: {
-        Row: {
-          author_avatar: string | null
-          author_id: string | null
-          author_name: string | null
-          caption: string | null
-          category: string | null
-          comment_count: number | null
-          created_at: string | null
-          id: number | null
-          image_url: string | null
-          is_reported: boolean | null
-          like_count: number | null
-          report_count: number | null
-          report_threshold_reached: boolean | null
-        }
-        Relationships: []
-      }
-      user_program_summary: {
-        Row: {
-          days_completed: number | null
-          duration_days: number | null
-          end_date: string | null
-          is_completed: boolean | null
-          is_current: boolean | null
-          last_updated: string | null
-          program_name: string | null
-          progress_percentage: number | null
-          start_date: string | null
-          status: string | null
-          subscription_id: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
-      weekly_progress_summary: {
-        Row: {
-          avg_steps: number | null
-          avg_water: number | null
-          days_tracked: number | null
-          days_with_meals: number | null
-          last_updated: string | null
-          meditation_days: number | null
-          step_goal_days: number | null
-          total_steps: number | null
-          total_water: number | null
-          user_id: string | null
-          week_start: string | null
-          yoga_days: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       calculate_user_streaks: {

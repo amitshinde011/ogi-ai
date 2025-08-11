@@ -26,7 +26,7 @@ export const useSubscriptionActions = (programs: Program[]) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { updateOnboardingState } = useOnboarding();
+  const { updateOnboardingState, onboardingState } = useOnboarding();
   const { completedSubscription, markSubscriptionCompleted } = useProgramCompletion();
   const { isIndiaUser, userLocation } = useLocationDetection();
   const pricingConfig = usePricingConfig();
@@ -99,7 +99,8 @@ export const useSubscriptionActions = (programs: Program[]) => {
         description: `You've successfully got free access to ${program.name}`,
       });
 
-      navigate('/intro-video');
+      const targetPath = onboardingState?.profile_completed ? '/' : '/profile-setup';
+      navigate(targetPath);
     } catch (error) {
       console.error('Error creating free subscription:', error);
       toast({

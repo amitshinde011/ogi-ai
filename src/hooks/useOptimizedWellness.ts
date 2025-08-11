@@ -5,6 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { offlineQueue } from '@/utils/offlineQueue';
+import { localCache } from '@/utils/localCache';
 
 interface WellnessData {
   id?: string;
@@ -75,6 +77,27 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
       return newData;
     });
 
+    // If offline, cache and enqueue immediately
+    if (!navigator.onLine && user) {
+      const today = getLocalDateString();
+      const newData = { ...wellnessData, ...pendingUpdatesRef.current };
+      localCache.setTodayWellness(user.id, today, {
+        water_litres: newData.water_litres,
+        surya_namaskar_count: newData.surya_namaskar_count,
+        meditation_completed: newData.meditation_completed,
+      });
+      await offlineQueue.enqueue('wellness_upsert', {
+        user_id: user.id,
+        date: today,
+        water_litres: newData.water_litres,
+        surya_namaskar_count: newData.surya_namaskar_count,
+        meditation_completed: newData.meditation_completed,
+        meditation_minutes: 0,
+      });
+      toast({ title: 'Saved offline', description: "We'll sync when you're back online." });
+      return;
+    }
+
     // If an update is already in progress, just accumulate the changes
     if (isUpdateInProgressRef.current) {
       console.log('⏳ useOptimizedWellness: Update already in progress, accumulating changes');
@@ -139,6 +162,16 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
             surya_namaskar_count: result.surya_namaskar_count,
             meditation_completed: result.meditation_completed
           }));
+
+          // Notify the app so other pages refresh immediately
+          window.dispatchEvent(new CustomEvent('wellnessUpdated', {
+            detail: {
+              water_litres: result.water_litres,
+              surya_namaskar_count: result.surya_namaskar_count,
+              meditation_completed: result.meditation_completed,
+            }
+          }));
+
           trackEvent('wellness_upsert_success', 'Wellness', 'Optimized Upsert');
         }
 

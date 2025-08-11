@@ -42,8 +42,20 @@ const Index = () => {
       };
     }
 
+    // Email auth callback: if Supabase redirected here after signup/magic link, send to /progress
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    const isEmailAuthCallback = hash.includes('type=signup') || hash.includes('type=magiclink') || hash.includes('access_token');
+    if (isEmailAuthCallback && !hasRedirected) {
+      console.log('Index: Email auth callback detected, redirecting to /progress');
+      hasRedirected = true;
+      timeoutId = setTimeout(() => {
+        navigate('/progress', { replace: true });
+      }, 100);
+      return;
+    }
+
     const handleRedirect = async () => {
-      // Prevent multiple redirects
       if (hasRedirected) {
         console.log('Redirect already handled, skipping');
         return;
@@ -102,7 +114,7 @@ const Index = () => {
       <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       <div className="min-h-screen bg-gradient-peaceful flex items-center justify-center">
         <div className="text-center">
-          <div className="w-32 h-32 mx-auto flex items-center justify-center mb-6 animate-scale-in">
+          <div className="w-28 h-28 mx-auto flex items-center justify-center mb-6 animate-scale-in">
             <img 
               src={IMAGES.LOGO_VARIANT} 
               alt="Yogi Logo" 

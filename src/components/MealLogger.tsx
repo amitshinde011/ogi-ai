@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { toast } from '@/hooks/use-toast';
+import { offlineQueue } from '@/utils/offlineQueue';
+import { localCache } from '@/utils/localCache';
 
 const MealLogger = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -25,8 +27,24 @@ const MealLogger = () => {
     }
 
     try {
-      // First, log the meal to the meal_tracking table
       const today = getLocalDateString();
+
+      // If offline, queue the meal and update local cache
+      if (!navigator.onLine) {
+        await offlineQueue.enqueue('meal_insert', {
+          user_id: user.id,
+          date: today,
+          meal_type: mealType,
+          food_item: caption || 'Meal logged (offline)'
+        });
+        localCache.addOfflineMeal(user.id, today, mealType);
+        const event = new CustomEvent('mealLogged', { detail: { mealType } });
+        window.dispatchEvent(event);
+        toast({ title: 'Meal saved offline', description: "We'll sync when you're back online." });
+        return true;
+      }
+
+      // First, log the meal to the meal_tracking table
       const { data: mealData, error: mealError } = await supabase
         .from('meal_tracking')
         .insert({
@@ -40,8 +58,17 @@ const MealLogger = () => {
 
       if (mealError) {
         console.error('❌ MealLogger: Error logging meal:', mealError);
-        toast({ title: "Failed to log meal", variant: "destructive" });
-        return false;
+        await offlineQueue.enqueue('meal_insert', {
+          user_id: user.id,
+          date: today,
+          meal_type: mealType,
+          food_item: caption || 'Meal logged (offline)'
+        });
+        localCache.addOfflineMeal(user.id, today, mealType);
+        const event = new CustomEvent('mealLogged', { detail: { mealType } });
+        window.dispatchEvent(event);
+        toast({ title: 'Meal saved offline', description: "We'll sync when you're back online." });
+        return true;
       }
 
       console.log('✅ MealLogger: Meal logged successfully:', mealData);
