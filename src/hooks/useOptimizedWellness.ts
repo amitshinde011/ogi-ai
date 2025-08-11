@@ -86,14 +86,11 @@ export const useOptimizedWellness = (initialData: WellnessData) => {
         surya_namaskar_count: newData.surya_namaskar_count,
         meditation_completed: newData.meditation_completed,
       });
-      await offlineQueue.enqueue('wellness_upsert', {
-        user_id: user.id,
-        date: today,
-        water_litres: newData.water_litres,
-        surya_namaskar_count: newData.surya_namaskar_count,
-        meditation_completed: newData.meditation_completed,
-        meditation_minutes: 0,
-      });
+      const payload: any = { user_id: user.id, date: today };
+      if (Object.prototype.hasOwnProperty.call(pendingUpdatesRef.current, 'water_litres')) payload.water_litres = newData.water_litres;
+      if (Object.prototype.hasOwnProperty.call(pendingUpdatesRef.current, 'surya_namaskar_count')) payload.surya_namaskar_count = newData.surya_namaskar_count;
+      if (Object.prototype.hasOwnProperty.call(pendingUpdatesRef.current, 'meditation_completed')) payload.meditation_completed = newData.meditation_completed;
+      await offlineQueue.enqueue('wellness_upsert', payload);
       toast({ title: 'Saved offline', description: "We'll sync when you're back online." });
       return;
     }

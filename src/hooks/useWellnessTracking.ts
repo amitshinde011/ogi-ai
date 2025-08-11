@@ -111,14 +111,12 @@ export const useWellnessTracking = () => {
 
       // If offline, enqueue for background sync
       if (!navigator.onLine) {
-        await offlineQueue.enqueue('wellness_upsert', {
-          user_id: user.id,
-          date: today,
-          water_litres: updatedData.water_litres,
-          surya_namaskar_count: updatedData.surya_namaskar_count,
-          meditation_completed: updatedData.meditation_completed,
-          meditation_minutes: updatedData.meditation_minutes || 0,
-        });
+        const payload: any = { user_id: user.id, date: today };
+        if (Object.prototype.hasOwnProperty.call(updates, 'water_litres')) payload.water_litres = updates.water_litres;
+        if (Object.prototype.hasOwnProperty.call(updates, 'surya_namaskar_count')) payload.surya_namaskar_count = updates.surya_namaskar_count;
+        if (Object.prototype.hasOwnProperty.call(updates, 'meditation_completed')) payload.meditation_completed = updates.meditation_completed;
+        if (Object.prototype.hasOwnProperty.call(updates, 'meditation_minutes')) payload.meditation_minutes = updates.meditation_minutes;
+        await offlineQueue.enqueue('wellness_upsert', payload);
         toast({ title: 'Saved offline', description: "We'll sync when you're back online." });
         return;
       }
@@ -163,14 +161,12 @@ export const useWellnessTracking = () => {
       console.error('Error updating wellness data:', error);
       // Queue for background sync instead of reverting
       const today = getLocalDateString();
-      await offlineQueue.enqueue('wellness_upsert', {
-        user_id: user?.id,
-        date: today,
-        water_litres: updates.water_litres ?? wellnessData.water_litres,
-        surya_namaskar_count: updates.surya_namaskar_count ?? wellnessData.surya_namaskar_count,
-        meditation_completed: updates.meditation_completed ?? wellnessData.meditation_completed,
-        meditation_minutes: updates.meditation_minutes ?? wellnessData.meditation_minutes,
-      });
+      const payload: any = { user_id: user?.id, date: today };
+      if (Object.prototype.hasOwnProperty.call(updates, 'water_litres')) payload.water_litres = updates.water_litres;
+      if (Object.prototype.hasOwnProperty.call(updates, 'surya_namaskar_count')) payload.surya_namaskar_count = updates.surya_namaskar_count;
+      if (Object.prototype.hasOwnProperty.call(updates, 'meditation_completed')) payload.meditation_completed = updates.meditation_completed;
+      if (Object.prototype.hasOwnProperty.call(updates, 'meditation_minutes')) payload.meditation_minutes = updates.meditation_minutes;
+      await offlineQueue.enqueue('wellness_upsert', payload);
       toast({ title: 'Saved offline', description: "We'll sync when your connection returns." });
     }
   };

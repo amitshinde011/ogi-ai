@@ -80,30 +80,30 @@ class SyncManager {
   }
 
   private async handleWellness(task: OfflineTask): Promise<boolean> {
-    const { user_id, date, water_litres, surya_namaskar_count, meditation_completed, meditation_minutes = 0 } = task.payload;
-    const { error, data } = await supabase
-      .from('daily_wellness')
-      .upsert({
-        user_id,
-        date,
-        water_litres,
-        surya_namaskar_count,
-        meditation_completed,
-        meditation_minutes,
-      }, { onConflict: 'user_id,date' })
-      .select()
-      .single();
+    const { user_id, date } = task.payload;
+    const has = (k: string) => Object.prototype.hasOwnProperty.call(task.payload, k);
+    const p = task.payload as Record<string, any>;
+
+    const { error, data } = await supabase.rpc('upsert_wellness_data', {
+      p_user_id: user_id,
+      p_date: date,
+      p_water_litres: has('water_litres') ? p.water_litres : null,
+      p_surya_namaskar_count: has('surya_namaskar_count') ? p.surya_namaskar_count : null,
+      p_meditation_completed: has('meditation_completed') ? p.meditation_completed : null,
+      p_meditation_minutes: has('meditation_minutes') ? p.meditation_minutes : null,
+    });
 
     if (error) throw error;
 
+    const cached = localCache.getTodayWellness(user_id, date) || {};
     localCache.setTodayWellness(user_id, date, {
-      water_litres,
-      surya_namaskar_count,
-      meditation_completed,
-      meditation_minutes,
+      water_litres: has('water_litres') ? p.water_litres : (cached as any).water_litres ?? 0,
+      surya_namaskar_count: has('surya_namaskar_count') ? p.surya_namaskar_count : (cached as any).surya_namaskar_count ?? 0,
+      meditation_completed: has('meditation_completed') ? p.meditation_completed : (cached as any).meditation_completed ?? false,
+      meditation_minutes: has('meditation_minutes') ? p.meditation_minutes : (cached as any).meditation_minutes ?? 0,
     });
 
-    console.log('[SyncManager] Wellness upserted', data?.id);
+    console.log('[SyncManager] Wellness upserted via RPC', data?.[0]?.id || data?.id);
     return true;
   }
 
