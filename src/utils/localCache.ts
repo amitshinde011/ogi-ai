@@ -1,3 +1,5 @@
+import { openDB, DBSchema } from 'idb';
+
 export interface CachedWellness {
   water_litres: number;
   surya_namaskar_count: number;
@@ -5,52 +7,132 @@ export interface CachedWellness {
   meditation_minutes?: number;
 }
 
-const safeParse = <T>(str: string | null): T | null => {
-  if (!str) return null;
-  try { return JSON.parse(str) as T; } catch { return null; }
-};
+interface LocalCacheDB extends DBSchema {
+  wellness: {
+    key: string; // `${userId}_${date}`
+    value: {
+      key: string;
+      userId: string;
+      date: string;
+      data: CachedWellness & { timestamp: number };
+    };
+  };
+  meals: {
+    key: string; // `${userId}_${date}`
+    value: {
+      key: string;
+      userId: string;
+      date: string;
+      meals: string[]; // unique meal types
+      timestamp: number;
+    };
+  };
+  steps: {
+    key: string; // `${userId}_${date}`
+    value: {
+      key: string;
+      userId: string;
+      date: string;
+      steps: number;
+      timestamp: number;
+    };
+  };
+}
 
-const keyWellness = (userId: string, date: string) => `wellness_${userId}_${date}`;
-const keyMeals = (userId: string, date: string) => `offline_meals_${userId}_${date}`;
-const keySteps = (userId: string, date: string) => `steps_${userId}_${date}`;
+const DB_NAME = 'local-cache-db';
+const DB_VERSION = 1;
+
+const dbPromise = openDB<LocalCacheDB>(DB_NAME, DB_VERSION, {
+  upgrade(db) {
+    if (!db.objectStoreNames.contains('wellness')) {
+      db.createObjectStore('wellness');
+    }
+    if (!db.objectStoreNames.contains('meals')) {
+      db.createObjectStore('meals');
+    }
+    if (!db.objectStoreNames.contains('steps')) {
+      db.createObjectStore('steps');
+    }
+  },
+});
+
+const keyWellness = (userId: string, date: string) => `${userId}_${date}`;
+const keyMeals = (userId: string, date: string) => `${userId}_${date}`;
+const keySteps = (userId: string, date: string) => `${userId}_${date}`;
 
 export const localCache = {
-  setTodayWellness(userId: string, date: string, data: CachedWellness, timestampOverride?: number) {
+  async setTodayWellness(userId: string, date: string, data: CachedWellness, timestampOverride?: number) {
+    const db = await dbPromise;
+    const key = keyWellness(userId, date);
     const payload = {
-      water_litres: data.water_litres ?? 0,
-      surya_namaskar_count: data.surya_namaskar_count ?? 0,
-      meditation_completed: !!data.meditation_completed,
-      meditation_minutes: data.meditation_minutes ?? 0,
-      timestamp: timestampOverride ?? Date.now(),
+      key,
+      userId,
+      date,
+      data: {
+        water_litres: data.water_litres ?? 0,
+        surya_namaskar_count: data.surya_namaskar_count ?? 0,
+        meditation_completed: !!data.meditation_completed,
+        meditation_minutes: data.meditation_minutes ?? 0,
+        timestamp: timestampOverride ?? Date.now(),
+      },
     };
-    localStorage.setItem(keyWellness(userId, date), JSON.stringify(payload));
-  },
-  getTodayWellness(userId: string, date: string): (CachedWellness & { timestamp?: number }) | null {
-    return safeParse(localStorage.getItem(keyWellness(userId, date)));
+    await db.put('wellness', payload, key);
   },
 
-  addOfflineMeal(userId: string, date: string, mealType: string) {
-    const current = safeParse<string[]>(localStorage.getItem(keyMeals(userId, date))) || [];
-    if (!current.includes(mealType)) current.push(mealType);
-    localStorage.setItem(keyMeals(userId, date), JSON.stringify(current));
-  },
-  removeOfflineMeal(userId: string, date: string, mealType: string) {
-    const current = safeParse<string[]>(localStorage.getItem(keyMeals(userId, date))) || [];
-    const next = current.filter(m => m !== mealType);
-    localStorage.setItem(keyMeals(userId, date), JSON.stringify(next));
-  },
-  getOfflineMeals(userId: string, date: string): string[] {
-    return safeParse<string[]>(localStorage.getItem(keyMeals(userId, date))) || [];
-  },
-  clearOfflineMeals(userId: string, date: string) {
-    localStorage.removeItem(keyMeals(userId, date));
+  async getTodayWellness(userId: string, date: string): Promise<(CachedWellness & { timestamp?: number }) | null> {
+    const db = await dbPromise;
+    const key = keyWellness(userId, date);
+    const rec = await db.get('wellness', key);
+    return rec?.data || null;
   },
 
-  getLocalSteps(userId: string, date: string): number {
-    const data = safeParse<{ steps: number }>(localStorage.getItem(keySteps(userId, date)));
-    return data?.steps ?? 0;
+  async addOfflineMeal(userId: string, date: string, mealType: string) {
+    const db = await dbPromise;
+    const key = keyMeals(userId, date);
+    const existing = (await db.get('meals', key)) || { key, userId, date, meals: [], timestamp: 0 };
+    const meals = new Set(existing.meals || []);
+    meals.add(mealType);
+    await db.put('meals', { key, userId, date, meals: Array.from(meals), timestamp: Date.now() }, key);
   },
-  setLocalSteps(userId: string, date: string, steps: number) {
-    localStorage.setItem(keySteps(userId, date), JSON.stringify({ steps, timestamp: Date.now() }));
-  }
+
+  async removeOfflineMeal(userId: string, date: string, mealType: string) {
+    const db = await dbPromise;
+    const key = keyMeals(userId, date);
+    const existing = (await db.get('meals', key)) || { key, userId, date, meals: [], timestamp: 0 };
+    const meals = (existing.meals || []).filter((m: string) => m !== mealType);
+    await db.put('meals', { key, userId, date, meals, timestamp: Date.now() }, key);
+  },
+
+  async getOfflineMeals(userId: string, date: string): Promise<string[]> {
+    const db = await dbPromise;
+    const key = keyMeals(userId, date);
+    const rec = await db.get('meals', key);
+    return rec?.meals || [];
+  },
+
+  async clearOfflineMeals(userId: string, date: string) {
+    const db = await dbPromise;
+    const key = keyMeals(userId, date);
+    await db.delete('meals', key);
+  },
+
+  async getLocalSteps(userId: string, date: string): Promise<number> {
+    const db = await dbPromise;
+    const key = keySteps(userId, date);
+    const rec = await db.get('steps', key);
+    return rec?.steps ?? 0;
+  },
+
+  async getLocalStepsMeta(userId: string, date: string): Promise<{ steps: number; timestamp: number }> {
+    const db = await dbPromise;
+    const key = keySteps(userId, date);
+    const rec = await db.get('steps', key);
+    return { steps: rec?.steps ?? 0, timestamp: rec?.timestamp ?? 0 };
+  },
+
+  async setLocalSteps(userId: string, date: string, steps: number) {
+    const db = await dbPromise;
+    const key = keySteps(userId, date);
+    await db.put('steps', { key, userId, date, steps, timestamp: Date.now() }, key);
+  },
 };

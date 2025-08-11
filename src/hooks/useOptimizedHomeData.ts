@@ -103,28 +103,35 @@ export const useOptimizedHomeData = () => {
       });
 
       // Offline-first: show cached data immediately
-      const cachedWellness = localCache.getTodayWellness(user.id, today);
-      const localSteps = localCache.getLocalSteps(user.id, today);
-      const offlineMeals = localCache.getOfflineMeals(user.id, today).map(m => m.toLowerCase());
+      const [cachedWellness, localSteps, offlineMeals] = await Promise.all([
+        localCache.getTodayWellness(user.id, today),
+        localCache.getLocalSteps(user.id, today),
+        localCache.getOfflineMeals(user.id, today),
+      ]);
 
-      setData(d => ({
-        ...d,
-        todayProgress: {
-          ...d.todayProgress,
-          breakfast: offlineMeals.includes('breakfast') || d.todayProgress.breakfast,
-          lunch: offlineMeals.includes('lunch') || d.todayProgress.lunch,
-          dinner: offlineMeals.includes('dinner') || d.todayProgress.dinner,
-          steps: localSteps,
-          walkScore: Math.min(Math.floor((localSteps / 5000) * 5), 5),
-          saladBowl: d.todayProgress.saladBowl,
-          kanji: d.todayProgress.kanji,
-        },
-        wellnessData: cachedWellness ? {
-          water_litres: cachedWellness.water_litres || 0,
-          surya_namaskar_count: cachedWellness.surya_namaskar_count || 0,
-          meditation_completed: !!cachedWellness.meditation_completed,
-        } : d.wellnessData,
-      }));
+      const offlineMealsLower = (offlineMeals || []).map(m => m.toLowerCase());
+
+      setData(d => {
+        const stepsLocal = Number(localSteps) || 0;
+        return ({
+          ...d,
+          todayProgress: {
+            ...d.todayProgress,
+            breakfast: offlineMealsLower.includes('breakfast') || d.todayProgress.breakfast,
+            lunch: offlineMealsLower.includes('lunch') || d.todayProgress.lunch,
+            dinner: offlineMealsLower.includes('dinner') || d.todayProgress.dinner,
+            steps: stepsLocal,
+            walkScore: Math.min(Math.floor((stepsLocal / 5000) * 5), 5),
+            saladBowl: d.todayProgress.saladBowl,
+            kanji: d.todayProgress.kanji,
+          },
+          wellnessData: cachedWellness ? {
+            water_litres: cachedWellness.water_litres || 0,
+            surya_namaskar_count: cachedWellness.surya_namaskar_count || 0,
+            meditation_completed: !!cachedWellness.meditation_completed,
+          } : d.wellnessData,
+        });
+      });
 
       // Network fetch (will only update if newer)
       console.warn('ℹ️ useOptimizedHomeData: Using direct queries (RPC removed)');
@@ -154,9 +161,9 @@ export const useOptimizedHomeData = () => {
       ]);
 
       const dbMealTypes = new Set((mealsResult.data || []).map(m => (m.meal_type || '').toLowerCase()));
-      const mergedMeals = new Set<string>([...dbMealTypes, ...offlineMeals]);
+      const mergedMeals = new Set<string>([...dbMealTypes, ...offlineMealsLower]);
       const dbSteps = stepsResult?.data?.steps_count || 0;
-      const finalSteps = Math.max(localSteps, dbSteps);
+      const finalSteps = Math.max(Number(localSteps) || 0, dbSteps);
 
       const weeklyWellness = weeklyWellnessRes.data || [];
       const streak = weekDates.map(date => {
@@ -171,7 +178,7 @@ export const useOptimizedHomeData = () => {
         const dbTs = wellnessResult.data.updated_at ? new Date(wellnessResult.data.updated_at as any).getTime() : 0;
         const cacheTs = cachedWellness?.timestamp || 0;
         if (dbTs > cacheTs) {
-          localCache.setTodayWellness(user.id, today, {
+          await localCache.setTodayWellness(user.id, today, {
             water_litres: wellnessResult.data.water_litres || 0,
             surya_namaskar_count: wellnessResult.data.surya_namaskar_count || 0,
             meditation_completed: wellnessResult.data.meditation_completed || false,

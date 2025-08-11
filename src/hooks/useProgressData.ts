@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { calculateProgramProgress } from '@/utils/dateUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { localCache } from '@/utils/localCache';
 
 interface WeeklyProgressData {
   totalScore: number;
@@ -156,6 +157,33 @@ export const useProgressData = () => {
       let currentStreak = 0;
 
       weeklyResults.forEach(([meals, wellness, steps], index) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - index));
+        const dateStr = getLocalDateString(d);
+
+        // Merge today's offline values
+        if (dateStr === getLocalDateString(new Date())) {
+          // Meals
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          localCache.getOfflineMeals(user.id, dateStr).then(offlineMeals => {
+            if ((offlineMeals || []).length > 0) {
+              meals.data = [...(meals.data || []), ...offlineMeals.map(m => ({ meal_type: m }))];
+            }
+          });
+          // Wellness
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          localCache.getTodayWellness(user.id, dateStr).then(cached => {
+            if (cached) {
+              wellness.data = {
+                ...(wellness.data || {}),
+                surya_namaskar_count: cached.surya_namaskar_count || 0,
+                meditation_completed: !!cached.meditation_completed,
+                water_litres: cached.water_litres || 0,
+              } as any;
+            }
+          });
+        }
+
         const dayScore = calculateDailyScore(meals.data, wellness.data, steps.data);
         dailyScores.push(dayScore);
         

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
+import { localCache } from '@/utils/localCache';
 
 interface WeeklyProgressData {
   totalScore: number;
@@ -156,6 +157,24 @@ export const useOptimizedProgressData = () => {
         mealsByDate.set(m.date, (mealsByDate.get(m.date) || 0) + 1);
       });
 
+      // Merge today's offline data from IndexedDB
+      const todayStr = getLocalDateString(new Date());
+      const [cachedWellnessToday, offlineMealsToday] = await Promise.all([
+        localCache.getTodayWellness(userId, todayStr),
+        localCache.getOfflineMeals(userId, todayStr),
+      ]);
+      if (cachedWellnessToday) {
+        wellnessByDate.set(todayStr, {
+          date: todayStr,
+          water_litres: cachedWellnessToday.water_litres || 0,
+          surya_namaskar_count: cachedWellnessToday.surya_namaskar_count || 0,
+          meditation_completed: !!cachedWellnessToday.meditation_completed,
+        });
+      }
+      if ((offlineMealsToday || []).length > 0) {
+        mealsByDate.set(todayStr, Math.max(mealsByDate.get(todayStr) || 0, offlineMealsToday.length));
+      }
+
       // Calculate daily scores
       const dailyScores = Array(7).fill(0);
       let totalScore = 0;
@@ -277,6 +296,28 @@ export const useOptimizedProgressData = () => {
       const stepsMap = new Map<string, number>();
       (stepsRes.data || []).forEach((s: any) => stepsMap.set(s.date, s.steps_count || 0));
 
+      // Merge today's offline data
+      const todayStr2 = getLocalDateString(new Date());
+      const [cachedWellnessToday2, offlineMealsToday2, localStepsToday] = await Promise.all([
+        localCache.getTodayWellness(userId, todayStr2),
+        localCache.getOfflineMeals(userId, todayStr2),
+        localCache.getLocalSteps(userId, todayStr2),
+      ]);
+      if (cachedWellnessToday2) {
+        wellnessMap.set(todayStr2, {
+          date: todayStr2,
+          water_litres: cachedWellnessToday2.water_litres || 0,
+          surya_namaskar_count: cachedWellnessToday2.surya_namaskar_count || 0,
+          meditation_completed: !!cachedWellnessToday2.meditation_completed,
+        });
+      }
+      if ((offlineMealsToday2 || []).length > 0) {
+        mealsMap.set(todayStr2, Math.max(mealsMap.get(todayStr2) || 0, offlineMealsToday2.length));
+      }
+      if ((localStepsToday || 0) > (stepsMap.get(todayStr2) || 0)) {
+        stepsMap.set(todayStr2, localStepsToday || 0);
+      }
+
       const days: Array<{ day: number; score: number; cumulativeScore: number; date: string }> = [];
       let cumulative = 0;
       let dayCounter = 1;
@@ -394,6 +435,23 @@ export const useOptimizedProgressData = () => {
       });
       (mealsRes.data || []).forEach((m: any) => activitySet.add(m.date));
       (stepsRes.data || []).forEach((s: any) => { if ((s.steps_count || 0) > 1000) activitySet.add(s.date); });
+
+      // Include today's offline activity
+      const todayStr3 = getLocalDateString(new Date());
+      const [cachedWellness3, offlineMeals3, localSteps3] = await Promise.all([
+        localCache.getTodayWellness(userId, todayStr3),
+        localCache.getOfflineMeals(userId, todayStr3),
+        localCache.getLocalSteps(userId, todayStr3),
+      ]);
+      if (cachedWellness3 && (cachedWellness3.meditation_completed || (cachedWellness3.water_litres || 0) > 0 || (cachedWellness3.surya_namaskar_count || 0) > 0)) {
+        activitySet.add(todayStr3);
+      }
+      if ((offlineMeals3 || []).length > 0) {
+        activitySet.add(todayStr3);
+      }
+      if ((localSteps3 || 0) > 1000) {
+        activitySet.add(todayStr3);
+      }
 
       const activeDays = activitySet.size;
 

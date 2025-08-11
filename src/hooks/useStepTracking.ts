@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { offlineQueue } from '@/utils/offlineQueue';
+import { localCache } from '@/utils/localCache';
 
 interface StepData {
   steps: number;
@@ -34,21 +35,13 @@ export const useStepTracking = () => {
     }
   }, [user]);
 
-  // Persist data to localStorage
-  const persistData = useCallback((steps: number) => {
-    if (!user) return;
-    
-    try {
-      const today = getLocalDateString();
-      const dataToSave = {
-        steps,
-        timestamp: Date.now()
-      };
-      localStorage.setItem(`steps_${user.id}_${today}`, JSON.stringify(dataToSave));
-    } catch (error) {
-      console.error('Error persisting data:', error);
-    }
-  }, [user]);
+  // Persist data to IndexedDB via localCache
+  const persistData = useCallback((steps: number) => {
+    if (!user) return;
+    const today = getLocalDateString();
+    // fire and forget
+    localCache.setLocalSteps(user.id, today, steps);
+  }, [user]);
 
   // This function is available if needed (e.g., on logout), but not called automatically
   const clearUserCache = useCallback(() => {
@@ -91,9 +84,11 @@ export const useStepTracking = () => {
       return { steps: data?.steps_count || 0, updatedAt: data?.updated_at ? new Date(data.updated_at as any).getTime() : undefined };
     } catch (error) {
       console.error('Error fetching today steps:', error);
-      return { steps: loadPersistedData() };
+      const today = getLocalDateString();
+      const localSteps = await localCache.getLocalSteps(user.id, today);
+      return { steps: localSteps };
     }
-  }, [user, loadPersistedData]);
+  }, [user]);
 
   // Sync steps to database
   const syncToDatabase = useCallback(async (steps: number) => {
@@ -145,16 +140,7 @@ export const useStepTracking = () => {
       try {
         // Show local cache immediately (offline-first UI)
         const today = getLocalDateString();
-        const savedData = localStorage.getItem(`steps_${user.id}_${today}`);
-        let localSteps = 0;
-        let localTs = 0;
-        if (savedData) {
-          try {
-            const parsed = JSON.parse(savedData);
-            localSteps = parsed.steps || 0;
-            localTs = parsed.timestamp || 0;
-          } catch {}
-        }
+        const { steps: localSteps, timestamp: localTs } = await localCache.getLocalStepsMeta(user.id, today);
         setStepData({ steps: localSteps, lastUpdated: new Date() });
 
         // Fetch DB and resolve conflicts by timestamp

@@ -45,7 +45,7 @@ export const useWellnessTracking = () => {
       const today = getLocalDateString();
 
       // Always show cached data first (offline-first UI)
-      const cached = localCache.getTodayWellness(user.id, today);
+      const cached = await localCache.getTodayWellness(user.id, today);
       if (cached) {
         setWellnessData({
           date: today,
@@ -96,7 +96,7 @@ export const useWellnessTracking = () => {
             meditation_minutes: data.meditation_minutes || 0,
             meditation_completed: data.meditation_completed || false
           });
-          localCache.setTodayWellness(user.id, today, {
+          await localCache.setTodayWellness(user.id, today, {
             water_litres: data.water_litres || 0,
             surya_namaskar_count: data.surya_namaskar_count || 0,
             meditation_completed: data.meditation_completed || false,
@@ -120,7 +120,7 @@ export const useWellnessTracking = () => {
 
       // Optimistic update + cache locally
       setWellnessData(updatedData);
-      localCache.setTodayWellness(user.id, today, {
+      await localCache.setTodayWellness(user.id, today, {
         water_litres: updatedData.water_litres,
         surya_namaskar_count: updatedData.surya_namaskar_count,
         meditation_completed: updatedData.meditation_completed,
