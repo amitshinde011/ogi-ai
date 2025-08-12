@@ -78,7 +78,7 @@ const Landing = () => {
     },
     {
       question: "What kind of results can I expect?",
-      answer: "While results vary, most members report reduced stress, improved energy, better sleep, and enhanced mental clarity within the first 21 days. The longer programs yield deeper, more lasting transformations."
+      answer: "While results vary, most members report reduced stress, improved energy, better sleep, and enhanced mental clarity within the first 30 days. The longer programs yield deeper, more lasting transformations."
     },
     {
       question: "What support do I get as a member?",
@@ -285,12 +285,12 @@ const Landing = () => {
       <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">108 Days of Commitment</Badge>
+            <Badge variant="outline" className="mb-4">90 Days of Commitment</Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
               Real People, <span className="text-primary">Real Results</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              See the incredible transformations from our 108-day wellness program. These are real members who committed to their journey and achieved amazing results.
+              See the incredible transformations from our 90-day wellness program. These are real members who committed to their journey and achieved amazing results.
             </p>
           </div>
           
@@ -301,14 +301,14 @@ const Landing = () => {
                 <AspectRatio ratio={1} className="overflow-hidden">
                   <img
                     src={image}
-                    alt={`Real transformation story ${index + 1} - 108 days of routine before and after results`}
+                    alt={`Real transformation story ${index + 1} - 90 days of routine before and after results`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
                 </AspectRatio>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 opacity-0 group-hover:opacity-100">
-                  <p className="font-semibold text-sm text-white/90">108 Days of Dedication</p>
+                  <p className="font-semibold text-sm text-white/90">90 Days of Dedication</p>
                   <p className="text-xs text-white/90">From commitment to transformation</p>
                 </div>
               </div>
@@ -323,7 +323,7 @@ const Landing = () => {
                   <AspectRatio ratio={1}>
                     <img
                       src={image}
-                      alt={`Transformation ${index + 1} - 108 days routine before after`}
+                      alt={`Transformation ${index + 1} - 90 days routine before after`}
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
@@ -335,7 +335,7 @@ const Landing = () => {
           
           <div className="text-center mt-12">
             <p className="text-lg text-muted-foreground mb-6">
-              Join thousands who have already transformed their lives in just 108 days
+              Join thousands who have already transformed their lives in just 90 days
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -343,7 +343,7 @@ const Landing = () => {
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                Start Your 108-Day Journey
+                Start Your 90-Day Journey
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
@@ -421,7 +421,7 @@ const Landing = () => {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {programs.map((program, index) => {
-                const isPopular = program.duration_days === 49;
+                const isPopular = program.duration_days === 60;
                 const transformationImage = getTransformationImage(program.duration_days);
                 
                 return (
@@ -442,8 +442,8 @@ const Landing = () => {
                   )}
                     
                     <div className={`bg-gradient-to-br p-6 ${
-                      program.duration_days === 21 ? 'from-green-50 to-green-100' :
-                      program.duration_days === 49 ? 'from-blue-50 to-blue-100' :
+                      program.duration_days === 30 ? 'from-green-50 to-green-100' :
+                      program.duration_days === 60 ? 'from-blue-50 to-blue-100' :
                       'from-purple-50 to-purple-100'
                     }`}>
                       {transformationImage && (
@@ -582,7 +582,7 @@ const Landing = () => {
                           className={`w-full font-semibold py-2 px-4 rounded-lg ${
                             isPopular 
                               ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
-                              : program.duration_days === 21
+                              : program.duration_days === 30
                               ? 'bg-green-600 hover:bg-green-700 text-white'
                               : 'bg-purple-600 hover:bg-purple-700 text-white'
                           }`}

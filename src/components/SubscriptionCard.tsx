@@ -69,7 +69,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
     return isIndiaUser ? '₹' : '$';
   };
 
-  const isPopular = program.duration_days === 49;
+  const isPopular = program.duration_days === 60;
   const couponDiscountPercentage = getDiscountPercentage();
   const isFree = couponDiscountPercentage === 100;
 
