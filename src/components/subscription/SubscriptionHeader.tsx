@@ -1,17 +1,23 @@
 
+
 import React from 'react';
 import { PricingDisplay } from '@/components/PricingDisplay';
+import { Button } from '@/components/ui/button';
 
 interface SubscriptionHeaderProps {
   showAchievementBanner: boolean;
   isIndiaUser: boolean;
   userLocation: string;
+  isIOSNative?: boolean;
+  onRestore?: () => void;
 }
 
 export const SubscriptionHeader: React.FC<SubscriptionHeaderProps> = ({
   showAchievementBanner,
   isIndiaUser,
-  userLocation
+  userLocation,
+  isIOSNative,
+  onRestore
 }) => {
   return (
     <div className="text-center mb-8 sm:mb-12 lg:mb-16 mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,6 +32,15 @@ export const SubscriptionHeader: React.FC<SubscriptionHeaderProps> = ({
         <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto px-4">
           Select the program that best fits your <span className="font-semibold text-gray-800">wellness goals</span> and start your personalized <span className="font-semibold text-gray-800">transformation journey</span> today
         </p>
+
+        {/* iOS Restore Purchases */}
+        {isIOSNative && (
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={onRestore}>
+              Restore Purchases
+            </Button>
+          </div>
+        )}
         
         <div className="inline-block w-full max-w-2xl">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">

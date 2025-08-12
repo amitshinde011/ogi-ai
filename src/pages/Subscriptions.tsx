@@ -8,6 +8,7 @@ import { SubscriptionGrid } from '@/components/subscription/SubscriptionGrid';
 import { GroupDiscountCalculator } from '@/components/conversion/GroupDiscountCalculator';
 import { useSubscriptionData } from '@/hooks/useSubscriptionData';
 import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
+import { useIOSSubscriptions } from '@/hooks/useIOSSubscriptions';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
 
@@ -16,7 +17,18 @@ const Subscriptions = () => {
   const { completedSubscription } = useProgramCompletion();
   const { programs, loading } = useSubscriptionData();
   const { handleSubscribe, isIndiaUser, userLocation } = useSubscriptionActions(programs);
+  const { isIOSNative, purchaseIOS, restorePurchases } = useIOSSubscriptions(programs);
   const [showAchievementBanner, setShowAchievementBanner] = useState(false);
+
+  const onSubscribe = async (programId: string, couponDiscountPercentage?: number, finalPrice?: number) => {
+    const result = await purchaseIOS(programId);
+    if (result && 'usedIOS' in result && result.usedIOS) {
+      // When iOS flow is enabled, stop here (either success or handled error)
+      return;
+    }
+    // Fallback to existing web/Android payment flow
+    return handleSubscribe(programId, couponDiscountPercentage, finalPrice);
+  };
 
   // Check if user arrived here after completing a program
   useEffect(() => {
@@ -56,12 +68,14 @@ const Subscriptions = () => {
           showAchievementBanner={showAchievementBanner}
           isIndiaUser={isIndiaUser}
           userLocation={userLocation}
+          isIOSNative={isIOSNative}
+          onRestore={restorePurchases}
         />
 
         <SubscriptionGrid
           programs={programs}
           isIndiaUser={isIndiaUser}
-          onSubscribe={handleSubscribe}
+          onSubscribe={onSubscribe}
         />
 
         {/* Group Discount Section */}
