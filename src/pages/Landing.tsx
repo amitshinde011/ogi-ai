@@ -35,11 +35,11 @@ const Landing = () => {
 
   const getTransformationImage = (durationDays: number) => {
     switch (durationDays) {
-      case 21:
+      case 30:
         return '/lovable-uploads/21days.webp';
-      case 49:
+      case 60:
         return '/lovable-uploads/49days.webp';
-      case 108:
+      case 90:
         return '/lovable-uploads/108days.webp';
       default:
         return null;
