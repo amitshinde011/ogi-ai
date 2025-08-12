@@ -31,10 +31,7 @@ export const useIOSSubscriptions = (programs: ProgramLike[]) => {
     const productId = getAppleProductIdForProgram(program);
 
     if (!isIOSNative) {
-      toast({
-        title: 'Continue on Web',
-        description: 'Apple subscriptions are only available in the iOS app. Using web/Android payment instead.',
-      });
+      // Silent fallback to web/Android payment flow
       return { usedIOS: false } as const;
     }
 
