@@ -82,3 +82,6 @@ verify_jwt = false
 
 [functions.convert-to-webp]
 verify_jwt = false
+
+[functions.ios-subscription-entitlement]
+verify_jwt = true
