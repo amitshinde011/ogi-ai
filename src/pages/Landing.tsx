@@ -18,6 +18,7 @@ import { useSubscriptionData } from '@/hooks/useSubscriptionData';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
 import { calculatePricing, formatCurrency } from '@/utils/pricingUtils';
 import { IMAGES } from '@/constants/images';
+import { LongerAccessNote } from '@/components/subscription/LongerAccessNote';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -412,6 +413,8 @@ const Landing = () => {
               Start with our foundational programs designed for today's busy lifestyle.
             </p>
           </div>
+
+          <LongerAccessNote />
 
           {loading ? (
             <div className="text-center">

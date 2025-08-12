@@ -11,6 +11,7 @@ import { useSubscriptionActions } from '@/hooks/useSubscriptionActions';
 import { useIOSSubscriptions } from '@/hooks/useIOSSubscriptions';
 import Loader from '@/components/ui/loader';
 import Header from '@/components/Header';
+import { LongerAccessNote } from '@/components/subscription/LongerAccessNote';
 
 const Subscriptions = () => {
   const location = useLocation();
@@ -71,6 +72,8 @@ const Subscriptions = () => {
           isIOSNative={isIOSNative}
           onRestore={restorePurchases}
         />
+
+        <LongerAccessNote />
 
         <SubscriptionGrid
           programs={programs}
