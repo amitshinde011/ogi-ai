@@ -472,8 +472,8 @@ const Landing = () => {
                           )}
                           
                           {(() => {
-                            const originalPrice = isIndiaUser ? program.price_inr : program.price;
-                            const currency = isIndiaUser ? 'INR' : 'USD';
+                            const originalPrice = isIndiaUser ? program.price : program.price;
+                            const currency = isIndiaUser ? 'USD' : 'USD';
                             const pricing = calculatePricing(
                               originalPrice,
                               pricingConfig.discountPercentage,
