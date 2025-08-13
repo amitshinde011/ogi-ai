@@ -80,27 +80,7 @@ const Subscriptions = () => {
           isIndiaUser={isIndiaUser}
           onSubscribe={onSubscribe}
         />
-        <!--
-        {/* Group Discount Section */}
-        {programs.length > 0 && (
-          <div className="mt-12 max-w-2xl mx-auto">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-foreground mb-4">
-                🎯 Get Friends & Save More!
-              </h3>
-              <p className="text-muted-foreground">
-                Start a group purchase and unlock progressive discounts based on group size.
-              </p>
-            </div>
-            <GroupDiscountCalculator
-              basePrice={isIndiaUser ? programs[0]?.price || 0 : programs[0]?.price || 0}
-              currency={isIndiaUser ? 'USD' : 'USD'}
-              program={programs[0]}
-              isIndiaUser={isIndiaUser}
-            />
-          </div>
-        )}
-        -->
+        
       </div>
     </div>
   );
