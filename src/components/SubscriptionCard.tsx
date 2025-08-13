@@ -238,7 +238,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
             onClick={handleSubscribe}
           >
             <span className="truncate">
-              {isFree ? '🎉 Get Free Access' : `Pay ${currencySymbol}${Math.round(pricing.finalPrice)}`}
+              {isFree ? '🎉 Get Free Access' : `Pay ${currencySymbol}${pricing.finalPrice}`}
             </span>
           </Button>
         </div>
