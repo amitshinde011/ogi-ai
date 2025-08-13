@@ -42,11 +42,7 @@ export const SubscriptionHeader: React.FC<SubscriptionHeaderProps> = ({
           </div>
         )}
         
-        <div className="inline-block w-full max-w-2xl">
-          <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
-            <PricingDisplay isIndiaUser={isIndiaUser} userLocation={userLocation} />
-          </div>
-        </div>
+        
       </div>
     </div>
   );
