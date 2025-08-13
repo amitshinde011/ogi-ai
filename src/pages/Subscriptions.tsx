@@ -80,7 +80,7 @@ const Subscriptions = () => {
           isIndiaUser={isIndiaUser}
           onSubscribe={onSubscribe}
         />
-        /*
+        <!--
         {/* Group Discount Section */}
         {programs.length > 0 && (
           <div className="mt-12 max-w-2xl mx-auto">
@@ -100,7 +100,7 @@ const Subscriptions = () => {
             />
           </div>
         )}
-        */
+        -->
       </div>
     </div>
   );
