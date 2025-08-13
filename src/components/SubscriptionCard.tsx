@@ -56,17 +56,17 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
 
   const getDisplayPrice = () => {
     if (isIndiaUser && program.price_inr) {
-      return program.price_inr;
+      return program.price;
     }
     return program.price;
   };
 
   const getCurrency = () => {
-    return isIndiaUser ? 'INR' : 'USD';
+    return isIndiaUser ? 'USD' : 'USD';
   };
 
   const getCurrencySymbol = () => {
-    return isIndiaUser ? '₹' : '$';
+    return isIndiaUser ? '$' : '$';
   };
 
   const isPopular = program.duration_days === 60;
