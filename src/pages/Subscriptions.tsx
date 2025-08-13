@@ -93,8 +93,8 @@ const Subscriptions = () => {
               </p>
             </div>
             <GroupDiscountCalculator
-              basePrice={isIndiaUser ? programs[0]?.price_inr || 0 : programs[0]?.price || 0}
-              currency={isIndiaUser ? 'INR' : 'USD'}
+              basePrice={isIndiaUser ? programs[0]?.price || 0 : programs[0]?.price || 0}
+              currency={isIndiaUser ? 'USD' : 'USD'}
               program={programs[0]}
               isIndiaUser={isIndiaUser}
             />
