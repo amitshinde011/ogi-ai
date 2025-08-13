@@ -37,7 +37,7 @@ export const usePricingConfig = () => {
     
     // Example: New Year (January 1), Christmas (December 25)
     // return (month === 1 && day === 1) || (month === 12 && day === 25);
-    return true;
+    return false;
   };
 
   return config;
