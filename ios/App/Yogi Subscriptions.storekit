@@ -1,0 +1,222 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "56A95CD0",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6749209976",
+    "_developerTeamID" : "W2Z72Y4QR7",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 776950760.99167097,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21753967",
+      "localizations" : [
+
+      ],
+      "name" : "Yogi Membership",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+            {
+              "displayPrice" : "12.99",
+              "eligibility" : [
+                "new"
+              ],
+              "internalID" : "1B7446AB",
+              "isStackable" : false,
+              "numberOfPeriods" : 1,
+              "paymentMode" : "payUpFront",
+              "referenceName" : "WELCOME10",
+              "subscriptionPeriod" : "P1M"
+            }
+          ],
+          "displayPrice" : "14.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6749904397",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Monthly access; includes monthly track",
+              "displayName" : "Yogi Catalyst Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "care.yogi.app.membership.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Yogi Catalyst Monthly (Ignite Your Inner Energy)",
+          "subscriptionGroupID" : "21753967",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+            {
+              "displayPrice" : "24.99",
+              "internalID" : "2444E7EC",
+              "numberOfPeriods" : 1,
+              "offerID" : "YOGIUSER3",
+              "paymentMode" : "payUpFront",
+              "referenceName" : "YOGIUSER3",
+              "subscriptionPeriod" : "P3M"
+            }
+          ],
+          "codeOffers" : [
+            {
+              "displayPrice" : "29.99",
+              "eligibility" : [
+                "new"
+              ],
+              "internalID" : "A9FC881E",
+              "isStackable" : false,
+              "numberOfPeriods" : 1,
+              "paymentMode" : "payUpFront",
+              "referenceName" : "WELCOME3",
+              "subscriptionPeriod" : "P3M"
+            }
+          ],
+          "displayPrice" : "34.99",
+          "familyShareable" : false,
+          "groupNumber" : 3,
+          "internalID" : "6749906872",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Includes 3 Month tracks",
+              "displayName" : "Yogi Quarterly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "care.yogi.app.membership.quarterly",
+          "recurringSubscriptionPeriod" : "P3M",
+          "referenceName" : "Yogi Mastery Quarterly-Become the Architect of Your Own Welbeing",
+          "subscriptionGroupID" : "21753967",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        },
+        {
+          "adHocOffers" : [
+            {
+              "displayPrice" : "17.99",
+              "internalID" : "4F6DD3FE",
+              "numberOfPeriods" : 1,
+              "offerID" : "YOGIUSER2",
+              "paymentMode" : "payUpFront",
+              "referenceName" : "YOGIUSER2",
+              "subscriptionPeriod" : "P2M"
+            }
+          ],
+          "codeOffers" : [
+            {
+              "displayPrice" : "19.99",
+              "eligibility" : [
+                "new"
+              ],
+              "internalID" : "AA7A7151",
+              "isStackable" : false,
+              "numberOfPeriods" : 1,
+              "paymentMode" : "payUpFront",
+              "referenceName" : "WELCOME2",
+              "subscriptionPeriod" : "P2M"
+            }
+          ],
+          "displayPrice" : "24.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6749906821",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "2-month access; includes 2 month tracks",
+              "displayName" : "Yogi 2-Month",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "care.yogi.app.membership.2month",
+          "recurringSubscriptionPeriod" : "P2M",
+          "referenceName" : "Yogi Metamorphosis 2-Monthly(Reshape Your Health & Vitality",
+          "subscriptionGroupID" : "21753967",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

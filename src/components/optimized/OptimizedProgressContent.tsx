@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOptimizedProgressData } from '@/hooks/useOptimizedData';
@@ -7,7 +7,23 @@ import JourneyProgress from '@/components/progress/JourneyProgress';
 import WeeklyStreak from '@/components/WeeklyStreak';
 
 export const OptimizedProgressContent = () => {
-  const { data: progressData, isLoading, error } = useOptimizedProgressData();
+  const { data: progressData, isLoading, error, refetch } = useOptimizedProgressData();
+
+  useEffect(() => {
+    const onUpdate = () => {
+      setTimeout(() => refetch?.(), 50);
+    };
+    window.addEventListener('wellnessUpdated', onUpdate as any);
+    window.addEventListener('stepsUpdated', onUpdate as any);
+    window.addEventListener('mealLogged', onUpdate as any);
+    window.addEventListener('progressDataInvalidated', onUpdate as any);
+    return () => {
+      window.removeEventListener('wellnessUpdated', onUpdate as any);
+      window.removeEventListener('stepsUpdated', onUpdate as any);
+      window.removeEventListener('mealLogged', onUpdate as any);
+      window.removeEventListener('progressDataInvalidated', onUpdate as any);
+    };
+  }, [refetch]);
 
   if (isLoading) {
     return (
@@ -52,8 +68,8 @@ export const OptimizedProgressContent = () => {
   }
 
   // Type-safe data extraction
-  const weeklyData = (progressData as any)?.weekly_data || [];
-  const journeyData = (progressData as any)?.journey_data || {
+  const weeklyData = (progressData as any)?.weeklyData || (progressData as any)?.weekly_data || [];
+  const journeyData = (progressData as any)?.journeyData || (progressData as any)?.journey_data || {
     totalDays: 90,
     completedDays: 0,
     activeDays: 0,
@@ -67,6 +83,26 @@ export const OptimizedProgressContent = () => {
     milestones: [],
     suggestions: ['Start your wellness journey today!']
   };
+
+  // Normalize journey data for chart consumption (fallback for RPC shapes)
+  const journeyDataNormalized = React.useMemo(() => {
+    const jd: any = journeyData;
+    if (jd && !jd.milestones) {
+      const dp = (jd as any)?.dailyPoints || (jd as any)?.daily_points;
+      if (Array.isArray(dp)) {
+        return {
+          ...jd,
+          milestones: dp.map((d: any) => ({
+            day: d.day ?? 0,
+            date: d.date ?? '',
+            points: d.score ?? 0,
+            cumulative: d.cumulativeScore ?? 0,
+          })),
+        };
+      }
+    }
+    return jd;
+  }, [journeyData]);
 
   const mockWeeklyData = {
     totalScore: 420,
@@ -85,7 +121,7 @@ export const OptimizedProgressContent = () => {
       <Card className="border-0 shadow-md bg-white/95 backdrop-blur-sm">
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-6 text-primary">Journey Overview</h2>
-          <JourneyProgress data={journeyData} />
+          <JourneyProgress data={journeyDataNormalized} />
         </CardContent>
       </Card>
 

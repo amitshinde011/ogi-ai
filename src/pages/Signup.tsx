@@ -149,7 +149,7 @@ const [appleLoading, setAppleLoading] = useState(false);
                   <div className="text-left">
                     <h1 className="text-4xl font-bold text-foreground mb-4">
                       Transform Your Life in
-                      <span className="text-primary block">Just 21 Days</span>
+                      <span className="text-primary block">Just 30 Days</span>
                     </h1>
                     <p className="text-lg text-muted-foreground mb-6">
                       Join thousands who've already transformed their health with our personalized wellness programs.

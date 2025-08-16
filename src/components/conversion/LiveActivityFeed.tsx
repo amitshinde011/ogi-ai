@@ -11,31 +11,70 @@ interface ActivityItem {
 }
 
 const indianNames = [
-  'Priya', 'Rahul', 'Anjali', 'Vikram', 'Sneha', 'Arjun', 'Kavya', 'Aditya', 
-  'Meera', 'Rohan', 'Pooja', 'Karan', 'Divya', 'Amit', 'Shreya', 'Nikhil', 
-  'Riya', 'Sanjay', 'Nisha', 'Deepak', 'Ishita', 'Varun', 'Swati', 'Manish'
+  'Priya','Rahul','Anjali','Vikram','Sneha','Arjun','Kavya','Aditya',
+  'Meera','Rohan','Pooja','Karan','Divya','Amit','Shreya','Nikhil',
+  'Riya','Sanjay','Nisha','Deepak','Ishita','Varun','Swati','Manish',
+  'Aarav','Vihaan','Vivaan','Ishaan','Reyansh','Arnav','Advait','Siddharth',
+  'Pranav','Kunal','Abhishek','Saurabh','Ashwin','Rohit','Raj','Ravi',
+  'Mohit','Gaurav','Harsh','Yash','Kartik','Parth','Jay','Dhruv',
+  'Raghav','Kabir','Armaan','Sameer','Sahil','Tushar','Nitin','Sandeep',
+  'Akash','Alok','Ankit','Pankaj','Tarun','Uday','Vivek',
+  'Aisha','Aditi','Neha','Nandini','Tanvi','Radhika','Payal','Kajal',
+  'Juhi','Bhavna','Preeti','Sonali','Kavita','Priyanka','Komal','Simran',
+  'Tina','Trisha','Ananya','Anushka','Shruti','Shweta','Monika','Pallavi','Ishani'
 ];
 
 const indianLocations = [
-  'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Pune', 'Hyderabad', 'Kolkata', 
-  'Ahmedabad', 'Jaipur', 'Lucknow', 'Indore', 'Bhopal', 'Coimbatore', 'Nagpur', 
-  'Surat', 'Thiruvananthapuram', 'Gurgaon', 'Noida', 'Mysore', 'Chandigarh'
+  'Mumbai','Delhi','Bangalore','Chennai','Pune','Hyderabad','Kolkata',
+  'Ahmedabad','Jaipur','Lucknow','Indore','Bhopal','Coimbatore','Nagpur',
+  'Surat','Thiruvananthapuram','Gurgaon','Noida','Mysore','Chandigarh',
+  'Kochi','Visakhapatnam','Vijayawada','Kanpur','Patna','Ranchi','Raipur',
+  'Bhubaneswar','Cuttack','Guwahati','Dehradun','Haridwar','Rishikesh',
+  'Shimla','Srinagar','Jammu','Amritsar','Ludhiana','Jalandhar','Mohali',
+  'Faridabad','Ghaziabad','Vadodara','Rajkot','Varanasi','Agra','Meerut',
+  'Udaipur','Jodhpur','Kota','Aurangabad','Nashik','Thane','Navi Mumbai',
+  'Pimpri-Chinchwad','Madurai','Tiruchirappalli','Salem','Vellore','Mangalore',
+  'Hubli-Dharwad','Puducherry','Siliguri','Durgapur','Asansol','Kozhikode','Ajmer','Bikaner'
 ];
 
 const internationalNames = [
-  'Sarah', 'Mike', 'Emma', 'David', 'Lisa', 'Alex', 'Maria', 'James', 'Sophie', 
-  'Lucas', 'Anna', 'Ryan', 'Elena', 'Oliver', 'Zoe', 'Noah', 'Chloe', 'Ethan', 
-  'Isabella', 'Mason', 'Grace', 'Liam', 'Sophia', 'William'
+  'Priya','Rahul','Anjali','Vikram','Sneha','Arjun','Kavya','Aditya',
+  'Meera','Rohan','Pooja','Karan','Divya','Amit','Shreya','Nikhil',
+  'Riya','Sanjay','Nisha','Deepak','Ishita','Varun','Swati','Manish',
+  'Aarav','Vihaan','Vivaan','Ishaan','Reyansh','Arnav','Advait','Siddharth',
+  'Sarah','Mike','Emma','David','Lisa','Alex','Maria','James','Sophie',
+  'Lucas','Anna','Ryan','Elena','Oliver','Zoe','Noah','Chloe','Ethan',
+  'Isabella','Mason','Grace','Liam','Sophia','William',
+  'Benjamin','Daniel','Matthew','Jacob','Joseph','Nathan','Gabriel','Anthony',
+  'Andrew','Christopher','Jonathan','Joshua','Aaron','Charles','Dylan','Thomas',
+  'Jack','Harry','George','Henry','Samuel','Nicholas','Peter','Paul',
+  'Rebecca','Rachel','Katherine','Victoria','Charlotte','Amelia','Ava','Harper',
+  'Evelyn','Scarlett','Madison','Lily','Layla','Mila','Emily','Avery',
+  'Sienna','Ruby','Freya','Poppy','Rosie','Natalie','Lauren','Julia','Hannah','Olivia'
 ];
 
 const internationalLocations = [
-  'New York', 'London', 'Sydney', 'Toronto', 'Berlin', 'Singapore', 'Madrid', 
-  'Los Angeles', 'Paris', 'São Paulo', 'Stockholm', 'Chicago', 'Rome', 'Amsterdam', 
-  'Melbourne', 'Vancouver', 'Dublin', 'Miami', 'Barcelona', 'Seattle'
+  'Mumbai','Delhi','Bangalore','Chennai','Pune','Hyderabad','Kolkata',
+  'New York','London','Sydney','Toronto','Berlin','Singapore','Madrid',
+  'Los Angeles','Paris','São Paulo','Stockholm','Chicago','Rome','Amsterdam',
+  'Melbourne','Vancouver','Dublin','Miami','Barcelona','Seattle',
+  'San Francisco','Boston','Austin','Washington, D.C.','San Diego','Denver','Dallas','Houston',
+  'Atlanta','Phoenix','Philadelphia','Portland','Nashville','Minneapolis','Detroit',
+  'Manchester','Birmingham','Edinburgh','Glasgow','Bristol','Leeds',
+  'Ottawa','Montreal','Calgary',
+  'Brisbane','Perth','Adelaide','Canberra',
+  'Auckland','Wellington','Christchurch',
+  'Zurich','Geneva','Vienna','Munich','Frankfurt','Hamburg',
+  'Copenhagen','Oslo','Helsinki','Lisbon','Porto','Prague','Budapest','Warsaw','Krakow',
+  'Brussels','Antwerp','Dubai','Abu Dhabi','Doha','Hong Kong','Kuala Lumpur',
+  'Cape Town','Johannesburg','Nairobi','Tokyo'
 ];
 
+
 const activities = [
-  'started 21-day transformation',
+  'started 30-day transformation',
+  'started 60-day transformation',
+  'started 90-day transformation',
   'completed day 15 of wellness journey',
   'joined the community',
   'unlocked premium recipes',

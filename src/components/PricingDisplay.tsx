@@ -55,9 +55,6 @@ export const PricingDisplay: React.FC<PricingDisplayProps> = ({
         </div>
       </div>
       
-      <div className="text-xs sm:text-sm text-gray-500 bg-gray-50 px-3 sm:px-4 py-2 rounded-lg text-center">
-        🔒 Secure payments via Razorpay
-      </div>
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { initializeCapacitorPlugins } from "@/utils/capacitorConfig";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserDataProvider } from "@/contexts/UserDataContext";
-
+import { Purchases, LOG_LEVEL } from "@revenuecat/purchases-capacitor";
 // Import all pages
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
@@ -70,6 +70,21 @@ const App = () => {
   useEffect(() => {
     // Initialize Capacitor plugins
     initializeCapacitorPlugins().catch(console.error);
+
+    // --- START: RevenueCat Integration ---
+    const initializeIAP = async () => {
+      // Enable debug logs for development; remove for production
+      await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+
+      // Configure with your unique API key from the RevenueCat dashboard
+      await Purchases.configure({
+        apiKey: 'appl_JeIZictIIJAIGcnuNdPriakVOWo'
+      });
+    };
+
+    initializeIAP().catch(console.error);
+    // --- END: RevenueCat Integration ---
+
   }, []);
 
   return (

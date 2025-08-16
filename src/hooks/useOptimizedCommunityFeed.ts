@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { communityFeedRefreshService } from '@/utils/communityFeedRefreshService';
+
 
 export interface CommunityPost {
   id: number;
@@ -265,17 +265,9 @@ export const useOptimizedCommunityFeed = () => {
     }
   }, [currentUser, posts]);
 
-  // Initialize and setup refresh service
+  // Initialize current user and initial fetch
   useEffect(() => {
     fetchCurrentUser();
-    
-    // Start the background refresh service
-    communityFeedRefreshService.startListening();
-    
-    return () => {
-      // Cleanup refresh service
-      communityFeedRefreshService.stopListening();
-    };
   }, [fetchCurrentUser]);
 
   useEffect(() => {

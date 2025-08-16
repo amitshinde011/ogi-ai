@@ -14,8 +14,8 @@ const DailySpecialTracking = ({ saladBowlCompleted, kanjiCompleted }: DailySpeci
   const navigate = useNavigate();
   const { data: userProgram } = useUserProgram();
 
-  // Only show for 49 day and 108 day programs
-  const shouldShowTracking = userProgram?.programs?.duration_days === 49 || userProgram?.programs?.duration_days === 108;
+  // Only show for 60 day and 90 day programs
+  const shouldShowTracking = userProgram?.programs?.duration_days === 60 || userProgram?.programs?.duration_days === 90;
 
   if (!shouldShowTracking) {
     return null;

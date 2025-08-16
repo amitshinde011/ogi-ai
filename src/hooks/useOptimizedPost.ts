@@ -45,41 +45,59 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
       setLoading(true);
       setError(null);
 
-      // Fetch post, comments, and all user data in parallel
-      const [postResult, commentsResult, likeResult] = await Promise.all([
-        // Fetch post data with author info from materialized view
-        supabase
-          .from('posts_with_author')
-          .select('*')
-          .eq('id', numericPostId)
-          .single(),
+      // Fetch post row first
+      const { data: postRow, error: postError } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('id', numericPostId)
+        .maybeSingle();
 
-        // Fetch comments
-        supabase
-          .from('comments')
-          .select('*')
-          .eq('post_id', numericPostId)
-          .order('created_at', { ascending: false }),
-
-        // Check if user liked the post
-        userId ? supabase
-          .from('likes')
-          .select('user_id')
-          .eq('post_id', numericPostId)
-          .eq('user_id', userId)
-          .maybeSingle() : Promise.resolve({ data: null, error: null })
-      ]);
-
-      if (postResult.error) {
+      if (postError || !postRow) {
         setError('Post not found');
         setLoading(false);
         return;
       }
 
+      // Fetch comments, like status, and author info in parallel
+      const [commentsResult, likeResult, profileResult, automationResult] = await Promise.all([
+        supabase
+          .from('comments')
+          .select('*')
+          .eq('post_id', numericPostId)
+          .order('created_at', { ascending: false }),
+        userId
+          ? supabase
+              .from('likes')
+              .select('user_id')
+              .eq('post_id', numericPostId)
+              .eq('user_id', userId)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null } as any),
+        supabase
+          .from('user_profiles')
+          .select('user_id, name, profile_photo_url')
+          .eq('user_id', postRow.author_id)
+          .maybeSingle(),
+        supabase
+          .from('automation_users')
+          .select('user_id, name, profile_photo_url')
+          .eq('user_id', postRow.author_id)
+          .maybeSingle(),
+      ]);
+
+      // Build author info for post
+      const authorName =
+        (profileResult as any).data?.name ??
+        (automationResult as any).data?.name ??
+        'Anonymous User';
+      const authorAvatar =
+        (profileResult as any).data?.profile_photo_url ??
+        (automationResult as any).data?.profile_photo_url ??
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${postRow.author_id}`;
+
       // Get comment author IDs for fetching comment authors
-      const postData = postResult.data;
       const commentAuthorIds = commentsResult.data 
-        ? [...new Set(commentsResult.data.map(c => c.author_id))]
+        ? [...new Set(commentsResult.data.map((c: any) => c.author_id))]
         : [];
 
       // Fetch comment authors in one query
@@ -88,25 +106,25 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
             .from('user_profiles')
             .select('user_id, name, profile_photo_url')
             .in('user_id', commentAuthorIds)
-        : { data: [] };
+        : { data: [] } as any;
 
       // Create author map for quick lookup
-      const authorMap = new Map(
-        (userAuthors || []).map(author => [
-          author.user_id,
-          { name: author.name, profile_photo_url: author.profile_photo_url }
+      const authorMap = new Map<string, { name: string | null; profile_photo_url: string | null }>(
+        (userAuthors || []).map((author: any) => [
+          author.user_id as string,
+          { name: author.name as string | null, profile_photo_url: author.profile_photo_url as string | null }
         ])
       );
 
       // Check for missing authors in automation_users
-      const missingAuthorIds = commentAuthorIds.filter(id => !authorMap.has(id));
+      const missingAuthorIds = commentAuthorIds.filter((id: string) => !authorMap.has(id));
       if (missingAuthorIds.length > 0) {
         const { data: automationAuthors } = await supabase
           .from('automation_users')
           .select('user_id, name, profile_photo_url')
           .in('user_id', missingAuthorIds);
 
-        automationAuthors?.forEach(author => {
+        automationAuthors?.forEach((author: any) => {
           authorMap.set(author.user_id, {
             name: author.name,
             profile_photo_url: author.profile_photo_url
@@ -114,19 +132,19 @@ export const useOptimizedPost = (postId: string | undefined, userId: string | un
         });
       }
 
-      // Process post data (author info already included from materialized view)
+      // Process post data (author info assembled from profiles/automation_users)
       const optimizedPost: OptimizedPost = {
-        id: postData.id,
-        author_id: postData.author_id,
-        image_url: postData.image_url,
-        caption: postData.caption,
-        category: postData.category,
-        like_count: postData.like_count,
-        comment_count: postData.comment_count,
-        created_at: postData.created_at,
-        author_name: postData.author_name,
-        author_avatar: postData.author_avatar,
-        user_has_liked: !!likeResult.data
+        id: postRow.id,
+        author_id: postRow.author_id,
+        image_url: postRow.image_url,
+        caption: postRow.caption,
+        category: postRow.category,
+        like_count: postRow.like_count,
+        comment_count: postRow.comment_count,
+        created_at: postRow.created_at,
+        author_name: authorName,
+        author_avatar: authorAvatar,
+        user_has_liked: !!(likeResult as any).data
       };
 
       // Process comments data

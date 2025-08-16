@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { getLocalDateString } from '@/utils/dateUtils';
 import { offlineQueue } from '@/utils/offlineQueue';
+import { localCache } from '@/utils/localCache';
 
 interface StepData {
   steps: number;
@@ -34,21 +35,13 @@ export const useStepTracking = () => {
     }
   }, [user]);
 
-  // Persist data to localStorage
-  const persistData = useCallback((steps: number) => {
-    if (!user) return;
-    
-    try {
-      const today = getLocalDateString();
-      const dataToSave = {
-        steps,
-        timestamp: Date.now()
-      };
-      localStorage.setItem(`steps_${user.id}_${today}`, JSON.stringify(dataToSave));
-    } catch (error) {
-      console.error('Error persisting data:', error);
-    }
-  }, [user]);
+  // Persist data to IndexedDB via localCache
+  const persistData = useCallback((steps: number) => {
+    if (!user) return;
+    const today = getLocalDateString();
+    // fire and forget
+    localCache.setLocalSteps(user.id, today, steps);
+  }, [user]);
 
   // This function is available if needed (e.g., on logout), but not called automatically
   const clearUserCache = useCallback(() => {
@@ -74,26 +67,35 @@ export const useStepTracking = () => {
     });
   }, [user]);
 
-  // Fetch today's steps from database
-  const fetchTodaySteps = useCallback(async () => {
-    if (!user) return 0;
+  // Fetch today's steps from database (with updated_at)
+  const fetchTodaySteps = useCallback(async (): Promise<{ steps: number; updatedAt?: number }> => {
+    if (!user) return { steps: 0 };
 
-    try {
-      const today = getLocalDateString();
-      const { data, error } = await supabase
-        .from('steps_tracking')
-        .select('steps_count')
-        .eq('user_id', user.id)
-        .eq('date', today)
-        .maybeSingle();
+    try {
+      const today = getLocalDateString();
 
-      if (error) throw error;
-      return data?.steps_count || 0;
-    } catch (error) {
-      console.error('Error fetching today steps:', error);
-      return loadPersistedData();
-    }
-  }, [user, loadPersistedData]);
+      // Offline? Return IndexedDB value immediately to avoid failed network calls
+      if (!navigator.onLine) {
+        const localSteps = await localCache.getLocalSteps(user.id, today);
+        return { steps: localSteps };
+      }
+
+      const { data, error } = await supabase
+        .from('steps_tracking')
+        .select('steps_count, updated_at')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .maybeSingle();
+
+      if (error) throw error;
+      return { steps: data?.steps_count || 0, updatedAt: data?.updated_at ? new Date(data.updated_at as any).getTime() : undefined };
+    } catch (error) {
+      console.error('Error fetching today steps:', error);
+      const today = getLocalDateString();
+      const localSteps = await localCache.getLocalSteps(user.id, today);
+      return { steps: localSteps };
+    }
+  }, [user]);
 
   // Sync steps to database
   const syncToDatabase = useCallback(async (steps: number) => {
@@ -141,23 +143,39 @@ export const useStepTracking = () => {
       // This was deleting the 'step_goal_achieved' flag.
       // clearUserCache();
 
-      setIsLoading(true);
-      try {
-        const dbSteps = await fetchTodaySteps();
-        
-        console.log('📊 Database steps:', dbSteps);
-        
-        setStepData({ steps: dbSteps, lastUpdated: new Date() });
-        persistData(dbSteps);
-        
-        console.log('🎯 Step tracking initialized with', dbSteps, 'steps from database');
-      } catch (error) {
-        console.error('Error initializing step tracking:', error);
-        setStepData({ steps: 0, lastUpdated: new Date() });
-        persistData(0);
-      } finally {
-        setIsLoading(false);
-      }
+      setIsLoading(true);
+      try {
+        // Show local cache immediately (offline-first UI)
+        const today = getLocalDateString();
+        const { steps: localSteps, timestamp: localTs } = await localCache.getLocalStepsMeta(user.id, today);
+        setStepData({ steps: localSteps, lastUpdated: new Date() });
+
+        // Fetch DB and resolve conflicts by timestamp
+        const { steps: dbSteps, updatedAt: dbTs } = await fetchTodaySteps();
+        const dbTimestamp = dbTs || 0;
+
+        if ((localTs || 0) > dbTimestamp) {
+          // Local is newer → keep local and sync to DB (if possible)
+          if (navigator.onLine) {
+            await syncToDatabase(localSteps);
+          } else {
+            await offlineQueue.enqueue('steps_upsert', { user_id: user.id, date: today, steps: localSteps });
+          }
+          persistData(localSteps);
+          console.log('📌 Using newer local steps:', localSteps);
+        } else {
+          // DB is newer or equal
+          setStepData({ steps: dbSteps, lastUpdated: new Date() });
+          persistData(dbSteps);
+          console.log('📌 Using DB steps:', dbSteps);
+        }
+      } catch (error) {
+        console.error('Error initializing step tracking:', error);
+        setStepData({ steps: 0, lastUpdated: new Date() });
+        persistData(0);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     initializeTracking();

@@ -23,7 +23,7 @@ export const usePricingConfig = () => {
     
     setConfig({
       discountPercentage: isHoliday ? 20 : 0, // 20% discount during special occasions
-      taxPercentage: 18, // 18% tax (you can adjust this)
+      taxPercentage: 0, // 18% tax (you can adjust this)
       isSpecialOccasion: isHoliday,
       occasionName: isHoliday ? 'Today Special' : undefined,
     });
@@ -37,7 +37,7 @@ export const usePricingConfig = () => {
     
     // Example: New Year (January 1), Christmas (December 25)
     // return (month === 1 && day === 1) || (month === 12 && day === 25);
-    return true;
+    return false;
   };
 
   return config;

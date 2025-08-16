@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { CouponCodeInput } from '@/components/CouponCodeInput';
 import { usePricingConfig } from '@/hooks/usePricingConfig';
 import { useCouponCode } from '@/hooks/useCouponCode';
 import { calculatePricing } from '@/utils/pricingUtils';
+import { PurchasesPackage } from '@revenuecat/purchases-capacitor'; // Import RevenueCat type
 
 interface Program {
   id: string;
@@ -24,14 +24,26 @@ interface Program {
 interface SubscriptionCardProps {
   program: Program;
   isIndiaUser: boolean;
-  onSubscribe: (programId: string, couponDiscountPercentage?: number, finalPrice?: number) => void;
+  // --- START: RevenueCat Props ---
+  isIOSNative: boolean;
+  rcPackage?: PurchasesPackage; // The package from RevenueCat
+  // --- END: RevenueCat Props ---
+  onSubscribe: (data: {
+    programId: string;
+    rcPackage?: PurchasesPackage;
+    couponDiscountPercentage?: number;
+    finalPrice?: number;
+  }) => void;
 }
 
 export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   program,
   isIndiaUser,
+  rcPackage,
+  isIOSNative,
   onSubscribe
 }) => {
+  // These hooks are now only used for the web/non-iOS flow
   const pricingConfig = usePricingConfig();
   const {
     appliedCoupon,
@@ -43,51 +55,48 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
 
   const getTransformationImage = () => {
     switch (program.duration_days) {
-      case 21:
-        return '/lovable-uploads/21days.webp';
-      case 49:
-        return '/lovable-uploads/49days.webp';
-      case 108:
-        return '/lovable-uploads/108days.webp';
-      default:
-        return null;
+      case 30: return '/lovable-uploads/21days.webp';
+      case 60: return '/lovable-uploads/49days.webp';
+      case 90: return '/lovable-uploads/108days.webp';
+      default: return null;
     }
   };
 
-  const getDisplayPrice = () => {
-    if (isIndiaUser && program.price_inr) {
-      return program.price_inr;
-    }
-    return program.price;
-  };
-
-  const getCurrency = () => {
-    return isIndiaUser ? 'INR' : 'USD';
-  };
-
-  const getCurrencySymbol = () => {
-    return isIndiaUser ? '₹' : '$';
-  };
-
-  const isPopular = program.duration_days === 49;
+  const isPopular = program.duration_days === 60;
+  
+  // --- START: Web-only Pricing Logic ---
   const couponDiscountPercentage = getDiscountPercentage();
   const isFree = couponDiscountPercentage === 100;
-
-  // Calculate the final price including all discounts and taxes
-  const originalPrice = getDisplayPrice();
+  const originalPrice = isIndiaUser ? program.price : program.price;
   const pricing = calculatePricing(
     originalPrice,
     pricingConfig.discountPercentage,
     pricingConfig.taxPercentage,
     couponDiscountPercentage
   );
+  // --- END: Web-only Pricing Logic ---
 
   const handleSubscribe = () => {
-    onSubscribe(program.id, couponDiscountPercentage, pricing.finalPrice);
+    onSubscribe({
+      programId: program.id,
+      rcPackage, // Pass the RC package if it exists
+      couponDiscountPercentage,
+      finalPrice: pricing.finalPrice,
+    });
   };
 
-  const currency = getCurrency();
-  const currencySymbol = getCurrencySymbol();
+  // --- START: Determine Display Price & Button Text ---
+  const displayPrice = isIOSNative && rcPackage
+    ? rcPackage.product.priceString
+    : `$${originalPrice}`;
+
+  const buttonText = isIOSNative && rcPackage
+    ? `Pay ${rcPackage.product.priceString}`
+    : isFree
+      ? '🎉 Get Free Access'
+      : `Pay $${pricing.finalPrice}`;
+  // --- END: Determine Display Price & Button Text ---
+
 
   return (
     <Card className={`relative h-full flex flex-col bg-white border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 w-full ${isPopular ? 'border-primary shadow-lg' : 'border-gray-200'
@@ -106,8 +115,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
           {program.name}
         </h3>
-
-        {/* Transformation Image */}
+        
         {getTransformationImage() && (
           <div className="mb-4">
             <img
@@ -121,7 +129,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <div className="space-y-2">
           <div className="flex items-baseline justify-center gap-1">
             <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">
-              {currencySymbol}{originalPrice}
+              {displayPrice}
             </span>
             <span className="text-xs sm:text-sm text-gray-500">
               /<span className="font-semibold">{program.duration_days} days</span>
@@ -131,40 +139,43 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           <p className="text-gray-800 text-xs sm:text-sm px-2 sm:px-4 leading-relaxed">
             {program.description}
           </p>
-
-          <div className="text-xs text-gray-400 bg-gray-50 px-2 sm:px-3 py-1 rounded-full inline-block">
-            Payment via <span className="font-medium">Razorpay</span>
-          </div>
         </div>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col space-y-4 sm:space-y-6 px-4 sm:px-6 pb-4 sm:pb-6">
-        {/* Coupon Code Section */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
-          <CouponCodeInput
-            onApplyCoupon={validateCoupon}
-            appliedCoupon={appliedCoupon}
-            onRemoveCoupon={removeCoupon}
-            isValidating={isValidating}
-          />
-        </div>
+        {/* --- START: Conditional UI for Web vs. iOS --- */}
+        {!isIOSNative && (
+          <>
+            {/* Coupon Code Section */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+              <CouponCodeInput
+                onApplyCoupon={validateCoupon}
+                appliedCoupon={appliedCoupon}
+                onRemoveCoupon={removeCoupon}
+                isValidating={isValidating}
+              />
+            </div>
 
-        {/* Pricing Breakdown */}
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4">
-          <PricingBreakdown
-            originalPrice={originalPrice}
-            currency={currency}
-            discountPercentage={pricingConfig.discountPercentage}
-            taxPercentage={pricingConfig.taxPercentage}
-            isSpecialOccasion={pricingConfig.isSpecialOccasion}
-            occasionName={pricingConfig.occasionName}
-            couponDiscountPercentage={couponDiscountPercentage}
-          />
-        </div>
+            {/* Pricing Breakdown */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4">
+              <PricingBreakdown
+                originalPrice={originalPrice}
+                currency={isIndiaUser ? 'USD' : 'USD'}
+                discountPercentage={pricingConfig.discountPercentage}
+                taxPercentage={pricingConfig.taxPercentage}
+                isSpecialOccasion={pricingConfig.isSpecialOccasion}
+                occasionName={pricingConfig.occasionName}
+                couponDiscountPercentage={couponDiscountPercentage}
+              />
+            </div>
+          </>
+        )}
+        {/* --- END: Conditional UI for Web vs. iOS --- */}
 
-        {/* What's Included */}
+        {/* What's Included (Shared for both platforms) */}
         <div className="space-y-3 sm:space-y-4">
-          <div>
+          {/* ... (your features and benefits mapping code remains unchanged) ... */}
+           <div>
             <h4 className="font-semibold text-gray-900 mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
               <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
               What's Included
@@ -186,9 +197,8 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
                 );
               })}
             </div>
-          </div>
-
-          <div>
+           </div>
+           <div>
             <h4 className="font-semibold text-gray-900 mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
               <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
               Benefits You'll Get
@@ -228,10 +238,9 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
                 );
               })}
             </div>
-          </div>
+           </div>
         </div>
-
-        {/* CTA Button */}
+        
         <div className="mt-auto pt-4 sm:pt-6">
           <Button
             className={`w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg font-semibold rounded-lg transition-all duration-200 text-primary-foreground ${isPopular
@@ -239,9 +248,11 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
                 : 'bg-green-600 hover:bg-green-500'
               }`}
             onClick={handleSubscribe}
+            // Disable button if on iOS and packages haven't loaded yet
+            disabled={isIOSNative && !rcPackage} 
           >
             <span className="truncate">
-              {isFree ? '🎉 Get Free Access' : `Pay ${currencySymbol}${Math.round(pricing.finalPrice)}`}
+              {isFree ? '🎉 Get Free Access' : isIOSNative && !rcPackage ? 'Loading Plans...' : buttonText}
             </span>
           </Button>
         </div>
