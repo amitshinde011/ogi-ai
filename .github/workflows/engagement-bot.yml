@@ -1,7 +1,7 @@
 name: Programmatic Users Engagement Bot
 on:
-  schedule:
-    - cron: '15 */3 * * *'  # Every 3 hours at 15 minutes past the hour
+  #schedule:
+  #  - cron: '15 */3 * * *'  # Every 3 hours at 15 minutes past the hour
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
